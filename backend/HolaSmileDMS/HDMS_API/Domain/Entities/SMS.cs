@@ -1,3 +1,6 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 public class SMS
 {
     [Key]
@@ -6,10 +9,6 @@ public class SMS
     [ForeignKey("Patient")]
     public int? Patient_Id { get; set; }
     public Patient? Patient { get; set; }
-
-    [ForeignKey("SMSTemplate")]
-    public int? SMSTemplateId { get; set; }
-    public SMSTemplate? SMSTemplate { get; set; }
 
     public string? SMSContent { get; set; }
 

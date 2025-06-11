@@ -1,3 +1,5 @@
+using System;
+
 namespace HDMS_API
 {
     public class WeatherForecast
