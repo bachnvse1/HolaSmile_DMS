@@ -1,12 +1,12 @@
 public class PrescriptionTemplate
 {
     [Key]
-    public int Pre_TemplateID { get; set; }
+    public int PreTemplateID { get; set; }
 
     [MaxLength(200)]
-    public string? Pre_TemplateName { get; set; }
+    public string? PreTemplateName { get; set; }
 
-    public string? Pre_TemplateContext { get; set; }
+    public string? PreTemplateContext { get; set; }
 
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }

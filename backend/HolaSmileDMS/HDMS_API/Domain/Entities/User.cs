@@ -1,14 +1,41 @@
 public class User
 {
     [Key]
-    public int UserId { get; set; }
+    public int UserID { get; set; }
 
-    public string FullName { get; set; }
-    public string Phone { get; set; }
-    public string PasswordHash { get; set; }
-    public string Gender { get; set; }
-    public string Role { get; set; }
+    [Required, MaxLength(50)]
+    public string Username { get; set; }
 
-    public ICollection<Notification> Notifications { get; set; }
-    public ICollection<SMS> SMSs { get; set; }
+    [MaxLength(50)]
+    public string? Password { get; set; }
+
+    [MaxLength(255)]
+    public string? Fullname { get; set; }
+
+    public bool? Gender { get; set; }
+
+    [MaxLength(255)]
+    public string? Address { get; set; }
+
+    [MaxLength(100)]
+    public string? DOB { get; set; }
+
+    [MaxLength(100)]
+    public string? Phone { get; set; }
+
+    [MaxLength(50)]
+    public string? Status { get; set; }
+
+    public bool? IsVerify { get; set; }
+
+    [MaxLength(100)]
+    public string? Email { get; set; }
+
+    public string? Avatar { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+
+    public int? CreatedBy { get; set; }
+    public int? UpdatedBy { get; set; }
 }
