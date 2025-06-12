@@ -34,4 +34,7 @@ public class Procedure
     public bool IsDeleted { get; set; }
 
     public ICollection<SuppliesUsed> SuppliesUsed { get; set; }
+    public ICollection<WarrantyCard> WarrantyCards { get; set; }
+
+
 }

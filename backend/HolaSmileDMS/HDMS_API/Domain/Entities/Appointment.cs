@@ -40,4 +40,6 @@ public class Appointment
     public int? UpdatedBy { get; set; }
 
     public bool IsDeleted { get; set; }
+
+    public ICollection<TreatmentRecord> TreatmentRecords { get; set;}
 }

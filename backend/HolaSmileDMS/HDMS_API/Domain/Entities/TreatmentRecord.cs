@@ -32,9 +32,6 @@ public class TreatmentRecord
     [MaxLength(255)]
     public string? TreatmentStatus { get; set; }
 
-    public bool IsWarranty { get; set; }
-    public bool Installment { get; set; }
-
     public string? Symptoms { get; set; }
     public string? Diagnosis { get; set; }
 
@@ -48,4 +45,10 @@ public class TreatmentRecord
     public int? UpdatedBy { get; set; }
 
     public bool IsDeleted { get; set; }
+
+    public ICollection<TreatmentProgress> TreatmentProgresses { get; set; }
+    public ICollection<Procedure> Procedures { get; set; }
+    public ICollection<Invoice> Invoices { get; set; }
+    public ICollection<Prescription> Prescriptions { get; set; }
+    public ICollection<Instruction> Instructions { get; set; }
 }

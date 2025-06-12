@@ -3,9 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 public class MaintenanceSupply
 {
-    [Key]
-    public int MaintenanceSupplyId { get; set; }
-
     [ForeignKey("Supplies")]
     public int SupplyId { get; set; }
 

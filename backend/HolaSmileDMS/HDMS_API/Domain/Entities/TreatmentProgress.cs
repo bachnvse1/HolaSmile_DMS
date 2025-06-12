@@ -1,10 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-public class TreatmentProcess
+public class TreatmentProgress
 {
     [Key]
-    public int TreatmentProcessID { get; set; }
+    public int TreatmentProgressID { get; set; }
 
     [ForeignKey("Dentist")]
     public int DentistID { get; set; }
@@ -42,6 +42,4 @@ public class TreatmentProcess
 
     public int? CreatedBy { get; set; }
     public int? UpdatedBy { get; set; }
-
-    public ICollection<Task> Tasks { get; set; }
 }

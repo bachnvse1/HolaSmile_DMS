@@ -10,9 +10,9 @@ public class Task
     public int? AssistantID { get; set; }
     public Assistant? Assistant { get; set; }
 
-    [ForeignKey("TreatmentProcess")]
+    [ForeignKey("TreatmentProgress")]
     public int? TreatmentProgressID { get; set; }
-    public TreatmentProcess? TreatmentProcess { get; set; }
+    public TreatmentProgress? TreatmentProgress { get; set; }
 
     [MaxLength(200)]
     public string? ProgressName { get; set; }
