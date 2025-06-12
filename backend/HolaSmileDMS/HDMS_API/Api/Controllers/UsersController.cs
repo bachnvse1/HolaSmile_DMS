@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace HDMS_API.Controllers
+namespace HDMS_API.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
