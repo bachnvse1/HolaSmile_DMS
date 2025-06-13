@@ -41,6 +41,10 @@ namespace HDMS_API.Infrastructure.Repositories
             {
                 throw new Exception("Email không hợp lệ.");
             }
+            if(await _context.Users.AnyAsync(u => u.Email == request.Email))
+            {
+                throw new Exception("Email này đã tồn tại .");
+            }
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
 
             var user = new User

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HDMS_API.Api.Controllers
 {
-    [Route("HDMS/receptionist")]
+    [Route("api/Receptionist")]
     [ApiController]
     public class ReceptionistController : ControllerBase
     {
@@ -18,7 +18,7 @@ namespace HDMS_API.Api.Controllers
         }
 
         //[Authorize(Roles = "receptionist")]    //config role ở jwt
-        [HttpPost("create-patient")]
+        [HttpPost("patients")]
         public async Task<IActionResult> CreatePatient([FromBody] CreatePatientCommand request)
         {
             if (request == null)
