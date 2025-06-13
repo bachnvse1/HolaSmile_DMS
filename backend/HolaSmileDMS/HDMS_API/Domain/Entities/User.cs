@@ -26,8 +26,7 @@ public class User
     [MaxLength(100)]
     public string? Phone { get; set; }
 
-    [MaxLength(50)]
-    public string? Status { get; set; }
+    public bool? Status { get; set; }
 
     public bool? IsVerify { get; set; }
 
