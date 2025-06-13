@@ -1,2 +1,4 @@
+dotnet ef migrations add InitialCreate
 dotnet ef database update
-dotnet ef migrations add + tên thay đổi
+npm i
+npm run dev

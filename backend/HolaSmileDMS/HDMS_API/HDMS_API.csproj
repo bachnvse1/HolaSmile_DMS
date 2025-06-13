@@ -38,5 +38,4 @@
 	  <Folder Include="Domain\Exceptions\" />
 	  <Folder Include="Infrastructure\Persistence\Repositories\" />
 	</ItemGroup>
-
 </Project>

@@ -1,12 +1,14 @@
+import { Routes, Route } from 'react-router'
 import './App.css'
-import { Button } from './components/ui/button'
+import { Login } from './pages/auth/login'
 
 function App() {
   return (
     <>
-      <div className="flex flex-col items-center justify-center h-screen">
-        <Button>Click me</Button>
-      </div>
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route path="/login" element={<Login />} />
+    </Routes>
     </>
   )
 }
