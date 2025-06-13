@@ -1,12 +1,15 @@
 import './App.css'
-import { Button } from './components/ui/button'
+import { Login } from './pages/login'
 
 function App() {
   return (
     <>
-      <div className="flex flex-col items-center justify-center h-screen">
-        <Button>Click me</Button>
+      <div className="App">
+        <Login />
       </div>
+      <footer className="footer">
+        <p>© 2023 Your Company Name</p>
+      </footer>
     </>
   )
 }
