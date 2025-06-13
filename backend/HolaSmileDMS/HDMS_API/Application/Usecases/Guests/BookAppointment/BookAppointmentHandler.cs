@@ -1,4 +1,4 @@
-﻿namespace HDMS_API.Application.Common.Mappings
+﻿namespace HDMS_API.Application.Usecases.Guests
 {
     public class BookAppointmentHandler
     {
