@@ -12,12 +12,12 @@ public class Schedule
 
     public DateTime WorkDate { get; set; }
 
-    [MaxLength(20)]
+    [MaxLength(255)]
     public string Shift { get; set; } // Morning, Afternoon, Evening
 
     public DateTime WeekStartDate { get; set; }
 
-    [MaxLength(20)]
+    [MaxLength(50)]
     public string? Status { get; set; }
 
     public DateTime CreatedAt { get; set; }
