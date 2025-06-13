@@ -1,6 +1,6 @@
 ﻿namespace HDMS_API.Application.Usecases.Guests
 {
-    public class BookAppointmentDTO
+    public class BookAppointmentHandler
     {
     }
 }
