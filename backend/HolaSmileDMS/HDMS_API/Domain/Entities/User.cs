@@ -23,7 +23,7 @@ public class User
     [MaxLength(100)]
     public string? DOB { get; set; }
 
-    [MaxLength(100)]
+    [Required, MaxLength(100)]
     public string? Phone { get; set; }
 
     public bool? Status { get; set; }
