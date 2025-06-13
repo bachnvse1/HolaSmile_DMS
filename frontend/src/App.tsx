@@ -1,15 +1,14 @@
+import { Routes, Route } from 'react-router'
 import './App.css'
-import { Login } from './pages/login'
+import { Login } from './pages/auth/login'
 
 function App() {
   return (
     <>
-      <div className="App">
-        <Login />
-      </div>
-      <footer className="footer">
-        <p>© 2023 Your Company Name</p>
-      </footer>
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route path="/login" element={<Login />} />
+    </Routes>
     </>
   )
 }
