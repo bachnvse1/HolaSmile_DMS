@@ -2,6 +2,7 @@
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -10,9 +11,11 @@ namespace HDMS_API.Infrastructure.Repositories
     public class UserCommonRepository : IUserCommonRepository
     {
         private readonly ApplicationDbContext _context;
-        public UserCommonRepository(ApplicationDbContext context)
+        private readonly IEmailService _emailService;
+        public UserCommonRepository(ApplicationDbContext context,IEmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
         public async Task<User> CreatePatientAccountAsync(CreatePatientCommand request, string password )
         {
@@ -58,6 +61,20 @@ namespace HDMS_API.Infrastructure.Repositories
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
             return user;
+        }
+
+        public async Task<bool> SendPasswordForGuestAsync(string email)
+        {
+            if(email.IsNullOrEmpty() || !FormatHelper.IsValidEmail(email))
+            {
+                throw new Exception("Email không hợp lệ.");
+            }
+            var isSent = await _emailService.SendPasswordAsync(email, "123456");
+            if(!isSent)
+            {
+                 return false;
+            }
+            return true;
         }
     }
 }

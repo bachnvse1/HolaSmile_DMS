@@ -25,6 +25,10 @@ namespace HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount
             {
                 throw new Exception("Tạo tài khoản thất bại.");
             }
+            if (!await _userCommonRepository.SendPasswordForGuestAsync(user.Email))
+            {
+                throw new Exception("Gửi mật khẩu thất bại.");
+            }
             var patient = await _patientRepository.CreatePatientAsync(request, user.UserID);
             if (patient == null)
             {
