@@ -9,7 +9,7 @@ public class User
     [Required, MaxLength(50)]
     public string Username { get; set; }
 
-    [MaxLength(50)]
+    [MaxLength(255)]
     public string? Password { get; set; }
 
     [MaxLength(255)]
