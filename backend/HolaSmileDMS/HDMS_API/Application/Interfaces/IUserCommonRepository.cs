@@ -1,4 +1,5 @@
 ﻿using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
+using HDMS_API.Application.Usecases.UserCommon.Otp;
 
 namespace HDMS_API.Application.Interfaces
 {
@@ -6,5 +7,8 @@ namespace HDMS_API.Application.Interfaces
     {
         Task<User> CreatePatientAccountAsync(CreatePatientCommand request, string password);
         Task<bool> SendPasswordForGuestAsync(string email);
+        Task<bool> SendOtpEmailAsync(string toEmail, string otp);
+        Task<bool> VerifyOtpAsync(CreateOtpDto otp);
+
     }
 }

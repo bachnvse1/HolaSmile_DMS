@@ -39,20 +39,25 @@ namespace HDMS_API.Infrastructure.Services
                     {
                         From = new MailAddress(senderEmail),
                         Subject = "Your OTP Code",
-                        Body = $"Your OTP is: <b>{otp}</b><br>This OTP is valid for 5 minutes.",
+                        Body = $@"
+                                  <p>Xin chào,</p>
+                                  <p>Bạn đã yêu cầu xác thực bằng mã OTP.</p>
+                                  <p><strong>Mã OTP của bạn là:</strong> <b style='font-size: 18px; color: blue;'>{otp}</b></p>
+                                  <p>Mã này sẽ hết hạn sau <strong>5 phút</strong>. Vui lòng không chia sẻ mã với bất kỳ ai.</p>
+                                  <p>Trân trọng,<br><b>Phòng khám HolaSmile</b></p>",
                         IsBodyHtml = true
                     };
 
                     mailMessage.To.Add(toEmail);
                     await client.SendMailAsync(mailMessage);
 
-                    return true; // Gửi thành công
+                    return true;
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error sending email: {ex.Message}");
-                return false; // Gửi thất bại
+                return false;
             }
         }
 

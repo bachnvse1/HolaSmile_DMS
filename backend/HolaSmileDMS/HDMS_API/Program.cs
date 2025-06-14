@@ -27,6 +27,8 @@ builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssemblyContaining<CreatePatientCommand>());
 
 
+builder.Services.AddMemoryCache(); // for caching
+
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
