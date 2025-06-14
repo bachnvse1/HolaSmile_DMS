@@ -18,8 +18,7 @@ namespace HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount
             _patientRepository = patientRepository;
         }
         public async Task<int> Handle(CreatePatientCommand request, CancellationToken cancellationToken)
-        {
-            
+        { 
             var user = await _userCommonRepository.CreatePatientAccountAsync(request, "123456");
             if(user == null)
             {

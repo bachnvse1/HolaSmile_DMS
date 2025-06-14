@@ -18,7 +18,7 @@ namespace HDMS_API.Api.Controllers
         }
 
         //[Authorize(Roles = "receptionist")]    //config role ở jwt
-        [HttpPost("patients")]
+        [HttpPost("patients/create")]
         public async Task<IActionResult> CreatePatient([FromBody] CreatePatientCommand request)
         {
             if (request == null)
