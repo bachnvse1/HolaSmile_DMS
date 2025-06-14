@@ -20,7 +20,6 @@ public class Task
     [MaxLength(500)]
     public string? Description { get; set; }
     public bool? Status { get; set; }
-
     public TimeSpan? StartTime { get; set; }
     public TimeSpan? EndTime { get; set; }
 

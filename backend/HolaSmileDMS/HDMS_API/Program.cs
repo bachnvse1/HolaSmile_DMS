@@ -1,4 +1,9 @@
+using HDMS_API.Application.Interfaces;
+using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Infrastructure.Persistence;
+using HDMS_API.Infrastructure.Repositories;
+using HDMS_API.Infrastructure.Services;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +17,17 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
 );
+
+builder.Services.AddScoped<IUserCommonRepository, UserCommonRepository>();
+builder.Services.AddScoped<IPatientRepository, PatientRepository>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+
+
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssemblyContaining<CreatePatientCommand>());
+
+
+builder.Services.AddMemoryCache(); // for caching
 
 builder.Services.AddControllers();
 
