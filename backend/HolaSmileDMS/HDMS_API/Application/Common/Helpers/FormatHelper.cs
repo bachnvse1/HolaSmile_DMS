@@ -42,5 +42,14 @@ namespace HDMS_API.Application.Common.Helpers
             return null;
         }
 
+        public static bool IsValidPassword(string password)
+        {
+            if (string.IsNullOrWhiteSpace(password))
+                return false;
+
+            var pattern = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$";
+            return Regex.IsMatch(password, pattern);
+        }
+
     }
 }

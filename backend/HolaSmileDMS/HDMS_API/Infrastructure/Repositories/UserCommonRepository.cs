@@ -1,5 +1,6 @@
 ﻿using HDMS_API.Application.Common.Helpers;
 using HDMS_API.Application.Interfaces;
+using HDMS_API.Application.Usecases.Auth.ForgotPassword;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using HDMS_API.Infrastructure.Persistence;
@@ -103,14 +104,16 @@ namespace HDMS_API.Infrastructure.Repositories
             return true;
         }
 
-        public async Task<bool> VerifyOtpAsync(VerifyOtpCommand otp)
+        public async Task<string> VerifyOtpAsync(VerifyOtpCommand otp)
         {
             if(_memoryCache.TryGetValue($"otp:{otp.Email}", out RequestOtpDto cachedOtp))
             {
                 if (cachedOtp.Otp == otp.Otp && cachedOtp.ExpiryTime > DateTime.Now)
                 {
                     _memoryCache.Remove($"otp:{otp.Email}");
-                    return true;
+                    var resetPasswordToken = Guid.NewGuid().ToString();
+                    _memoryCache.Set($"resetPasswordToken:{resetPasswordToken}", otp.Email, TimeSpan.FromMinutes(15)); // Token hợp lệ trong 15 phút
+                    return resetPasswordToken;
                 }
                 else
                 {
@@ -120,6 +123,37 @@ namespace HDMS_API.Infrastructure.Repositories
             else
             {
                 throw new Exception("OTP đã hết hạn.");
+            }
+        }
+
+        public async Task<string> ResetPasswordAsync(ForgotPasswordCommand request)
+        {
+            if(_memoryCache.TryGetValue($"resetPasswordToken:{request.ResetPasswordToken}", out string email))
+            {
+                if (!FormatHelper.IsValidPassword(request.NewPassword))
+                {
+                    throw new Exception("Mật khẩu mới không hợp lệ. Mật khẩu phải chứa ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.");
+                }
+                if (request.NewPassword != request.ConfirmPassword)
+                {
+                    throw new Exception("Mật khẩu xác nhận không khớp với mật khẩu mới.");
+                }
+                    var user = _context.Users.FirstOrDefault(u => u.Email == email);
+                    if (user == null)
+                    {
+                        throw new Exception("Người dùng không tồn tại.");
+                    }
+                    user.Password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+                    user.UpdatedAt = DateTime.UtcNow;
+                    user.UpdatedBy = user.UserID;
+                    _context.Users.Update(user);
+                    _context.SaveChanges();
+                    _memoryCache.Remove($"resetPasswordToken:{request.ResetPasswordToken}");
+                    return "Đặt lại mật khẩu thành công.";
+             }
+            else
+            {
+                throw new Exception("Thời gian đặt lại mật khẩu của bạn đã hết. Vui lòng quên mật khẩu lại.");
             }
         }
     }
