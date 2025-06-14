@@ -7,8 +7,8 @@ namespace HDMS_API.Application.Interfaces
     {
         Task<User> CreatePatientAccountAsync(CreatePatientCommand request, string password);
         Task<bool> SendPasswordForGuestAsync(string email);
-        Task<bool> SendOtpEmailAsync(string toEmail, string otp);
-        Task<bool> VerifyOtpAsync(CreateOtpDto otp);
+        Task<bool> SendOtpEmailAsync(string toEmail);
+        Task<bool> VerifyOtpAsync(VerifyOtpCommand otp);
 
     }
 }

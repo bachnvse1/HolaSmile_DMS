@@ -70,27 +70,6 @@ namespace HDMS_API.Infrastructure.Repositories
             return user;
         }
 
-        public async Task<bool> SendOtpEmailAsync(string toEmail, string otpCode)
-        {
-            if(FormatHelper.IsValidEmail(toEmail) == false)
-            {
-                throw new Exception("Email không hợp lệ.");
-            }
-            var IsSent = await _emailService.SendOtpEmailAsync(toEmail, otpCode);
-            if (!IsSent)
-            {
-                throw new Exception("Gửi email OTP không thành công.");
-            }
-            var otp = new CreateOtpDto
-            {
-                Email = toEmail,
-                Otp = otpCode,
-                ExpiryTime = DateTime.UtcNow.AddMinutes(5) 
-            };
-            _memoryCache.Set($"otp:{toEmail}", otp, otp.ExpiryTime - DateTime.UtcNow);
-
-            return true;
-        }
 
         public async Task<bool> SendPasswordForGuestAsync(string email)
         {
@@ -101,23 +80,46 @@ namespace HDMS_API.Infrastructure.Repositories
             return await _emailService.SendPasswordAsync(email, "123456"); ;
         }
 
-        public async Task<bool> VerifyOtpAsync(CreateOtpDto otp)
+        public async Task<bool> SendOtpEmailAsync(string toEmail)
         {
-            if(_memoryCache.TryGetValue($"otp:{otp.Email}", out CreateOtpDto cachedOtp))
+            if (FormatHelper.IsValidEmail(toEmail) == false)
             {
-                if (cachedOtp.Otp == otp.Otp && cachedOtp.ExpiryTime > DateTime.UtcNow)
+                throw new Exception("Email không hợp lệ.");
+            }
+            var OtpCode = await _emailService.GenerateOTP();
+            var IsSent = await _emailService.SendOtpEmailAsync(toEmail, OtpCode);
+            if (!IsSent)
+            {
+                throw new Exception("Gửi email OTP không thành công.");
+            }
+            var otp = new RequestOtpDto
+            {
+                Email = toEmail,
+                Otp = OtpCode,
+                ExpiryTime = DateTime.Now.AddMinutes(2) // tuy chinh
+            };
+            _memoryCache.Set($"otp:{toEmail}", otp, otp.ExpiryTime - DateTime.UtcNow);
+
+            return true;
+        }
+
+        public async Task<bool> VerifyOtpAsync(VerifyOtpCommand otp)
+        {
+            if(_memoryCache.TryGetValue($"otp:{otp.Email}", out RequestOtpDto cachedOtp))
+            {
+                if (cachedOtp.Otp == otp.Otp && cachedOtp.ExpiryTime > DateTime.Now)
                 {
                     _memoryCache.Remove($"otp:{otp.Email}");
                     return true;
                 }
                 else
                 {
-                    throw new Exception("Mã OTP không hợp lệ hoặc đã hết hạn.");
+                    throw new Exception("Mã OTP không hợp lệ .");
                 }
             }
             else
             {
-                throw new Exception("Không tìm thấy mã OTP cho email này.");
+                throw new Exception("OTP đã hết hạn.");
             }
         }
     }

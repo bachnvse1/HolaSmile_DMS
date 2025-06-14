@@ -23,7 +23,7 @@ namespace HDMS_API.Api.Controllers
         {
             if (request == null)
             {
-                return BadRequest("Invalid request data.");
+                return BadRequest("dữ liệu đầu vào không hợp lệ.");
             }
             // thêm session để lấy createdby
             //var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

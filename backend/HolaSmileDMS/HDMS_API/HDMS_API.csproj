@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Infrastructure\Persistence\Repositories\**" />
+    <Content Remove="Infrastructure\Persistence\Repositories\**" />
+    <EmbeddedResource Remove="Infrastructure\Persistence\Repositories\**" />
+    <None Remove="Infrastructure\Persistence\Repositories\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MediatR" Version="12.5.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
@@ -36,6 +43,5 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <Folder Include="Domain\Exceptions\" />
-	  <Folder Include="Infrastructure\Persistence\Repositories\" />
 	</ItemGroup>
 </Project>
