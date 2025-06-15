@@ -86,9 +86,6 @@ export default function VerifyOTPPage() {
           formik.setFieldError("otp", "Mã OTP không đúng. Vui lòng thử lại.")
         }
       } catch (err) {
-        if (process.env.NODE_ENV === "development") {
-          console.error("OTP verification error:", err)
-        }
         formik.setFieldError("otp", "Có lỗi xảy ra. Vui lòng thử lại.")
       } finally {
         setIsLoading(false)
@@ -135,9 +132,6 @@ export default function VerifyOTPPage() {
       formik.resetForm()
       inputRefs.current[0]?.focus()
     } catch (err) {
-      if (process.env.NODE_ENV === "development") {
-        console.error("Resend OTP error:", err)
-      }
     } finally {
       setIsResending(false)
     }
