@@ -25,9 +25,7 @@ public class User
 
     [Required, MaxLength(100)]
     public string? Phone { get; set; }
-
     public bool? Status { get; set; }
-
     public bool? IsVerify { get; set; }
 
     [MaxLength(100)]
