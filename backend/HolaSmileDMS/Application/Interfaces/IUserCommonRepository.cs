@@ -1,4 +1,5 @@
-﻿using HDMS_API.Application.Usecases.Auth.ForgotPassword;
+﻿using Application.Usecases.UserCommon.ViewProfile;
+using HDMS_API.Application.Usecases.Auth.ForgotPassword;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
@@ -14,5 +15,6 @@ namespace HDMS_API.Application.Interfaces
         Task<string> ResetPasswordAsync(ForgotPasswordCommand request);
         public Task<User> GetByUsernameAsync(string username, CancellationToken cancellationToken);
         Task<User?> GetByEmailAsync(string email);
+        Task<ViewProfileDto?> GetUserProfileAsync(int userId, CancellationToken cancellationToken);
     }
 }
