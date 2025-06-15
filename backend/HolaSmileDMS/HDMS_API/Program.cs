@@ -1,3 +1,4 @@
+﻿using HDMS_API.Application.Common.Mappings;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Infrastructure.Persistence;
@@ -28,6 +29,8 @@ builder.Services.AddMediatR(cfg =>
 
 
 builder.Services.AddMemoryCache(); // for caching
+builder.Services.AddAutoMapper(typeof(MappingCreatePatient)); // hoặc typeof(Program).Assembly nếu profile cùng project
+
 
 builder.Services.AddControllers();
 

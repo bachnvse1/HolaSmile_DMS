@@ -6,7 +6,7 @@ namespace HDMS_API.Application.Interfaces
 {
     public interface IUserCommonRepository
     {
-        Task<User> CreatePatientAccountAsync(CreatePatientCommand request, string password);
+        Task<User> CreatePatientAccountAsync(CreatePatientDto dto, string password);
         Task<bool> SendPasswordForGuestAsync(string email);
         Task<bool> SendOtpEmailAsync(string toEmail);
         Task<string> VerifyOtpAsync(VerifyOtpCommand otp);

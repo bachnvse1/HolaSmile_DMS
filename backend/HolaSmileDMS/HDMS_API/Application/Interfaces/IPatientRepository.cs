@@ -4,6 +4,7 @@ namespace HDMS_API.Application.Interfaces
 {
     public interface IPatientRepository
     {
-        Task<Patient> CreatePatientAsync(CreatePatientCommand request,int userID);
+        Task<Patient> CreatePatientAsync(CreatePatientDto createPatientDto,int userID);
+
     }
 }

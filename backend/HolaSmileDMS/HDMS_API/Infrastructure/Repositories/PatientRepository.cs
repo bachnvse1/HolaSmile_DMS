@@ -12,15 +12,15 @@ namespace HDMS_API.Infrastructure.Repositories
         {
             _context = context;
         }
-        public async Task<Patient> CreatePatientAsync(CreatePatientCommand request,int userID)
+        public async Task<Patient> CreatePatientAsync(CreatePatientDto dto,int userID)
         {
             var patient = new Patient
             {
                 UserID = userID,
-                PatientGroup = request.PatientGroup,
-                UnderlyingConditions = request.UnderlyingConditions,
+                PatientGroup = dto.PatientGroup,
+                UnderlyingConditions = dto.UnderlyingConditions,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = request.Createdby,
+                CreatedBy = dto.CreatedBy,
             };
             _context.Patients.Add(patient);
             await _context.SaveChangesAsync();

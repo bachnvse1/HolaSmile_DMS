@@ -1,4 +1,5 @@
-﻿using HDMS_API.Application.Common.Helpers;
+﻿using AutoMapper;
+using HDMS_API.Application.Common.Helpers;
 using HDMS_API.Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -11,16 +12,18 @@ namespace HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount
     {
         private readonly IUserCommonRepository _userCommonRepository;
         private readonly IPatientRepository _patientRepository;
+        private readonly IMapper _mapper;
 
-        public CreatePatientHandler(IUserCommonRepository userCommonRepository, IPatientRepository patientRepository)
+        public CreatePatientHandler(IUserCommonRepository userCommonRepository, IPatientRepository patientRepository,IMapper mapper)
         {
             _userCommonRepository = userCommonRepository;
             _patientRepository = patientRepository;
+            _mapper = mapper;
         }
         public async Task<int> Handle(CreatePatientCommand request, CancellationToken cancellationToken)
         {
-            
-            var user = await _userCommonRepository.CreatePatientAccountAsync(request, "123456");
+            var guest = _mapper.Map<CreatePatientDto>(request);
+            var user = await _userCommonRepository.CreatePatientAccountAsync(guest, "123456");
             if(user == null)
             {
                 throw new Exception("Tạo tài khoản thất bại.");
@@ -29,7 +32,7 @@ namespace HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount
             {
                 throw new Exception("Gửi mật khẩu thất bại.");
             }
-            var patient = await _patientRepository.CreatePatientAsync(request, user.UserID);
+            var patient = await _patientRepository.CreatePatientAsync(guest, user.UserID);
             if (patient == null)
             {
                 throw new Exception("Tạo bệnh nhân thất bại.");

@@ -21,31 +21,31 @@ namespace HDMS_API.Infrastructure.Repositories
             _emailService = emailService;
             _memoryCache = memoryCache;
         }
-        public async Task<User> CreatePatientAccountAsync(CreatePatientCommand request, string password )
+        public async Task<User> CreatePatientAccountAsync(CreatePatientDto dto, string password )
         {
-            if(await _context.Users.AnyAsync(u => u.Phone == request.PhoneNumber))
+            if(await _context.Users.AnyAsync(u => u.Phone == dto.PhoneNumber))
             {
                 throw new Exception("Tài khoản với số điện thoại này đã tồn tại.");
             }
 
-            if (request.FullName.IsNullOrEmpty()){
+            if (dto.FullName.IsNullOrEmpty()){
                 throw new Exception("Tên bệnh nhân không được để trống.");
             }
 
-            if (!FormatHelper.FormatPhoneNumber(request.PhoneNumber))
+            if (!FormatHelper.FormatPhoneNumber(dto.PhoneNumber))
             {
                 throw new Exception("Số điện thoại không hợp lệ.");
             }
 
-            if (FormatHelper.TryParseDob(request.Dob) == null)
+            if (FormatHelper.TryParseDob(dto.Dob) == null)
             {
                 throw new Exception("Ngày sinh không hợp lệ.");
             }
-            if (!FormatHelper.IsValidEmail(request.Email))
+            if (!FormatHelper.IsValidEmail(dto.Email))
             {
                 throw new Exception("Email không hợp lệ.");
             }
-            if(await _context.Users.AnyAsync(u => u.Email == request.Email))
+            if(await _context.Users.AnyAsync(u => u.Email == dto.Email))
             {
                 throw new Exception("Email này đã tồn tại .");
             }
@@ -53,18 +53,18 @@ namespace HDMS_API.Infrastructure.Repositories
 
             var user = new User
             {
-                Username = request.PhoneNumber,
+                Username = dto.PhoneNumber,
                 Password = hashedPassword,
-                Fullname = request.FullName,
-                Gender = request.Gender,
-                Address = request.Adress,
-                DOB = FormatHelper.TryParseDob(request.Dob),
-                Phone = request.PhoneNumber,
-                Email = request.Email,
+                Fullname = dto.FullName,
+                Gender = dto.Gender,
+                Address = dto.Address,
+                DOB = FormatHelper.TryParseDob(dto.Dob),
+                Phone = dto.PhoneNumber,
+                Email = dto .Email,
                 IsVerify = true,
                 Status = true ,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = request.Createdby 
+                CreatedBy = dto.CreatedBy 
             };
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
