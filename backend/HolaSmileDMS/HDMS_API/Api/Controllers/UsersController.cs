@@ -20,5 +20,11 @@ namespace HDMS_API.Api.Controllers
             var user = _context.Users.ToList();
             return Ok(user);
         }
+
+        [HttpPost("Login")]
+        public IActionResult LoginUser() {
+
+            return Ok();
+        }
     }
 }
