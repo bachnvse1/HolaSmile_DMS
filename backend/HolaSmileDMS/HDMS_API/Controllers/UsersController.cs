@@ -1,11 +1,14 @@
 ﻿using System.Threading.Tasks;
+using Application.Usecases.UserCommon.RefreshToken;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
+using HDMS_API.Application.Usecases.UserCommon.EditProfile;
 using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using HDMS_API.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using NuGet.Protocol.Plugins;
 
 namespace HDMS_API.Controllers
@@ -28,6 +31,29 @@ namespace HDMS_API.Controllers
             var user = _context.Users.ToList();
             return Ok(user);
         }
+
+        [HttpPut("profile")]
+        public async Task<IActionResult> EditProfile([FromBody] EditProfileCommand command, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var result = await _mediator.Send(command, cancellationToken);
+                return result
+                    ? Ok(new { message = "Cập nhật hồ sơ thành công." })
+                    : BadRequest(new { message = "Cập nhật hồ sơ thất bại." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ex.Message,
+                    Inner = ex.InnerException?.Message,
+                    Stack = ex.StackTrace
+                });
+            }
+        }
+
+
         [HttpPost("OTP/Request")]
         public async Task<IActionResult> RequestOtp([FromBody] RequestOtpCommand request)
         {
@@ -106,6 +132,19 @@ namespace HDMS_API.Controllers
                 });
             }
         }
-
+        
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshTokenCommand command)
+        {
+            try
+            {
+                var result = await _mediator.Send(command);
+                return Ok(result);
+            }
+            catch (SecurityTokenException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+        }
     }
 }
