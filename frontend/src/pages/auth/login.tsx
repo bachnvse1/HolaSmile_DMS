@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useFormik } from "formik"
 import * as Yup from "yup"
-import { Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react"
+import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowLeft } from "lucide-react"
 import { Link } from "react-router"
 
 export function Login() {
@@ -61,11 +61,10 @@ export function Login() {
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               placeholder="Email hoặc số điện thoại"
-              className={`w-full pl-10 pr-3 py-2 rounded-md bg-slate-700/50 text-white placeholder:text-slate-400 border focus:outline-none ${
-                formik.touched.email && formik.errors.email
+              className={`w-full pl-10 pr-3 py-2 rounded-md bg-slate-700/50 text-white placeholder:text-slate-400 border focus:outline-none ${formik.touched.email && formik.errors.email
                   ? "border-red-500 focus:ring-1 focus:ring-red-500"
                   : "border-slate-600 focus:ring-1 focus:ring-blue-500"
-              }`}
+                }`}
             />
             {formik.touched.email && formik.errors.email && (
               <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500" size={16} />
@@ -94,11 +93,10 @@ export function Login() {
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               placeholder="Mật khẩu"
-              className={`w-full pl-10 pr-10 py-2 rounded-md bg-slate-700/50 text-white placeholder:text-slate-400 border focus:outline-none ${
-                formik.touched.password && formik.errors.password
+              className={`w-full pl-10 pr-10 py-2 rounded-md bg-slate-700/50 text-white placeholder:text-slate-400 border focus:outline-none ${formik.touched.password && formik.errors.password
                   ? "border-red-500 focus:ring-1 focus:ring-red-500"
                   : "border-slate-600 focus:ring-1 focus:ring-blue-500"
-              }`}
+                }`}
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-2 items-center">
               <button
@@ -130,6 +128,16 @@ export function Login() {
           Chưa có tài khoản?{" "}
           <button className="text-blue-400 hover:underline">Đăng ký</button>
         </div>
+        <div className="text-center">
+          <Link
+            to="/"
+            className="text-sm text-blue-400 hover:text-blue-300 transition-colors font-medium inline-flex items-center gap-1"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            Trở về trang trang chủ
+          </Link>
+        </div>
+
       </form>
     </div>
   )
