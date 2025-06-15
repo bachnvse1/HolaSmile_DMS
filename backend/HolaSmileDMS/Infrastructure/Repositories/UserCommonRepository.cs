@@ -38,7 +38,7 @@ namespace HDMS_API.Infrastructure.Repositories
                 throw new Exception("Số điện thoại không hợp lệ.");
             }
 
-            if (FormatHelper.TryParseDob(dto.Dob) == null)
+            if (dto.Dob != null && FormatHelper.TryParseDob(dto.Dob) == null)
             {
                 throw new Exception("Ngày sinh không hợp lệ.");
             }
@@ -64,7 +64,7 @@ namespace HDMS_API.Infrastructure.Repositories
                 Email = dto .Email,
                 IsVerify = true,
                 Status = true ,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
                 CreatedBy = dto.CreatedBy 
             };
             _context.Users.Add(user);
@@ -100,7 +100,7 @@ namespace HDMS_API.Infrastructure.Repositories
                 Otp = OtpCode,
                 ExpiryTime = DateTime.Now.AddMinutes(2) // tuy chinh
             };
-            _memoryCache.Set($"otp:{toEmail}", otp, otp.ExpiryTime - DateTime.UtcNow);
+            _memoryCache.Set($"otp:{toEmail}", otp, otp.ExpiryTime - DateTime.Now);
 
             return true;
         }
@@ -145,7 +145,7 @@ namespace HDMS_API.Infrastructure.Repositories
                         throw new Exception("Người dùng không tồn tại.");
                     }
                     user.Password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
-                    user.UpdatedAt = DateTime.UtcNow;
+                    user.UpdatedAt = DateTime.Now;
                     user.UpdatedBy = user.UserID;
                     _context.Users.Update(user);
                     _context.SaveChanges();

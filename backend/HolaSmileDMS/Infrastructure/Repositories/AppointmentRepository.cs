@@ -11,7 +11,7 @@ namespace HDMS_API.Infrastructure.Repositories
         {
             _context = context;
         }
-        public async Task<Appointment> CreateAppointmentAsync(BookAppointmentCommand request, int patientId)
+        public async Task<Appointment> CreateAppointmentAsync(BookAppointmentCommand request, int? patientId)
         {
             var appointment = new Appointment
             {
