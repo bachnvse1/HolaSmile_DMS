@@ -6,7 +6,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace HDMS_API.Api.Controllers
+namespace HDMS_API.Controllers
 {
     [Route("api/user")]
     [ApiController]
@@ -38,7 +38,7 @@ namespace HDMS_API.Api.Controllers
             {
                 return BadRequest(new
                 {
-                    Message = ex.Message,
+                    ex.Message,
                     Inner = ex.InnerException?.Message,
                     Stack = ex.StackTrace
                 });
@@ -56,7 +56,7 @@ namespace HDMS_API.Api.Controllers
             {
                 return BadRequest(new
                 {
-                    Message = ex.Message,
+                    ex.Message,
                     Inner = ex.InnerException?.Message,
                     Stack = ex.StackTrace
                 });
@@ -75,7 +75,7 @@ namespace HDMS_API.Api.Controllers
             {
                 return BadRequest(new
                 {
-                    Message = ex.Message,
+                    ex.Message,
                     Inner = ex.InnerException?.Message,
                     Stack = ex.StackTrace
                 });

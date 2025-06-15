@@ -1,5 +1,4 @@
 ﻿using HDMS_API.Application.Interfaces;
-using HDMS_API.Infrastructure.Repositories;
 using MediatR;
 
 namespace HDMS_API.Application.Usecases.Guests.BookAppointment

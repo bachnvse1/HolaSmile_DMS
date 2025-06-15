@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace HDMS_API.Api.Controllers
+namespace HDMS_API.Controllers
 {
     [Route("api/Receptionist")]
     [ApiController]
@@ -36,7 +36,7 @@ namespace HDMS_API.Api.Controllers
             {
                 return BadRequest(new
                 {
-                    Message = ex.Message,
+                    ex.Message,
                     Inner = ex.InnerException?.Message,
                     Stack = ex.StackTrace
                 });

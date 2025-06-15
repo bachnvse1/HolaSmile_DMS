@@ -1,4 +1,4 @@
-﻿namespace HDMS_API.Api.Controllers
+﻿namespace HDMS_API.Controllers
 {
     public class GuestsController
     {
