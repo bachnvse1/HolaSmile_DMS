@@ -4,7 +4,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace HDMS_API.Api.Controllers
+namespace HDMS_API.Controllers
 {
     [ApiController]
     [Route("[controller]")]

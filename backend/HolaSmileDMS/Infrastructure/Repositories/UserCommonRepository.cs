@@ -2,6 +2,7 @@
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
+using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -155,6 +156,11 @@ namespace HDMS_API.Infrastructure.Repositories
             {
                 throw new Exception("Thời gian đặt lại mật khẩu của bạn đã hết. Vui lòng quên mật khẩu lại.");
             }
+        }
+
+        public Task<LoginResultDto> LoginAsync(LoginCommand command)
+        {
+            return null;
         }
     }
 }

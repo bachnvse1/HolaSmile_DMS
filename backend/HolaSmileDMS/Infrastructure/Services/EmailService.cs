@@ -2,6 +2,7 @@
 using System.Net;
 using HDMS_API.Application.Interfaces;
 using static System.Net.WebRequestMethods;
+using Microsoft.Extensions.Configuration;
 
 namespace HDMS_API.Infrastructure.Services
 {
