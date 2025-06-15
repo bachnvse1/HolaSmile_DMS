@@ -32,13 +32,5 @@
 		<PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
 
 	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="Application\Interfaces\" />
-	  <Folder Include="Application\Usecases\Auth\" />
-	  <Folder Include="Application\Usecases\UserCommon\Login\" />
-	  <Folder Include="Domain\Exceptions\" />
-	  <Folder Include="Infrastructure\Services\" />
-	  <Folder Include="Infrastructure\Persistence\Repositories\" />
-	</ItemGroup>
 
 </Project>

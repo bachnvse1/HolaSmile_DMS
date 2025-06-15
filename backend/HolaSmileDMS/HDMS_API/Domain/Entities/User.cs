@@ -9,7 +9,7 @@ public class User
     [Required, MaxLength(50)]
     public string Username { get; set; }
 
-    [MaxLength(50)]
+    [MaxLength(255)]
     public string? Password { get; set; }
 
     [MaxLength(255)]
@@ -23,7 +23,7 @@ public class User
     [MaxLength(100)]
     public string? DOB { get; set; }
 
-    [MaxLength(100)]
+    [Required, MaxLength(100)]
     public string? Phone { get; set; }
 
     public bool? Status { get; set; }

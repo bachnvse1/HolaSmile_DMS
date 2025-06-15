@@ -17,20 +17,7 @@ public class Patient
     [MaxLength(500)]
     public string? UnderlyingConditions { get; set; }
 
-    [MaxLength(50)]
-    public string? FullName { get; set; }
-
-    public bool? Gender { get; set; }
-
     public int? UpdatedBy { get; set; }
-
-    [Required, MaxLength(50)]
-    public string PhoneNumber { get; set; }
-
-    [MaxLength(200)]
-    public string? Address { get; set; }
-
-    public string? ImageUser { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
