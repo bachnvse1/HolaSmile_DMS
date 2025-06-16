@@ -17,6 +17,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("_myAllowSpecificOrigins");
+
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
