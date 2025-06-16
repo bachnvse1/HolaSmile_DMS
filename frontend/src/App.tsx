@@ -5,7 +5,7 @@ import './App.css'
 import { HomePage } from './pages/HomePage'
 import { LearnMorePage } from './pages/LearnMorePage'
 import { CosmeticDentistryPage, GeneralDentistryPage, OralSurgeryPage, PediatricDentistryPage, PreventiveCare, RestorativeDentistryPage } from './pages/services'
-import BookAppointment from './pages/BookAppointment'
+import { BookAppointmentPage } from './pages/BookAppoinmentPage'
 import VerifyOTPPage from './pages/auth/VerifyOTP'
 function App() {
   return (
@@ -20,7 +20,7 @@ function App() {
         <Route path="/services/pediatric-dentistry" element={<PediatricDentistryPage />} />
         <Route path="/services/preventive-care" element={<PreventiveCare />} />
         <Route path="/services/restorative-dentistry" element={<RestorativeDentistryPage />} />
-        <Route path="/appointment-booking" element={<BookAppointment />} />
+        <Route path="/appointment-booking" element={<BookAppointmentPage />} />
         <Route path="/verify-otp" element={<VerifyOTPPage/>} />
       </Routes>
   )
