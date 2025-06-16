@@ -7,6 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Usecases\UserCommon\RefreshToken - Copy\**" />
+    <EmbeddedResource Remove="Usecases\UserCommon\NewFolder1\**" />
+    <EmbeddedResource Remove="Usecases\UserCommon\NewFolder\**" />
+    <EmbeddedResource Remove="Usecases\UserCommon\RefreshToken - Copy\**" />
+    <None Remove="Usecases\UserCommon\NewFolder1\**" />
+    <None Remove="Usecases\UserCommon\NewFolder\**" />
+    <None Remove="Usecases\UserCommon\RefreshToken - Copy\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Domain\Domain.csproj" />
   </ItemGroup>
 	<ItemGroup>
