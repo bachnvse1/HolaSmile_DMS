@@ -1,11 +1,14 @@
-import { useState } from "react"
-import { useFormik } from "formik"
-import * as Yup from "yup"
-import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowLeft } from "lucide-react"
-import { Link } from "react-router"
+import { useState } from "react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import axios from "axios";
+import { useNavigate, Link } from "react-router";
+import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowLeft } from "lucide-react";
 
 export function Login() {
-  const [showPassword, setShowPassword] = useState(false)
+  const [showPassword, setShowPassword] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const formik = useFormik({
     initialValues: {
@@ -18,25 +21,55 @@ export function Login() {
         .test(
           "is-email-or-phone",
           "Phải là email hợp lệ hoặc số điện thoại hợp lệ",
-          function (value) {
-            if (!value) return false
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-            const phoneRegex = /^(?:\+84|0)\d{9,10}$/
-            return emailRegex.test(value) || phoneRegex.test(value)
+          (value) => {
+            if (!value) return false;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const phoneRegex = /^(?:\+84|0)\d{9,10}$/;
+            return emailRegex.test(value) || phoneRegex.test(value);
           }
         ),
       password: Yup.string()
         .required("Bắt buộc nhập mật khẩu")
-        .min(8, "Tối thiểu 8 ký tự")
-        .matches(/[A-Z]/, "Ít nhất 1 chữ in hoa")
-        .matches(/[a-z]/, "Ít nhất 1 chữ thường")
-        .matches(/\d/, "Ít nhất 1 số"),
+        .min(6, "Tối thiểu 6 ký tự")
     }),
-    onSubmit: async (values) => {
-      await new Promise((r) => setTimeout(r, 1500))
-      alert(`Đăng nhập thành công với: ${values.email}`)
+    onSubmit: async (values, { setSubmitting }) => {
+      setApiError(null);
+
+      try {
+        const response = await axios.post(
+          "http://localhost:5135/api/user/login",
+          {
+            username: values.email,
+            password: values.password,
+          },
+          {
+            withCredentials: true, 
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        console.log("Login response:", response.data.token);
+        const token = response.data.token;
+
+        if (token) {
+          localStorage.setItem("authToken", token);
+
+          navigate("/");
+        } else {
+          setApiError("Không nhận được token từ server");
+        }
+      } catch (error: any) {
+        if (axios.isAxiosError(error)) {
+          setApiError(error.response?.data?.message || "Lỗi đăng nhập");
+        } else {
+          setApiError("Lỗi không xác định");
+        }
+      } finally {
+        setSubmitting(false);
+      }
     },
-  })
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4">
@@ -62,8 +95,8 @@ export function Login() {
               onBlur={formik.handleBlur}
               placeholder="Email hoặc số điện thoại"
               className={`w-full pl-10 pr-3 py-2 rounded-md bg-slate-700/50 text-white placeholder:text-slate-400 border focus:outline-none ${formik.touched.email && formik.errors.email
-                ? "border-red-500 focus:ring-1 focus:ring-red-500"
-                : "border-slate-600 focus:ring-1 focus:ring-blue-500"
+                  ? "border-red-500 focus:ring-1 focus:ring-red-500"
+                  : "border-slate-600 focus:ring-1 focus:ring-blue-500"
                 }`}
             />
             {formik.touched.email && formik.errors.email && (
@@ -80,8 +113,12 @@ export function Login() {
         {/* Password */}
         <div className="space-y-1">
           <div className="flex justify-between items-center">
-            <label htmlFor="password" className="text-sm font-medium text-slate-300">Mật khẩu</label>
-            <Link type="button" className="text-sm text-blue-400 hover:underline" to={`/forgot-password`}>Quên mật khẩu?</Link>
+            <label htmlFor="password" className="text-sm font-medium text-slate-300">
+              Mật khẩu
+            </label>
+            <Link type="button" className="text-sm text-blue-400 hover:underline" to={`/forgot-password`}>
+              Quên mật khẩu?
+            </Link>
           </div>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
@@ -94,8 +131,8 @@ export function Login() {
               onBlur={formik.handleBlur}
               placeholder="Mật khẩu"
               className={`w-full pl-10 pr-10 py-2 rounded-md bg-slate-700/50 text-white placeholder:text-slate-400 border focus:outline-none ${formik.touched.password && formik.errors.password
-                ? "border-red-500 focus:ring-1 focus:ring-red-500"
-                : "border-slate-600 focus:ring-1 focus:ring-blue-500"
+                  ? "border-red-500 focus:ring-1 focus:ring-red-500"
+                  : "border-slate-600 focus:ring-1 focus:ring-blue-500"
                 }`}
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-2 items-center">
@@ -103,6 +140,7 @@ export function Login() {
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
                 className="text-slate-400 hover:text-slate-300"
+                aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -114,6 +152,13 @@ export function Login() {
             </p>
           )}
         </div>
+
+        {/* API error message */}
+        {apiError && (
+          <p className="text-center text-red-500 text-sm font-medium" role="alert">
+            {apiError}
+          </p>
+        )}
 
         {/* Submit */}
         <button
@@ -136,11 +181,10 @@ export function Login() {
             className="text-sm text-blue-400 hover:text-blue-300 transition-colors font-medium inline-flex items-center gap-1"
           >
             <ArrowLeft className="h-3 w-3" />
-            Trở về trang trang chủ
+            Trở về trang chủ
           </Link>
         </div>
-
       </form>
     </div>
-  )
+  );
 }
