@@ -13,7 +13,7 @@ namespace HDMS_API.Application.Interfaces
         Task<bool> ResendOtpAsync(string toEmail);
         Task<string> VerifyOtpAsync(VerifyOtpCommand otp);
         Task<string> ResetPasswordAsync(ForgotPasswordCommand request);
-        Task<LoginResultDto> LoginAsync(LoginCommand command);
-
+        public Task<User> GetByUsernameAsync(string username, CancellationToken cancellationToken);
+        Task<User?> GetByEmailAsync(string email);
     }
 }

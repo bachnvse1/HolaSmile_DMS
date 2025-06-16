@@ -8,6 +8,7 @@ using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
+using System.Threading;
 
 namespace HDMS_API.Infrastructure.Repositories
 {
@@ -185,9 +186,15 @@ namespace HDMS_API.Infrastructure.Repositories
             }
         }
 
-        public Task<LoginResultDto> LoginAsync(LoginCommand command)
+        public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken)
         {
-            return null;
+            return await _context.Users.FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
+        }
+
+
+        public Task<User?> GetByEmailAsync(string email)
+        {
+            throw new NotImplementedException();
         }
 
     }
