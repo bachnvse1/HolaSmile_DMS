@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router'
-import { Login } from './pages/auth/login'
+import { Login } from './pages/auth/login' 
 import { ForgotPassword } from './pages/auth/ForgotPassword' 
 import './App.css'
 import { HomePage } from './pages/HomePage'
