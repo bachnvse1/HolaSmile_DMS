@@ -1,13 +1,13 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router'
 import { Login } from './pages/auth/login'
-import { ForgotPassword } from './pages/auth/forgotPassword'
+import { ForgotPassword } from './pages/auth/ForgotPassword' 
 import './App.css'
 import { HomePage } from './pages/HomePage'
 import { LearnMorePage } from './pages/LearnMorePage'
 import { CosmeticDentistryPage, GeneralDentistryPage, OralSurgeryPage, PediatricDentistryPage, PreventiveCare, RestorativeDentistryPage } from './pages/services'
 import BookAppointment from './pages/BookAppointment'
 import VerifyOTPPage from './pages/auth/VerifyOTP'
-import Register from './pages/auth/Register'
+import AddPatient from './pages/auth/CreatePatientAccount'
 function App() {
   return (
       <Routes>
@@ -23,7 +23,7 @@ function App() {
         <Route path="/services/restorative-dentistry" element={<RestorativeDentistryPage />} />
         <Route path="/appointment-booking" element={<BookAppointment />} />
         <Route path="/verify-otp" element={<VerifyOTPPage/>} />
-        <Route path="/register" element={<Register/>}/>
+        <Route path="/add-patient" element={<AddPatient/>} />
       </Routes>
   )
 }
