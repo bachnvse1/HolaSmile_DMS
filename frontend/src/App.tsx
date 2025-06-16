@@ -6,8 +6,9 @@ import { HomePage } from './pages/HomePage'
 import { LearnMorePage } from './pages/LearnMorePage'
 import { CosmeticDentistryPage, GeneralDentistryPage, OralSurgeryPage, PediatricDentistryPage, PreventiveCare, RestorativeDentistryPage } from './pages/services'
 import BookAppointment from './pages/BookAppointment'
-import VerifyOTPPage from './pages/auth/VerifyOTP'
+import VerifyOTP from './pages/auth/VerifyOTP'
 import AddPatient from './pages/auth/CreatePatientAccount'
+import ResetPassword from './pages/auth/ResetPassword'
 function App() {
   return (
       <Routes>
@@ -22,8 +23,9 @@ function App() {
         <Route path="/services/preventive-care" element={<PreventiveCare />} />
         <Route path="/services/restorative-dentistry" element={<RestorativeDentistryPage />} />
         <Route path="/appointment-booking" element={<BookAppointment />} />
-        <Route path="/verify-otp" element={<VerifyOTPPage/>} />
+        <Route path="/verify-otp" element={<VerifyOTP/>} />
         <Route path="/add-patient" element={<AddPatient/>} />
+        <Route path="/reset-password" element={<ResetPassword/>} />
       </Routes>
   )
 }
