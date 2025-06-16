@@ -98,17 +98,42 @@ namespace HDMS_API.Infrastructure.Repositories
             {
                 Email = toEmail,
                 Otp = OtpCode,
-                ExpiryTime = DateTime.Now.AddMinutes(2) // tuy chinh
+                ExpiryTime = DateTime.Now.AddMinutes(5), // tuy chinh
+                SendTime = DateTime.Now,
+                RetryCount = 0
             };
             _memoryCache.Set($"otp:{toEmail}", otp, otp.ExpiryTime - DateTime.Now);
 
             return true;
         }
+        public async Task<bool> ResendOtpAsync(string toEmail)
+        {
+            if(_memoryCache.TryGetValue($"otp:{toEmail}", out RequestOtpDto cachedOtp))
+            {
+                if (cachedOtp.SendTime.AddMinutes(1) < DateTime.Now)
+                {
+                    return await SendOtpEmailAsync(toEmail);
+                }
+                else
+                {
+                    throw new Exception("Bạn chỉ có thể gửi lại OTP sau 2 phút.");
+                }
+            }
+            else
+            {
+                throw new Exception("Gửi lại OTP thất bại.");
+            }
+        }
+
 
         public async Task<string> VerifyOtpAsync(VerifyOtpCommand otp)
         {
             if(_memoryCache.TryGetValue($"otp:{otp.Email}", out RequestOtpDto cachedOtp))
             {
+                if (cachedOtp.RetryCount > 5)
+                {
+                    throw new Exception("Bạn đã nhập sai OTP quá 5 lần. Vui lòng lấy lại OTP.");
+                }
                 if (cachedOtp.Otp == otp.Otp && cachedOtp.ExpiryTime > DateTime.Now)
                 {
                     _memoryCache.Remove($"otp:{otp.Email}");
@@ -118,6 +143,8 @@ namespace HDMS_API.Infrastructure.Repositories
                 }
                 else
                 {
+                    cachedOtp.RetryCount++;
+                    _memoryCache.Set($"otp:{otp.Email}", cachedOtp, cachedOtp.ExpiryTime - DateTime.Now);
                     throw new Exception("Mã OTP không hợp lệ .");
                 }
             }
@@ -162,5 +189,6 @@ namespace HDMS_API.Infrastructure.Repositories
         {
             return null;
         }
+
     }
 }

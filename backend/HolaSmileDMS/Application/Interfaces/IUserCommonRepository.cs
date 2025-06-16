@@ -10,6 +10,7 @@ namespace HDMS_API.Application.Interfaces
         Task<User> CreatePatientAccountAsync(CreatePatientDto dto, string password);
         Task<bool> SendPasswordForGuestAsync(string email);
         Task<bool> SendOtpEmailAsync(string toEmail);
+        Task<bool> ResendOtpAsync(string toEmail);
         Task<string> VerifyOtpAsync(VerifyOtpCommand otp);
         Task<string> ResetPasswordAsync(ForgotPasswordCommand request);
         Task<LoginResultDto> LoginAsync(LoginCommand command);
