@@ -30,7 +30,6 @@ const getUserProfile = async (id: string): Promise<FormValues> => {
     },
     credentials: "include",
   });
-  console.log("Response status:", res.data)
   if (!res.ok) throw new Error("Không thể tải hồ sơ người dùng")
   return res.json()
 }
