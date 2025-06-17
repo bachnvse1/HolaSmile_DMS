@@ -31,8 +31,8 @@ const AuthCallback = () => {
 
       handled.current = true;
 
-      if (role === "Admin") {
-        navigate("/dashboard");
+      if (role === "Patient") {
+        navigate("/forgot-password"); // chạy tới view profile 
       } else {
         navigate("/");
       }
