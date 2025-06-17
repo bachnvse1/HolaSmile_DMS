@@ -2,6 +2,7 @@
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
+using HDMS_API.Application.Usecases.UserCommon.EditProfile;
 using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using HDMS_API.Infrastructure.Persistence;
@@ -190,6 +191,35 @@ namespace HDMS_API.Infrastructure.Repositories
             var user = _context.Users.FirstOrDefaultAsync(u => u.Phone == phone);
             return user;
         }
+        public async Task<bool> EditProfileAsync(EditProfileCommand request, CancellationToken cancellationToken)
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.UserID == request.UserId, cancellationToken);
 
+            if (user == null)
+                throw new Exception("Người dùng không tồn tại.");
+
+            if (!string.IsNullOrWhiteSpace(request.Phone) && !FormatHelper.FormatPhoneNumber(request.Phone))
+                throw new Exception("Số điện thoại không hợp lệ. Phải đủ 10 số và bắt đầu bằng số 0.");
+
+            if (!string.IsNullOrWhiteSpace(request.Email) && !FormatHelper.IsValidEmail(request.Email))
+                throw new Exception("Email không hợp lệ.");
+
+            if (!string.IsNullOrWhiteSpace(request.DOB) && FormatHelper.TryParseDob(request.DOB) == null)
+                throw new Exception("Ngày sinh không hợp lệ. Định dạng hợp lệ: dd/MM/yyyy, yyyy-MM-dd...");
+
+            user.Fullname = request.Fullname ?? user.Fullname;
+            user.Gender = request.Gender ?? user.Gender;
+            user.Address = request.Address ?? user.Address;
+            user.DOB = FormatHelper.TryParseDob(request.DOB) ?? user.DOB;
+            user.Phone = request.Phone ?? user.Phone;
+            user.Email = request.Email ?? user.Email;
+            user.Avatar = request.Avatar ?? user.Avatar;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync(cancellationToken);
+            return true;
+        }
     }
 }
