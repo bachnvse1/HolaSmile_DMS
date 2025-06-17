@@ -33,11 +33,12 @@ namespace HDMS_API.Application.Usecases.UserCommon.Login
 
             var role = await _userRoleChecker.GetUserRoleAsync(user.Username, cancellationToken);
             var token = _jwtService.GenerateJWTToken(user, role);
-
+            var refreshToken = _jwtService.GenerateRefreshToken(user.UserID.ToString());
             return new LoginResultDto
             {
                 Success = true,
                 Token = token,
+                refreshToken = refreshToken,
                 Role = role
             };
         }
