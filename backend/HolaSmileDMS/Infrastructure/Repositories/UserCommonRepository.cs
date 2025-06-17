@@ -72,8 +72,6 @@ namespace HDMS_API.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return user;
         }
-
-
         public async Task<bool> SendPasswordForGuestAsync(string email)
         {
             if(email.IsNullOrEmpty() || !FormatHelper.IsValidEmail(email))
@@ -82,7 +80,6 @@ namespace HDMS_API.Infrastructure.Repositories
             }
             return await _emailService.SendPasswordAsync(email, "123456"); ;
         }
-
         public async Task<bool> SendOtpEmailAsync(string toEmail)
         {
             if (FormatHelper.IsValidEmail(toEmail) == false)
@@ -125,8 +122,6 @@ namespace HDMS_API.Infrastructure.Repositories
                 throw new Exception("Gửi lại OTP thất bại.");
             }
         }
-
-
         public async Task<string> VerifyOtpAsync(VerifyOtpCommand otp)
         {
             if(_memoryCache.TryGetValue($"otp:{otp.Email}", out RequestOtpDto cachedOtp))
@@ -185,16 +180,15 @@ namespace HDMS_API.Infrastructure.Repositories
                 throw new Exception("Thời gian đặt lại mật khẩu của bạn đã hết. Vui lòng quên mật khẩu lại.");
             }
         }
-
         public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken)
         {
             return await _context.Users.FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
         }
 
-
-        public Task<User?> GetByEmailAsync(string email)
+        public Task<User?> GetUserByPhoneAsync(string phone)
         {
-            throw new NotImplementedException();
+            var user = _context.Users.FirstOrDefaultAsync(u => u.Phone == phone);
+            return user;
         }
 
     }
