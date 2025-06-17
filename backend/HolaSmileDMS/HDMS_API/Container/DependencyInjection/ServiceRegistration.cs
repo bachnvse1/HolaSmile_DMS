@@ -42,8 +42,8 @@ namespace HDMS_API.DependencyInjection
                         policy =>
                         {
                             policy.WithOrigins(
-                                    "https://6f8f-14-232-61-47.ngrok-free.app",  // Production (ngrok)
-                                    "http://localhost:5173"                       // Localhost FE
+                                    "https://6f8f-14-232-61-47.ngrok-free.app",
+                                    "http://localhost:5173"                     
                                 )
                                 .AllowAnyHeader()
                                 .AllowAnyMethod()
@@ -52,10 +52,8 @@ namespace HDMS_API.DependencyInjection
             });
 
             // MediatR
-            services.AddMediatR(cfg =>
-                cfg.RegisterServicesFromAssemblyContaining<CreatePatientCommand>());
-            services.AddMediatR(cfg =>
-                cfg.RegisterServicesFromAssemblyContaining<LoginCommand>());
+            services.AddMediatR(typeof(CreatePatientCommand).Assembly);
+            services.AddMediatR(typeof(LoginCommand).Assembly);
 
             // AutoMapper
             services.AddAutoMapper(typeof(MappingCreatePatient));
