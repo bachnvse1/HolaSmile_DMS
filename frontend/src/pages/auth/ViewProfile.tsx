@@ -7,7 +7,7 @@ import { Link } from "react-router"
 import { jwtDecode } from "jwt-decode"
 
 type FormValues = {
-  userId: string
+  userID: string
   username: string
   fullname: string
   email: string
@@ -20,8 +20,6 @@ type FormValues = {
 
 const getUserProfile = async (id: string): Promise<FormValues> => {
   const token = localStorage.getItem("authToken")
-  console.log("Token:", token)
-  console.log("Fetching profile for user ID:", id)
   const res = await fetch(`http://localhost:5135/api/user/profile/${id}`, {
     method: "GET",
     headers: {
@@ -36,6 +34,8 @@ const getUserProfile = async (id: string): Promise<FormValues> => {
 
 interface MyJwtPayload {
   "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier": string;
+  "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": string;
+  "http://schemas.microsoft.com/ws/2008/06/identity/claims/role": string;
 }
 
 export default function ViewProfile() {
@@ -46,8 +46,9 @@ export default function ViewProfile() {
     return <div>Vui lòng đăng nhập để xem trang này.</div>;
   }
   const decoded = jwtDecode<MyJwtPayload>(token)
-  const userId = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]
-
+  const userID = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]
+  const role = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"]
+  
   const {
     register,
     handleSubmit,
@@ -60,8 +61,8 @@ export default function ViewProfile() {
   const avatar = watch("avatar")
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["user-profile", userId],
-    queryFn: () => getUserProfile(userId),
+    queryKey: ["user-profile", userID],
+    queryFn: () => getUserProfile(userID),
     staleTime: 1000 * 60 * 5,
   })
 
@@ -133,7 +134,7 @@ export default function ViewProfile() {
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center gap-4">
             <Link
-              to="/dashboard"
+              to="/"
               className="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-gray-600" />
@@ -167,7 +168,7 @@ export default function ViewProfile() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {renderInput("Mã người dùng", "userId", "text", <User size={16} />, true)}
+              {renderInput("Mã người dùng", "userID", "text", <User size={16} />, true)}
               {renderInput("Tên đăng nhập", "username", "text", <User size={16} />, true)}
               {renderInput("Họ và tên", "fullname", "text", <User size={16} />)}
               {renderInput("Email", "email", "email", <Mail size={16} />)}
@@ -252,10 +253,6 @@ export default function ViewProfile() {
             <div className="mt-8 pt-6 border-t border-gray-200">
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-500">Thành viên từ</span>
-                  <span className="text-sm font-medium text-gray-900">01/2024</span>
-                </div>
-                <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-500">Trạng thái</span>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                     Hoạt động
@@ -263,7 +260,7 @@ export default function ViewProfile() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-500">Vai trò</span>
-                  <span className="text-sm font-medium text-gray-900">Người dùng</span>
+                  <span className="text-sm font-medium text-gray-900">{role}</span>
                 </div>
               </div>
             </div>

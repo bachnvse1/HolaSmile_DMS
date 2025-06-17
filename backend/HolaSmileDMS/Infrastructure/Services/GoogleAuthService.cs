@@ -52,7 +52,7 @@ public class GoogleAuthService : IGoogleAuthService
         var jwt = _jwtService.GenerateJWTToken(user, role);
         var refreshToken = _jwtService.GenerateRefreshToken(user.UserID.ToString());
 
-        return $"http://localhost:3000/auth/callback" +
+        return $"http://localhost:5173/auth/callback" +
                $"?token={jwt}" +
                $"&refreshToken={refreshToken}" +
                $"&username={user.Username}" +
