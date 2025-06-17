@@ -38,7 +38,7 @@ export function Login() {
 
       try {
         const response = await axios.post(
-          "http://localhost:5135/api/user/login",
+          "https://localhost:5001/api/user/login",
           {
             username: values.email,
             password: values.password,
@@ -73,16 +73,7 @@ export function Login() {
 
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true)
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      console.log("Google login initiated")
-
-    } catch (error) {
-      console.error("Google login failed:", error)
-    } finally {
-      setIsGoogleLoading(false)
-    }
+      window.location.href = "https://localhost:5001/api/Auth/login-google";
   }
 
   return (
