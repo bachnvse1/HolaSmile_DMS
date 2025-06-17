@@ -38,7 +38,7 @@ export function Login() {
 
       try {
         const response = await axios.post(
-          "https://localhost:5001/api/user/login",
+          "http://localhost:5135/api/user/login",
           {
             username: values.email,
             password: values.password,
@@ -211,13 +211,6 @@ export function Login() {
               )}
               <span>{isGoogleLoading ? "Connecting..." : "Continue with Google"}</span>
             </button>
-
-        <div className="text-center text-slate-400 text-sm">
-          Chưa có tài khoản?{" "}
-          <Link to="/register" className="text-blue-400 hover:underline">
-            Đăng ký
-          </Link>
-        </div>
         <div className="text-center">
           <Link
             to="/"
