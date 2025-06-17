@@ -44,17 +44,16 @@ export function Login() {
             password: values.password,
           },
           {
-            withCredentials: true, 
+            withCredentials: true,
             headers: {
               "Content-Type": "application/json",
             },
           }
         );
-        console.log("Login response:", response.data.token);
         const token = response.data.token;
 
         if (token) {
-
+          localStorage.setItem("authToken", token);
           navigate("/");
         } else {
           setApiError("Không nhận được token từ server");
@@ -100,8 +99,8 @@ export function Login() {
               onBlur={formik.handleBlur}
               placeholder="Email hoặc số điện thoại"
               className={`w-full pl-10 pr-3 py-2 rounded-md bg-slate-700/50 text-white placeholder:text-slate-400 border focus:outline-none ${formik.touched.email && formik.errors.email
-                  ? "border-red-500 focus:ring-1 focus:ring-red-500"
-                  : "border-slate-600 focus:ring-1 focus:ring-blue-500"
+                ? "border-red-500 focus:ring-1 focus:ring-red-500"
+                : "border-slate-600 focus:ring-1 focus:ring-blue-500"
                 }`}
             />
             {formik.touched.email && formik.errors.email && (
@@ -136,8 +135,8 @@ export function Login() {
               onBlur={formik.handleBlur}
               placeholder="Mật khẩu"
               className={`w-full pl-10 pr-10 py-2 rounded-md bg-slate-700/50 text-white placeholder:text-slate-400 border focus:outline-none ${formik.touched.password && formik.errors.password
-                  ? "border-red-500 focus:ring-1 focus:ring-red-500"
-                  : "border-slate-600 focus:ring-1 focus:ring-blue-500"
+                ? "border-red-500 focus:ring-1 focus:ring-red-500"
+                : "border-slate-600 focus:ring-1 focus:ring-blue-500"
                 }`}
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-2 items-center">
