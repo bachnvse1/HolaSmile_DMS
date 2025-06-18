@@ -44,6 +44,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("_myAllowSpecificOrigins");
+
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
