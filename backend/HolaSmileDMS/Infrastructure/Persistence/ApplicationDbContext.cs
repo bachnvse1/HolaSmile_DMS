@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using HDMS_API.Application.Common.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace HDMS_API.Infrastructure.Persistence
 {
@@ -48,8 +49,8 @@ namespace HDMS_API.Infrastructure.Persistence
             modelBuilder.Entity<SuppliesUsed>()
                 .HasKey(su => new { su.ProcedureId, su.SupplyId });
 
-            /*modelBuilder.Entity<UserRoleResult>().HasNoKey();
-            base.OnModelCreating(modelBuilder);*/
+            modelBuilder.Entity<UserRoleResult>().HasNoKey();
+            base.OnModelCreating(modelBuilder);
         }
     }
 }

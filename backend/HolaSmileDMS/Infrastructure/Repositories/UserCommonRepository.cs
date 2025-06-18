@@ -1,4 +1,5 @@
-﻿using HDMS_API.Application.Common.Helpers;
+﻿using Application.Usecases.UserCommon.ViewProfile;
+using HDMS_API.Application.Common.Helpers;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
@@ -8,6 +9,7 @@ using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
+using System.Threading;
 
 namespace HDMS_API.Infrastructure.Repositories
 {
@@ -158,9 +160,34 @@ namespace HDMS_API.Infrastructure.Repositories
             }
         }
 
-        public Task<LoginResultDto> LoginAsync(LoginCommand command)
+        public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken)
         {
-            return null;
+            return await _context.Users.FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
+        }
+
+
+        public Task<User?> GetByEmailAsync(string email)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<ViewProfileDto?> GetUserProfileAsync(int userId, CancellationToken cancellationToken)
+        {
+            return await _context.Users
+                .Where(u => u.UserID == userId)
+                .Select(u => new ViewProfileDto
+                {
+                    UserID = u.UserID,
+                    Username = u.Username,
+                    Fullname = u.Fullname,
+                    Gender = u.Gender,
+                    Address = u.Address,
+                    DOB = u.DOB,
+                    Phone = u.Phone,
+                    Email = u.Email,
+                    Avatar = u.Avatar
+                })
+                .FirstOrDefaultAsync(cancellationToken);
         }
     }
 }

@@ -2,6 +2,6 @@
 {
     public interface IUserRoleChecker
     {
-        Task<string?> GetUserRoleAsync(string username);
+        Task<string?> GetUserRoleAsync(string username, CancellationToken cancellationToken);
     }
 }

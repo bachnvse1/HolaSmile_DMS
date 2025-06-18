@@ -1,10 +1,15 @@
 ﻿using System.Threading.Tasks;
+using Application.Usecases.UserCommon.RefreshToken;
+using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
+using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using HDMS_API.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using NuGet.Protocol.Plugins;
 
 namespace HDMS_API.Controllers
 {
@@ -26,6 +31,33 @@ namespace HDMS_API.Controllers
             var user = _context.Users.ToList();
             return Ok(user);
         }
+
+        [HttpGet("profile/{userId}")]
+        public async Task<IActionResult> ViewProfile([FromRoute] int userId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var result = await _mediator.Send(new ViewProfileCommand { UserId = userId }, cancellationToken);
+
+                if (result == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy người dùng." });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ex.Message,
+                    Inner = ex.InnerException?.Message,
+                    Stack = ex.StackTrace
+                });
+            }
+        }
+
+
         [HttpPost("OTP/Request")]
         public async Task<IActionResult> RequestOtp([FromBody] RequestOtpCommand request)
         {
@@ -79,6 +111,43 @@ namespace HDMS_API.Controllers
                     Inner = ex.InnerException?.Message,
                     Stack = ex.StackTrace
                 });
+            }
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginCommand command)
+        {
+            try
+            {
+                var result = await _mediator.Send(command);
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized(new { message = "Sai tên đăng nhập hoặc mật khẩu || Tài khoản đã bị ban" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ex.Message,
+                    Inner = ex.InnerException?.Message,
+                    Stack = ex.StackTrace
+                });
+            }
+        }
+        
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshTokenCommand command)
+        {
+            try
+            {
+                var result = await _mediator.Send(command);
+                return Ok(result);
+            }
+            catch (SecurityTokenException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
             }
         }
     }

@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from "react"
 import { useFormik } from "formik"
 import * as Yup from "yup"
-import { ArrowLeft, CheckCircle, RefreshCw, AlertCircle } from "lucide-react"
-import { useSearchParams, Link } from "react-router"
+import { ArrowLeft, CheckCircle, AlertCircle, RefreshCw } from "lucide-react"
+import { useSearchParams, Link, useNavigate } from "react-router"
+import axios from "axios"
 
 type OTPInputProps = {
   value: string
@@ -33,26 +34,27 @@ function OTPInput({
       onChange={(e) => onChange(index, e.target.value)}
       onKeyDown={(e) => onKeyDown(index, e)}
       disabled={disabled}
-      className={`w-12 h-12 text-center text-lg font-semibold bg-slate-700/50 border rounded-md text-white focus:outline-none focus:ring-2 transition-colors ${
-        hasError ? "border-red-500 focus:ring-red-500" : "border-slate-600 focus:ring-blue-500"
-      }`}
+      className={`w-12 h-12 text-center text-lg font-semibold bg-slate-700/50 border rounded-md text-white focus:outline-none focus:ring-2 transition-colors ${hasError ? "border-red-500 focus:ring-red-500" : "border-slate-600 focus:ring-blue-500"
+        }`}
     />
   )
 }
 
-export default function VerifyOTPPage() {
+export default function VerifyOTP() {
   const [searchParams] = useSearchParams()
   const email = searchParams.get("email") || "user@example.com"
+  const navigate = useNavigate()
 
   const [isSuccess, setIsSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [isResending, setIsResending] = useState(false)
+
   const [countdown, setCountdown] = useState(60)
   const [canResend, setCanResend] = useState(false)
+  const [isResending, setIsResending] = useState(false)
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
-  // Countdown logic
+  // Quản lý đếm ngược gửi lại OTP
   useEffect(() => {
     if (countdown > 0 && !canResend) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
@@ -62,7 +64,6 @@ export default function VerifyOTPPage() {
     }
   }, [countdown, canResend])
 
-  // Formik setup
   const formik = useFormik({
     initialValues: {
       otp: ["", "", "", "", "", ""],
@@ -77,28 +78,52 @@ export default function VerifyOTPPage() {
     onSubmit: async (values) => {
       setIsLoading(true)
       try {
-        const otpCode = values.otp.join("")
-        await new Promise((res) => setTimeout(res, 2000)) // Giả lập API
+        const otpCode = values.otp.join("").toString()
+        const expiryTime = new Date().toISOString()
 
-        if (otpCode === "123456") {
+        const res = await axios.post(
+          "http://localhost:5135/api/user/OTP/Verify",
+          {
+            email,
+            otp: otpCode,
+            expiryTime,
+          },
+          {
+            withCredentials: true,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        )
+
+        if (res.status === 200 ) {
           setIsSuccess(true)
+
+          setTimeout(() => {
+            navigate("/reset-password", {
+              state: {
+                resetPasswordToken: res.data,
+              },
+            })
+          }, 1500)
         } else {
-          formik.setFieldError("otp", "Mã OTP không đúng. Vui lòng thử lại.")
+          formik.setFieldError("otp", "Xác thực thất bại. Vui lòng thử lại.")
         }
-      } catch (err) {
-        if (process.env.NODE_ENV === "development") {
-          console.error("OTP verification error:", err)
+      } catch (err: any) {
+        if (axios.isAxiosError(err) && err.response?.data?.message) {
+          formik.setFieldError("otp", err.response.data.message)
+        } else {
+          formik.setFieldError("otp", "Có lỗi xảy ra. Vui lòng thử lại.")
         }
-        formik.setFieldError("otp", "Có lỗi xảy ra. Vui lòng thử lại.")
       } finally {
         setIsLoading(false)
       }
-    },
+    }
   })
 
-  // Xử lý thay đổi giá trị từng ô
+  // Xử lý nhập từng ô OTP
   const handleInputChange = (index: number, value: string) => {
-    if (value.length > 1) return
+    if (!/^\d?$/.test(value)) return
     const newOtp = [...formik.values.otp]
     newOtp[index] = value
     formik.setFieldValue("otp", newOtp)
@@ -108,14 +133,22 @@ export default function VerifyOTPPage() {
     }
   }
 
-  // Xử lý phím Backspace
+  // Xử lý phím backspace
   const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !formik.values.otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus()
+    if (e.key === "Backspace") {
+      if (formik.values.otp[index]) {
+        // Nếu ô hiện tại có giá trị thì xóa giá trị đó
+        const newOtp = [...formik.values.otp]
+        newOtp[index] = ""
+        formik.setFieldValue("otp", newOtp)
+      } else if (index > 0) {
+        // Nếu ô hiện tại rỗng thì focus ô trước đó
+        inputRefs.current[index - 1]?.focus()
+      }
     }
   }
 
-  // Xử lý paste toàn bộ mã
+  // Xử lý dán OTP (paste)
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault()
     const pastedData = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6)
@@ -129,21 +162,32 @@ export default function VerifyOTPPage() {
   const handleResendOTP = async () => {
     setIsResending(true)
     try {
-      await new Promise((res) => setTimeout(res, 1500)) // Giả lập gửi lại OTP
-      setCountdown(60)
+      await axios.post(
+        "http://localhost:5135/api/user/OTP/Request",
+        { email },
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
       setCanResend(false)
+      setCountdown(60)
       formik.resetForm()
       inputRefs.current[0]?.focus()
     } catch (err) {
-      if (process.env.NODE_ENV === "development") {
-        console.error("Resend OTP error:", err)
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
+        alert(err.response.data.message)
+      } else {
+        alert("Không thể gửi lại mã OTP. Vui lòng thử lại sau.")
       }
     } finally {
       setIsResending(false)
     }
   }
 
-  // Giao diện sau khi xác thực thành công
   if (isSuccess) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
@@ -154,20 +198,7 @@ export default function VerifyOTPPage() {
                 <CheckCircle className="h-6 w-6 text-green-500" />
               </div>
               <h1 className="text-xl font-semibold text-white">Xác thực thành công</h1>
-              <p className="text-sm text-slate-400">
-                Mã OTP đã được xác thực thành công. Bạn có thể tiếp tục sử dụng dịch vụ.
-              </p>
-              <div className="pt-4 space-y-3">
-                <Link
-                  to="/login"
-                  className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-md transition-colors"
-                >
-                  Tiếp tục đăng nhập
-                </Link>
-                <Link to="/" className="block text-sm text-blue-400 hover:text-blue-300 transition-colors">
-                  Về trang chủ
-                </Link>
-              </div>
+              <p className="text-sm text-slate-400">Mã OTP đã được xác thực thành công. Đang chuyển hướng...</p>
             </div>
           </div>
         </div>
@@ -191,7 +222,7 @@ export default function VerifyOTPPage() {
         <div className="bg-slate-800/50 border border-slate-700 rounded-lg shadow-xl backdrop-blur-sm">
           <div className="p-6 pb-8">
             <h1 className="text-2xl font-semibold text-white text-center">Xác thực OTP</h1>
-            <p className="text-sm text-slate-400 text-center mt-2">Chúng tôi đã gửi mã xác thực 6 số đến</p>
+            <p className="text-sm text-slate-400 text-center mt-2">Mã xác thực 6 số đã được gửi đến</p>
             <p className="text-sm text-white font-medium text-center mt-1">{email}</p>
           </div>
 
@@ -214,7 +245,7 @@ export default function VerifyOTPPage() {
                   ))}
                 </div>
                 {typeof formik.errors.otp === "string" && (
-                  <p className="text-sm text-red-400 text-center flex items-center justify-center gap-1">
+                  <p className="text-sm text-red-400 text-center flex items-center justify-center gap-1 mt-1">
                     <AlertCircle size={14} /> {formik.errors.otp}
                   </p>
                 )}
@@ -223,23 +254,22 @@ export default function VerifyOTPPage() {
               <button
                 type="submit"
                 disabled={isLoading || formik.values.otp.some((digit) => !digit)}
-                className={`w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-md transition-colors ${
-                  isLoading || formik.values.otp.some((digit) => !digit) ? "opacity-70 cursor-not-allowed" : ""
-                }`}
+                className={`w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-md transition-colors ${isLoading || formik.values.otp.some((digit) => !digit) ? "opacity-70 cursor-not-allowed" : ""
+                  }`}
               >
                 {isLoading ? "Đang xác thực..." : "Xác thực"}
               </button>
             </form>
 
-            <div className="text-center space-y-3">
-              <p className="text-sm text-slate-400">Không nhận được mã?</p>
+            {/* Nút gửi lại mã OTP */}
+            <div className="mt-4 text-center">
               {canResend ? (
                 <button
                   onClick={handleResendOTP}
                   disabled={isResending}
                   className="inline-flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors font-medium disabled:opacity-70"
                 >
-                  <RefreshCw className={`h-3 w-3 ${isResending ? "animate-spin" : ""}`} />
+                  <RefreshCw className={`h-4 w-4 ${isResending ? "animate-spin" : ""}`} />
                   {isResending ? "Đang gửi lại..." : "Gửi lại mã"}
                 </button>
               ) : (
