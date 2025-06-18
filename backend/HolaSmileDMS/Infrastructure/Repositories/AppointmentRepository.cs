@@ -1,6 +1,7 @@
 ﻿using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Guests.BookAppointment;
 using HDMS_API.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace HDMS_API.Infrastructure.Repositories
 {
@@ -11,7 +12,7 @@ namespace HDMS_API.Infrastructure.Repositories
         {
             _context = context;
         }
-        public async Task<Appointment> CreateAppointmentAsync(BookAppointmentCommand request, int? patientId)
+        public async Task<Appointment> CreateAppointmentAsync(BookAppointmentCommand request, int patientId)
         {
             var appointment = new Appointment
             {
@@ -32,7 +33,26 @@ namespace HDMS_API.Infrastructure.Repositories
             return appointment;
         }
 
+        public Task<Appointment> CreateAppointmentAsync(BookAppointmentCommand request, int? patientId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<Appointment?> GetAllAppointmentAsync(int appointmentId)
+        {
+            var result = await _context.Appointments
+                .Include( a => a.Patient)
+                .Include(a => a.Dentist)
+                .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId && !a.IsDeleted);
+            return result;
+        }
+
         public Task<List<Appointment>> GetAllAppointmentAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Appointment> GetAppointmentByIdsAsync()
         {
             throw new NotImplementedException();
         }

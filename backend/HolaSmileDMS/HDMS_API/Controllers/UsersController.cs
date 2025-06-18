@@ -61,27 +61,6 @@ namespace HDMS_API.Controllers
         }
 
 
-        [HttpPost("OTP/Request")]
-        public async Task<IActionResult> RequestOtp([FromBody] RequestOtpCommand request)
-        {
-            try
-            {
-                var result = await _mediator.Send(command, cancellationToken);
-                return result
-                    ? Ok(new { message = "Cập nhật hồ sơ thành công." })
-                    : BadRequest(new { message = "Cập nhật hồ sơ thất bại." });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new
-                {
-                    ex.Message,
-                    Inner = ex.InnerException?.Message,
-                    Stack = ex.StackTrace
-                });
-            }
-        }
-
 
         [HttpPost("OTP/Request")]
         public async Task<IActionResult> RequestOtp([FromBody] RequestOtpCommand request)
