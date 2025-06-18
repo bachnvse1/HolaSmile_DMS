@@ -115,7 +115,7 @@ namespace HDMS_API.Infrastructure.Repositories
                 }
                 else
                 {
-                    throw new Exception("Bạn chỉ có thể gửi lại OTP sau 2 phút.");
+                    throw new Exception("Bạn chỉ có thể gửi lại OTP sau 1 phút.");
                 }
             }
             else
