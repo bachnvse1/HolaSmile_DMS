@@ -27,30 +27,38 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             {
                 return checkBookAppointment;
             }
-            // Get available slots for the doctor on the specified date
-            // .......
-            // return "Available slots retrieved successfully.";
             var guest = _mapper.Map<CreatePatientDto>(request);
-            var user = await _userCommonRepository.CreatePatientAccountAsync(guest, "123456");
-            if (user == null)
+            var existPatient = await _userCommonRepository.GetUserByPhoneAsync(guest.PhoneNumber);
+            // Check if the patient already exists in the system
+            if (existPatient != null)
             {
-                throw new Exception("Tạo tài khoản thất bại.");
+                var app0 = await _appointmentRepository.CreateAppointmentAsync(request, existPatient.UserID);
+                return "Tạo cuộc hẹn thành công.";
+
             }
-            if (!await _userCommonRepository.SendPasswordForGuestAsync(user.Email))
+            else // If the patient does not exist, create a new account and patient record
             {
-                throw new Exception("Gửi mật khẩu thất bại.");
+                var user = await _userCommonRepository.CreatePatientAccountAsync(guest, "123456");
+                if (user == null)
+                {
+                    throw new Exception("Tạo tài khoản thất bại.");
+                }
+                if (!await _userCommonRepository.SendPasswordForGuestAsync(user.Email))
+                {
+                    throw new Exception("Gửi mật khẩu thất bại.");
+                }
+                var patient = await _patientRepository.CreatePatientAsync(guest, user.UserID);
+                if (patient == null)
+                {
+                    throw new Exception("Tạo bệnh nhân thất bại.");
+                }
+                var app = await _appointmentRepository.CreateAppointmentAsync(request, patient.PatientID);
+                if (app == null)
+                {
+                    throw new Exception("Tạo cuộc hẹn thất bại.");
+                }
+                return "Tạo cuộc hẹn thành công.";
             }
-            var patient = await _patientRepository.CreatePatientAsync(guest, user.UserID);
-            if (patient == null)
-            {
-                throw new Exception("Tạo bệnh nhân thất bại.");
-            }
-            var app = await _appointmentRepository.CreateAppointmentAsync(request, patient.PatientID);
-            if (app == null)
-            {
-                throw new Exception("Tạo cuộc hẹn thất bại.");
-            }
-            return "Tạo cuộc hẹn thành công.";
         }
     }
 

@@ -26,12 +26,12 @@ namespace HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount
         }
         public async Task<int> Handle(CreatePatientCommand request, CancellationToken cancellationToken)
         {
-            //var user = _httpContextAccessor.HttpContext?.User;
-            //var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
-            //if (currentUserRole != "Receptionist")
-            //{
-            //    throw new UnauthorizedAccessException("Bạn không có quyền thực hiện hành động này.");
-            //}
+            var user = _httpContextAccessor.HttpContext?.User;
+            var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
+            if (currentUserRole != "Receptionist")
+            {
+                throw new UnauthorizedAccessException("Bạn không có quyền thực hiện hành động này.");
+            }
             var guest = _mapper.Map<CreatePatientDto>(request);
             var newUser = await _userCommonRepository.CreatePatientAccountAsync(guest, "123456");
             if(newUser == null)

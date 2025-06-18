@@ -7,6 +7,7 @@ using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Infrastructure.Persistence;
 using HDMS_API.Infrastructure.Repositories;
 using HDMS_API.Infrastructure.Services;
+using Infrastructure.Repositories;
 using Infrastructure.Services;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -31,6 +32,7 @@ namespace HDMS_API.DependencyInjection
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IPatientRepository, PatientRepository>();
+            services.AddScoped<IDentistRepository, DentistRepository>();
             //services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IUserCommonRepository, UserCommonRepository>();
             services.AddScoped<IUserRoleChecker, UserRoleChecker>();

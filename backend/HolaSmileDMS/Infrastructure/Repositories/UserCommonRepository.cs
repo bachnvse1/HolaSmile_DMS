@@ -221,5 +221,10 @@ namespace HDMS_API.Infrastructure.Repositories
             await _context.SaveChangesAsync(cancellationToken);
             return true;
         }
+
+        public Task<User?> GetByEmailAsync(string email)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

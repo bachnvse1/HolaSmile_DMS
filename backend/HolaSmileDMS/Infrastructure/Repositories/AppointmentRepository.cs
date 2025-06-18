@@ -31,5 +31,15 @@ namespace HDMS_API.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return appointment;
         }
+
+        public Task<List<Appointment>> GetAllAppointmentAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<Appointment>> GetAppointmentsByPatientIdAsync(int patientId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

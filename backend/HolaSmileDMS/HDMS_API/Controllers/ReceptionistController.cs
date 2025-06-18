@@ -17,7 +17,7 @@ namespace HDMS_API.Controllers
             _mediator = mediator;
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPost("patients")]
         public async Task<IActionResult> CreatePatient([FromBody] CreatePatientCommand request)
         {
