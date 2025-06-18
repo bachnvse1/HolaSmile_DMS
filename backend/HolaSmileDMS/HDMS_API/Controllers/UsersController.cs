@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Application.Usecases.UserCommon.RefreshToken;
+using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
 using HDMS_API.Application.Usecases.UserCommon.EditProfile;
 using HDMS_API.Application.Usecases.UserCommon.Login;
@@ -42,6 +43,19 @@ namespace HDMS_API.Controllers
                 return result
                     ? Ok(new { message = "Cập nhật hồ sơ thành công." })
                     : BadRequest(new { message = "Cập nhật hồ sơ thất bại." });
+        [HttpGet("profile/{userId}")]
+        public async Task<IActionResult> ViewProfile([FromRoute] int userId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var result = await _mediator.Send(new ViewProfileCommand { UserId = userId }, cancellationToken);
+
+                if (result == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy người dùng." });
+                }
+
+                return Ok(result);
             }
             catch (Exception ex)
             {

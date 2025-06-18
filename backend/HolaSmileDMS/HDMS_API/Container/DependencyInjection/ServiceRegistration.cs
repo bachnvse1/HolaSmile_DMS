@@ -36,7 +36,22 @@ namespace HDMS_API.DependencyInjection
             //services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IUserCommonRepository, UserCommonRepository>();
             services.AddScoped<IUserRoleChecker, UserRoleChecker>();
-
+            var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+            services.AddCors(options =>
+            {
+                
+                options.AddPolicy(name: MyAllowSpecificOrigins,
+                        policy =>
+                        {
+                            policy.WithOrigins(
+                                    "https://6f8f-14-232-61-47.ngrok-free.app",  // Production (ngrok)
+                                    "http://localhost:5173"                       // Localhost FE
+                                )
+                                .AllowAnyHeader()
+                                .AllowAnyMethod()
+                                .AllowCredentials();
+                        });
+            });
 
             // MediatR
             services.AddMediatR(cfg =>
