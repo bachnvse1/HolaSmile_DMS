@@ -8,14 +8,12 @@ namespace HDMS_API.Application.Usecases.UserCommon.Login
     {
         private readonly IUserCommonRepository _userCommonRepository;
         private readonly IPasswordHasher _passwordHasher;
-        private readonly IUserRoleChecker _userRoleChecker;
         private readonly IJwtService _jwtService;
-        public LoginHandler(IUserCommonRepository userCommonRepository, IPasswordHasher passwordHasher, IUserRoleChecker userRoleChecker, IJwtService jwtService) {
+        public LoginHandler(IUserCommonRepository userCommonRepository, IPasswordHasher passwordHasher, IJwtService jwtService) {
         
             _jwtService = jwtService;
             _userCommonRepository = userCommonRepository;
             _passwordHasher = passwordHasher;
-            _userRoleChecker = userRoleChecker;
         }
         public async Task<LoginResultDto> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
@@ -31,7 +29,7 @@ namespace HDMS_API.Application.Usecases.UserCommon.Login
                 throw new UnauthorizedAccessException("Invalid credentials.");
             }
 
-            var role = await _userRoleChecker.GetUserRoleAsync(user.Username, cancellationToken);
+            var role = await _userCommonRepository.GetUserRoleAsync(user.Username, cancellationToken);
             var token = _jwtService.GenerateJWTToken(user, role);
             var refreshToken = _jwtService.GenerateRefreshToken(user.UserID.ToString());
             return new LoginResultDto

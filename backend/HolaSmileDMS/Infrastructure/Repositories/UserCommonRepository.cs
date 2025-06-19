@@ -4,13 +4,11 @@ using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Application.Usecases.UserCommon.EditProfile;
-using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
-using System.Threading;
 
 namespace HDMS_API.Infrastructure.Repositories
 {
@@ -41,7 +39,7 @@ namespace HDMS_API.Infrastructure.Repositories
                 throw new Exception("Số điện thoại không hợp lệ.");
             }
 
-            if (dto.Dob != null && FormatHelper.TryParseDob(dto.Dob) == null)
+            if (FormatHelper.TryParseDob(dto.Dob) == null)
             {
                 throw new Exception("Ngày sinh không hợp lệ.");
             }
@@ -67,13 +65,15 @@ namespace HDMS_API.Infrastructure.Repositories
                 Email = dto .Email,
                 IsVerify = true,
                 Status = true ,
-                CreatedAt = DateTime.Now,
+                CreatedAt = DateTime.UtcNow,
                 CreatedBy = dto.CreatedBy 
             };
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
             return user;
         }
+
+
         public async Task<bool> SendPasswordForGuestAsync(string email)
         {
             if(email.IsNullOrEmpty() || !FormatHelper.IsValidEmail(email))
@@ -82,6 +82,7 @@ namespace HDMS_API.Infrastructure.Repositories
             }
             return await _emailService.SendPasswordAsync(email, "123456"); ;
         }
+
         public async Task<bool> SendOtpEmailAsync(string toEmail)
         {
             if (FormatHelper.IsValidEmail(toEmail) == false)
@@ -98,14 +99,13 @@ namespace HDMS_API.Infrastructure.Repositories
             {
                 Email = toEmail,
                 Otp = OtpCode,
-                ExpiryTime = DateTime.Now.AddMinutes(5), // tuy chinh
-                SendTime = DateTime.Now,
-                RetryCount = 0
+                ExpiryTime = DateTime.Now.AddMinutes(2)
             };
-            _memoryCache.Set($"otp:{toEmail}", otp, otp.ExpiryTime - DateTime.Now);
+            _memoryCache.Set($"otp:{toEmail}", otp, otp.ExpiryTime - DateTime.UtcNow);
 
             return true;
         }
+
         public async Task<bool> ResendOtpAsync(string toEmail)
         {
             if(_memoryCache.TryGetValue($"otp:{toEmail}", out RequestOtpDto cachedOtp))
@@ -124,14 +124,11 @@ namespace HDMS_API.Infrastructure.Repositories
                 throw new Exception("Gửi lại OTP thất bại.");
             }
         }
+
         public async Task<string> VerifyOtpAsync(VerifyOtpCommand otp)
         {
             if(_memoryCache.TryGetValue($"otp:{otp.Email}", out RequestOtpDto cachedOtp))
             {
-                if (cachedOtp.RetryCount > 5)
-                {
-                    throw new Exception("Bạn đã nhập sai OTP quá 5 lần. Vui lòng lấy lại OTP.");
-                }
                 if (cachedOtp.Otp == otp.Otp && cachedOtp.ExpiryTime > DateTime.Now)
                 {
                     _memoryCache.Remove($"otp:{otp.Email}");
@@ -141,8 +138,6 @@ namespace HDMS_API.Infrastructure.Repositories
                 }
                 else
                 {
-                    cachedOtp.RetryCount++;
-                    _memoryCache.Set($"otp:{otp.Email}", cachedOtp, cachedOtp.ExpiryTime - DateTime.Now);
                     throw new Exception("Mã OTP không hợp lệ .");
                 }
             }
@@ -170,7 +165,7 @@ namespace HDMS_API.Infrastructure.Repositories
                         throw new Exception("Người dùng không tồn tại.");
                     }
                     user.Password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
-                    user.UpdatedAt = DateTime.Now;
+                    user.UpdatedAt = DateTime.UtcNow;
                     user.UpdatedBy = user.UserID;
                     _context.Users.Update(user);
                     _context.SaveChanges();
@@ -182,16 +177,24 @@ namespace HDMS_API.Infrastructure.Repositories
                 throw new Exception("Thời gian đặt lại mật khẩu của bạn đã hết. Vui lòng quên mật khẩu lại.");
             }
         }
-        public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken)
-        {
-            return await _context.Users.FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
-        }
 
         public Task<User?> GetUserByPhoneAsync(string phone)
         {
             var user = _context.Users.FirstOrDefaultAsync(u => u.Phone == phone);
             return user;
         }
+
+        public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken)
+        {
+            return await _context.Users.FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
+        }
+
+
+        public Task<User?> GetByEmailAsync(string email)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<bool> EditProfileAsync(EditProfileCommand request, CancellationToken cancellationToken)
         {
             var user = await _context.Users
@@ -223,11 +226,6 @@ namespace HDMS_API.Infrastructure.Repositories
             return true;
         }
 
-        public Task<User?> GetByEmailAsync(string email)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<ViewProfileDto?> GetUserProfileAsync(int userId, CancellationToken cancellationToken)
         {
             return await _context.Users
@@ -246,5 +244,35 @@ namespace HDMS_API.Infrastructure.Repositories
                 })
                 .FirstOrDefaultAsync(cancellationToken);
         }
+
+        public async Task<string?> GetUserRoleAsync(string username, CancellationToken cancellationToken)
+        {
+            var userExist = await GetByUsernameAsync(username, cancellationToken);
+            if (userExist == null) return null;
+
+            var result =  await _context.Set<UserRoleResult>()
+                .FromSqlInterpolated($@"
+                    SELECT 'Administrator' as Role FROM Administrators WHERE UserId = {userExist.UserID}
+                    UNION ALL
+                    SELECT 'Assistant' FROM Assistants WHERE UserId = {userExist.UserID}
+                    UNION ALL
+                    SELECT 'Dentist' FROM Dentists WHERE UserId = {userExist.UserID}
+                    UNION ALL
+                    SELECT 'Owner' FROM Owners WHERE UserId = {userExist.UserID}
+                    UNION ALL
+                    SELECT 'Patient' FROM Patients WHERE UserId = {userExist.UserID}
+                    UNION ALL
+                    SELECT 'Receptionist' FROM Receptionists WHERE UserId = {userExist.UserID}
+                    LIMIT 1
+                ")
+                .AsNoTracking()
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return result?.Role;
+        }
+    }
+    public class UserRoleResult
+    {
+        public string Role { get; set; }
     }
 }
