@@ -2,10 +2,12 @@
 using Application.Usecases.UserCommon.RefreshToken;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
+using HDMS_API.Application.Usecases.UserCommon.EditProfile;
 using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using HDMS_API.Infrastructure.Persistence;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -31,6 +33,7 @@ namespace HDMS_API.Controllers
             var user = _context.Users.ToList();
             return Ok(user);
         }
+
 
         [HttpGet("profile/{userId}")]
         public async Task<IActionResult> ViewProfile([FromRoute] int userId, CancellationToken cancellationToken)
@@ -58,13 +61,14 @@ namespace HDMS_API.Controllers
         }
 
 
+
         [HttpPost("OTP/Request")]
         public async Task<IActionResult> RequestOtp([FromBody] RequestOtpCommand request)
         {
             try
             {
                 var result = await _mediator.Send(request);
-                return result ? Ok(new { message = "Xác minh OTP thành công" }) : BadRequest("Mã OTP không đúng hoặc đã hết hạn.");
+                return result ? Ok(new { message = "Mã OTP đã được gửi đến email của bạn" }) : BadRequest("Gửi OTP thất bại.");
             }
             catch (Exception ex)
             {
@@ -76,6 +80,26 @@ namespace HDMS_API.Controllers
                 });
             }
         }
+
+        [HttpPost("OTP/Resend")]
+        public async Task<IActionResult> ResendtOtp([FromBody] ResendOtpCommand request)
+        {
+            try
+            {
+                var result = await _mediator.Send(request);
+                return result ? Ok(new { message = "Mã OTP đã được gửi lại vào email của bạn" }) : BadRequest("Gửi lại OTP thất bại.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ex.Message,
+                    Inner = ex.InnerException?.Message,
+                    Stack = ex.StackTrace
+                });
+            }
+        }
+
         [HttpPost("OTP/Verify")]
         public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpCommand request)
         {
