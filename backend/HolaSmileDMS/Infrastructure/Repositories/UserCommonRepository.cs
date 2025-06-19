@@ -3,6 +3,7 @@ using HDMS_API.Application.Common.Helpers;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
+using HDMS_API.Application.Usecases.UserCommon.EditProfile;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -98,11 +99,30 @@ namespace HDMS_API.Infrastructure.Repositories
             {
                 Email = toEmail,
                 Otp = OtpCode,
-                ExpiryTime = DateTime.Now.AddMinutes(2) // tuy chinh
+                ExpiryTime = DateTime.Now.AddMinutes(2)
             };
             _memoryCache.Set($"otp:{toEmail}", otp, otp.ExpiryTime - DateTime.UtcNow);
 
             return true;
+        }
+
+        public async Task<bool> ResendOtpAsync(string toEmail)
+        {
+            if(_memoryCache.TryGetValue($"otp:{toEmail}", out RequestOtpDto cachedOtp))
+            {
+                if (cachedOtp.SendTime.AddMinutes(1) < DateTime.Now)
+                {
+                    return await SendOtpEmailAsync(toEmail);
+                }
+                else
+                {
+                    throw new Exception("Bạn chỉ có thể gửi lại OTP sau 1 phút.");
+                }
+            }
+            else
+            {
+                throw new Exception("Gửi lại OTP thất bại.");
+            }
         }
 
         public async Task<string> VerifyOtpAsync(VerifyOtpCommand otp)
@@ -158,6 +178,12 @@ namespace HDMS_API.Infrastructure.Repositories
             }
         }
 
+        public Task<User?> GetUserByPhoneAsync(string phone)
+        {
+            var user = _context.Users.FirstOrDefaultAsync(u => u.Phone == phone);
+            return user;
+        }
+
         public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken)
         {
             return await _context.Users.FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
@@ -167,6 +193,37 @@ namespace HDMS_API.Infrastructure.Repositories
         public Task<User?> GetByEmailAsync(string email)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<bool> EditProfileAsync(EditProfileCommand request, CancellationToken cancellationToken)
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.UserID == request.UserId, cancellationToken);
+
+            if (user == null)
+                throw new Exception("Người dùng không tồn tại.");
+
+            if (!string.IsNullOrWhiteSpace(request.Phone) && !FormatHelper.FormatPhoneNumber(request.Phone))
+                throw new Exception("Số điện thoại không hợp lệ. Phải đủ 10 số và bắt đầu bằng số 0.");
+
+            if (!string.IsNullOrWhiteSpace(request.Email) && !FormatHelper.IsValidEmail(request.Email))
+                throw new Exception("Email không hợp lệ.");
+
+            if (!string.IsNullOrWhiteSpace(request.DOB) && FormatHelper.TryParseDob(request.DOB) == null)
+                throw new Exception("Ngày sinh không hợp lệ. Định dạng hợp lệ: dd/MM/yyyy, yyyy-MM-dd...");
+
+            user.Fullname = request.Fullname ?? user.Fullname;
+            user.Gender = request.Gender ?? user.Gender;
+            user.Address = request.Address ?? user.Address;
+            user.DOB = FormatHelper.TryParseDob(request.DOB) ?? user.DOB;
+            user.Phone = request.Phone ?? user.Phone;
+            user.Email = request.Email ?? user.Email;
+            user.Avatar = request.Avatar ?? user.Avatar;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync(cancellationToken);
+            return true;
         }
 
         public async Task<ViewProfileDto?> GetUserProfileAsync(int userId, CancellationToken cancellationToken)
