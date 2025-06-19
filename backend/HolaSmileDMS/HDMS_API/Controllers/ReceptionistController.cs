@@ -17,7 +17,7 @@ namespace HDMS_API.Controllers
             _mediator = mediator;
         }
 
-        //[Authorize(Roles = "receptionist")]    //config role ở jwt
+        [Authorize]
         [HttpPost("patients")]
         public async Task<IActionResult> CreatePatient([FromBody] CreatePatientCommand request)
         {
@@ -25,8 +25,6 @@ namespace HDMS_API.Controllers
             {
                 return BadRequest("dữ liệu đầu vào không hợp lệ.");
             }
-            // thêm session để lấy createdby
-            //var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             try
             {
                 var result = await _mediator.Send(request);
