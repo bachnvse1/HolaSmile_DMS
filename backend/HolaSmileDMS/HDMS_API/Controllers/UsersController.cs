@@ -1,11 +1,17 @@
 ﻿using System.Threading.Tasks;
+using Application.Usecases.UserCommon.Appointment;
+using Application.Usecases.UserCommon.RefreshToken;
+using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
+using HDMS_API.Application.Usecases.UserCommon.EditProfile;
 using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using HDMS_API.Infrastructure.Persistence;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using NuGet.Protocol.Plugins;
 
 namespace HDMS_API.Controllers
@@ -28,13 +34,20 @@ namespace HDMS_API.Controllers
             var user = _context.Users.ToList();
             return Ok(user);
         }
-        [HttpPost("OTP/Request")]
-        public async Task<IActionResult> RequestOtp([FromBody] RequestOtpCommand request)
+
+        [HttpGet("profile/{userId}")]
+        public async Task<IActionResult> ViewProfile([FromRoute] int userId, CancellationToken cancellationToken)
         {
             try
             {
-                var result = await _mediator.Send(request);
-                return result ? Ok(new { message = "Xác minh OTP thành công" }) : BadRequest("Mã OTP không đúng hoặc đã hết hạn.");
+                var result = await _mediator.Send(new ViewProfileCommand { UserId = userId }, cancellationToken);
+
+                if (result == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy người dùng." });
+                }
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -46,6 +59,45 @@ namespace HDMS_API.Controllers
                 });
             }
         }
+
+        [HttpPost("OTP/Request")]
+        public async Task<IActionResult> RequestOtp([FromBody] RequestOtpCommand request)
+        {
+            try
+            {
+                var result = await _mediator.Send(request);
+                return result ? Ok(new { message = "Mã OTP đã được gửi đến email của bạn" }) : BadRequest("Gửi OTP thất bại.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ex.Message,
+                    Inner = ex.InnerException?.Message,
+                    Stack = ex.StackTrace
+                });
+            }
+        }
+
+        [HttpPost("OTP/Resend")]
+        public async Task<IActionResult> ResendtOtp([FromBody] ResendOtpCommand request)
+        {
+            try
+            {
+                var result = await _mediator.Send(request);
+                return result ? Ok(new { message = "Mã OTP đã được gửi lại vào email của bạn" }) : BadRequest("Gửi lại OTP thất bại.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ex.Message,
+                    Inner = ex.InnerException?.Message,
+                    Stack = ex.StackTrace
+                });
+            }
+        }
+
         [HttpPost("OTP/Verify")]
         public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpCommand request)
         {
@@ -95,6 +147,40 @@ namespace HDMS_API.Controllers
             catch (UnauthorizedAccessException)
             {
                 return Unauthorized(new { message = "Sai tên đăng nhập hoặc mật khẩu || Tài khoản đã bị ban" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ex.Message,
+                    Inner = ex.InnerException?.Message,
+                    Stack = ex.StackTrace
+                });
+            }
+        }
+        
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshTokenCommand command)
+        {
+            try
+            {
+                var result = await _mediator.Send(command);
+                return Ok(result);
+            }
+            catch (SecurityTokenException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("Appointment")]
+        public async Task<IActionResult> GetAllAppointment(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var result = await _mediator.Send(new ViewAppointmentCommand(), cancellationToken);
+                return Ok(result);
             }
             catch (Exception ex)
             {
