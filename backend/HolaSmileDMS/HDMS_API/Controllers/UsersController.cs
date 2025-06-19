@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Application.Usecases.UserCommon.Appointment;
 using Application.Usecases.UserCommon.RefreshToken;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
@@ -34,7 +35,6 @@ namespace HDMS_API.Controllers
             return Ok(user);
         }
 
-
         [HttpGet("profile/{userId}")]
         public async Task<IActionResult> ViewProfile([FromRoute] int userId, CancellationToken cancellationToken)
         {
@@ -59,8 +59,6 @@ namespace HDMS_API.Controllers
                 });
             }
         }
-
-
 
         [HttpPost("OTP/Request")]
         public async Task<IActionResult> RequestOtp([FromBody] RequestOtpCommand request)
@@ -174,5 +172,26 @@ namespace HDMS_API.Controllers
                 return Unauthorized(new { message = ex.Message });
             }
         }
+
+        [Authorize]
+        [HttpGet("Appointment")]
+        public async Task<IActionResult> GetAllAppointment(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var result = await _mediator.Send(new ViewAppointmentCommand(), cancellationToken);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ex.Message,
+                    Inner = ex.InnerException?.Message,
+                    Stack = ex.StackTrace
+                });
+            }
+        }
+
     }
 }

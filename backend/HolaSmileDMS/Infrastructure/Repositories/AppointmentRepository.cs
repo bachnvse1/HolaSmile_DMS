@@ -1,4 +1,5 @@
-﻿using HDMS_API.Application.Interfaces;
+﻿using Application.Usecases.UserCommon.Appointment;
+using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Guests.BookAppointment;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -38,21 +39,34 @@ namespace HDMS_API.Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<Appointment?> GetAllAppointmentAsync(int appointmentId)
+        public async Task<List<AppointmentDTO>> GetAllAppointmentAsync()
         {
             var result = await _context.Appointments
                 .Include( a => a.Patient)
+                .ThenInclude(p => p.User)
                 .Include(a => a.Dentist)
-                .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId && !a.IsDeleted);
-            return result;
+                .ThenInclude(d => d.User)
+                .ToListAsync();
+            var appDto = result.Select(result => new AppointmentDTO
+            {
+                AppointmentId = result.AppointmentId,
+                PatientName = result.Patient.User.Fullname,
+                DentistName = result.Dentist.User.Fullname,
+                Status = result.Status,
+                Content = result.Content,
+                IsNewPatient = result.IsNewPatient,
+                AppointmentType = result.AppointmentType,
+                AppointmentDate = result.AppointmentDate,
+                AppointmentTime = result.AppointmentTime,
+                CreatedAt = result.CreatedAt,
+                UpdatedAt = result.UpdatedAt,
+                CreatedBy = result.CreatedBy,
+                UpdatedBy = result.UpdatedBy,
+            }).ToList();
+            return appDto;
         }
 
-        public Task<List<Appointment>> GetAllAppointmentAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Appointment> GetAppointmentByIdsAsync()
+        public Task<Appointment> GetAppointmentByIdsAsync(int appointmentId)
         {
             throw new NotImplementedException();
         }

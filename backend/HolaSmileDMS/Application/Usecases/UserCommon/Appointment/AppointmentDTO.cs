@@ -22,5 +22,6 @@ namespace Application.Usecases.UserCommon.Appointment
         public int? CreatedBy { get; set; }
         public int? UpdatedBy { get; set; }
 
+
     }
 }
