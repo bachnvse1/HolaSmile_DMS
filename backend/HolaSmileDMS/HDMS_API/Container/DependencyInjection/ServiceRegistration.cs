@@ -1,6 +1,5 @@
 ﻿using Application.Interfaces;
 using HDMS_API.Application.Common.Mappings;
-using HDMS_API.Application.Common.Services;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Application.Usecases.UserCommon.Login;
@@ -33,7 +32,6 @@ namespace HDMS_API.DependencyInjection
             services.AddScoped<IPatientRepository, PatientRepository>();
             //services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IUserCommonRepository, UserCommonRepository>();
-            services.AddScoped<IUserRoleChecker, UserRoleChecker>();
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>
             {

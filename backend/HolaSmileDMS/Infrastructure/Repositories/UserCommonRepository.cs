@@ -3,13 +3,11 @@ using HDMS_API.Application.Common.Helpers;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
-using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
-using System.Threading;
 
 namespace HDMS_API.Infrastructure.Repositories
 {
@@ -189,5 +187,35 @@ namespace HDMS_API.Infrastructure.Repositories
                 })
                 .FirstOrDefaultAsync(cancellationToken);
         }
+
+        public async Task<string?> GetUserRoleAsync(string username, CancellationToken cancellationToken)
+        {
+            var userExist = await GetByUsernameAsync(username, cancellationToken);
+            if (userExist == null) return null;
+
+            var result =  await _context.Set<UserRoleResult>()
+                .FromSqlInterpolated($@"
+                    SELECT 'Administrator' as Role FROM Administrators WHERE UserId = {userExist.UserID}
+                    UNION ALL
+                    SELECT 'Assistant' FROM Assistants WHERE UserId = {userExist.UserID}
+                    UNION ALL
+                    SELECT 'Dentist' FROM Dentists WHERE UserId = {userExist.UserID}
+                    UNION ALL
+                    SELECT 'Owner' FROM Owners WHERE UserId = {userExist.UserID}
+                    UNION ALL
+                    SELECT 'Patient' FROM Patients WHERE UserId = {userExist.UserID}
+                    UNION ALL
+                    SELECT 'Receptionist' FROM Receptionists WHERE UserId = {userExist.UserID}
+                    LIMIT 1
+                ")
+                .AsNoTracking()
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return result?.Role;
+        }
+    }
+    public class UserRoleResult
+    {
+        public string Role { get; set; }
     }
 }
