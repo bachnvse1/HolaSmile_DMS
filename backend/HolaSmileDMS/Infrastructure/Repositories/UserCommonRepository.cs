@@ -188,33 +188,21 @@ namespace HDMS_API.Infrastructure.Repositories
             return user;
         }
 
-        public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken)
-        {
-            return await _context.Users.FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
-        }
-
-
         public Task<User?> GetByEmailAsync(string email)
         {
             throw new NotImplementedException();
         }
-
         public async Task<bool> EditProfileAsync(User user, CancellationToken cancellationToken)
         {
             _context.Users.Update(user);
             await _context.SaveChangesAsync(cancellationToken);
             return true;
         }
-        public Task<User?> GetByEmailAsync(string email)
-        {
-            throw new NotImplementedException();
-        }
 
         public async Task<User?> GetByIdAsync(int userId, CancellationToken cancellationToken)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId, cancellationToken);
         }
-
         public async Task<ViewProfileDto?> GetUserProfileAsync(int userId, CancellationToken cancellationToken)
         {
             return await _context.Users
@@ -233,70 +221,6 @@ namespace HDMS_API.Infrastructure.Repositories
                 })
                 .FirstOrDefaultAsync(cancellationToken);
         }
-        public async Task<List<AppointmentDTO>> GetAllAppointmentAsync()
-        {
-            var result = await _context.Appointments
-                .Include(a => a.Patient)
-                .ThenInclude(p => p.User)
-                .Include(a => a.Dentist)
-                .ThenInclude(d => d.User)
-                .Where(a => !a.IsDeleted)
-                .ToListAsync();
-            if (result == null || !result.Any())
-            {
-                return new List<AppointmentDTO>();
-            }
-            var appDto = result.Select(result => new AppointmentDTO
-            {
-                AppointmentId = result.AppointmentId,
-                PatientName = result.Patient.User.Fullname,
-                DentistName = result.Dentist.User.Fullname,
-                Status = result.Status,
-                Content = result.Content,
-                IsNewPatient = result.IsNewPatient,
-                AppointmentType = result.AppointmentType,
-                AppointmentDate = result.AppointmentDate,
-                AppointmentTime = result.AppointmentTime,
-                CreatedAt = result.CreatedAt,
-                UpdatedAt = result.UpdatedAt,
-                CreatedBy = result.CreatedBy,
-                UpdatedBy = result.UpdatedBy,
-            }).ToList();
-            return appDto;
-        }
-        public async Task<AppointmentDTO> GetAppointmentByIdAsync(int appointmentId)
-        {
-            var result = await _context.Appointments
-                .Include(a => a.Patient)
-                .ThenInclude(p => p.User)
-                .Include(a => a.Dentist)
-                .ThenInclude(d => d.User)
-                .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
-            if (result == null)
-            {
-                return null;
-            }
-            var appDto = new AppointmentDTO
-            {
-                AppointmentId = result.AppointmentId,
-                PatientName = result.Patient.User.Fullname,
-                DentistName = result.Dentist.User.Fullname,
-                Status = result.Status,
-                Content = result.Content,
-                IsNewPatient = result.IsNewPatient,
-                AppointmentType = result.AppointmentType,
-                AppointmentDate = result.AppointmentDate,
-                AppointmentTime = result.AppointmentTime,
-                CreatedAt = result.CreatedAt,
-                UpdatedAt = result.UpdatedAt,
-                CreatedBy = result.CreatedBy,
-                UpdatedBy = result.UpdatedBy,
-            };
-            return appDto;
-
-        }
-
-
         public async Task<string?> GetUserRoleAsync(string username, CancellationToken cancellationToken)
         {
             var userExist = await GetByUsernameAsync(username, cancellationToken);
