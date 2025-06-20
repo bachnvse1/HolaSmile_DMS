@@ -24,7 +24,7 @@ const addPatient = async (data: FormData) => {
     dob: data.dateOfBirth,
     gender: data.gender === "male", 
     email: data.email,
-    adress: data.address, 
+    address: data.address, 
     underlyingConditions: data.underlyingConditions || "",
     patientGroup: data.patientGroup || "",
     note: data.notes || "",
