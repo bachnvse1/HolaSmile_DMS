@@ -13,5 +13,49 @@ namespace HDMS_API.Infrastructure.Repositories
         {
             _context = context;
         }
+        public async Task<Appointment> CreateAppointmentAsync(BookAppointmentCommand request, int patientId)
+        {
+            var appointment = new Appointment
+            {
+                PatientId = patientId,
+                DentistId = request.DentistId,
+                Status = "pending",
+                Content = request.MedicalIssue,
+                IsNewPatient = true,
+                AppointmentType = "",
+                AppointmentDate = request.AppointmentDate,
+                AppointmentTime = request.AppointmentTime,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = patientId,
+                IsDeleted = false
+            };
+            _context.Appointments.Add(appointment);
+            await _context.SaveChangesAsync();
+            return appointment;
+        }
+
+        public async Task<Appointment?> GetAllAppointmentAsync(int appointmentId)
+        {
+            var result = await _context.Appointments
+                .Include( a => a.Patient)
+                .Include(a => a.Dentist)
+                .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId && !a.IsDeleted);
+            return result;
+        }
+
+        public Task<List<Appointment>> GetAllAppointmentAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Appointment> GetAppointmentByIdsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<Appointment>> GetAppointmentsByPatientIdAsync(int patientId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -45,7 +45,12 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             // Check if the patient already exists in the system
             if (existPatient != null)
             {
-                var app0 = await _guestRepository.CreateAppointmentAsync(request, existPatient.UserID);
+                var patient = await _patientRepository.GetPatientByUserIdAsync(existPatient.UserID);
+                var app0 = await _appointmentRepository.CreateAppointmentAsync(request, patient.PatientID);
+                if (app0 == null)
+                {
+                    throw new Exception("Tạo cuộc hẹn thất bại.");
+                }
                 return "Tạo cuộc hẹn thành công.";
 
             }
