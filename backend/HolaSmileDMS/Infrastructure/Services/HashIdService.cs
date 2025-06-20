@@ -1,29 +1,31 @@
 using Application.Services;
+using HashidsNet;
 
 namespace Infrastructure.Services;
 
 public class HashIdService : IHashIdService
 {
-    private static readonly Random _random = new();
+    private readonly Hashids _hashids;
+
+    public HashIdService()
+    {
+        const string salt = "hola-smile-2025-secure-key";
+        const int minLength = 12;
+        _hashids = new Hashids(salt, minLength);
+    }
 
     public string Encode(int id)
     {
-        string part1 = RandomString(6);
-        string part2 = (id * 17).ToString();
-        string part3 = RandomString(6);
-        string part4 = RandomString(4);
-        string part5 = _random.Next(100, 999).ToString();
-
-        return $"{part1}-{part2}-{part3}-{part4}-{part5}";
+        var raw = _hashids.Encode(id); // ví dụ: "xYz123AbCdEf"
+        return FormatPretty(raw);
     }
 
     public int Decode(string publicId)
     {
         try
         {
-            var parts = publicId.Split('-');
-            int encoded = int.Parse(parts[1]);
-            return encoded / 17;
+            var raw = publicId.Replace("-", "");
+            return _hashids.Decode(raw).FirstOrDefault();
         }
         catch
         {
@@ -31,10 +33,15 @@ public class HashIdService : IHashIdService
         }
     }
 
-    private string RandomString(int length)
+    private string FormatPretty(string raw)
     {
-        const string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-        return new string(Enumerable.Repeat(chars, length)
-            .Select(s => s[_random.Next(s.Length)]).ToArray());
+        // Chia chuỗi thành từng phần 4 ký tự: "xYz1-23Ab-CdEf"
+        return string.Join("-", SplitEvery(raw, 4));
+    }
+
+    private IEnumerable<string> SplitEvery(string str, int chunkSize)
+    {
+        for (int i = 0; i < str.Length; i += chunkSize)
+            yield return str.Substring(i, Math.Min(chunkSize, str.Length - i));
     }
 }

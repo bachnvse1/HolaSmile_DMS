@@ -1,3 +1,4 @@
+﻿using Application.Usecases.UserCommon.RefreshToken;
 ﻿using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,11 +11,9 @@ using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using HDMS_API.Infrastructure.Persistence;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using NuGet.Protocol.Plugins;
+
 
 namespace HDMS_API.Controllers
 {
@@ -36,7 +35,6 @@ namespace HDMS_API.Controllers
             var user = _context.Users.ToList();
             return Ok(user);
         }
-
 
         [HttpGet("profile/{userId}")]
         public async Task<IActionResult> ViewProfile([FromRoute] int userId, CancellationToken cancellationToken)
