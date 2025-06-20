@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Application.Interfaces;
+using Application.Usecases.Dentist.ManageSchedule;
 using Application.Usecases.Dentist.ViewDentistSchedule;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,14 @@ namespace Infrastructure.Repositories
         {
             _context = context;
         }
+
+        public async Task<bool> CreateScheduleAsync(Schedule schedule)
+        {
+            _context.Schedules.Add(schedule);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<List<Dentist>> GetAllDentistsAsync()
         {
             throw new NotImplementedException();
@@ -45,9 +54,12 @@ namespace Infrastructure.Repositories
             return availableSechedule;
         }
 
-        public Task<Dentist?> GetDentistByIdAsync(int dentistId)
+        public async Task<Dentist?> GetDentistByIdAsync(int userID)
         {
-            throw new NotImplementedException();
+            var dentist = await _context.Dentists
+                .Include(d => d.User)
+                .FirstOrDefaultAsync(d => d.DentistId == userID);
+            return dentist;
         }
     }
 }
