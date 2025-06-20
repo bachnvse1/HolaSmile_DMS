@@ -192,6 +192,25 @@ namespace HDMS_API.Controllers
                 });
             }
         }
+        [Authorize]
+        [HttpGet("Appointment/{appointmentId}")]
+        public async Task<IActionResult> ViewDetailAppointment([FromRoute] int appointmentId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var result = await _mediator.Send(new ViewDetailAppointmentCommand { AppointmentId = appointmentId }, cancellationToken);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ex.Message,
+                    Inner = ex.InnerException?.Message,
+                    Stack = ex.StackTrace
+                });
+            }
+        }
 
     }
 }
