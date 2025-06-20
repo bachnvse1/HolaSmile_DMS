@@ -10,20 +10,19 @@ using Microsoft.AspNetCore.Http;
 
 namespace Application.Usecases.UserCommon.Appointment
 {
-    public class ViewApponintmentHandler : IRequestHandler<ViewAppointmentCommand, List<AppointmentDTO>>
+    public class ViewDetailAppointmentHandler : IRequestHandler<ViewDetailAppointmentCommand, AppointmentDTO>
     {
         private readonly IUserCommonRepository _userCommonRepository;
         private readonly IPatientRepository _patientRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public ViewApponintmentHandler(IUserCommonRepository userCommonRepository, IHttpContextAccessor httpContextAccessor,IPatientRepository patientRepository)
+        public ViewDetailAppointmentHandler(IUserCommonRepository userCommonRepository,IPatientRepository patientRepository, IHttpContextAccessor httpContextAccessor)
         {
             _userCommonRepository = userCommonRepository;
             _patientRepository = patientRepository;
             _httpContextAccessor = httpContextAccessor;
         }
-        public async Task<List<AppointmentDTO>> Handle(ViewAppointmentCommand request, CancellationToken cancellationToken)
+        public async Task<AppointmentDTO> Handle(ViewDetailAppointmentCommand request, CancellationToken cancellationToken)
         {
-            var result = new List<AppointmentDTO>();
             var user = _httpContextAccessor.HttpContext?.User;
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
@@ -33,19 +32,19 @@ namespace Application.Usecases.UserCommon.Appointment
                 throw new UnauthorizedAccessException("Bạn cần đăng nhập để thực hiện thao tác này.");
             }
 
-            if(string.Equals(currentUserRole,"patient",StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(currentUserRole, "patient", StringComparison.OrdinalIgnoreCase))
             {
-                result = await _patientRepository.GetAppointmentsByPatientIdAsync(currentUserId);
+                if(!await _patientRepository.CheckAppointmentByPatientIdAsync(request.AppointmentId, currentUserId)){
+                    throw new Exception("Bạn không có quyền truy cập vào lịch hẹn này");
+                }
             }
-            else
+
+            var appointment = await _userCommonRepository.GetAppointmentByIdAsync(request.AppointmentId);
+            if (appointment == null)
             {
-                result = await _userCommonRepository.GetAllAppointmentAsync();
+                throw new Exception("không tìm thấy dữ liệu cuộc hẹn. ");
             }
-            if(result == null)
-            {
-                throw new Exception("Không có dữ liệu");
-            }
-            return result;
+            return appointment;
         }
     }
 }

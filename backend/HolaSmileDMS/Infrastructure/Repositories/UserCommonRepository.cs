@@ -1,4 +1,5 @@
-﻿using Application.Usecases.UserCommon.ViewProfile;
+﻿using Application.Usecases.UserCommon.Appointment;
+using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Common.Helpers;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
@@ -151,7 +152,6 @@ namespace HDMS_API.Infrastructure.Repositories
                 throw new Exception("OTP đã hết hạn.");
             }
         }
-
         public async Task<string> ResetPasswordAsync(ForgotPasswordCommand request)
         {
             if(_memoryCache.TryGetValue($"resetPasswordToken:{request.ResetPasswordToken}", out string email))
@@ -186,7 +186,6 @@ namespace HDMS_API.Infrastructure.Repositories
         {
             return await _context.Users.FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
         }
-
         public Task<User?> GetUserByPhoneAsync(string phone)
         {
             var user = _context.Users.FirstOrDefaultAsync(u => u.Phone == phone);
@@ -222,12 +221,10 @@ namespace HDMS_API.Infrastructure.Repositories
             await _context.SaveChangesAsync(cancellationToken);
             return true;
         }
-
         public Task<User?> GetByEmailAsync(string email)
         {
             throw new NotImplementedException();
         }
-
         public async Task<ViewProfileDto?> GetUserProfileAsync(int userId, CancellationToken cancellationToken)
         {
             return await _context.Users
@@ -246,6 +243,70 @@ namespace HDMS_API.Infrastructure.Repositories
                 })
                 .FirstOrDefaultAsync(cancellationToken);
         }
+        public async Task<List<AppointmentDTO>> GetAllAppointmentAsync()
+        {
+            var result = await _context.Appointments
+                .Include(a => a.Patient)
+                .ThenInclude(p => p.User)
+                .Include(a => a.Dentist)
+                .ThenInclude(d => d.User)
+                .Where(a => !a.IsDeleted)
+                .ToListAsync();
+            if (result == null || !result.Any())
+            {
+                return new List<AppointmentDTO>();
+            }
+            var appDto = result.Select(result => new AppointmentDTO
+            {
+                AppointmentId = result.AppointmentId,
+                PatientName = result.Patient.User.Fullname,
+                DentistName = result.Dentist.User.Fullname,
+                Status = result.Status,
+                Content = result.Content,
+                IsNewPatient = result.IsNewPatient,
+                AppointmentType = result.AppointmentType,
+                AppointmentDate = result.AppointmentDate,
+                AppointmentTime = result.AppointmentTime,
+                CreatedAt = result.CreatedAt,
+                UpdatedAt = result.UpdatedAt,
+                CreatedBy = result.CreatedBy,
+                UpdatedBy = result.UpdatedBy,
+            }).ToList();
+            return appDto;
+        }
+        public async Task<AppointmentDTO> GetAppointmentByIdAsync(int appointmentId)
+        {
+            var result = await _context.Appointments
+                .Include(a => a.Patient)
+                .ThenInclude(p => p.User)
+                .Include(a => a.Dentist)
+                .ThenInclude(d => d.User)
+                .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
+            if (result == null)
+            {
+                return null;
+            }
+            var appDto = new AppointmentDTO
+            {
+                AppointmentId = result.AppointmentId,
+                PatientName = result.Patient.User.Fullname,
+                DentistName = result.Dentist.User.Fullname,
+                Status = result.Status,
+                Content = result.Content,
+                IsNewPatient = result.IsNewPatient,
+                AppointmentType = result.AppointmentType,
+                AppointmentDate = result.AppointmentDate,
+                AppointmentTime = result.AppointmentTime,
+                CreatedAt = result.CreatedAt,
+                UpdatedAt = result.UpdatedAt,
+                CreatedBy = result.CreatedBy,
+                UpdatedBy = result.UpdatedBy,
+            };
+            return appDto;
+
+        }
+
+
 
     }
 }

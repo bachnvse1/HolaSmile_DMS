@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
+using HDMS_API.Application.Common.Helpers;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using MediatR;
+using Microsoft.IdentityModel.Tokens;
 
 namespace HDMS_API.Application.Usecases.Guests.BookAppointment
 {
@@ -22,17 +24,28 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
         }
         public async Task<string> Handle(BookAppointmentCommand request, CancellationToken cancellationToken)
         {
-            var checkBookAppointment = await _guestRepository.BookAppointmentAsync(request);
-            if(!checkBookAppointment.Equals(""))
+            if (request.FullName.Trim().IsNullOrEmpty())
             {
-                return checkBookAppointment;
+                throw new Exception("Họ tên không thể để trống.");
+            }
+            if (!FormatHelper.IsValidEmail(request.Email))
+            {
+                throw new Exception("Email không hợp lệ.");
+            }
+            if (!FormatHelper.FormatPhoneNumber(request.PhoneNumber))
+            {
+                throw new Exception("Số điện thoại không hợp lệ.");
+            }
+            if (request.AppointmentDate.Date < DateTime.Now.Date)
+            {
+                throw new Exception("Ngày hẹn không thể là ngày trong quá khứ.");
             }
             var guest = _mapper.Map<CreatePatientDto>(request);
             var existPatient = await _userCommonRepository.GetUserByPhoneAsync(guest.PhoneNumber);
             // Check if the patient already exists in the system
             if (existPatient != null)
             {
-                var app0 = await _appointmentRepository.CreateAppointmentAsync(request, existPatient.UserID);
+                var app0 = await _guestRepository.CreateAppointmentAsync(request, existPatient.UserID);
                 return "Tạo cuộc hẹn thành công.";
 
             }
@@ -52,7 +65,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 {
                     throw new Exception("Tạo bệnh nhân thất bại.");
                 }
-                var app = await _appointmentRepository.CreateAppointmentAsync(request, patient.PatientID);
+                var app = await _guestRepository.CreateAppointmentAsync(request, patient.PatientID);
                 if (app == null)
                 {
                     throw new Exception("Tạo cuộc hẹn thất bại.");

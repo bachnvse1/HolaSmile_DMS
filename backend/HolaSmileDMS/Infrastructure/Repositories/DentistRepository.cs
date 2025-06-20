@@ -25,10 +25,11 @@ namespace Infrastructure.Repositories
 
         public async Task<List<DentistScheduleDTO>> GetAllDentistScheduleAsync()
         {
-            var availableSechedule = await _context.Dentists
+            var availableSechedule = await _context.Dentists.Include(ds => ds.User)
                 .Select(ds => new DentistScheduleDTO {
                     DentistID = ds.DentistId,
                     DentistName = ds.User.Fullname,
+                    Avatar = ds.User.Avatar,
                     schedules = ds.Schedules
                     .Select(s => new ScheduleDTO
                     {
@@ -40,8 +41,6 @@ namespace Infrastructure.Repositories
 
                     IsAvailable = _context.Appointments.Count(a => a.DentistId == ds.DentistId ) < 5 ? true : false
                 }).ToListAsync();
-
-
             return availableSechedule;
         }
 

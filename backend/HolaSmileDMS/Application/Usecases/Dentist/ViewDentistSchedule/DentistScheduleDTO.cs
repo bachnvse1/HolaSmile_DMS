@@ -10,6 +10,7 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
     {
         public int DentistID { get; set; }
         public string DentistName { get; set; }
+        public string Avatar { get; set; }
         public List<ScheduleDTO> schedules { get; set; }
         public Boolean IsAvailable { get; set; }
     }
