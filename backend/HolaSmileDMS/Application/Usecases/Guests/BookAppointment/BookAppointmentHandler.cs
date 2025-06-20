@@ -2,6 +2,7 @@
 using HDMS_API.Application.Common.Helpers;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
+using System.Threading.Tasks;
 using MediatR;
 using Microsoft.IdentityModel.Tokens;
 
@@ -46,7 +47,6 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             if (existPatient != null)
             {
                 var app0 = await _guestRepository.CreateAppointmentAsync(request, existPatient.UserID);
-                return "Tạo cuộc hẹn thành công.";
 
             }
             else // If the patient does not exist, create a new account and patient record
@@ -56,10 +56,18 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 {
                     throw new Exception("Tạo tài khoản thất bại.");
                 }
-                if (!await _userCommonRepository.SendPasswordForGuestAsync(user.Email))
+                _ = System.Threading.Tasks.Task.Run(async () =>
                 {
-                    throw new Exception("Gửi mật khẩu thất bại.");
-                }
+                    try
+                    {
+                        await _userCommonRepository.SendPasswordForGuestAsync(user.Email);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Lỗi gửi email guest] {ex.Message}");
+                    }
+                });
+
                 var patient = await _patientRepository.CreatePatientAsync(guest, user.UserID);
                 if (patient == null)
                 {
@@ -70,8 +78,9 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 {
                     throw new Exception("Tạo cuộc hẹn thất bại.");
                 }
-                return "Tạo cuộc hẹn thành công.";
             }
+            return "Tạo cuộc hẹn thành công.";
+
         }
     }
 

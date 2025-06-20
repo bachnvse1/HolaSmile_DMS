@@ -78,5 +78,17 @@ namespace HDMS_API.Infrastructure.Repositories
             var result = await _context.Appointments.AnyAsync(a => a.AppointmentId == appId && a.Patient.User.UserID == userId );
             return result;
         }
+
+        public async Task<Patient> GetPatientByIdAsync(int patientId)
+        {
+            var patient = await _context.Patients.FindAsync(patientId);
+            return patient;
+        }
+
+        public async Task<Patient> GetPatientByUserIdAsync(int userId)
+        {
+            var patient = await _context.Patients.FirstOrDefaultAsync(p => p.UserID == userId);
+            return patient;
+        }
     }
 }
