@@ -39,6 +39,7 @@ namespace HDMS_API.Infrastructure.Repositories
         {
             var patient = await _context.Patients.FirstOrDefaultAsync(p => p.UserID == userId);
             return patient;
+        }
         public async Task<bool> CancelAppointmentAsync(int appId, int CancleBy)
         {
             var appointment = await _context.Appointments
