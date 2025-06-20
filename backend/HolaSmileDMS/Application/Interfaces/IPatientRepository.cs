@@ -9,6 +9,5 @@ namespace HDMS_API.Application.Interfaces
         Task<bool> CancelAppointmentAsync(int appId, int cancleBy);
         Task<List<AppointmentDTO>> GetAppointmentsByPatientIdAsync(int patientId);
         Task<bool> CheckAppointmentByPatientIdAsync(int appId, int userId);
-
     }
 }

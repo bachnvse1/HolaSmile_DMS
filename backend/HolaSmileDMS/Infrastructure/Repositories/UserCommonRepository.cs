@@ -1,4 +1,5 @@
 ﻿using Application.Usecases.UserCommon.Appointment;
+﻿using Application.Usecases.UserCommon.ViewListPatient;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Common.Helpers;
 using HDMS_API.Application.Interfaces;
@@ -199,32 +200,8 @@ namespace HDMS_API.Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<bool> EditProfileAsync(EditProfileCommand request, CancellationToken cancellationToken)
+        public async Task<bool> EditProfileAsync(User user, CancellationToken cancellationToken)
         {
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.UserID == request.UserId, cancellationToken);
-
-            if (user == null)
-                throw new Exception("Người dùng không tồn tại.");
-
-            if (!string.IsNullOrWhiteSpace(request.Phone) && !FormatHelper.FormatPhoneNumber(request.Phone))
-                throw new Exception("Số điện thoại không hợp lệ. Phải đủ 10 số và bắt đầu bằng số 0.");
-
-            if (!string.IsNullOrWhiteSpace(request.Email) && !FormatHelper.IsValidEmail(request.Email))
-                throw new Exception("Email không hợp lệ.");
-
-            if (!string.IsNullOrWhiteSpace(request.DOB) && FormatHelper.TryParseDob(request.DOB) == null)
-                throw new Exception("Ngày sinh không hợp lệ. Định dạng hợp lệ: dd/MM/yyyy, yyyy-MM-dd...");
-
-            user.Fullname = request.Fullname ?? user.Fullname;
-            user.Gender = request.Gender ?? user.Gender;
-            user.Address = request.Address ?? user.Address;
-            user.DOB = FormatHelper.TryParseDob(request.DOB) ?? user.DOB;
-            user.Phone = request.Phone ?? user.Phone;
-            user.Email = request.Email ?? user.Email;
-            user.Avatar = request.Avatar ?? user.Avatar;
-            user.UpdatedAt = DateTime.UtcNow;
-
             _context.Users.Update(user);
             await _context.SaveChangesAsync(cancellationToken);
             return true;
@@ -232,6 +209,11 @@ namespace HDMS_API.Infrastructure.Repositories
         public Task<User?> GetByEmailAsync(string email)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<User?> GetByIdAsync(int userId, CancellationToken cancellationToken)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId, cancellationToken);
         }
 
         public async Task<ViewProfileDto?> GetUserProfileAsync(int userId, CancellationToken cancellationToken)
@@ -341,6 +323,26 @@ namespace HDMS_API.Infrastructure.Repositories
 
             return result?.Role;
         }
+
+        public async Task<List<ViewListPatientDto>> GetAllPatientsAsync(CancellationToken cancellationToken)
+        {
+            return await _context.Patients
+                .Where(p => p.User != null)
+                .Include(p => p.User)
+                .OrderBy(p => p.User.Fullname)
+                .Select(p => new ViewListPatientDto
+                {
+                    PatientId = p.PatientID,
+                    UserId = p.UserID ?? 0,
+                    Fullname = p.User.Fullname ?? "",
+                    Gender = p.User.Gender.HasValue ? (p.User.Gender.Value ? "Male" : "Female") : null,
+                    Phone = p.User.Phone,
+                    DOB = p.User.DOB,
+                    Email = p.User.Email
+                })
+                .ToListAsync(cancellationToken);
+        }
+
     }
     public class UserRoleResult
     {

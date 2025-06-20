@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces;
+using Application.Services;
 using HDMS_API.Application.Common.Mappings;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
@@ -32,8 +33,9 @@ namespace HDMS_API.DependencyInjection
             services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IPatientRepository, PatientRepository>();
             services.AddScoped<IDentistRepository, DentistRepository>();
-            //services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IUserCommonRepository, UserCommonRepository>();
+            services.AddScoped<ITreatmentRecordRepository, TreatmentRecordRepository>();
+            services.AddSingleton<IHashIdService, HashIdService>();
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>
             {
@@ -54,8 +56,9 @@ namespace HDMS_API.DependencyInjection
             // MediatR
             services.AddMediatR(typeof(CreatePatientCommand).Assembly);
             services.AddMediatR(typeof(LoginCommand).Assembly);
-
+            
             // AutoMapper
+            services.AddAutoMapper(typeof(MappingViewTreatmentRecord));
             services.AddAutoMapper(typeof(MappingCreatePatient));
 
             // Caching
