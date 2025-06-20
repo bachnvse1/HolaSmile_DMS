@@ -1,29 +1,26 @@
-﻿using HDMS_API.Application.Usecases.Guests.BookAppointment;
+﻿using Application.Usecases.Dentist.ViewDentistSchedule;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HDMS_API.Controllers
 {
-    [Route("api/Guest")]
+    [Route("api/Dentist")]
     [ApiController]
-    public class GuestsController : ControllerBase
+    public class DentistController : ControllerBase
     {
         private readonly IMediator _mediator;
-        public GuestsController(IMediator mediator)
+        public DentistController(IMediator mediator)
         {
             _mediator = mediator;
         }
 
-        [HttpPost("BookAppointment")]
-        public async Task<IActionResult> BookAppointment([FromBody] BookAppointmentCommand request)
+        [HttpGet("Schedule/AllDentistSchedule")]
+        public async Task<IActionResult> GetAllDentistSchedule()
         {
-            if (request == null)
-            {
-                return BadRequest("Dữ liệu đầu vào không hợp lệ.");
-            }
             try
             {
-                var result = await _mediator.Send(request);
+                var result = await _mediator.Send(new ViewDentistScheduleCommand());
                 return Ok(result);
             }
             catch (Exception ex)

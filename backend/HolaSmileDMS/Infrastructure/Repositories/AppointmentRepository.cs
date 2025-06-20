@@ -1,6 +1,8 @@
-﻿using HDMS_API.Application.Interfaces;
+﻿using Application.Usecases.UserCommon.Appointment;
+using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Guests.BookAppointment;
 using HDMS_API.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace HDMS_API.Infrastructure.Repositories
 {
@@ -10,26 +12,6 @@ namespace HDMS_API.Infrastructure.Repositories
         public AppointmentRepository(ApplicationDbContext context)
         {
             _context = context;
-        }
-        public async Task<Appointment> CreateAppointmentAsync(BookAppointmentCommand request, int patientId)
-        {
-            var appointment = new Appointment
-            {
-                PatientId = patientId,
-                DentistId = request.DentistId,
-                Status = "pending",
-                Content = request.MedicalIssue,
-                IsNewPatient = true,
-                AppointmentType = "",
-                AppointmentDate = request.AppointmentDate,
-                AppointmentTime = request.AppointmentTime,
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = patientId,
-                IsDeleted = false
-            };
-            _context.Appointments.Add(appointment);
-            await _context.SaveChangesAsync();
-            return appointment;
         }
     }
 }
