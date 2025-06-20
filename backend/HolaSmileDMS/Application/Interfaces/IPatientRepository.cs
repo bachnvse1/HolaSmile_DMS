@@ -1,4 +1,4 @@
-﻿using Application.Usecases.UserCommon.Appointment;
+﻿using Application.Usecases.UserCommon.ViewAppointment;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 
 namespace HDMS_API.Application.Interfaces

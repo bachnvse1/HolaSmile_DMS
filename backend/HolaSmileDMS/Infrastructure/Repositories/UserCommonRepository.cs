@@ -1,4 +1,4 @@
-﻿using Application.Usecases.UserCommon.Appointment;
+﻿using Application.Usecases.UserCommon.ViewAppointment;
 ﻿using Application.Usecases.UserCommon.ViewListPatient;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Common.Helpers;

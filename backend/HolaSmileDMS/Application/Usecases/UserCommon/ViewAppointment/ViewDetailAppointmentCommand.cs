@@ -5,10 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using MediatR;
 
-namespace Application.Usecases.UserCommon.Appointment
+namespace Application.Usecases.UserCommon.ViewAppointment
 {
     public class ViewDetailAppointmentCommand : IRequest<AppointmentDTO>
     {
-        public int AppointmentId { get; set; }
+        public string AppointmentId { get; set; }
     }
 }

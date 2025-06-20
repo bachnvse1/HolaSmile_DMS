@@ -1,5 +1,5 @@
 ﻿using Application.Usecases.Patient;
-using Application.Usecases.UserCommon.Appointment;
+using Application.Usecases.UserCommon.ViewAppointment;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -37,7 +37,7 @@ namespace HDMS_API.Controllers
         }
         [Authorize]
         [HttpGet("Appointment/{appointmentId}")]
-        public async Task<IActionResult> ViewDetailAppointment([FromRoute] int appointmentId, CancellationToken cancellationToken)
+        public async Task<IActionResult> ViewDetailAppointment([FromRoute] string appointmentId, CancellationToken cancellationToken)
         {
             try
             {
