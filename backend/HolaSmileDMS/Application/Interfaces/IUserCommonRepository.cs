@@ -23,7 +23,6 @@ namespace HDMS_API.Application.Interfaces
         Task<ViewProfileDto?> GetUserProfileAsync(int userId, CancellationToken cancellationToken);
         Task<List<AppointmentDTO>> GetAllAppointmentAsync();
         Task<AppointmentDTO> GetAppointmentByIdAsync(int appointmentId);
-
-
+        Task<string?> GetUserRoleAsync(string username, CancellationToken cancellationToken);
     }
 }

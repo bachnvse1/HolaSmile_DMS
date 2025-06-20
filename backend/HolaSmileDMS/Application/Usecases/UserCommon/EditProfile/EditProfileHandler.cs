@@ -23,11 +23,8 @@ namespace HDMS_API.Application.Usecases.UserCommon.EditProfile
             var user = _httpContextAccessor.HttpContext?.User;
 
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-            var isAuthorized = currentUserId == request.UserId
-                            || currentUserRole == "Administrator"
-                            || currentUserRole == "Receptionist";
+            var isAuthorized = currentUserId == request.UserId;
 
             if (!isAuthorized)
                 throw new UnauthorizedAccessException("Bạn không có quyền chỉnh sửa hồ sơ người dùng này.");
