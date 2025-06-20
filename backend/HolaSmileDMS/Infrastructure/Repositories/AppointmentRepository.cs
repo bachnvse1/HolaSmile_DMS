@@ -33,11 +33,6 @@ namespace HDMS_API.Infrastructure.Repositories
             return appointment;
         }
 
-        public Task<Appointment> CreateAppointmentAsync(BookAppointmentCommand request, int? patientId)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<Appointment?> GetAllAppointmentAsync(int appointmentId)
         {
             var result = await _context.Appointments

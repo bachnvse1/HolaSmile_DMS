@@ -33,6 +33,10 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             if (existPatient != null)
             {
                 var app0 = await _appointmentRepository.CreateAppointmentAsync(request, existPatient.UserID);
+                if (app0 == null)
+                {
+                    throw new Exception("Tạo cuộc hẹn thất bại.");
+                }
                 return "Tạo cuộc hẹn thành công.";
 
             }
