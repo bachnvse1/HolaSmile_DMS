@@ -163,8 +163,6 @@ namespace HDMS_API.Infrastructure.Repositories
         {
             return await _context.Users.FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
         }
-
-
         public Task<User?> GetByEmailAsync(string email)
         {
             throw new NotImplementedException();
