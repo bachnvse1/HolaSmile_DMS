@@ -1,5 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using Application.Usecases.UserCommon.RefreshToken;
+﻿using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
 using Application.Usecases.UserCommon.RefreshToken;
+using Application.Usecases.UserCommon.ViewListPatient;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
 using HDMS_API.Application.Usecases.UserCommon.EditProfile;
@@ -7,11 +11,9 @@ using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using HDMS_API.Infrastructure.Persistence;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using NuGet.Protocol.Plugins;
+
 
 namespace HDMS_API.Controllers
 {
@@ -33,7 +35,6 @@ namespace HDMS_API.Controllers
             var user = _context.Users.ToList();
             return Ok(user);
         }
-
 
         [HttpGet("profile/{userId}")]
         public async Task<IActionResult> ViewProfile([FromRoute] int userId, CancellationToken cancellationToken)
@@ -194,5 +195,33 @@ namespace HDMS_API.Controllers
                 return Unauthorized(new { message = ex.Message });
             }
         }
+
+        [HttpGet("ViewListPatients")]
+        public async Task<IActionResult> ViewPatientList()
+        {
+            try
+            {
+                var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdStr, out var userId))
+                    return Unauthorized("Bạn không có quyền truy cập danh sách bệnh nhân.");
+
+                var command = new ViewListPatientCommand { UserId = userId };
+                var result = await _mediator.Send(command);
+
+                if (result == null || !result.Any())
+                    return Ok(new { message = "Không có dữ liệu phù hợp" });
+
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { ex.Message, ex.StackTrace });
+            }
+        }
     }
 }
+
