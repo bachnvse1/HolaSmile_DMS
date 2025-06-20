@@ -34,6 +34,7 @@ namespace HDMS_API.DependencyInjection
             services.AddScoped<IPatientRepository, PatientRepository>();
             services.AddScoped<IDentistRepository, DentistRepository>();
             services.AddScoped<IUserCommonRepository, UserCommonRepository>();
+            services.AddScoped<ITreatmentRecordRepository, TreatmentRecordRepository>();
             services.AddSingleton<IHashIdService, HashIdService>();
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>
@@ -55,8 +56,9 @@ namespace HDMS_API.DependencyInjection
             // MediatR
             services.AddMediatR(typeof(CreatePatientCommand).Assembly);
             services.AddMediatR(typeof(LoginCommand).Assembly);
-
+            
             // AutoMapper
+            services.AddAutoMapper(typeof(MappingViewTreatmentRecord));
             services.AddAutoMapper(typeof(MappingCreatePatient));
 
             // Caching

@@ -21,5 +21,7 @@ namespace HDMS_API.Application.Interfaces
         Task<bool> EditProfileAsync(EditProfileCommand command, CancellationToken cancellationToken);
         Task<ViewProfileDto?> GetUserProfileAsync(int userId, CancellationToken cancellationToken);
         Task<string?> GetUserRoleAsync(string username, CancellationToken cancellationToken);
+        
+        
     }
 }
