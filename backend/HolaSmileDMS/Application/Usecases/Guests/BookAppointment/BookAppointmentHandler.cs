@@ -48,7 +48,6 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             {
                 var app0 = await _guestRepository.CreateAppointmentAsync(request, existPatient.UserID);
                 var patient = await _patientRepository.GetPatientByUserIdAsync(existPatient.UserID);
-                var app0 = await _appointmentRepository.CreateAppointmentAsync(request, patient.PatientID);
                 if (app0 == null)
                 {
                     throw new Exception("Tạo cuộc hẹn thất bại.");
