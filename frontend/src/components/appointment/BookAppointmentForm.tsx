@@ -13,6 +13,7 @@ import { appointmentFormSchema } from '../../lib/validations/appointment';
 import { TIME_SLOTS } from '../../constants/appointment';
 import type { AppointmentFormData } from '../../lib/validations/appointment';
 import type { TimeSlot, Dentist } from '../../types/appointment';
+import {toast} from 'react-toastify';
 
 export const BookAppointmentForm = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -117,12 +118,12 @@ export const BookAppointmentForm = () => {
       onSuccess: (data) => {
         setSuccessMessage(data.message);
         setIsSubmitted(true);
-      },
-      onError: (error: Error | { response?: { data?: { message?: string } }; message?: string }) => {
-        const errorMessage = 'response' in error ? 
-          error?.response?.data?.message || error.message || 'Có lỗi xảy ra khi đặt lịch' :
-          error.message || 'Có lỗi xảy ra khi đặt lịch';
-        setError(errorMessage);
+        toast.success('Đặt lịch thành công!', {
+          position: "top-right",
+          autoClose: 5000,
+      })},
+      onError: (error: Error) => {
+        setError(error.message || 'Có lỗi xảy ra khi đặt lịch');
       }
     });
   };
@@ -171,6 +172,7 @@ export const BookAppointmentForm = () => {
         step1Data={step1Data}
         timeSlotsWithIcons={timeSlotsWithIcons}
         onReset={resetForm}
+        error={error}
       />
     );
   }
@@ -184,18 +186,6 @@ export const BookAppointmentForm = () => {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
-        {/* Error Display */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-            <p className="text-red-600 text-sm">{error}</p>
-            <button
-              onClick={() => setError(null)}
-              className="mt-2 text-red-600 hover:text-red-800 text-sm underline"
-            >
-              Đóng
-            </button>
-          </div>
-        )}
 
         <div className="text-center mb-10">
           <div className="bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
@@ -210,10 +200,10 @@ export const BookAppointmentForm = () => {
         </div>
 
         {/* Dentist Selection */}
-        <DentistSelector 
-          dentists={dentists} 
-          selectedDentist={selectedDentist} 
-          onSelect={selectDentist} 
+        <DentistSelector
+          dentists={dentists}
+          selectedDentist={selectedDentist}
+          onSelect={selectDentist}
         />
 
         {/* Schedule Calendar */}

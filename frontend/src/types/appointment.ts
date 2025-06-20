@@ -2,9 +2,6 @@ export interface Dentist {
   id: string;
   name: string;
   avatar: string;
-  specialty: string;
-  experience: string;
-  rating: number;
   schedule: DentistSchedule;
   dentistID: number; // Thêm để mapping với backend
   backendSchedules?: DentistScheduleData['schedules']; // Lưu lại để lấy scheduleId
@@ -47,6 +44,7 @@ export interface AppointmentData extends AppointmentFormData {
 export interface DentistScheduleData {
   dentistID: number;
   dentistName: string;
+  avatar?: string;
   schedules: {
     scheduleId: number;
     workDate: string;

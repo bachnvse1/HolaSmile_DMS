@@ -1,5 +1,5 @@
-import { Layout } from '../components/layout/Layout';
-import { BookAppointmentForm } from '../components/appointment/BookAppointmentForm';
+import { Layout } from '@/layouts/homepage/Layout';
+import { BookAppointmentForm } from '@/components/appointment/BookAppointmentForm';
 import { Clock, MapPin, Phone } from 'lucide-react';
 
 export const BookAppointmentPage = () => {

@@ -6,7 +6,7 @@ export const useDentistSchedules = () => {
   return useQuery<DentistScheduleData[]>({
     queryKey: ['dentistSchedules'],
     queryFn: async () => {
-      const response = await axiosInstance.get('/api/Dentist/Schedule/AllDentistSchedule');
+      const response = await axiosInstance.get('/Dentist/Schedule/AllDentistSchedule');
       return response.data;
     },
     refetchOnWindowFocus: false,

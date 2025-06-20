@@ -6,7 +6,7 @@ export const appointmentService = {
     try {
       console.log('Request payload:', data);
       
-      const response = await axiosInstance.post('/api/Guest/BookAppointment', data);      
+      const response = await axiosInstance.post('/Guest/BookAppointment', data);      
       console.log('Response status:', response.status);
       console.log('Response data:', response.data);
       

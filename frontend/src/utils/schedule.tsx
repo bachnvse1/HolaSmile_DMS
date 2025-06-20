@@ -1,7 +1,7 @@
-import type { DoctorSchedule } from '../types/appointment';
+import type { DentistSchedule } from '../types/appointment';
 
-export const generateDoctorSchedule = (): DoctorSchedule => {
-  const schedule: DoctorSchedule = {};
+export const generateDentistSchedule = (): DentistSchedule => {
+  const schedule: DentistSchedule = {};
   const today = new Date();
   
   // Chỉ tạo lịch cho 14 ngày
@@ -21,7 +21,7 @@ export const generateDoctorSchedule = (): DoctorSchedule => {
 };
 
 export const isTimeSlotAvailable = (
-  schedule: DoctorSchedule,
+  schedule: DentistSchedule,
   date: string,
   period: 'morning' | 'afternoon' | 'evening'
 ): boolean => {
