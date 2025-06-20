@@ -1,13 +1,13 @@
 import React from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
-import type { Doctor, TimeSlot } from '../../types/appointment';
+import type { Dentist, TimeSlot } from '../../types/appointment';
 import { TIME_SLOTS } from '../../constants/appointment';
 import { getDatesForWeek, getWeekDateRange, isToday, getShortDayName, formatDate, getDateString } from '../../utils/date';
 import { isTimeSlotAvailable } from '../../utils/schedule';
 import { Button } from '../ui/button';
 
 interface ScheduleCalendarProps {
-  doctor: Doctor;
+  dentist: Dentist;
   currentWeek: number;
   selectedDate: string;
   selectedTimeSlot: string;
@@ -17,7 +17,7 @@ interface ScheduleCalendarProps {
 }
 
 export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
-  doctor,
+  dentist,
   currentWeek,
   selectedDate,
   selectedTimeSlot,
@@ -40,7 +40,7 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-2xl font-bold text-gray-900 flex items-center">
           <Calendar className="h-6 w-6 mr-2 text-blue-600" />
-          Lịch Làm Việc - {doctor.name}
+          Lịch Làm Việc - {dentist.name}
         </h3>
         <div className="flex items-center space-x-4">
           <Button
@@ -101,7 +101,7 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
             </div>
             {weekDates.map((date) => {
               const dateString = getDateString(date);
-              const isAvailable = isTimeSlotAvailable(doctor.schedule, dateString, slot.period);
+              const isAvailable = isTimeSlotAvailable(dentist.schedule, dateString, slot.period);
               const isSelected = selectedDate === dateString && selectedTimeSlot === slot.period;
               
               return (

@@ -1,17 +1,17 @@
 import React from 'react';
-import { CheckCircle} from 'lucide-react';
-import type { Doctor } from '../../types/appointment';
+import { CheckCircle } from 'lucide-react';
+import type { Dentist } from '../../types/appointment';
 
-interface DoctorCardProps {
-  doctor: Doctor;
+interface DentistCardProps {
+  dentist: Dentist;
   isSelected: boolean;
-  onSelect: (doctor: Doctor) => void;
+  onSelect: (dentist: Dentist) => void;
 }
 
-export const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, isSelected, onSelect }) => {
+export const DentistCard: React.FC<DentistCardProps> = ({ dentist, isSelected, onSelect }) => {
   return (
     <div
-      onClick={() => onSelect(doctor)}
+      onClick={() => onSelect(dentist)}
       className={`group cursor-pointer bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 border-2 transition-all transform hover:scale-105 hover:shadow-lg ${
         isSelected
           ? 'border-blue-500 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50'
@@ -21,8 +21,8 @@ export const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, isSelected, onSe
       <div className="text-center">
         <div className="relative mb-4">
           <img
-            src={doctor.avatar}
-            alt={doctor.name}
+            src={dentist.avatar}
+            alt={dentist.name}
             className="w-20 h-20 rounded-full mx-auto object-cover border-4 border-white shadow-lg"
           />
           {isSelected && (
@@ -31,7 +31,7 @@ export const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, isSelected, onSe
             </div>
           )}
         </div>
-        <h4 className="font-bold text-gray-900 mb-1">{doctor.name}</h4>
+        <h4 className="font-bold text-gray-900 mb-1">{dentist.name}</h4>
       </div>
     </div>
   );

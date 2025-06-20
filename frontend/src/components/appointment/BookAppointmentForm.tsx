@@ -1,39 +1,39 @@
-import { Calendar, CheckCircle, ArrowLeft, Award, Clock } from 'lucide-react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Calendar, CheckCircle, ArrowLeft, Clock } from 'lucide-react';
 import { AppointmentStep1 } from './AppointmentStep1';
-import { DoctorCard } from './DoctorCard';
 import { ScheduleCalendar } from './ScheduleCalendar';
-import { useAppointmentForm } from '../../hooks/useAppointmentForm';
-import { useDoctorSchedule } from '../../hooks/useDoctorSchedule';
+import { AppointmentSuccess } from './AppointmentSuccess';
+import { DentistSelector } from './DentistSelector';
+import { SelectedAppointmentInfo } from './SelectedAppointmentInfo';
+import { useDentistSchedule } from '../../hooks/useDentistSchedule';
+import { useBookAppointment } from '../../hooks/useBookAppointment';
+import { appointmentFormSchema } from '../../lib/validations/appointment';
 import { TIME_SLOTS } from '../../constants/appointment';
-import type { TimeSlot } from '../../types/appointment';
+import type { AppointmentFormData } from '../../lib/validations/appointment';
+import type { TimeSlot, Dentist } from '../../types/appointment';
 
 export const BookAppointmentForm = () => {
-  const {
-    currentStep,
-    step1Data,
-    selectedDoctor,
-    selectedDate,
-    selectedTimeSlot,
-    currentWeek,
-    isSubmitted,
-    form,
-    setCurrentStep,
-    setSelectedDate,
-    setSelectedTimeSlot,
-    onStep1Submit,
-    onFinalSubmit,
-    resetForm,
-    selectDoctor,
-    goToPreviousWeek,
-    goToNextWeek,
-  } = useAppointmentForm();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [step1Data, setStep1Data] = useState<AppointmentFormData | null>(null);
+  const [selectedDentist, setSelectedDentist] = useState<Dentist | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('');
+  const [currentWeek, setCurrentWeek] = useState(0);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string>('');
 
-  const { doctors } = useDoctorSchedule();
+  // React Hook Form
+  const form = useForm<AppointmentFormData>({
+    resolver: zodResolver(appointmentFormSchema),
+    mode: 'onChange'
+  });
 
-  const handleDateSelect = (date: string, timeSlot: string) => {
-    setSelectedDate(date);
-    setSelectedTimeSlot(timeSlot);
-  };
+  // React Query hooks
+  const { dentists, loading: dentistsLoading, error: dentistsError } = useDentistSchedule();
+  const bookAppointmentMutation = useBookAppointment();
 
   // Tạo time slots với icon cho hiển thị
   const timeSlotsWithIcons: TimeSlot[] = TIME_SLOTS.map(slot => ({
@@ -41,47 +41,162 @@ export const BookAppointmentForm = () => {
     icon: <Clock className="h-4 w-4" />
   }));
 
-  if (isSubmitted) {
+  const onStep1Submit = (data: AppointmentFormData) => {
+    setStep1Data(data);
+    setCurrentStep(2);
+  };
+
+  const resetForm = () => {
+    setCurrentStep(1);
+    setStep1Data(null);
+    setSelectedDentist(null);
+    setSelectedDate('');
+    setSelectedTimeSlot('');
+    setCurrentWeek(0);
+    setIsSubmitted(false);
+    setError(null);
+    setSuccessMessage('');
+    form.reset();
+  };
+
+  const selectDentist = (dentist: Dentist) => {
+    setSelectedDentist(dentist);
+    setSelectedDate('');
+    setSelectedTimeSlot('');
+  };
+
+  const handleDateSelect = (date: string, timeSlot: string) => {
+    setSelectedDate(date);
+    setSelectedTimeSlot(timeSlot);
+  };
+
+  const goToPreviousWeek = () => {
+    if (currentWeek > 0) {
+      setCurrentWeek(0);
+    }
+  };
+
+  const goToNextWeek = () => {
+    if (currentWeek < 1) {
+      setCurrentWeek(1);
+    }
+  };
+
+  const onFinalSubmit = async () => {
+    if (!step1Data || !selectedDentist || !selectedDate || !selectedTimeSlot) return;
+    setError(null);
+
+    // Tạo appointmentDate với đúng format
+    const appointmentDate = new Date(selectedDate);
+
+    // Set time based on shift và tạo TimeSpan format
+    let timeString = '08:00:00'; // Default morning
+    if (selectedTimeSlot === 'morning') {
+      timeString = '08:00:00';
+      appointmentDate.setHours(8, 0, 0, 0);
+    } else if (selectedTimeSlot === 'afternoon') {
+      timeString = '13:00:00';
+      appointmentDate.setHours(13, 0, 0, 0);
+    } else if (selectedTimeSlot === 'evening') {
+      timeString = '18:00:00';
+      appointmentDate.setHours(18, 0, 0, 0);
+    }
+
+    // Payload theo format backend - PascalCase field names
+    const payload = {
+      FullName: step1Data.fullName.trim(),
+      Email: step1Data.email.trim(),
+      PhoneNumber: step1Data.phoneNumber.trim(),
+      AppointmentDate: appointmentDate.toISOString().split('T')[0], // "2025-06-20"
+      AppointmentTime: timeString, // "08:00:00"
+      MedicalIssue: step1Data.medicalIssue.trim(),
+      DentistId: selectedDentist.dentistID
+    };
+
+    bookAppointmentMutation.mutate(payload, {
+      onSuccess: (data) => {
+        setSuccessMessage(data.message);
+        setIsSubmitted(true);
+      },
+      onError: (error: Error | { response?: { data?: { message?: string } }; message?: string }) => {
+        const errorMessage = 'response' in error ? 
+          error?.response?.data?.message || error.message || 'Có lỗi xảy ra khi đặt lịch' :
+          error.message || 'Có lỗi xảy ra khi đặt lịch';
+        setError(errorMessage);
+      }
+    });
+  };
+
+  // Loading state
+  if (dentistsLoading) {
     return (
       <div className="max-w-lg mx-auto">
         <div className="bg-white rounded-3xl shadow-xl p-8 text-center border border-gray-100">
-          <div className="bg-gradient-to-br from-green-100 to-emerald-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="h-10 w-10 text-green-600" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang tải danh sách bác sĩ...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (dentistsError) {
+    return (
+      <div className="max-w-lg mx-auto">
+        <div className="bg-white rounded-3xl shadow-xl p-8 text-center border border-gray-100">
+          <div className="bg-red-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
+            <span className="text-red-600 text-xl">!</span>
           </div>
-          <h3 className="text-3xl font-bold text-gray-900 mb-4">
-            Đặt Lịch Thành Công!
-          </h3>
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 mb-6 text-left">
-            <h4 className="font-semibold text-gray-900 mb-3">Thông tin lịch hẹn:</h4>
-            <div className="space-y-2 text-sm">
-              <p><span className="font-medium text-gray-700">Bác sĩ:</span> {selectedDoctor?.name}</p>
-              <p><span className="font-medium text-gray-700">Ngày:</span> {new Date(selectedDate).toLocaleDateString('vi-VN')}</p>
-              <p><span className="font-medium text-gray-700">Ca làm việc:</span> {timeSlotsWithIcons.find(slot => slot.period === selectedTimeSlot)?.label}</p>
-              <p><span className="font-medium text-gray-700">Thời gian:</span> {timeSlotsWithIcons.find(slot => slot.period === selectedTimeSlot)?.timeRange}</p>
-            </div>
-          </div>
-          <p className="text-gray-600 mb-8">
-            Chúng tôi sẽ liên hệ xác nhận lịch hẹn qua số điện thoại <strong>{step1Data?.phoneNumber}</strong> trong vòng 24 giờ.
-          </p>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">Có lỗi xảy ra</h3>
+          <p className="text-gray-600 mb-4">{dentistsError instanceof Error ? dentistsError.message : String(dentistsError)}</p>
           <button
-            onClick={resetForm}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105"
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
           >
-            Đặt Lịch Khác
+            Thử lại
           </button>
         </div>
       </div>
     );
   }
 
+  // Success state
+  if (isSubmitted) {
+    return (
+      <AppointmentSuccess
+        successMessage={successMessage}
+        selectedDentist={selectedDentist}
+        selectedDate={selectedDate}
+        selectedTimeSlot={selectedTimeSlot}
+        step1Data={step1Data}
+        timeSlotsWithIcons={timeSlotsWithIcons}
+        onReset={resetForm}
+      />
+    );
+  }
+
+  // Step 1: Personal information
   if (currentStep === 1) {
     return <AppointmentStep1 form={form} onSubmit={onStep1Submit} />;
   }
 
-  // Step 2: Doctor and Schedule Selection
+  // Step 2: Dentist and Schedule Selection
   return (
     <div className="max-w-7xl mx-auto">
       <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
+        {/* Error Display */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+            <p className="text-red-600 text-sm">{error}</p>
+            <button
+              onClick={() => setError(null)}
+              className="mt-2 text-red-600 hover:text-red-800 text-sm underline"
+            >
+              Đóng
+            </button>
+          </div>
+        )}
+
         <div className="text-center mb-10">
           <div className="bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
             <Calendar className="h-10 w-10 text-blue-600" />
@@ -94,28 +209,17 @@ export const BookAppointmentForm = () => {
           </p>
         </div>
 
-        {/* Doctor Selection */}
-        <div className="mb-10">
-          <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-            <Award className="h-6 w-6 mr-2 text-blue-600" />
-            Chọn Bác Sĩ
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {doctors.map((doctor) => (
-              <DoctorCard
-                key={doctor.id}
-                doctor={doctor}
-                isSelected={selectedDoctor?.id === doctor.id}
-                onSelect={selectDoctor}
-              />
-            ))}
-          </div>
-        </div>
+        {/* Dentist Selection */}
+        <DentistSelector 
+          dentists={dentists} 
+          selectedDentist={selectedDentist} 
+          onSelect={selectDentist} 
+        />
 
         {/* Schedule Calendar */}
-        {selectedDoctor && (
+        {selectedDentist && (
           <ScheduleCalendar
-            doctor={selectedDoctor}
+            dentist={selectedDentist}
             currentWeek={currentWeek}
             selectedDate={selectedDate}
             selectedTimeSlot={selectedTimeSlot}
@@ -126,30 +230,13 @@ export const BookAppointmentForm = () => {
         )}
 
         {/* Selected Info */}
-        {selectedDoctor && selectedDate && selectedTimeSlot && (
-          <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-200">
-            <h4 className="font-bold text-blue-900 mb-4 flex items-center">
-              <CheckCircle className="h-5 w-5 mr-2" />
-              Thông tin đã chọn:
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white rounded-xl p-4 border border-blue-100">
-                <span className="text-sm font-medium text-gray-600">Bác sĩ:</span>
-                <p className="font-semibold text-gray-900">{selectedDoctor.name}</p>
-              </div>
-              <div className="bg-white rounded-xl p-4 border border-blue-100">
-                <span className="text-sm font-medium text-gray-600">Ngày:</span>
-                <p className="font-semibold text-gray-900">{new Date(selectedDate).toLocaleDateString('vi-VN')}</p>
-              </div>
-              <div className="bg-white rounded-xl p-4 border border-blue-100">
-                <span className="text-sm font-medium text-gray-600">Ca làm việc:</span>
-                <p className="font-semibold text-gray-900">
-                  {timeSlotsWithIcons.find(slot => slot.period === selectedTimeSlot)?.label} 
-                  ({timeSlotsWithIcons.find(slot => slot.period === selectedTimeSlot)?.timeRange})
-                </p>
-              </div>
-            </div>
-          </div>
+        {selectedDentist && selectedDate && selectedTimeSlot && (
+          <SelectedAppointmentInfo
+            selectedDentist={selectedDentist}
+            selectedDate={selectedDate}
+            selectedTimeSlot={selectedTimeSlot}
+            timeSlotsWithIcons={timeSlotsWithIcons}
+          />
         )}
 
         {/* Action Buttons */}
@@ -162,13 +249,14 @@ export const BookAppointmentForm = () => {
             Quay Lại
           </button>
 
-          {selectedDoctor && selectedDate && selectedTimeSlot && (
+          {selectedDentist && selectedDate && selectedTimeSlot && (
             <button
               onClick={onFinalSubmit}
-              className="flex items-center px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-semibold hover:from-green-700 hover:to-emerald-700 transition-all transform hover:scale-105 shadow-lg"
+              disabled={bookAppointmentMutation.isPending}
+              className="flex items-center px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-semibold hover:from-green-700 hover:to-emerald-700 transition-all transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               <CheckCircle className="h-5 w-5 mr-2" />
-              Xác Nhận Đặt Lịch
+              {bookAppointmentMutation.isPending ? 'Đang xử lý...' : 'Xác Nhận Đặt Lịch'}
             </button>
           )}
         </div>

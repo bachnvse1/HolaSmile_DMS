@@ -1,14 +1,16 @@
-export interface Doctor {
+export interface Dentist {
   id: string;
   name: string;
   avatar: string;
   specialty: string;
   experience: string;
   rating: number;
-  schedule: DoctorSchedule;
+  schedule: DentistSchedule;
+  dentistID: number; // Thêm để mapping với backend
+  backendSchedules?: DentistScheduleData['schedules']; // Lưu lại để lấy scheduleId
 }
 
-export interface DoctorSchedule {
+export interface DentistSchedule {
   [date: string]: {
     morning: boolean;
     afternoon: boolean;
@@ -34,8 +36,44 @@ export interface AppointmentFormData {
 }
 
 export interface AppointmentData extends AppointmentFormData {
-  doctorId: string;
-  doctorName: string;
+  dentistId: string;
+  dentistName: string;
   appointmentDate: string;
   timeSlot: string;
+  backendDentistId: number; // Thêm để gửi lên backend
+}
+
+// Backend types
+export interface DentistScheduleData {
+  dentistID: number;
+  dentistName: string;
+  schedules: {
+    scheduleId: number;
+    workDate: string;
+    shift: 'Morning' | 'Afternoon' | 'Evening';
+    status: 'active' | 'free' | string;
+  }[];
+  isAvailable: boolean;
+}
+
+export interface CreateAppointmentRequest {
+  FullName: string;
+  Email: string;
+  PhoneNumber: string;
+  AppointmentDate: string; // Date string format: "2025-06-20"
+  AppointmentTime: string; // TimeSpan format: "08:00:00"
+  MedicalIssue: string;
+  DentistId: number;
+}
+
+// Wrapper cho backend request
+export interface BookAppointmentRequestWrapper {
+  request: CreateAppointmentRequest;
+}
+
+export interface BookAppointmentResponse {
+  success?: boolean;
+  message?: string;
+  appointmentId?: number;
+  patientId?: number;
 }
