@@ -24,7 +24,7 @@ namespace HDMS_API.Controllers
             try
             {
                 var result = await _mediator.Send(request);
-                return StatusCode(001, result);
+                return Ok(result);
             }
             catch (Exception ex)
             {

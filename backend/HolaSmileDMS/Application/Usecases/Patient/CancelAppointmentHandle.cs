@@ -10,16 +10,16 @@ using Microsoft.AspNetCore.Http;
 
 namespace Application.Usecases.Patient
 {
-    public class CancleAppointmentHandle : IRequestHandler<CancleAppointmentCommand, string>
+    public class CancelAppointmentHandle : IRequestHandler<CancelAppointmentCommand, string>
     {
         private readonly IPatientRepository _patientRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public CancleAppointmentHandle(IPatientRepository patientRepository, IHttpContextAccessor httpContextAccessor)
+        public CancelAppointmentHandle(IPatientRepository patientRepository, IHttpContextAccessor httpContextAccessor)
         {
             _patientRepository = patientRepository;
             _httpContextAccessor = httpContextAccessor;
         }
-        public async Task<string> Handle(CancleAppointmentCommand request, CancellationToken cancellationToken)
+        public async Task<string> Handle(CancelAppointmentCommand request, CancellationToken cancellationToken)
         {
             var user = _httpContextAccessor.HttpContext?.User;
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
@@ -28,7 +28,14 @@ namespace Application.Usecases.Patient
             {
                 return "Bạn không được quyền thực hiện hành động này";
             }
-            var cancleApp = await _patientRepository.CancleAppointmentAsync(request.AppointmentId, currentUserId);
+            else
+            {
+                if (!await _patientRepository.CheckAppointmentByPatientIdAsync(request.AppointmentId, currentUserId))
+                {
+                    throw new Exception("Bạn không có quyền truy cập vào lịch hẹn này");
+                }
+            }
+                var cancleApp = await _patientRepository.CancelAppointmentAsync(request.AppointmentId, currentUserId);
             return cancleApp ? "Hủy lịch hẹn thành công" : "Hủy lịch hẹn không thành công, vui lòng thử lại sau";
         }
     }

@@ -13,9 +13,5 @@ namespace HDMS_API.Infrastructure.Repositories
         {
             _context = context;
         }
-
-
-
-
     }
 }

@@ -7,7 +7,7 @@ using MediatR;
 
 namespace Application.Usecases.Patient
 {
-    public class CancleAppointmentCommand : IRequest<string>
+    public class CancelAppointmentCommand : IRequest<string>
     {
         public int AppointmentId { get; set; }
     }

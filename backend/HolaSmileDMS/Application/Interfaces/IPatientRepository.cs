@@ -6,9 +6,9 @@ namespace HDMS_API.Application.Interfaces
     public interface IPatientRepository
     {
         Task<Patient> CreatePatientAsync(CreatePatientDto createPatientDto,int userID);
-        Task<bool> CancleAppointmentAsync(int appId, int cancleBy);
+        Task<bool> CancelAppointmentAsync(int appId, int cancleBy);
         Task<List<AppointmentDTO>> GetAppointmentsByPatientIdAsync(int patientId);
-        Task<bool> CheckAppointmentByPatientIdAsync(int appId, int patientId);
+        Task<bool> CheckAppointmentByPatientIdAsync(int appId, int userId);
 
     }
 }

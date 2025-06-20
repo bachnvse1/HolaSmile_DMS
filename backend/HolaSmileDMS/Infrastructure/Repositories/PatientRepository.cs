@@ -28,7 +28,7 @@ namespace HDMS_API.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return patient;
         }
-        public async Task<bool> CancleAppointmentAsync(int appId, int CancleBy)
+        public async Task<bool> CancelAppointmentAsync(int appId, int CancleBy)
         {
             var appointment = await _context.Appointments
                 .FirstOrDefaultAsync(a => a.AppointmentId == appId && !a.IsDeleted);
@@ -43,14 +43,12 @@ namespace HDMS_API.Infrastructure.Repositories
             var result = await _context.SaveChangesAsync();
             return true;
         }
-        public async Task<List<AppointmentDTO>> GetAppointmentsByPatientIdAsync(int patientId)
+        public async Task<List<AppointmentDTO>> GetAppointmentsByPatientIdAsync(int userID)
         {
             var result = await _context.Appointments
-                .Include(a => a.Patient)
-                .ThenInclude(p => p.User)
-                .Include(a => a.Dentist)
-                .ThenInclude(d => d.User)
-                .Where(a => a.PatientId == patientId && !a.IsDeleted)
+                .Include(a => a.Patient).ThenInclude(p => p.User)
+                .Include(a => a.Dentist).ThenInclude(d => d.User)
+                .Where(a => a.Patient.User.UserID == userID && !a.IsDeleted)
                 .ToListAsync();
             if (result == null || !result.Any())
             {
@@ -75,9 +73,9 @@ namespace HDMS_API.Infrastructure.Repositories
             return appDto;
         }
 
-        public async Task<bool> CheckAppointmentByPatientIdAsync(int appId, int patientId)
+        public async Task<bool> CheckAppointmentByPatientIdAsync(int appId, int userId)
         {
-            var result = await _context.Appointments.AnyAsync(a => a.AppointmentId == appId && a.PatientId == patientId );
+            var result = await _context.Appointments.AnyAsync(a => a.AppointmentId == appId && a.Patient.User.UserID == userId );
             return result;
         }
     }
