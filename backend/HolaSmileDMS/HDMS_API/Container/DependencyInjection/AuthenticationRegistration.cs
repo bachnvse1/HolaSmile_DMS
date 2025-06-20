@@ -36,6 +36,7 @@ namespace HDMS_API.DependencyInjection
                     options.CallbackPath = "/signin-google";
                     options.SaveTokens = true;
                 });
+            services.AddHttpContextAccessor();
             return services;
         }
     }

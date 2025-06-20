@@ -40,7 +40,6 @@
 		</PackageReference>
 		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.6" />
 		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0" />
-		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.2" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.6" />
 		<PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
 
