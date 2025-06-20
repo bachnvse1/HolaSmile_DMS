@@ -4,6 +4,7 @@ using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using HDMS_API.Application.Usecases.UserCommon.EditProfile;
+using Application.Usecases.UserCommon.ViewListPatient;
 
 namespace HDMS_API.Application.Interfaces
 {
@@ -18,8 +19,10 @@ namespace HDMS_API.Application.Interfaces
         Task<User?> GetUserByPhoneAsync(string phone);
         public Task<User> GetByUsernameAsync(string username, CancellationToken cancellationToken);
         Task<User?> GetByEmailAsync(string email);
-        Task<bool> EditProfileAsync(EditProfileCommand command, CancellationToken cancellationToken);
+        Task<bool> EditProfileAsync(User user, CancellationToken cancellationToken);
         Task<ViewProfileDto?> GetUserProfileAsync(int userId, CancellationToken cancellationToken);
         Task<string?> GetUserRoleAsync(string username, CancellationToken cancellationToken);
+        Task<User?> GetByIdAsync(int userId, CancellationToken cancellationToken);
+        Task<List<ViewListPatientDto>> GetAllPatientsAsync(CancellationToken cancellationToken);
     }
 }
