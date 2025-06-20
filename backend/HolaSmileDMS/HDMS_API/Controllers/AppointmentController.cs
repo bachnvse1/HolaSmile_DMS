@@ -1,4 +1,4 @@
-﻿using Application.Usecases.Patient;
+﻿using Application.Usecases.Patients.CancelAppointment;
 using Application.Usecases.UserCommon.ViewAppointment;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -57,12 +57,12 @@ namespace HDMS_API.Controllers
 
         [Authorize]
         [HttpPut]
-        [Route("Appointment")]
-        public async Task<IActionResult> ViewDetailPatientAppointment([FromBody] CancelAppointmentCommand request, CancellationToken cancellationToken)
+        [Route("Appointment/{appointmentId}")]
+        public async Task<IActionResult> ViewDetailPatientAppointment([FromRoute] string appointmentId, CancellationToken cancellationToken)
         {
             try
             {
-                var result = await _mediator.Send(request, cancellationToken);
+                var result = await _mediator.Send(new CancleAppointmentCommand { AppointmentId = appointmentId }, cancellationToken);
                 return Ok(result);
             }
             catch (Exception ex)
