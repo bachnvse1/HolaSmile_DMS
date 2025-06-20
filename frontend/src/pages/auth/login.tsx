@@ -53,7 +53,7 @@ export function Login() {
         const token = response.data.token;
 
         if (token) {
-          localStorage.setItem("authToken", token);
+          localStorage.setItem("token", token);
           navigate("/");
         } else {
           setApiError("Không nhận được token từ server");
