@@ -20,7 +20,7 @@ type FormValues = {
 
 const getUserProfile = async (id: string): Promise<FormValues> => {
   const token = localStorage.getItem("authToken")
-  const res = await fetch(`http://localhost:5135/api/user/profile/${id}`, {
+  const res = await fetch(`https://localhost:5001/api/user/profile/${id}`, {
     method: "GET",
     headers: {
       "Authorization": `Bearer ${token}`, 

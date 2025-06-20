@@ -32,7 +32,7 @@ const addPatient = async (data: FormData) => {
   };
 
   const res = await axios.post(
-    "http://localhost:5135/api/Receptionist/patients",
+    "https://localhost:5001/api/Receptionist/patients",
     payload,
     {
       withCredentials: true,
