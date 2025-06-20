@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Application.Constants;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -21,13 +22,18 @@ public class ViewPatientTreatmentRecordHandler : IRequestHandler<ViewTreatmentRe
         var user = _httpContextAccessor.HttpContext?.User;
         var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
         var currentRole = user?.FindFirst(ClaimTypes.Role)?.Value;
-        
+
         var isDentist = currentRole == "Dentist";
         var isSelfPatient = currentRole == "Patient" && currentUserId == request.UserId;
 
         if (!isDentist && !isSelfPatient)
-            throw new UnauthorizedAccessException("Bạn không có quyền truy cập hồ sơ điều trị này.");
+            throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Bạn không có quyền truy cập chức năng này
 
-        return await _repository.GetPatientTreatmentRecordsAsync(request.UserId, cancellationToken);
+        var records = await _repository.GetPatientTreatmentRecordsAsync(request.UserId, cancellationToken);
+
+        if (records == null || records.Count == 0)
+            throw new KeyNotFoundException(MessageConstants.MSG.MSG16); // Không có dữ liệu phù hợp
+
+        return records;
     }
 }

@@ -1,8 +1,6 @@
 ﻿using Application.Usecases.UserCommon.RefreshToken;
 ﻿using System.Security.Claims;
-using System.Threading;
-using System.Threading.Tasks;
-using Application.Usecases.UserCommon.RefreshToken;
+using Application.Constants;
 using Application.Usecases.UserCommon.ViewListPatient;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
@@ -169,7 +167,10 @@ namespace HDMS_API.Controllers
             }
             catch (UnauthorizedAccessException)
             {
-                return Unauthorized(new { message = "Sai tên đăng nhập hoặc mật khẩu || Tài khoản đã bị ban" });
+                return Unauthorized(new
+                {
+                    message = $"{MessageConstants.MSG.MSG01} || {MessageConstants.MSG.MSG72}"
+                });
             }
             catch (Exception ex)
             {
