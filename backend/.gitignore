@@ -55,7 +55,3 @@ dist/
 .env
 .env.local
 .env.*.local
-*.v2
-*.v2
-backend/HolaSmileDMS/.vs/HolaSmileDMS/DesignTimeBuild/.dtbcache.v2
-backend/HolaSmileDMS/.vs/HolaSmileDMS/DesignTimeBuild/.dtbcache.v2
