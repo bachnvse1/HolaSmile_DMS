@@ -13,6 +13,7 @@ using HDMS_API.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace HDMS_API.Controllers
@@ -21,19 +22,10 @@ namespace HDMS_API.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
         private readonly IMediator _mediator;
         public UsersController(ApplicationDbContext context, IMediator mediator)
         {
-            _context = context;
             _mediator = mediator;
-        }
-
-        [HttpGet]
-        public IActionResult GetAllUser()
-        {
-            var user = _context.Users.ToList();
-            return Ok(user);
         }
 
         [HttpGet("profile/{userId}")]
@@ -215,6 +207,7 @@ namespace HDMS_API.Controllers
                 });
             }
         }
+
         [Authorize]
         [HttpGet("Appointment/{appointmentId}")]
         public async Task<IActionResult> ViewDetailAppointment([FromRoute] int appointmentId, CancellationToken cancellationToken)

@@ -2,7 +2,6 @@
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Infrastructure.Persistence;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
 namespace HDMS_API.Infrastructure.Repositories
@@ -39,6 +38,7 @@ namespace HDMS_API.Infrastructure.Repositories
         {
             var patient = await _context.Patients.FirstOrDefaultAsync(p => p.UserID == userId);
             return patient;
+        }
         public async Task<bool> CancelAppointmentAsync(int appId, int CancleBy)
         {
             var appointment = await _context.Appointments

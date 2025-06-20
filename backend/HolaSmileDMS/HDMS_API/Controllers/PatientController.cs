@@ -4,8 +4,6 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Org.BouncyCastle.Utilities;
-
 namespace HDMS_API.Controllers
 {
     [Route("api/patient")]
