@@ -11,15 +11,13 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
 {
     public class BookAppointmentHandler : IRequestHandler<BookAppointmentCommand, string>
     {
-        private readonly IGuestRepository _guestRepository;
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly IPatientRepository _patientRepository;
         private readonly IUserCommonRepository _userCommonRepository;
         private readonly IHashIdService _hashIdService;
         private readonly IMapper _mapper;
-        public BookAppointmentHandler(IGuestRepository guestRepository, IAppointmentRepository appointmentRepository, IPatientRepository patientRepository, IHashIdService hashIdService, IUserCommonRepository userCommonRepository,IMapper mapper)
+        public BookAppointmentHandler(IAppointmentRepository appointmentRepository, IPatientRepository patientRepository, IHashIdService hashIdService, IUserCommonRepository userCommonRepository,IMapper mapper)
         {
-            _guestRepository = guestRepository;
             _appointmentRepository = appointmentRepository;
             _patientRepository = patientRepository;
             _userCommonRepository = userCommonRepository;
@@ -104,7 +102,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 CreatedBy = patient.PatientID,
                 IsDeleted = false
             };
-            var isbookappointment = await _guestRepository.CreateAppointmentAsync(appointment);
+            var isbookappointment = await _appointmentRepository.CreateAppointmentAsync(appointment);
             return isbookappointment ? "Tạo cuộc hẹn thành công." : "Tạo cuộc hẹn thất bại";
         }
     }
