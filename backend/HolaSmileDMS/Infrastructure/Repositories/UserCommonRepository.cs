@@ -253,24 +253,7 @@ namespace HDMS_API.Infrastructure.Repositories
             return result?.Role;
         }
 
-        public async Task<List<ViewListPatientDto>> GetAllPatientsAsync(CancellationToken cancellationToken)
-        {
-            return await _context.Patients
-                .Where(p => p.User != null)
-                .Include(p => p.User)
-                .OrderBy(p => p.User.Fullname)
-                .Select(p => new ViewListPatientDto
-                {
-                    PatientId = p.PatientID,
-                    UserId = p.UserID ?? 0,
-                    Fullname = p.User.Fullname ?? "",
-                    Gender = p.User.Gender.HasValue ? (p.User.Gender.Value ? "Male" : "Female") : null,
-                    Phone = p.User.Phone,
-                    DOB = p.User.DOB,
-                    Email = p.User.Email
-                })
-                .ToListAsync(cancellationToken);
-        }
+
 
     }
     public class UserRoleResult

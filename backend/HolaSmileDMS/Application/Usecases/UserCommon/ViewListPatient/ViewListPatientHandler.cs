@@ -1,39 +1,52 @@
-﻿using HDMS_API.Application.Interfaces;
+﻿using Application.Constants;
+using Application.Services;
+using Application.Usecases.UserCommon.ViewListPatient;
+using HDMS_API.Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Application.Usecases.UserCommon.ViewListPatient
+public class ViewListPatientHandler : IRequestHandler<ViewListPatientCommand, List<ViewListPatientDto>>
 {
-    public class ViewListPatientHandler : IRequestHandler<ViewListPatientCommand, List<ViewListPatientDto>>
+    private readonly IPatientRepository _repository;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IHashIdService _hashIdService;
+
+    public ViewListPatientHandler(
+        IPatientRepository repository,
+        IHttpContextAccessor httpContextAccessor,
+        IHashIdService hashIdService)
     {
-        private readonly IUserCommonRepository _repository;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        _repository = repository;
+        _httpContextAccessor = httpContextAccessor;
+        _hashIdService = hashIdService;
+    }
 
-        public ViewListPatientHandler(IUserCommonRepository repository, IHttpContextAccessor httpContextAccessor)
+    public async Task<List<ViewListPatientDto>> Handle(ViewListPatientCommand request, CancellationToken cancellationToken)
+    {
+        var user = _httpContextAccessor.HttpContext?.User;
+        var userIdClaim = user?.FindFirst(ClaimTypes.NameIdentifier);
+        var roleClaim = user?.FindFirst(ClaimTypes.Role);
+
+        if (userIdClaim == null || roleClaim == null)
+            throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
+
+        if (roleClaim.Value == "Patient")
+            throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
+
+        var rawPatients = await _repository.GetAllPatientsAsync(cancellationToken);
+
+        var result = rawPatients.Select(p => new ViewListPatientDto
         {
-            _repository = repository;
-            _httpContextAccessor = httpContextAccessor;
-        }
+            UserId = _hashIdService.Encode(p.UserId),
+            PatientId = _hashIdService.Encode(p.PatientId),
+            Fullname = p.Fullname,
+            Gender = p.Gender,
+            Phone = p.Phone,
+            DOB = p.DOB,
+            Email = p.Email
+        }).ToList();
 
-        public async Task<List<ViewListPatientDto>> Handle(ViewListPatientCommand request, CancellationToken cancellationToken)
-        {
-            var user = _httpContextAccessor.HttpContext?.User;
-            var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            var role = user?.FindFirst(ClaimTypes.Role)?.Value;
-
-            if (currentUserId != request.UserId)
-                throw new UnauthorizedAccessException("Bạn không có quyền truy cập danh sách bệnh nhân.");
-
-            if (role == "Patient")
-                throw new UnauthorizedAccessException("Bạn không có quyền truy cập danh sách bệnh nhân.");
-
-            return await _repository.GetAllPatientsAsync(cancellationToken); 
-        }
+        return result;
     }
 }
