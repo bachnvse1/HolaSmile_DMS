@@ -1,5 +1,4 @@
-﻿using Application.Usecases.Patient;
-using Application.Usecases.UserCommon.ViewAppointment;
+﻿using Application.Usecases.UserCommon.ViewAppointment;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
