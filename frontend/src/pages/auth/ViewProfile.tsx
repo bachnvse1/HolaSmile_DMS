@@ -4,7 +4,8 @@ import { useForm } from "react-hook-form"
 import { useQuery } from "@tanstack/react-query"
 import { Camera, User, Mail, Phone, MapPin, Calendar, Users, ArrowLeft } from "lucide-react"
 import { Link } from "react-router"
-import { jwtDecode } from "jwt-decode"
+import { TokenUtils } from "../../utils/tokenUtils"
+import { useNavigate } from "react-router"
 
 type FormValues = {
   userID: string
@@ -19,7 +20,12 @@ type FormValues = {
 }
 
 const getUserProfile = async (id: string): Promise<FormValues> => {
-  const token = localStorage.getItem("authToken")
+  const token = localStorage.getItem('token') || localStorage.getItem('authToken')
+  
+  if (!token) {
+    throw new Error("Không tìm thấy token đăng nhập")
+  }
+  
   const res = await fetch(`http://localhost:5135/api/user/profile/${id}`, {
     method: "GET",
     headers: {
@@ -28,26 +34,69 @@ const getUserProfile = async (id: string): Promise<FormValues> => {
     },
     credentials: "include",
   });
-  if (!res.ok) throw new Error("Không thể tải hồ sơ người dùng")
+  
+  if (!res.ok) {
+    throw new Error(`Lỗi API: ${res.status} - ${res.statusText}`)
+  }
+  
   return res.json()
 }
 
-interface MyJwtPayload {
-  "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier": string;
-  "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": string;
-  "http://schemas.microsoft.com/ws/2008/06/identity/claims/role": string;
-}
-
 export default function ViewProfile() {
+  const navigate = useNavigate()
   const [isEditing, setIsEditing] = useState(false)
-  const token = localStorage.getItem("authToken")
-  if (!token) {
-    console.error("Không tìm thấy token đăng nhập");
-    return <div>Vui lòng đăng nhập để xem trang này.</div>;
+  
+  // Check authentication
+  const isAuthenticated = TokenUtils.isAuthenticated()
+  const userData = TokenUtils.getUserData()
+  const token = localStorage.getItem('token') || localStorage.getItem('authToken')
+  
+  // If not authenticated, show login prompt
+  if (!isAuthenticated || !token) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Chưa đăng nhập</h2>
+          <p className="text-gray-600 mb-4">Vui lòng đăng nhập để xem trang này.</p>
+
+          <Link 
+            to="/login" 
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Đăng nhập
+          </Link>
+        </div>
+      </div>
+    );
   }
-  const decoded = jwtDecode<MyJwtPayload>(token)
-  const userID = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]
-  const role = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"]
+
+  // Get user ID from token
+  let userID: string;
+  try {
+    const decodedToken = TokenUtils.decodeToken(token);
+    userID = decodedToken?.userId || '';
+    
+    if (!userID) {
+      throw new Error("Không tìm thấy user ID trong token");
+    }
+  } catch (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-red-600 mb-2">Lỗi Token</h2>
+          <p className="text-gray-600 mb-4">Token không hợp lệ hoặc đã hết hạn.</p>
+          <Link 
+            to="/login" 
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Đăng nhập lại
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const role = userData.role || 'Unknown'
   
   const {
     register,
@@ -64,6 +113,7 @@ export default function ViewProfile() {
     queryKey: ["user-profile", userID],
     queryFn: () => getUserProfile(userID),
     staleTime: 1000 * 60 * 5,
+    enabled: !!userID, // Only run if userID exists
   })
 
   useEffect(() => {
@@ -120,11 +170,35 @@ export default function ViewProfile() {
   )
 
   if (isLoading) {
-    return <div className="p-6 text-center text-gray-500">Đang tải hồ sơ...</div>
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-500">Đang tải hồ sơ...</p>
+        </div>
+      </div>
+    )
   }
 
   if (error) {
-    return <div className="p-6 text-center text-red-500">Lỗi khi tải hồ sơ người dùng</div>
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="text-red-500 mb-4">
+            <User className="h-12 w-12 mx-auto mb-2" />
+          </div>
+          <h2 className="text-xl font-semibold text-red-600 mb-2">Lỗi tải hồ sơ</h2>
+          <p className="text-red-500 mb-4">{error instanceof Error ? error.message : 'Lỗi không xác định'}</p>
+                   
+          <Link 
+            to="/login" 
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Đăng nhập lại
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -133,12 +207,12 @@ export default function ViewProfile() {
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center gap-4">
-            <Link
-              to="/"
+            <button
+              onClick={() => navigate(-1)}
               className="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-gray-600" />
-            </Link>
+            </button>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Hồ sơ cá nhân</h1>
               <p className="text-sm text-gray-500">Quản lý thông tin cá nhân của bạn</p>
@@ -261,6 +335,14 @@ export default function ViewProfile() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-500">Vai trò</span>
                   <span className="text-sm font-medium text-gray-900">{role}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-500">Tên đăng nhập</span>
+                  <span className="text-sm font-medium text-gray-900">{userData.username || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-500">User ID</span>
+                  <span className="text-sm font-medium text-gray-900">{userID}</span>
                 </div>
               </div>
             </div>

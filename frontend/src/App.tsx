@@ -15,6 +15,8 @@ import AddPatient from './pages/auth/CreatePatientAccount';
 import AuthCallback from './pages/auth/AuthCallback';
 import ResetPassword from './pages/auth/ResetPassword';
 import ViewProfile from './pages/auth/ViewProfile';
+import { PatientDashboardPage } from './pages/patient/PatientDashboardPage';
+import { StaffDashboard } from './pages/staff/StaffDashboard';
 
 function App() {
   return (
@@ -37,6 +39,8 @@ function App() {
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/view-profile" element={<ViewProfile />} />
+        <Route path="/patient/dashboard" element={<PatientDashboardPage/>} />
+        <Route path="/dashboard" element={<StaffDashboard/>} />
       </Routes>
     </>
   );
