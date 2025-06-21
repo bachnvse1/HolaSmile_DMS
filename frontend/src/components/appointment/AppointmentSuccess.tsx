@@ -27,8 +27,6 @@ export const AppointmentSuccess: React.FC<AppointmentSuccessProps> = ({
   useEffect(() => {
     if (error) {
       toast.error(error);
-    } else {
-      toast.success('Đặt lịch thành công!');
     }
   }, [error]);
 
