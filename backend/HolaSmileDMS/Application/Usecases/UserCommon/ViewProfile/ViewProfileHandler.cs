@@ -20,13 +20,10 @@ public class ViewProfileHandler : IRequestHandler<ViewProfileCommand, ViewProfil
         var user = _httpContextAccessor.HttpContext?.User;
 
         var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-        var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-        var isAuthorized = currentUserId == request.UserId
-                        || currentUserRole == "Administrator"
-                        || currentUserRole == "Receptionist";
+        var isAuthen = currentUserId == request.UserId;
 
-        if (!isAuthorized)
+        if (!isAuthen)
             throw new UnauthorizedAccessException("Bạn không có quyền xem hồ sơ người dùng này.");
 
         return await _repository.GetUserProfileAsync(request.UserId, cancellationToken);

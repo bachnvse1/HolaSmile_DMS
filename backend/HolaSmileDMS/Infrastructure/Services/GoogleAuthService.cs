@@ -1,5 +1,4 @@
 ﻿using Application.Interfaces;
-using HDMS_API.Application.Common.Services;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication;
@@ -13,18 +12,18 @@ public class GoogleAuthService : IGoogleAuthService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IJwtService _jwtService;
     private readonly ApplicationDbContext _context;
-    private readonly IUserRoleChecker _userRoleChecker;
+    private readonly IUserCommonRepository _userCommonRepository;
 
 
     public GoogleAuthService(
         IHttpClientFactory httpClientFactory,
         IJwtService jwtService,
-        ApplicationDbContext context, IUserRoleChecker userRoleChecker)
+        ApplicationDbContext context, IUserCommonRepository userCommonRepository)
     {
         _httpClientFactory = httpClientFactory;
         _jwtService = jwtService;
         _context = context;
-        _userRoleChecker = userRoleChecker;
+        _userCommonRepository = userCommonRepository;
     }
 
     public async Task<string?> HandleGoogleCallbackAsync(HttpContext httpContext, CancellationToken cancellation)
@@ -47,7 +46,7 @@ public class GoogleAuthService : IGoogleAuthService
         if (user == null || user.Status == false)
             return null;
 
-        var role = await _userRoleChecker.GetUserRoleAsync(user.Username, cancellation);
+        var role = await _userCommonRepository.GetUserRoleAsync(user.Username, cancellation);
 
         var jwt = _jwtService.GenerateJWTToken(user, role);
         var refreshToken = _jwtService.GenerateRefreshToken(user.UserID.ToString());

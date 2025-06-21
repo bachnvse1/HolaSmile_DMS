@@ -1,12 +1,8 @@
 ﻿using System.Security.Claims;
 using AutoMapper;
-using HDMS_API.Application.Common.Helpers;
 using HDMS_API.Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.IdentityModel.Tokens;
 
 namespace HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount
 {
