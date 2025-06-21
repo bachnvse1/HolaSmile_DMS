@@ -1,7 +1,8 @@
-﻿using HDMS_API.Application.Interfaces;
+﻿using Application.Usecases.UserCommon.ViewAppointment;
+using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Infrastructure.Persistence;
-using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
 
 namespace HDMS_API.Infrastructure.Repositories
 {
@@ -26,5 +27,18 @@ namespace HDMS_API.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return patient;
         }
+
+        public async Task<Patient> GetPatientByIdAsync(int patientId)
+        {
+            var patient = await _context.Patients.FindAsync(patientId);
+            return patient;
+        }
+
+        public async Task<Patient> GetPatientByUserIdAsync(int userId)
+        {
+            var patient = await _context.Patients.FirstOrDefaultAsync(p => p.UserID == userId);
+            return patient;
+        }
+
     }
 }

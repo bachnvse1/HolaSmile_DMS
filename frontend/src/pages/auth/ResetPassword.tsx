@@ -32,7 +32,7 @@ export default function ResetPassword() {
     }),
     onSubmit: async (values) => {
       try {
-        const res = await fetch("http://localhost:5135/api/user/ResetPassword", {
+        const res = await fetch("https://localhost:5001/api/user/ResetPassword", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
