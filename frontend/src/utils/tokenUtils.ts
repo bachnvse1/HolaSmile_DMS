@@ -215,4 +215,8 @@ export class TokenUtils {
     if (!token) return false;
     return !this.isTokenExpired(token);
   }
+
+  static getActiveToken(): string | null {
+    return localStorage.getItem("token") || localStorage.getItem("authToken");
+  }
 }

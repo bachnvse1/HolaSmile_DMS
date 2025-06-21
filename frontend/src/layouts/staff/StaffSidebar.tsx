@@ -61,7 +61,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           label: 'Quản Lý Lịch',
           icon: <UserCheck className="h-4 w-4" />,
           path: '/appointments/manage',
-          roles: ['Administrator', 'Owner', 'Receptionist']
+          roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
         }
       ]
     },

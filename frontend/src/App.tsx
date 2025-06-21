@@ -17,6 +17,8 @@ import ResetPassword from './pages/auth/ResetPassword';
 import ViewProfile from './pages/auth/ViewProfile';
 import { PatientDashboardPage } from './pages/patient/PatientDashboardPage';
 import { StaffDashboard } from './pages/staff/StaffDashboard';
+import { PatientBookingPage } from './pages/patient/PatientBookingPage';
+import { DentistScheduleViewer } from './components/appointment/DentistScheduleViewer';
 
 function App() {
   return (
@@ -41,6 +43,7 @@ function App() {
         <Route path="/view-profile" element={<ViewProfile />} />
         <Route path="/patient/dashboard" element={<PatientDashboardPage/>} />
         <Route path="/dashboard" element={<StaffDashboard/>} />
+        <Route path="/patient/book-appointment" element={<PatientBookingPage/>} />
       </Routes>
     </>
   );

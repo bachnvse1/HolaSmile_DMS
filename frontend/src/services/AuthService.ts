@@ -18,11 +18,11 @@ export class AuthService {
   // Define redirect paths for each role
   private static readonly ROLE_REDIRECTS: RoleRedirectMap = {
     'Patient': '/patient/dashboard',
-    'Administrator': '/admin/dashboard',
-    'Owner': '/owner/dashboard', 
-    'Receptionist': '/receptionist/dashboard',
-    'Assistant': '/assistant/dashboard',
-    'Dentist': '/dentist/dashboard'
+    'Administrator': '/dashboard',
+    'Owner': '/dashboard', 
+    'Receptionist': '/dashboard',
+    'Assistant': '/dashboard',
+    'Dentist': '/dashboard'
   };static async login(username: string, password: string): Promise<LoginResponse> {
     try {
       const response = await axiosInstance.post('/user/login', {
@@ -48,13 +48,24 @@ export class AuthService {
     }
   }  static async fetchUserProfile(): Promise<EnhancedUserInfo> {
     try {
-      const response = await axiosInstance.get('/user/profile');
+      const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+      const userId = token ? TokenUtils.getUserIdFromToken(token) : null;
+      console.log('[AuthService] Fetching user profile...');
+      const response = await axiosInstance.get(`/user/profile/${userId}`);
+      console.log('[AuthService] Profile response:', response.data);
       return response.data;
     } catch (error) {
+      console.error('[AuthService] Profile fetch error:', error);
       if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || "Không thể lấy thông tin người dùng");
+        const errorMessage = error.response?.data?.message || error.message || "Không thể lấy thông tin người dùng";
+        console.error('[AuthService] Axios error details:', {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data
+        });
+        throw new Error(errorMessage);
       }
-      throw new Error("Lỗi không xác định");
+      throw new Error("Lỗi không xác định khi lấy thông tin người dùng");
     }
   }
 

@@ -15,7 +15,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
         private readonly IPatientRepository _patientRepository;
         private readonly IUserCommonRepository _userCommonRepository;
         private readonly IMapper _mapper;
-        public BookAppointmentHandler(IGuestRepository guestRepository, IAppointmentRepository appointmentRepository, IPatientRepository patientRepository,IUserCommonRepository userCommonRepository,IMapper mapper)
+        public BookAppointmentHandler(IGuestRepository guestRepository, IAppointmentRepository appointmentRepository, IPatientRepository patientRepository, IUserCommonRepository userCommonRepository, IMapper mapper)
         {
             _guestRepository = guestRepository;
             _appointmentRepository = appointmentRepository;
@@ -46,12 +46,13 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             // Check if the patient already exists in the system
             if (existPatient != null)
             {
-                var app0 = await _guestRepository.CreateAppointmentAsync(request, existPatient.UserID);
                 var patient = await _patientRepository.GetPatientByUserIdAsync(existPatient.UserID);
-                if (app0 == null)
+
+                if (patient == null)
                 {
-                    throw new Exception("Tạo cuộc hẹn thất bại.");
+                    throw new Exception("Không tìm thấy thông tin bệnh nhân.");
                 }
+                var app0 = await _guestRepository.CreateAppointmentAsync(request, patient.PatientID);
                 return "Tạo cuộc hẹn thành công.";
             }
             else // If the patient does not exist, create a new account and patient record
