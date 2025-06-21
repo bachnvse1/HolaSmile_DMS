@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MediatR;
 
-namespace Application.Usecases.Dentist.ViewDentistSchedule
+namespace Application.Usecases.Dentist.UpdateSchedule
 {
-    public class ScheduleDTO
+    public class EditScheduleCommand : IRequest<string>
     {
-        public int ScheduleId { get; set; }
+        public string ScheduleId { get; set; }
         public DateTime WorkDate { get; set; }
         public string Shift { get; set; }
-        public string Status { get; set; }
     }
 }

@@ -12,6 +12,7 @@ namespace Application.Interfaces
     {
         Task<List<Dentist>> GetAllDentistsAsync();
         Task<Dentist> GetDentistByUserIdAsync(int userId);
-        Task<List<DentistScheduleDTO>> GetAllDentistScheduleAsync();
+
+
     }
 }

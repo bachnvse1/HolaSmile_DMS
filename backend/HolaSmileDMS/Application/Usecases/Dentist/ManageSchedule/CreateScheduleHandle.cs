@@ -28,13 +28,17 @@ namespace Application.Usecases.Dentist.ManageSchedule
             var user = _httpContextAccessor.HttpContext?.User;
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
+
+            // Check if the user is not a dentist return failed message
             if (!string.Equals(currentUserRole, "dentist", StringComparison.OrdinalIgnoreCase))
             {
                 return MessageConstants.MSG.MSG26;
             }
 
+            // Check if the dentist exists
             var dentistExist = await _dentistRepository.GetDentistByUserIdAsync(currentUserId);
 
+            //create list regis schedule
             foreach (var item in request.RegisSchedules)
             {
                 if (item.WorkDate < DateTime.Now)
@@ -54,8 +58,14 @@ namespace Application.Usecases.Dentist.ManageSchedule
                     Status = "pending",
                     WeekStartDate = weekstart,
                     CreatedBy = dentistExist.DentistId,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.Now,
+                    IsActive = true,
                 };
+                var isDuplicate = await _scheduleRepository.CheckDulplicateScheduleAsync(schedule.DentistId, schedule.WorkDate, schedule.Shift, schedule.ScheduleId);
+                if (isDuplicate)
+                {
+                    throw new Exception(MessageConstants.MSG.MSG51 ?? "Xung đột với lịch làm việc hiện tại"); // trùng lịch làm việc hiện tại
+                }
                 var isRegistered = await _scheduleRepository.RegisterScheduleByDentist(schedule);
                 if (!isRegistered)
                 {
