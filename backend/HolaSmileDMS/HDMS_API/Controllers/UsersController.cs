@@ -1,5 +1,7 @@
-﻿using Application.Usecases.UserCommon.RefreshToken;
+using Application.Usecases.UserCommon.RefreshToken;
 using Application.Constants;
+using System.Security.Claims;
+using Application.Usecases.UserCommon.ViewListPatient;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
 using HDMS_API.Application.Usecases.UserCommon.EditProfile;
@@ -10,26 +12,17 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
-
 namespace HDMS_API.Controllers
 {
     [Route("api/user")]
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
         private readonly IMediator _mediator;
+
         public UsersController(ApplicationDbContext context, IMediator mediator)
         {
-            _context = context;
             _mediator = mediator;
-        }
-
-        [HttpGet]
-        public IActionResult GetAllUser()
-        {
-            var user = _context.Users.ToList();
-            return Ok(user);
         }
 
         [HttpGet("profile/{userId}")]
@@ -57,8 +50,10 @@ namespace HDMS_API.Controllers
             }
         }
 
+
         [HttpPut("profile")]
-        public async Task<IActionResult> EditProfile([FromBody] EditProfileCommand command, CancellationToken cancellationToken)
+        public async Task<IActionResult> EditProfile([FromBody] EditProfileCommand command,
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -78,14 +73,15 @@ namespace HDMS_API.Controllers
             }
         }
 
-
         [HttpPost("OTP/Request")]
         public async Task<IActionResult> RequestOtp([FromBody] RequestOtpCommand request)
         {
             try
             {
                 var result = await _mediator.Send(request);
-                return result ? Ok(new { message = "Mã OTP đã được gửi đến email của bạn" }) : BadRequest("Gửi OTP thất bại.");
+                return result
+                    ? Ok(new { message = "Mã OTP đã được gửi đến email của bạn" })
+                    : BadRequest("Gửi OTP thất bại.");
             }
             catch (Exception ex)
             {
@@ -104,7 +100,9 @@ namespace HDMS_API.Controllers
             try
             {
                 var result = await _mediator.Send(request);
-                return result ? Ok(new { message = "Mã OTP đã được gửi lại vào email của bạn" }) : BadRequest("Gửi lại OTP thất bại.");
+                return result
+                    ? Ok(new { message = "Mã OTP đã được gửi lại vào email của bạn" })
+                    : BadRequest("Gửi lại OTP thất bại.");
             }
             catch (Exception ex)
             {
@@ -180,7 +178,7 @@ namespace HDMS_API.Controllers
                 });
             }
         }
-        
+
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshTokenCommand command)
         {
@@ -196,4 +194,5 @@ namespace HDMS_API.Controllers
         }
     }
 }
+
 

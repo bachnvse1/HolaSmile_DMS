@@ -13,9 +13,8 @@ namespace HDMS_API.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IMediator _mediator;
-        public PatientController(ApplicationDbContext context, IMediator mediator)
+        public PatientController(IMediator mediator)
         {
-            _context = context;
             _mediator = mediator;
         }
 
