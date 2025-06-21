@@ -16,7 +16,7 @@ namespace HDMS_API.Controllers
             _mediator = mediator;
         }
 
-        [HttpGet("allDentistSchedule")]
+        [HttpGet("dentist/list")]
         public async Task<IActionResult> GetAllDentistSchedule()
         {
             try
@@ -35,12 +35,12 @@ namespace HDMS_API.Controllers
             }
         }
 
-        [HttpGet("dentistSchedule")]
-        public async Task<IActionResult> GetDentistSchedule(int dentistId)
+        [HttpGet("dentist/{dentistId}")]
+        public async Task<IActionResult> ViewDentistSchedule([FromRoute] string dentistId, CancellationToken cancellationToken)
         {
             try
             {
-                var result = await _mediator.Send(new ViewAllDentistScheduleCommand());
+                var result = await _mediator.Send(new ViewDentistScheduleCommand { DentistId = dentistId });
                 return Ok(result);
             }
             catch (Exception ex)

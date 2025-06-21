@@ -70,7 +70,7 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
                         CreatedAt = s.CreatedAt.Date,
                         UpdatedAt = s.UpdatedAt?.Date
                     }).ToList(),
-                    IsAvailable = g.First().Dentist.Appointments.Count < 5
+                    IsAvailable = g.First().Dentist.Appointments.Count <= 5 ? true : false
                 }).ToList();
 
             return result;

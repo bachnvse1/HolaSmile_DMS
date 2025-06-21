@@ -34,6 +34,7 @@ namespace Infrastructure.Repositories
                 .Include(s => s.Dentist)
                 .ThenInclude(d => d.User)
                 .Include(s => s.Dentist.Appointments)
+                .Where(s => s.IsActive) // Only get active schedules
                 .ToListAsync();
             return result;
         }
@@ -43,7 +44,8 @@ namespace Infrastructure.Repositories
             var result = await _context.Schedules
                 .Include(s => s.Dentist)
                 .ThenInclude(d => d.User)
-                .Where(s => s.DentistId == dentistId)
+                .Include(s => s.Dentist.Appointments)
+                .Where(s => s.Dentist.DentistId == dentistId && s.IsActive) 
                 .ToListAsync();
             return result;
         }

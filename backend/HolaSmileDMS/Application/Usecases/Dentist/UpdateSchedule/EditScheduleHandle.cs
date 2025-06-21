@@ -108,8 +108,8 @@ namespace Application.Usecases.Dentist.UpdateSchedule
 
                 var created = await _scheduleRepository.RegisterScheduleByDentist(newSchedule);
                 return created
-                    ? MessageConstants.MSG.MSG52 ?? "Đăng ký lịch làm việc thành công."
-                    : "Đăng ký lịch làm việc thất bại.";
+                    ? MessageConstants.MSG.MSG52 ?? "Đã đăng ký lịch làm việc thành công. Bạn phải chờ chủ xác nhận."
+                    : "Thay đổi lịch làm việc thất bại.";
             }
         }
     }
