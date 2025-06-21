@@ -11,8 +11,7 @@ namespace Application.Interfaces
     public interface IDentistRepository
     {
         Task<List<Dentist>> GetAllDentistsAsync();
-        Task<Dentist> GetDentistByIdAsync(int userId);
+        Task<Dentist> GetDentistByUserIdAsync(int userId);
         Task<List<DentistScheduleDTO>> GetAllDentistScheduleAsync();
-        Task<bool> CreateScheduleAsync(Schedule schedule);
     }
 }

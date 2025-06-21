@@ -19,18 +19,10 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<bool> CreateScheduleAsync(Schedule schedule)
-        {
-            _context.Schedules.Add(schedule);
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
         public async Task<List<Dentist>> GetAllDentistsAsync()
         {
             throw new NotImplementedException();
         }
-
 
         public async Task<List<DentistScheduleDTO>> GetAllDentistScheduleAsync()
         {
@@ -53,11 +45,11 @@ namespace Infrastructure.Repositories
             return availableSechedule;
         }
 
-        public async Task<Dentist?> GetDentistByIdAsync(int userID)
+        public async Task<Dentist?> GetDentistByUserIdAsync(int userID)
         {
             var dentist = await _context.Dentists
                 .Include(d => d.User)
-                .FirstOrDefaultAsync(d => d.DentistId == userID);
+                .FirstOrDefaultAsync(d => d.UserId == userID);
             return dentist;
         }
     }
