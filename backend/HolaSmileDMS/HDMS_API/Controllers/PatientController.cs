@@ -9,13 +9,12 @@ namespace HDMS_API.Controllers
 {
     [Route("api/patient")]
     [ApiController]
-    public class PatientController : Controller
+    public class PatientController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
         private readonly IMediator _mediator;
-        public PatientController(ApplicationDbContext context, IMediator mediator)
+        public PatientController(IMediator mediator)
         {
-            _context = context;
             _mediator = mediator;
         }
 
