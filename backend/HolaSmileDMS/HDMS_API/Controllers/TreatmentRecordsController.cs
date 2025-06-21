@@ -1,7 +1,9 @@
 using Application.Constants;
+using Application.Usecases.Patients.UpdateTreatmentRecord;
 using Application.Usecases.Patients.ViewTreatmentRecord;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 [ApiController]
 [Route("api/treatment-records")]
@@ -44,4 +46,33 @@ public class TreatmentRecordsController : ControllerBase
             });
         }
     }
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateRecord(int id, [FromBody] UpdateTreatmentRecordCommand command, CancellationToken cancellationToken)
+    {
+        command.TreatmentRecordId = id;
+        try
+        {
+            var result = await _mediator.Send(command, cancellationToken);
+            return Ok(new { success = result, message = MessageConstants.MSG.MSG61 });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { message = MessageConstants.MSG.MSG27 });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid(MessageConstants.MSG.MSG26);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new
+            {
+                message = MessageConstants.MSG.MSG58,
+                Inner = ex.InnerException?.Message,
+                Stack = ex.StackTrace
+            });
+        }
+    }
+
+
 }
