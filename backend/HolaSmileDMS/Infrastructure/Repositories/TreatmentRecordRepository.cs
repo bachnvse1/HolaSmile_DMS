@@ -26,4 +26,16 @@ public class TreatmentRecordRepository : ITreatmentRecordRepository
             .ProjectTo<ViewTreatmentRecordDto>(_mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<TreatmentRecord?> GetTreatmentRecordByIdAsync(int id, CancellationToken cancellationToken)
+    {
+        return await _context.TreatmentRecords
+            .FirstOrDefaultAsync(x => x.TreatmentRecordID == id && !x.IsDeleted, cancellationToken);
+    }
+
+    public async Task<bool> SaveChangesAsync(CancellationToken cancellationToken)
+    {
+        return await _context.SaveChangesAsync(cancellationToken) > 0;
+    }
+
 }
