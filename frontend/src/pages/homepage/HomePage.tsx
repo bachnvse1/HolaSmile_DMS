@@ -1,9 +1,9 @@
-import { HeroSection } from '../components/sections/HeroSection';
-import { ServicesSection } from '../components/sections/ServicesSection';
-import { AboutSection } from '../components/sections/AboutSection';
-import { TeamSection } from '../components/sections/TeamSection';
-import { ContactSection } from '../components/sections/ContactSection';
-import { Layout } from '../components/layout/Layout';
+import { HeroSection } from '@/components/sections/HeroSection';
+import { ServicesSection } from '@/components/sections/ServicesSection';
+import { AboutSection } from '@/components/sections/AboutSection';
+import { TeamSection } from '@/components/sections/TeamSection';
+import { ContactSection } from '@/components/sections/ContactSection';
+import { Layout } from '@/layouts/homepage/Layout';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router';
 

@@ -1,4 +1,4 @@
-import { Layout } from '../components/layout/Layout';
+import { Layout } from '@/layouts/homepage/Layout';
 import { CheckCircle, Award, Users, Clock, Shield, Heart, Star, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import bg2 from '@/assets/bg2.jpg';

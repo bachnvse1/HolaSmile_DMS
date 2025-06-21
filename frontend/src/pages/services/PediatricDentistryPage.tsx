@@ -1,4 +1,4 @@
-import { Layout } from '../../components/layout/Layout';
+import { Layout } from '../../layouts/homepage/Layout';
 import { Heart, Shield, Smile, Star, Calendar, Gift, Users, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router';
 const services = [
