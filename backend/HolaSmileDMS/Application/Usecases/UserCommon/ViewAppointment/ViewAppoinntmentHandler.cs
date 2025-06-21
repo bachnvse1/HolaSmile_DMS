@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Application.Usecases.UserCommon.ViewAppointment
 {
-    public class ViewApponintmentHandler : IRequestHandler<ViewAppointmentCommand, List<AppointmentDTO>>
+    public class ViewAppoinntmentHandler : IRequestHandler<ViewAppointmentCommand, List<AppointmentDTO>>
     {
         private readonly IUserCommonRepository _userCommonRepository;
         private readonly IAppointmentRepository _appointmentRepository;
@@ -15,7 +15,7 @@ namespace Application.Usecases.UserCommon.ViewAppointment
         private readonly IMapper _mapper;
         private readonly IHashIdService _hashIdService;
 
-        public ViewApponintmentHandler(IUserCommonRepository userCommonRepository, IHashIdService hashIdService, IHttpContextAccessor httpContextAccessor, IMapper mapper, IAppointmentRepository appointmentRepository)
+        public ViewAppoinntmentHandler(IUserCommonRepository userCommonRepository, IHashIdService hashIdService, IHttpContextAccessor httpContextAccessor, IMapper mapper, IAppointmentRepository appointmentRepository)
         {
             _userCommonRepository = userCommonRepository;
             _appointmentRepository = appointmentRepository;
@@ -40,6 +40,10 @@ namespace Application.Usecases.UserCommon.ViewAppointment
             if(string.Equals(currentUserRole,"patient",StringComparison.OrdinalIgnoreCase))
             {
                 listApp = await _appointmentRepository.GetAppointmentsByPatientIdAsync(currentUserId);
+            }
+            else if(string.Equals(currentUserRole, "patient", StringComparison.OrdinalIgnoreCase))
+            {
+                listApp = await _appointmentRepository.GetAppointmentsByDentistIdAsync(currentUserId);
             }
             else
             {

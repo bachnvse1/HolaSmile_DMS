@@ -1,5 +1,4 @@
-﻿using Application.Usecases.UserCommon.ViewAppointment;
-using HDMS_API.Application.Interfaces;
+﻿using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Guests.BookAppointment;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -51,6 +50,17 @@ namespace HDMS_API.Infrastructure.Repositories
                 .ToListAsync();
             return result ?? new List<Appointment>();
         }
+
+        public async Task<List<Appointment>> GetAppointmentsByDentistIdAsync(int userID)
+        {
+            var result = await _context.Appointments
+                .Include(a => a.Patient).ThenInclude(p => p.User)
+                .Include(a => a.Dentist).ThenInclude(d => d.User)
+                .Where(a => a.Dentist.User.UserID == userID && !a.IsDeleted)
+                .ToListAsync();
+            return result ?? new List<Appointment>();
+        }
+
         public async Task<List<Appointment>> GetAllAppointmentAsync()
         {
             var result = await _context.Appointments

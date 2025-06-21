@@ -1,5 +1,4 @@
-﻿using Application.Usecases.UserCommon.ViewAppointment;
-using HDMS_API.Application.Usecases.Guests.BookAppointment;
+﻿using HDMS_API.Application.Usecases.Guests.BookAppointment;
 
 namespace HDMS_API.Application.Interfaces
 {
@@ -7,6 +6,7 @@ namespace HDMS_API.Application.Interfaces
     {
         Task<Appointment> CreateAppointmentAsync(BookAppointmentCommand request, int patientId);
         Task<List<Appointment>> GetAppointmentsByPatientIdAsync(int patientId);
+        Task<List<Appointment>> GetAppointmentsByDentistIdAsync(int dentistId);
         Task<List<Appointment>> GetAllAppointmentAsync();
         Task<Appointment> GetAppointmentByIdAsync(int appointmentId);
         Task<bool> CancelAppointmentAsync(int appId, int cancleBy);
