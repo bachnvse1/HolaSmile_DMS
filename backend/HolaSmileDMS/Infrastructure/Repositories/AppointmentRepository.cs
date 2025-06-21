@@ -19,7 +19,7 @@ namespace HDMS_API.Infrastructure.Repositories
             {
                 PatientId = patientId,
                 DentistId = request.DentistId,
-                Status = "pending",
+                Status = "confirm",
                 Content = request.MedicalIssue,
                 IsNewPatient = true,
                 AppointmentType = "",
