@@ -1,10 +1,10 @@
+﻿using Application.Usecases.UserCommon.ViewAppointment;
 ﻿using Application.Usecases.UserCommon.ViewListPatient;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Common.Helpers;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
-using HDMS_API.Application.Usecases.UserCommon.EditProfile;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -147,7 +147,6 @@ namespace HDMS_API.Infrastructure.Repositories
                 throw new Exception("OTP đã hết hạn.");
             }
         }
-
         public async Task<string> ResetPasswordAsync(ForgotPasswordCommand request)
         {
             if(_memoryCache.TryGetValue($"resetPasswordToken:{request.ResetPasswordToken}", out string email))
@@ -178,6 +177,10 @@ namespace HDMS_API.Infrastructure.Repositories
                 throw new Exception("Thời gian đặt lại mật khẩu của bạn đã hết. Vui lòng quên mật khẩu lại.");
             }
         }
+        public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken)
+        {
+            return await _context.Users.FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
+        }
 
         public Task<User?> GetUserByPhoneAsync(string phone)
         {
@@ -185,17 +188,10 @@ namespace HDMS_API.Infrastructure.Repositories
             return user;
         }
 
-        public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken)
-        {
-            return await _context.Users.FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
-        }
-
-
         public Task<User?> GetByEmailAsync(string email)
         {
             throw new NotImplementedException();
         }
-
         public async Task<bool> EditProfileAsync(User user, CancellationToken cancellationToken)
         {
             _context.Users.Update(user);
@@ -206,6 +202,11 @@ namespace HDMS_API.Infrastructure.Repositories
         public async Task<User?> GetByIdAsync(int userId, CancellationToken cancellationToken)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId, cancellationToken);
+        }
+
+        public Task<List<ViewListPatientDto>> GetAllPatientsAsync(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<ViewProfileDto?> GetUserProfileAsync(int userId, CancellationToken cancellationToken)
@@ -226,7 +227,6 @@ namespace HDMS_API.Infrastructure.Repositories
                 })
                 .FirstOrDefaultAsync(cancellationToken);
         }
-
         public async Task<string?> GetUserRoleAsync(string username, CancellationToken cancellationToken)
         {
             var userExist = await GetByUsernameAsync(username, cancellationToken);
@@ -253,24 +253,7 @@ namespace HDMS_API.Infrastructure.Repositories
             return result?.Role;
         }
 
-        public async Task<List<ViewListPatientDto>> GetAllPatientsAsync(CancellationToken cancellationToken)
-        {
-            return await _context.Patients
-                .Where(p => p.User != null)
-                .Include(p => p.User)
-                .OrderBy(p => p.User.Fullname)
-                .Select(p => new ViewListPatientDto
-                {
-                    PatientId = p.PatientID,
-                    UserId = p.UserID ?? 0,
-                    Fullname = p.User.Fullname ?? "",
-                    Gender = p.User.Gender.HasValue ? (p.User.Gender.Value ? "Male" : "Female") : null,
-                    Phone = p.User.Phone,
-                    DOB = p.User.DOB,
-                    Email = p.User.Email
-                })
-                .ToListAsync(cancellationToken);
-        }
+
 
     }
     public class UserRoleResult

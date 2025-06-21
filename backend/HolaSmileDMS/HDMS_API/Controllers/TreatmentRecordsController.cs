@@ -1,7 +1,9 @@
-using System.Security.Claims;
+using Application.Constants;
+using Application.Usecases.Patients.UpdateTreatmentRecord;
 using Application.Usecases.Patients.ViewTreatmentRecord;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 [ApiController]
 [Route("api/treatment-records")]
@@ -26,14 +28,51 @@ public class TreatmentRecordsController : ControllerBase
             var result = await _mediator.Send(new ViewTreatmentRecordsCommand(userId), cancellationToken);
             return Ok(result);
         }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { message = MessageConstants.MSG.MSG16 }); // Không có dữ liệu phù hợp
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid(MessageConstants.MSG.MSG26); // Bạn không có quyền truy cập chức năng này
+        }
         catch (Exception ex)
         {
             return BadRequest(new
             {
-                message = "Dữ liệu không tồn tại",
+                message = MessageConstants.MSG.MSG58, // Cập nhật dữ liệu thất bại (có thể sửa thành "Lỗi khi truy vấn dữ liệu" nếu cần thêm mã riêng)
                 Inner = ex.InnerException?.Message,
                 Stack = ex.StackTrace
             });
         }
     }
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateRecord(int id, [FromBody] UpdateTreatmentRecordCommand command, CancellationToken cancellationToken)
+    {
+        command.TreatmentRecordId = id;
+        try
+        {
+            var result = await _mediator.Send(command, cancellationToken);
+            return Ok(new { success = result, message = MessageConstants.MSG.MSG61 });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { message = MessageConstants.MSG.MSG27 });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid(MessageConstants.MSG.MSG26);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new
+            {
+                message = MessageConstants.MSG.MSG58,
+                Inner = ex.InnerException?.Message,
+                Stack = ex.StackTrace
+            });
+        }
+    }
+
+
 }
