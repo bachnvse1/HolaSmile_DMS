@@ -1,4 +1,7 @@
-dotnet ef migrations add InitialCreate
+dotnet ef migrations add AddScheduleIsAcvtive
 dotnet ef database update
 npm i
 npm run dev
+
+dotnet ef migrations add AddIsActiveToSchedule --project Infrastructure --startup-project HDMS_API
+dotnet ef database update --project Infrastructure --startup-project HDMS_API

@@ -5,10 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using MediatR;
 
-namespace Application.Usecases.Patient
+namespace Application.Usecases.Dentist.ViewDentistSchedule
 {
-    public class CancelAppointmentCommand : IRequest<string>
+    public class ViewAllDentistScheduleCommand : IRequest<List<DentistScheduleDTO>>
     {
-        public int AppointmentId { get; set; }
     }
 }

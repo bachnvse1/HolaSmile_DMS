@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MediatR;
 
-namespace Application.Usecases.UserCommon.Appointment
+namespace Application.Usecases.UserCommon.ViewAppointment
 {
     public class ViewAppointmentCommand : IRequest<List<AppointmentDTO>>
     {

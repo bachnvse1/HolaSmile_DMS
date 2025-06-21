@@ -1,4 +1,4 @@
-﻿using HDMS_API.Application.Common.Services;
+﻿using HDMS_API.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace HDMS_API.Infrastructure.Persistence
