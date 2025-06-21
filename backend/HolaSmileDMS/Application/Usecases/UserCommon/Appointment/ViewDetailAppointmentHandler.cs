@@ -12,13 +12,11 @@ namespace Application.Usecases.UserCommon.Appointment
 {
     public class ViewDetailAppointmentHandler : IRequestHandler<ViewDetailAppointmentCommand, AppointmentDTO>
     {
-        private readonly IUserCommonRepository _userCommonRepository;
-        private readonly IPatientRepository _patientRepository;
+        private readonly IAppointmentRepository _appointmentRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public ViewDetailAppointmentHandler(IUserCommonRepository userCommonRepository,IPatientRepository patientRepository, IHttpContextAccessor httpContextAccessor)
+        public ViewDetailAppointmentHandler(IAppointmentRepository appointmentRepository, IHttpContextAccessor httpContextAccessor)
         {
-            _userCommonRepository = userCommonRepository;
-            _patientRepository = patientRepository;
+            _appointmentRepository = appointmentRepository;
             _httpContextAccessor = httpContextAccessor;
         }
         public async Task<AppointmentDTO> Handle(ViewDetailAppointmentCommand request, CancellationToken cancellationToken)
@@ -34,12 +32,12 @@ namespace Application.Usecases.UserCommon.Appointment
 
             if (string.Equals(currentUserRole, "patient", StringComparison.OrdinalIgnoreCase))
             {
-                if(!await _patientRepository.CheckAppointmentByPatientIdAsync(request.AppointmentId, currentUserId)){
+                if(!await _appointmentRepository.CheckAppointmentByPatientIdAsync(request.AppointmentId, currentUserId)){
                     throw new Exception("Bạn không có quyền truy cập vào lịch hẹn này");
                 }
             }
 
-            var appointment = await _userCommonRepository.GetAppointmentByIdAsync(request.AppointmentId);
+            var appointment = await _appointmentRepository.GetAppointmentByIdAsync(request.AppointmentId);
             if (appointment == null)
             {
                 throw new Exception("không tìm thấy dữ liệu cuộc hẹn. ");

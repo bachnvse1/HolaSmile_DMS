@@ -13,12 +13,12 @@ namespace Application.Usecases.UserCommon.Appointment
     public class ViewApponintmentHandler : IRequestHandler<ViewAppointmentCommand, List<AppointmentDTO>>
     {
         private readonly IUserCommonRepository _userCommonRepository;
-        private readonly IPatientRepository _patientRepository;
+        private readonly IAppointmentRepository _appointmentRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public ViewApponintmentHandler(IUserCommonRepository userCommonRepository, IHttpContextAccessor httpContextAccessor,IPatientRepository patientRepository)
+        public ViewApponintmentHandler(IUserCommonRepository userCommonRepository, IHttpContextAccessor httpContextAccessor, IAppointmentRepository appointmentRepository)
         {
             _userCommonRepository = userCommonRepository;
-            _patientRepository = patientRepository;
+            _appointmentRepository = appointmentRepository;
             _httpContextAccessor = httpContextAccessor;
         }
         public async Task<List<AppointmentDTO>> Handle(ViewAppointmentCommand request, CancellationToken cancellationToken)
@@ -35,11 +35,11 @@ namespace Application.Usecases.UserCommon.Appointment
 
             if(string.Equals(currentUserRole,"patient",StringComparison.OrdinalIgnoreCase))
             {
-                result = await _patientRepository.GetAppointmentsByPatientIdAsync(currentUserId);
+                result = await _appointmentRepository.GetAppointmentsByPatientIdAsync(currentUserId);
             }
             else
             {
-                result = await _userCommonRepository.GetAllAppointmentAsync();
+                result = await _appointmentRepository.GetAllAppointmentAsync();
             }
             if(result == null)
             {

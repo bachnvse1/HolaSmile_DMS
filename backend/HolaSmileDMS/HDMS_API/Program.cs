@@ -2,12 +2,14 @@
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.WebHost.UseUrls("https://localhost:5001");
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddAuthenticationServices(builder.Configuration); 
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddSwaggerGen(option =>
 {
     option.SwaggerDoc("v1", new OpenApiInfo { Title = "HDMS_API", Version = "v1" });
@@ -45,7 +47,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("_myAllowSpecificOrigins");
-
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

@@ -1,6 +1,6 @@
 ﻿using Application.Interfaces;
+using Application.Services;
 using HDMS_API.Application.Common.Mappings;
-using HDMS_API.Application.Common.Services;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Application.Usecases.UserCommon.Login;
@@ -33,9 +33,9 @@ namespace HDMS_API.DependencyInjection
             services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IPatientRepository, PatientRepository>();
             services.AddScoped<IDentistRepository, DentistRepository>();
-            //services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IUserCommonRepository, UserCommonRepository>();
-            services.AddScoped<IUserRoleChecker, UserRoleChecker>();
+            services.AddScoped<ITreatmentRecordRepository, TreatmentRecordRepository>();
+            services.AddSingleton<IHashIdService, HashIdService>();
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>
             {
@@ -44,8 +44,8 @@ namespace HDMS_API.DependencyInjection
                         policy =>
                         {
                             policy.WithOrigins(
-                                    "https://6f8f-14-232-61-47.ngrok-free.app",  // Production (ngrok)
-                                    "http://localhost:5173"                       // Localhost FE
+                                    "https://6f8f-14-232-61-47.ngrok-free.app",
+                                    "http://localhost:5173"                     
                                 )
                                 .AllowAnyHeader()
                                 .AllowAnyMethod()
@@ -54,12 +54,11 @@ namespace HDMS_API.DependencyInjection
             });
 
             // MediatR
-            services.AddMediatR(cfg =>
-                cfg.RegisterServicesFromAssemblyContaining<CreatePatientCommand>());
-            services.AddMediatR(cfg =>
-                cfg.RegisterServicesFromAssemblyContaining<LoginCommand>());
-
+            services.AddMediatR(typeof(CreatePatientCommand).Assembly);
+            services.AddMediatR(typeof(LoginCommand).Assembly);
+            
             // AutoMapper
+            services.AddAutoMapper(typeof(MappingViewTreatmentRecord));
             services.AddAutoMapper(typeof(MappingCreatePatient));
 
             // Caching

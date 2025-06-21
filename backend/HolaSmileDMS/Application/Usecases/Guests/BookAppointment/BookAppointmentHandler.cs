@@ -42,12 +42,20 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 throw new Exception("Ngày hẹn không thể là ngày trong quá khứ.");
             }
             var guest = _mapper.Map<CreatePatientDto>(request);
-            var existPatient = await _userCommonRepository.GetUserByPhoneAsync(guest.PhoneNumber);
+            var existUser = await _userCommonRepository.GetUserByPhoneAsync(guest.PhoneNumber);
             // Check if the patient already exists in the system
-            if (existPatient != null)
+            if (existUser != null)
             {
-                var app0 = await _guestRepository.CreateAppointmentAsync(request, existPatient.UserID);
-                var patient = await _patientRepository.GetPatientByUserIdAsync(existPatient.UserID);
+                // If the user exists, check if they have a patient record
+                var patient = await _patientRepository.GetPatientByUserIdAsync(existUser.UserID)
+                      ?? throw new Exception("Không tìm thấy hồ sơ bệnh nhân.");
+
+                //checck duplicate appointment
+                bool already = await _appointmentRepository.ExistsAppointmentAsync(patient.PatientID, request.AppointmentDate);
+                if (already) throw new Exception("Bạn đã đặt lịch cho ngày này rồi.");
+
+                // If the patient exists, create a new appointment for them
+                var app0 = await _guestRepository.CreateAppointmentAsync(request, patient.PatientID);
                 if (app0 == null)
                 {
                     throw new Exception("Tạo cuộc hẹn thất bại.");
@@ -61,6 +69,8 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 {
                     throw new Exception("Tạo tài khoản thất bại.");
                 }
+
+                // Send password to guest email asynchronously
                 _ = System.Threading.Tasks.Task.Run(async () =>
                 {
                     try
