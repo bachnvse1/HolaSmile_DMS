@@ -5,6 +5,7 @@ using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.IdentityModel.Tokens;
+using Application.Services;
 
 namespace HDMS_API.Application.Usecases.Guests.BookAppointment
 {
@@ -14,13 +15,15 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly IPatientRepository _patientRepository;
         private readonly IUserCommonRepository _userCommonRepository;
+        private readonly IHashIdService _hashIdService;
         private readonly IMapper _mapper;
-        public BookAppointmentHandler(IGuestRepository guestRepository, IAppointmentRepository appointmentRepository, IPatientRepository patientRepository,IUserCommonRepository userCommonRepository,IMapper mapper)
+        public BookAppointmentHandler(IGuestRepository guestRepository, IAppointmentRepository appointmentRepository, IPatientRepository patientRepository, IHashIdService hashIdService, IUserCommonRepository userCommonRepository,IMapper mapper)
         {
             _guestRepository = guestRepository;
             _appointmentRepository = appointmentRepository;
             _patientRepository = patientRepository;
             _userCommonRepository = userCommonRepository;
+            _hashIdService = hashIdService;
             _mapper = mapper;
         }
         public async Task<string> Handle(BookAppointmentCommand request, CancellationToken cancellationToken)
@@ -41,26 +44,23 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             {
                 throw new Exception("Ngày hẹn không thể là ngày trong quá khứ.");
             }
+
+            var dentistId = _hashIdService.Decode(request.DentistId);
+            var patient = new Patient();
+
             var guest = _mapper.Map<CreatePatientDto>(request);
             var existUser = await _userCommonRepository.GetUserByPhoneAsync(guest.PhoneNumber);
             // Check if the patient already exists in the system
             if (existUser != null)
             {
                 // If the user exists, check if they have a patient record
-                var patient = await _patientRepository.GetPatientByUserIdAsync(existUser.UserID)
+                 patient = await _patientRepository.GetPatientByUserIdAsync(existUser.UserID)
                       ?? throw new Exception("Không tìm thấy hồ sơ bệnh nhân.");
 
                 //checck duplicate appointment
                 bool already = await _appointmentRepository.ExistsAppointmentAsync(patient.PatientID, request.AppointmentDate);
                 if (already) throw new Exception("Bạn đã đặt lịch cho ngày này rồi.");
-
-                // If the patient exists, create a new appointment for them
-                var app0 = await _guestRepository.CreateAppointmentAsync(request, patient.PatientID);
-                if (app0 == null)
-                {
-                    throw new Exception("Tạo cuộc hẹn thất bại.");
-                }
-                return "Tạo cuộc hẹn thành công.";
+               
             }
             else // If the patient does not exist, create a new account and patient record
             {
@@ -83,19 +83,29 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                     }
                 });
 
-                var patient = await _patientRepository.CreatePatientAsync(guest, user.UserID);
+                 patient = await _patientRepository.CreatePatientAsync(guest, user.UserID);
                 if (patient == null)
                 {
                     throw new Exception("Tạo bệnh nhân thất bại.");
                 }
-                var app = await _guestRepository.CreateAppointmentAsync(request, patient.PatientID);
-                if (app == null)
-                {
-                    throw new Exception("Tạo cuộc hẹn thất bại.");
-                }
             }
-            return "Tạo cuộc hẹn thành công.";
 
+            var appointment = new Appointment
+            {
+                PatientId = patient.PatientID,
+                DentistId = dentistId,
+                Status = "pending",
+                Content = request.MedicalIssue,
+                IsNewPatient = true,
+                AppointmentType = "",
+                AppointmentDate = request.AppointmentDate,
+                AppointmentTime = request.AppointmentTime,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = patient.PatientID,
+                IsDeleted = false
+            };
+            var isbookappointment = await _guestRepository.CreateAppointmentAsync(appointment);
+            return isbookappointment ? "Tạo cuộc hẹn thành công." : "Tạo cuộc hẹn thất bại";
         }
     }
 

@@ -39,11 +39,6 @@ namespace HDMS_API.Infrastructure.Repositories
             {
                 throw new Exception("Số điện thoại không hợp lệ.");
             }
-
-            if (FormatHelper.TryParseDob(dto.Dob) == null)
-            {
-                throw new Exception("Ngày sinh không hợp lệ.");
-            }
             if (!FormatHelper.IsValidEmail(dto.Email))
             {
                 throw new Exception("Email không hợp lệ.");
