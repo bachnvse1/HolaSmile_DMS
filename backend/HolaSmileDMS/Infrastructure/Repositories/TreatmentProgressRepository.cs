@@ -15,8 +15,8 @@ public class TreatmentProgressRepository : ITreatmentProgressRepository
     public async Task<List<TreatmentProgress>> GetByTreatmentRecordIdAsync(int treatmentRecordId, CancellationToken cancellationToken)
     {
         return await _context.TreatmentProgresses
-            .Include(tp => tp.Dentist)
-            .Include(tp => tp.Patient)
+            .Include(tp => tp.Dentist).ThenInclude(d => d.User) 
+            .Include(tp => tp.Patient).ThenInclude(p  => p .User) 
             .Where(tp => tp.TreatmentRecordID == treatmentRecordId)
             .ToListAsync(cancellationToken);
     }
