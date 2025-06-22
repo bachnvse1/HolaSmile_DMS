@@ -101,5 +101,4 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             return isbookappointment ? MessageConstants.MSG.MSG05 : MessageConstants.MSG.MSG58;
         }
     }
-
 }

@@ -1,5 +1,6 @@
-﻿using System.Security.Claims;
 using Application.Usecases.UserCommon.RefreshToken;
+using Application.Constants;
+using System.Security.Claims;
 using Application.Usecases.UserCommon.ViewListPatient;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
@@ -18,6 +19,7 @@ namespace HDMS_API.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IMediator _mediator;
+
         public UsersController(ApplicationDbContext context, IMediator mediator)
         {
             _mediator = mediator;
@@ -50,7 +52,8 @@ namespace HDMS_API.Controllers
 
 
         [HttpPut("profile")]
-        public async Task<IActionResult> EditProfile([FromBody] EditProfileCommand command, CancellationToken cancellationToken)
+        public async Task<IActionResult> EditProfile([FromBody] EditProfileCommand command,
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -76,7 +79,9 @@ namespace HDMS_API.Controllers
             try
             {
                 var result = await _mediator.Send(request);
-                return result ? Ok(new { message = "Mã OTP đã được gửi đến email của bạn" }) : BadRequest("Gửi OTP thất bại.");
+                return result
+                    ? Ok(new { message = "Mã OTP đã được gửi đến email của bạn" })
+                    : BadRequest("Gửi OTP thất bại.");
             }
             catch (Exception ex)
             {
@@ -95,7 +100,9 @@ namespace HDMS_API.Controllers
             try
             {
                 var result = await _mediator.Send(request);
-                return result ? Ok(new { message = "Mã OTP đã được gửi lại vào email của bạn" }) : BadRequest("Gửi lại OTP thất bại.");
+                return result
+                    ? Ok(new { message = "Mã OTP đã được gửi lại vào email của bạn" })
+                    : BadRequest("Gửi lại OTP thất bại.");
             }
             catch (Exception ex)
             {
@@ -156,7 +163,10 @@ namespace HDMS_API.Controllers
             }
             catch (UnauthorizedAccessException)
             {
-                return Unauthorized(new { message = "Sai tên đăng nhập hoặc mật khẩu || Tài khoản đã bị ban" });
+                return Unauthorized(new
+                {
+                    message = $"{MessageConstants.MSG.MSG01} || {MessageConstants.MSG.MSG72}"
+                });
             }
             catch (Exception ex)
             {
@@ -168,7 +178,7 @@ namespace HDMS_API.Controllers
                 });
             }
         }
-        
+
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshTokenCommand command)
         {
@@ -182,34 +192,7 @@ namespace HDMS_API.Controllers
                 return Unauthorized(new { message = ex.Message });
             }
         }
-
-
-        [HttpGet("ViewListPatients")]
-        public async Task<IActionResult> ViewPatientList()
-        {
-            try
-            {
-                var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (!int.TryParse(userIdStr, out var userId))
-                    return Unauthorized("Bạn không có quyền truy cập danh sách bệnh nhân.");
-
-                var command = new ViewListPatientCommand { UserId = userId };
-                var result = await _mediator.Send(command);
-
-                if (result == null || !result.Any())
-                    return Ok(new { message = "Không có dữ liệu phù hợp" });
-
-                return Ok(result);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { ex.Message, ex.StackTrace });
-            }
-        }
     }
 }
+
 
