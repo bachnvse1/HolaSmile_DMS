@@ -1,4 +1,4 @@
-﻿using Application.Usecases.UserCommon.Appointment;
+﻿using Application.Usecases.UserCommon.ViewAppointment;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Guests.BookAppointment;
 using HDMS_API.Infrastructure.Persistence;
@@ -13,7 +13,7 @@ namespace HDMS_API.Infrastructure.Repositories
         {
             _context = context;
         }
-        public async Task<Appointment> CreateAppointmentAsync(BookAppointmentCommand request, int patientId)
+        public async Task<bool> CreateAppointmentAsync(Appointment appointment)
         {
             var appointment = new Appointment
             {
@@ -31,7 +31,7 @@ namespace HDMS_API.Infrastructure.Repositories
             };
             _context.Appointments.Add(appointment);
             await _context.SaveChangesAsync();
-            return appointment;
+            return true;
         }
 
         public async Task<Appointment?> GetAllAppointmentAsync(int appointmentId)
@@ -42,36 +42,16 @@ namespace HDMS_API.Infrastructure.Repositories
                 .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId && !a.IsDeleted);
             return result;
         }
-        public async Task<List<AppointmentDTO>> GetAppointmentsByPatientIdAsync(int userID)
+        public async Task<List<Appointment>> GetAppointmentsByPatientIdAsync(int userID)
         {
             var result = await _context.Appointments
                 .Include(a => a.Patient).ThenInclude(p => p.User)
                 .Include(a => a.Dentist).ThenInclude(d => d.User)
                 .Where(a => a.Patient.User.UserID == userID && !a.IsDeleted)
                 .ToListAsync();
-            if (result == null || !result.Any())
-            {
-                return new List<AppointmentDTO>();
-            }
-            var appDto = result.Select(result => new AppointmentDTO
-            {
-                AppointmentId = result.AppointmentId,
-                PatientName = result.Patient.User.Fullname,
-                DentistName = result.Dentist.User.Fullname,
-                Status = result.Status,
-                Content = result.Content,
-                IsNewPatient = result.IsNewPatient,
-                AppointmentType = result.AppointmentType,
-                AppointmentDate = result.AppointmentDate,
-                AppointmentTime = result.AppointmentTime,
-                CreatedAt = result.CreatedAt,
-                UpdatedAt = result.UpdatedAt,
-                CreatedBy = result.CreatedBy,
-                UpdatedBy = result.UpdatedBy,
-            }).ToList();
-            return appDto;
+            return result ?? new List<Appointment>();
         }
-        public async Task<List<AppointmentDTO>> GetAllAppointmentAsync()
+        public async Task<List<Appointment>> GetAllAppointmentAsync()
         {
             var result = await _context.Appointments
                 .Include(a => a.Patient)
@@ -80,29 +60,9 @@ namespace HDMS_API.Infrastructure.Repositories
                 .ThenInclude(d => d.User)
                 .Where(a => !a.IsDeleted)
                 .ToListAsync();
-            if (result == null || !result.Any())
-            {
-                return new List<AppointmentDTO>();
-            }
-            var appDto = result.Select(result => new AppointmentDTO
-            {
-                AppointmentId = result.AppointmentId,
-                PatientName = result.Patient.User.Fullname,
-                DentistName = result.Dentist.User.Fullname,
-                Status = result.Status,
-                Content = result.Content,
-                IsNewPatient = result.IsNewPatient,
-                AppointmentType = result.AppointmentType,
-                AppointmentDate = result.AppointmentDate,
-                AppointmentTime = result.AppointmentTime,
-                CreatedAt = result.CreatedAt,
-                UpdatedAt = result.UpdatedAt,
-                CreatedBy = result.CreatedBy,
-                UpdatedBy = result.UpdatedBy,
-            }).ToList();
-            return appDto;
+            return result ?? new List<Appointment>();
         }
-        public async Task<AppointmentDTO> GetAppointmentByIdAsync(int appointmentId)
+        public async Task<Appointment> GetAppointmentByIdAsync(int appointmentId)
         {
             var result = await _context.Appointments
                 .Include(a => a.Patient)
@@ -110,28 +70,7 @@ namespace HDMS_API.Infrastructure.Repositories
                 .Include(a => a.Dentist)
                 .ThenInclude(d => d.User)
                 .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
-            if (result == null)
-            {
-                return null;
-            }
-            var appDto = new AppointmentDTO
-            {
-                AppointmentId = result.AppointmentId,
-                PatientName = result.Patient.User.Fullname,
-                DentistName = result.Dentist.User.Fullname,
-                Status = result.Status,
-                Content = result.Content,
-                IsNewPatient = result.IsNewPatient,
-                AppointmentType = result.AppointmentType,
-                AppointmentDate = result.AppointmentDate,
-                AppointmentTime = result.AppointmentTime,
-                CreatedAt = result.CreatedAt,
-                UpdatedAt = result.UpdatedAt,
-                CreatedBy = result.CreatedBy,
-                UpdatedBy = result.UpdatedBy,
-            };
-            return appDto;
-
+            return result ;
         }
         public async Task<bool> CancelAppointmentAsync(int appId, int CancleBy)
         {

@@ -9,7 +9,7 @@ public static class MessageConstants
         public const string MSG03 = "Nhập lại mật khẩu không trùng khớp.";
         public const string MSG04 = "Mã OTP không đúng.";
         public const string MSG05 = "Đặt lịch khám thành công";
-        public const string MSG06 = "Xác nhận huỷ lịch hẹn";
+        public const string MSG06 = "hủy lịch hẹn thành công";
         public const string MSG07 = "Vui lòng nhập thông tin bắt buộc";
         public const string MSG08 = "Định dạng email không hợp lệ";
         public const string MSG09 = "Cập nhật thông tin thành công";
@@ -76,5 +76,17 @@ public static class MessageConstants
         public const string MSG70 = "Thủ thuật này đã tồn tại";
         public const string MSG71 = "Cập nhật thủ thuật thành công";
         public const string MSG72 = "Tài khoản của bạn đã bị khóa.";
+        public const string MSG73 = "Tạo lịch làm việc thất bại";
+        public const string MSG74 = "Ngày hẹn không thể là ngày trong quá khứ.";
+        public const string MSG75 = "Bạn đã đặt lịch cho ngày này rồi.";
+        public const string MSG76 = "Tạo tài khoản thất bại.";
+        public const string MSG77 = "Tạo hồ sơ bệnh nhân thất bại.";
+        public const string MSG78 = "Gửi Email thất bại.";
+        public const string MSG79 = "Thời gian thực hiện của bạn đã hết hạn.";
+
+
+
+
+
     }
 }
