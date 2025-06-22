@@ -66,7 +66,7 @@ namespace Application.Usecases.Dentist.UpdateSchedule
                 schedule.WorkDate = request.WorkDate;
                 schedule.Shift = request.Shift;
                 schedule.UpdatedAt = DateTime.Now;
-                schedule.UpdatedBy = dentist.DentistId;
+                schedule.UpdatedBy = currentUserId;
 
                 var updated = await _scheduleRepository.UpdateScheduleAsync(schedule);
                 return updated ? MessageConstants.MSG.MSG52 : MessageConstants.MSG.MSG58;
@@ -89,7 +89,7 @@ namespace Application.Usecases.Dentist.UpdateSchedule
                     WeekStartDate = schedule.WeekStartDate,
                     Status = "pending",
                     CreatedAt = DateTime.Now,
-                    CreatedBy = dentist.DentistId,
+                    CreatedBy = currentUserId,
                     IsActive = true
                 };
 
