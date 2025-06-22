@@ -1,4 +1,5 @@
 using Application.Constants;
+using Application.Usecases.Dentist.CreateTreatmentRecord;
 using Application.Usecases.Patients.UpdateTreatmentRecord;
 using Application.Usecases.Patients.ViewTreatmentRecord;
 using MediatR;
@@ -72,6 +73,13 @@ public class TreatmentRecordsController : ControllerBase
                 Stack = ex.StackTrace
             });
         }
+    }
+    
+    [HttpPost]
+    public async Task<IActionResult> CreateTreatmentRecord([FromBody] CreateTreatmentRecordCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(new { success = true, message = result });
     }
 
 

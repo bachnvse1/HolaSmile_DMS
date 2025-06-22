@@ -65,6 +65,7 @@ namespace HDMS_API.DependencyInjection
             services.AddAutoMapper(typeof(MappingViewTreatmentRecord));
             services.AddAutoMapper(typeof(MappingCreatePatient));
             services.AddAutoMapper(typeof(MappingAppointment));
+            services.AddAutoMapper(typeof(MappingTreatmentProgress).Assembly);
 
             // Caching
             services.AddMemoryCache();
