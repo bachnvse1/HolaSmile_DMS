@@ -1,4 +1,4 @@
-import { Layout } from '../../components/layout/Layout';
+import { Layout } from '../../layouts/homepage/Layout';
 import { Sparkles, Star, Clock, Calendar, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import img3 from '@/assets/img3.jpg';
