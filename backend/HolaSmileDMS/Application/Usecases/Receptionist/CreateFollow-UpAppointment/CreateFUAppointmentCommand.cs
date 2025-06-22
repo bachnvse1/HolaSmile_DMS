@@ -9,10 +9,11 @@ namespace Application.Usecases.Receptionist.CreateFollow_UpAppointment
 {
     public class CreateFUAppointmentCommand : IRequest<string>
     {
-        public string PatientId { get; set; }
-        public string DoctorId { get; set; }
+        public int PatientId { get; set; }
+        public int DentistId { get; set; }
         public DateTime AppointmentDate { get; set; }
         public TimeSpan AppointmentTime { get; set; }
         public string ReasonForFollowUp { get; set; }
+        public string AppointmentType { get; set; } = "follow-up"; // Default value for follow-up appointments
     }
 }
