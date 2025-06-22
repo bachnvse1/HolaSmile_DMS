@@ -43,11 +43,11 @@ namespace Application.Usecases.Dentist.ManageSchedule
             {
                 if (item.WorkDate < DateTime.Now)
                 {
-                    return "ngày làm việc không thể trước hôm nay.";
+                    return MessageConstants.MSG.MSG34; // "Ngày bắt đầu không được sau ngày kết thúc"
                 }
                 if (string.IsNullOrEmpty(item.Shift))
                 {
-                    return "ca làm việc không thể trống";
+                    return MessageConstants.MSG.MSG07; // "Vui lòng nhập thông tin bắt buộc"
                 }
                 var weekstart = _scheduleRepository.GetWeekStart(item.WorkDate);
                 var schedule = new Schedule
@@ -64,15 +64,15 @@ namespace Application.Usecases.Dentist.ManageSchedule
                 var isDuplicate = await _scheduleRepository.CheckDulplicateScheduleAsync(schedule.DentistId, schedule.WorkDate, schedule.Shift, schedule.ScheduleId);
                 if (isDuplicate)
                 {
-                    throw new Exception(MessageConstants.MSG.MSG51 ?? "Xung đột với lịch làm việc hiện tại"); // trùng lịch làm việc hiện tại
+                    throw new Exception(MessageConstants.MSG.MSG51); // trùng lịch làm việc hiện tại
                 }
                 var isRegistered = await _scheduleRepository.RegisterScheduleByDentist(schedule);
                 if (!isRegistered)
                 {
-                    return "Đăng ký lịch làm việc không thành công.";
+                    return MessageConstants.MSG.MSG73; // "Cập nhật dữ liệu thất bại"
                 }
             }
-            return "Đăng ký lịch làm việc thành công.";
+            return MessageConstants.MSG.MSG52; // "Tạo lịch làm việc thành công"
         }
     }
 }

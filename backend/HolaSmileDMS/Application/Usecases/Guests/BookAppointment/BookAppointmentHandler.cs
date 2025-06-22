@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.IdentityModel.Tokens;
 using Application.Services;
+using Application.Constants;
 
 namespace HDMS_API.Application.Usecases.Guests.BookAppointment
 {
@@ -28,19 +29,19 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
         {
             if (request.FullName.Trim().IsNullOrEmpty())
             {
-                throw new Exception("Họ tên không thể để trống.");
+                throw new Exception(MessageConstants.MSG.MSG07); // "Vui lòng nhập thông tin bắt buộc"
             }
             if (!FormatHelper.IsValidEmail(request.Email))
             {
-                throw new Exception("Email không hợp lệ.");
+                throw new Exception(MessageConstants.MSG.MSG08); // "Định dạng email không hợp lệ"
             }
             if (!FormatHelper.FormatPhoneNumber(request.PhoneNumber))
             {
-                throw new Exception("Số điện thoại không hợp lệ.");
+                throw new Exception(MessageConstants.MSG.MSG56); // "Số điện thoại không đúng định dạng"
             }
             if (request.AppointmentDate.Date < DateTime.Now.Date)
             {
-                throw new Exception("Ngày hẹn không thể là ngày trong quá khứ.");
+                throw new Exception(MessageConstants.MSG.MSG74);
             }
 
             var dentistId = _hashIdService.Decode(request.DentistId);
@@ -53,19 +54,18 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             {
                 // If the user exists, check if they have a patient record
                  patient = await _patientRepository.GetPatientByUserIdAsync(existUser.UserID)
-                      ?? throw new Exception("Không tìm thấy hồ sơ bệnh nhân.");
-
+                      ?? throw new Exception(MessageConstants.MSG.MSG27); // "Không tìm thấy hồ sơ bệnh nhân"
+                
                 //checck duplicate appointment
                 bool already = await _appointmentRepository.ExistsAppointmentAsync(patient.PatientID, request.AppointmentDate);
-                if (already) throw new Exception("Bạn đã đặt lịch cho ngày này rồi.");
-               
+                if (already) throw new Exception(MessageConstants.MSG.MSG74);
             }
             else // If the patient does not exist, create a new account and patient record
             {
                 var user = await _userCommonRepository.CreatePatientAccountAsync(guest, "123456");
                 if (user == null)
                 {
-                    throw new Exception("Tạo tài khoản thất bại.");
+                    throw new Exception(MessageConstants.MSG.MSG76);
                 }
 
                 // Send password to guest email asynchronously
@@ -77,14 +77,14 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[Lỗi gửi email guest] {ex.Message}");
+                        throw new Exception(MessageConstants.MSG.MSG78); // => Gợi ý định nghĩa: "Gửi mật khẩu cho khách không thành công."
                     }
                 });
 
                  patient = await _patientRepository.CreatePatientAsync(guest, user.UserID);
                 if (patient == null)
                 {
-                    throw new Exception("Tạo bệnh nhân thất bại.");
+                    throw new Exception(MessageConstants.MSG.MSG77);
                 }
             }
 
@@ -103,7 +103,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 IsDeleted = false
             };
             var isbookappointment = await _appointmentRepository.CreateAppointmentAsync(appointment);
-            return isbookappointment ? "Tạo cuộc hẹn thành công." : "Tạo cuộc hẹn thất bại";
+            return isbookappointment ? MessageConstants.MSG.MSG05 : MessageConstants.MSG.MSG58;
         }
     }
 

@@ -29,28 +29,31 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
         public async Task<ScheduleDTO> Handle(ViewDetailScheduleCommand request, CancellationToken cancellationToken)
         {
             var user = _httpContextAccessor.HttpContext?.User;
-            var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
-            var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (user == null)
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // "Bạn cần đăng nhập..."
 
-            // Get the schedule by ID
+            var currentUserRole = user.FindFirst(ClaimTypes.Role)?.Value;
+            var currentUserId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+
+            if (string.IsNullOrWhiteSpace(request.ScheduleId))
+                throw new ArgumentException("Mã lịch không hợp lệ.");
+
             var scheduleId = _hashIdService.Decode(request.ScheduleId);
             var schedule = await _scheduleRepository.GetScheduleByIdAsync(scheduleId);
+
             if (schedule == null)
-            {
-                throw new Exception("Lịch hẹn không tồn tại.");
-            }
-            // If the current user is a dentist, check if they are the owner of the schedule
+                throw new Exception(MessageConstants.MSG.MSG28); // "Không tìm thấy lịch hẹn"
+
+            // Dentist role check
             if (string.Equals(currentUserRole, "dentist", StringComparison.OrdinalIgnoreCase))
             {
                 var dentist = await _dentistRepository.GetDentistByUserIdAsync(currentUserId);
                 if (dentist == null || schedule.DentistId != dentist.DentistId)
-                {
-                    throw new Exception(MessageConstants.MSG.MSG26);
-                }
+                    throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập..."
             }
-            // Map to ScheduleDTO
-            var resutl = _mapper.Map<ScheduleDTO>(schedule);
-            return resutl;
+
+            return _mapper.Map<ScheduleDTO>(schedule);
         }
+
     }
 }

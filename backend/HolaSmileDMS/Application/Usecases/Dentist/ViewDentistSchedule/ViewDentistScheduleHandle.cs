@@ -40,20 +40,20 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
                 var currentDentist = await _dentistRepository.GetDentistByUserIdAsync(currentUserId);
                 if (currentDentist == null || currentDentist.DentistId != decodedDentistId)
                 {
-                    throw new UnauthorizedAccessException("Bạn không có quyền xem lịch của dentist này.");
+                    throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
                 }
             }
             else if (!string.Equals(currentUserRole, "owner", StringComparison.OrdinalIgnoreCase)
                   && !string.Equals(currentUserRole, "receptionist", StringComparison.OrdinalIgnoreCase))
             {
-                throw new UnauthorizedAccessException("Bạn không có quyền xem lịch của dentist.");
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             }
 
             var schedules = await _scheduleRepository.GetDentistSchedulesByDentistIdAsync(decodedDentistId);
 
             if (schedules == null || !schedules.Any())
             {
-                return new List<DentistScheduleDTO>();
+                throw new Exception(MessageConstants.MSG.MSG16);
             }
 
             var result = schedules.GroupBy(s => s.DentistId)

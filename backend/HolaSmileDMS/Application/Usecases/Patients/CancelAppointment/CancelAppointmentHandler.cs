@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Application.Constants;
 using Application.Services;
 using HDMS_API.Application.Interfaces;
 using MediatR;
@@ -32,10 +33,10 @@ namespace Application.Usecases.Patients.CancelAppointment
 
             if (!string.Equals(currentUserRole, "patient", StringComparison.OrdinalIgnoreCase))
             {
-                return "Bạn không được quyền thực hiện hành động này";
+                return MessageConstants.MSG.MSG26; // "Bạn không có quyền truy cập chức năng này"
             }
             var cancleApp = await _appointmentRepository.CancelAppointmentAsync(decodedAppointmentId, currentUserId);
-            return cancleApp ? "Hủy lịch hẹn thành công" : "Hủy lịch hẹn không thành công, vui lòng thử lại sau";
+            return cancleApp ? MessageConstants.MSG.MSG06 : MessageConstants.MSG.MSG58;
         }
     }
     }

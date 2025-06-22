@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Application.Constants;
 using Application.Interfaces;
 using Application.Services;
 using Application.Usecases.Dentist.ViewAllDentistSchedule;
@@ -28,6 +29,10 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
         public async Task<List<DentistScheduleDTO>> Handle(ViewAllDentistScheduleCommand request, CancellationToken cancellationToken)
         {
             var schedules = await _scheduleRepository.GetAllDentistSchedulesAsync();
+            if(schedules == null)
+            {
+                throw new Exception(MessageConstants.MSG.MSG16);
+            }
 
             var result = schedules.GroupBy(s => s.DentistId)
                 .Select(g => new DentistScheduleDTO
