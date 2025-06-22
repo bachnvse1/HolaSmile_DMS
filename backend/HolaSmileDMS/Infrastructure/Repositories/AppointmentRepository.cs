@@ -15,20 +15,6 @@ namespace HDMS_API.Infrastructure.Repositories
         }
         public async Task<bool> CreateAppointmentAsync(Appointment appointment)
         {
-            var appointment = new Appointment
-            {
-                PatientId = patientId,
-                DentistId = request.DentistId,
-                Status = "confirm",
-                Content = request.MedicalIssue,
-                IsNewPatient = true,
-                AppointmentType = "",
-                AppointmentDate = request.AppointmentDate,
-                AppointmentTime = request.AppointmentTime,
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = patientId,
-                IsDeleted = false
-            };
             _context.Appointments.Add(appointment);
             await _context.SaveChangesAsync();
             return true;
