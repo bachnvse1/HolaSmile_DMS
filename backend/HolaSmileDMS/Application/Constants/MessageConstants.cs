@@ -83,6 +83,8 @@ public static class MessageConstants
         public const string MSG77 = "Tạo hồ sơ bệnh nhân thất bại.";
         public const string MSG78 = "Gửi Email thất bại.";
         public const string MSG79 = "Thời gian thực hiện của bạn đã hết hạn.";
+        public const string MSG80 = "Xác nhận lịch làm việc của bác sĩ.";
+        public const string MSG81 = "Từ chối lịch làm việc của bác sĩ.";
 
 
 
