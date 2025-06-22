@@ -38,7 +38,7 @@ namespace HDMS_API.Controllers
         }
         [Authorize]
         [HttpGet("Appointment/{appointmentId}")]
-        public async Task<IActionResult> ViewDetailAppointment([FromRoute] string appointmentId, CancellationToken cancellationToken)
+        public async Task<IActionResult> ViewDetailAppointment([FromRoute] int appointmentId, CancellationToken cancellationToken)
         {
             try
             {
@@ -59,7 +59,7 @@ namespace HDMS_API.Controllers
         [Authorize]
         [HttpPut]
         [Route("Appointment/{appointmentId}")]
-        public async Task<IActionResult> ViewDetailPatientAppointment([FromRoute] string appointmentId, CancellationToken cancellationToken)
+        public async Task<IActionResult> ViewDetailPatientAppointment([FromRoute] int appointmentId, CancellationToken cancellationToken)
         {
             try
             {

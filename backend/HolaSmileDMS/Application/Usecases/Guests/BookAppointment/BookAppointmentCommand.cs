@@ -10,7 +10,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
         public DateTime AppointmentDate { get; set; }
         public TimeSpan AppointmentTime { get; set; }
         public string MedicalIssue { get; set; }
-        public string DentistId { get; set; }
+        public int DentistId { get; set; }
 
     }
 }

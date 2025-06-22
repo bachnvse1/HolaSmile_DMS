@@ -36,7 +36,7 @@ namespace HDMS_API.Controllers
         }
 
         [HttpGet("dentist/{dentistId}")]
-        public async Task<IActionResult> ViewDentistSchedule([FromRoute] string dentistId, CancellationToken cancellationToken)
+        public async Task<IActionResult> ViewDentistSchedule([FromRoute] int dentistId, CancellationToken cancellationToken)
         {
             try
             {

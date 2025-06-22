@@ -1,5 +1,4 @@
 ﻿using System.Security.Claims;
-using Application.Services;
 using AutoMapper;
 using HDMS_API.Application.Interfaces;
 using MediatR;
@@ -13,15 +12,13 @@ namespace Application.Usecases.UserCommon.ViewAppointment
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;
-        private readonly IHashIdService _hashIdService;
 
-        public ViewApponintmentHandler(IUserCommonRepository userCommonRepository, IHashIdService hashIdService, IHttpContextAccessor httpContextAccessor, IMapper mapper, IAppointmentRepository appointmentRepository)
+        public ViewApponintmentHandler(IUserCommonRepository userCommonRepository, IHttpContextAccessor httpContextAccessor, IMapper mapper, IAppointmentRepository appointmentRepository)
         {
             _userCommonRepository = userCommonRepository;
             _appointmentRepository = appointmentRepository;
             _httpContextAccessor = httpContextAccessor;
             _mapper = mapper;
-            _hashIdService = hashIdService;
         }
         public async Task<List<AppointmentDTO>> Handle(ViewAppointmentCommand request, CancellationToken cancellationToken)
         {
@@ -52,10 +49,6 @@ namespace Application.Usecases.UserCommon.ViewAppointment
 
             //mapping data
             var result = _mapper.Map<List<AppointmentDTO>>(listApp);
-            for (int i = 0; i < result.Count; i++)
-            {
-                result[i].AppointmentId = _hashIdService.Encode(listApp[i].AppointmentId);
-            }
             return result;
         }
     }

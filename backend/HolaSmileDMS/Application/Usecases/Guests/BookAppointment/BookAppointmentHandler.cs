@@ -2,10 +2,8 @@
 using HDMS_API.Application.Common.Helpers;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
-using System.Threading.Tasks;
 using MediatR;
 using Microsoft.IdentityModel.Tokens;
-using Application.Services;
 using Application.Constants;
 
 namespace HDMS_API.Application.Usecases.Guests.BookAppointment
@@ -15,14 +13,12 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly IPatientRepository _patientRepository;
         private readonly IUserCommonRepository _userCommonRepository;
-        private readonly IHashIdService _hashIdService;
         private readonly IMapper _mapper;
-        public BookAppointmentHandler(IAppointmentRepository appointmentRepository, IPatientRepository patientRepository, IHashIdService hashIdService, IUserCommonRepository userCommonRepository,IMapper mapper)
+        public BookAppointmentHandler(IAppointmentRepository appointmentRepository, IPatientRepository patientRepository, IUserCommonRepository userCommonRepository,IMapper mapper)
         {
             _appointmentRepository = appointmentRepository;
             _patientRepository = patientRepository;
             _userCommonRepository = userCommonRepository;
-            _hashIdService = hashIdService;
             _mapper = mapper;
         }
         public async Task<string> Handle(BookAppointmentCommand request, CancellationToken cancellationToken)
@@ -44,7 +40,6 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 throw new Exception(MessageConstants.MSG.MSG74);
             }
 
-            var dentistId = _hashIdService.Decode(request.DentistId);
             var patient = new Patient();
 
             var guest = _mapper.Map<CreatePatientDto>(request);
@@ -91,7 +86,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             var appointment = new Appointment
             {
                 PatientId = patient.PatientID,
-                DentistId = dentistId,
+                DentistId = request.DentistId,
                 Status = "pending",
                 Content = request.MedicalIssue,
                 IsNewPatient = true,

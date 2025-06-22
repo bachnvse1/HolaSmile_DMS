@@ -1,8 +1,6 @@
-﻿
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
-using Application.Services;
 using Application.Usecases.Dentist.ViewAllDentistSchedule;
 using AutoMapper;
 using MediatR;
@@ -14,14 +12,12 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
     {
         private readonly IDentistRepository _dentistRepository;
         private readonly IScheduleRepository _scheduleRepository;
-        private readonly IHashIdService _hashIdService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;
 
-        public ViewDetailScheduleHandle(IDentistRepository dentistRepository, IHashIdService hashIdService, IMapper mapper, IScheduleRepository scheduleRepository, IHttpContextAccessor httpContextAccessor)
+        public ViewDetailScheduleHandle(IDentistRepository dentistRepository, IMapper mapper, IScheduleRepository scheduleRepository, IHttpContextAccessor httpContextAccessor)
         {
             _dentistRepository = dentistRepository;
-            _hashIdService = hashIdService;
             _httpContextAccessor = httpContextAccessor;
             _scheduleRepository = scheduleRepository;
             _mapper = mapper;
@@ -35,11 +31,7 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
             var currentUserRole = user.FindFirst(ClaimTypes.Role)?.Value;
             var currentUserId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-            if (string.IsNullOrWhiteSpace(request.ScheduleId))
-                throw new ArgumentException("Mã lịch không hợp lệ.");
-
-            var scheduleId = _hashIdService.Decode(request.ScheduleId);
-            var schedule = await _scheduleRepository.GetScheduleByIdAsync(scheduleId);
+            var schedule = await _scheduleRepository.GetScheduleByIdAsync(request.ScheduleId);
 
             if (schedule == null)
                 throw new Exception(MessageConstants.MSG.MSG28); // "Không tìm thấy lịch hẹn"

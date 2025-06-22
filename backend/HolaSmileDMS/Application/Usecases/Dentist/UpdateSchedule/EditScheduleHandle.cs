@@ -1,7 +1,6 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
-using Application.Services;
 using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -12,14 +11,12 @@ namespace Application.Usecases.Dentist.UpdateSchedule
     {
         private readonly IDentistRepository _dentistRepository;
         private readonly IScheduleRepository _scheduleRepository;
-        private readonly IHashIdService _hashIdService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;
 
-        public EditScheduleHandle(IDentistRepository dentistRepository, IHashIdService hashIdService, IMapper mapper, IScheduleRepository scheduleRepository, IHttpContextAccessor httpContextAccessor)
+        public EditScheduleHandle(IDentistRepository dentistRepository, IMapper mapper, IScheduleRepository scheduleRepository, IHttpContextAccessor httpContextAccessor)
         {
             _dentistRepository = dentistRepository;
-            _hashIdService = hashIdService;
             _httpContextAccessor = httpContextAccessor;
             _scheduleRepository = scheduleRepository;
             _mapper = mapper;
@@ -32,8 +29,7 @@ namespace Application.Usecases.Dentist.UpdateSchedule
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
             // Giải mã ScheduleId và lấy lịch làm việc
-            var scheduleId = _hashIdService.Decode(request.ScheduleId);
-            var schedule = await _scheduleRepository.GetScheduleByIdAsync(scheduleId);
+            var schedule = await _scheduleRepository.GetScheduleByIdAsync(request.ScheduleId);
             if (schedule == null)
             {
                 throw new Exception(MessageConstants.MSG.MSG28);
