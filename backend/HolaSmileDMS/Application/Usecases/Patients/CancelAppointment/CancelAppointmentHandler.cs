@@ -21,6 +21,11 @@ namespace Application.Usecases.Patients.CancelAppointment
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
+            if(user == null || currentUserId <= 0)
+            {
+                return MessageConstants.MSG.MSG26; // "Bạn không có quyền truy cập chức năng này"
+            }
+
             if (!string.Equals(currentUserRole, "patient", StringComparison.OrdinalIgnoreCase))
             {
                 return MessageConstants.MSG.MSG26; // "Bạn không có quyền truy cập chức năng này"
