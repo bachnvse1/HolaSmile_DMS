@@ -76,7 +76,8 @@ public class TreatmentRecordsController : ControllerBase
         catch (UnauthorizedAccessException)
         {
             return Forbid(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
-
+        }
+    }
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateRecord(int id, [FromBody] UpdateTreatmentRecordCommand command, CancellationToken cancellationToken)
     {
