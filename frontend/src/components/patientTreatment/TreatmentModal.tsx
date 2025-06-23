@@ -6,6 +6,7 @@ import type { UseFormReturn } from "react-hook-form"
 import type { TreatmentFormData } from "@/types/treatment"
 import { useCalculateTotal } from "@/hooks/useCalculateTotal"
 import { formatCurrency } from "@/utils/format"
+import { createOrUpdateTreatmentRecord } from "@/services/treatmentService"
 
 interface TreatmentModalProps {
   formMethods: UseFormReturn<TreatmentFormData>
@@ -44,40 +45,14 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
   if (!isOpen) return null
 
   const handleInternalSubmit = async (data: TreatmentFormData) => {
-    const payload = {
-      toothPosition: data.toothPosition,
-      quantity: data.quantity,
-      unitPrice: data.unitPrice,
-      discountPercentage: data.discountPercentage,
-      discountAmount: data.discountAmount,
-      totalAmount,
-      treatmentStatus: data.treatmentStatus,
-      symptoms: data.symptoms,
-      diagnosis: data.diagnosis,
-      treatmentDate: new Date(data.treatmentDate).toISOString(),
-      updatedBy,
-    }
-
     try {
       setIsSubmitting(true)
-
-      const response = await fetch(
-        `https://localhost:5001/api/treatment-records/${recordId ?? ""}`,
-        {
-          method: isEditing ? "PUT" : "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        }
+      const result = await createOrUpdateTreatmentRecord(
+        data,
+        totalAmount,
+        updatedBy,
+        recordId
       )
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        toast.error(result.message || "Cập nhật thất bại")
-        return
-      }
 
       toast.success(result.message || "Cập nhật thành công")
 
