@@ -1,6 +1,4 @@
-﻿using Application.Usecases.UserCommon.ViewAppointment;
-using HDMS_API.Application.Interfaces;
-using HDMS_API.Application.Usecases.Guests.BookAppointment;
+﻿using HDMS_API.Application.Interfaces;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -37,6 +35,17 @@ namespace HDMS_API.Infrastructure.Repositories
                 .ToListAsync();
             return result ?? new List<Appointment>();
         }
+
+        public async Task<List<Appointment>> GetAppointmentsByDentistIdAsync(int userID)
+        {
+            var result = await _context.Appointments
+                .Include(a => a.Patient).ThenInclude(p => p.User)
+                .Include(a => a.Dentist).ThenInclude(d => d.User)
+                .Where(a => a.Dentist.User.UserID == userID && !a.IsDeleted)
+                .ToListAsync();
+            return result ?? new List<Appointment>();
+        }
+
         public async Task<List<Appointment>> GetAllAppointmentAsync()
         {
             var result = await _context.Appointments
@@ -73,9 +82,15 @@ namespace HDMS_API.Infrastructure.Repositories
             var result = await _context.SaveChangesAsync();
             return true;
         }
-        public async Task<bool> CheckAppointmentByPatientIdAsync(int appId, int userId)
+        public async Task<bool> CheckPatientAppointmentByUserIdAsync(int appId, int userId)
         {
             var result = await _context.Appointments.AnyAsync(a => a.AppointmentId == appId && a.Patient.User.UserID == userId);
+            return result;
+        }
+
+        public async Task<bool> CheckDentistAppointmentByUserIdAsync(int appId, int userId)
+        {
+            var result = await _context.Appointments.AnyAsync(a => a.AppointmentId == appId && a.Dentist.User.UserID == userId);
             return result;
         }
 
@@ -85,7 +100,7 @@ namespace HDMS_API.Infrastructure.Repositories
             return await _context.Appointments
             .AnyAsync(a => a.PatientId == patientId
                         && a.AppointmentDate.Date == date.Date
-                        && a.Status != "Cancelled");
+                        && a.Status != "cancel");
         }
     }
 }

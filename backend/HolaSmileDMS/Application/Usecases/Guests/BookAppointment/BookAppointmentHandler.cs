@@ -41,6 +41,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             }
 
             var patient = new Patient();
+            var user = new User();
 
             var guest = _mapper.Map<CreatePatientDto>(request);
             var existUser = await _userCommonRepository.GetUserByPhoneAsync(guest.PhoneNumber);
@@ -57,7 +58,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             }
             else // If the patient does not exist, create a new account and patient record
             {
-                var user = await _userCommonRepository.CreatePatientAccountAsync(guest, "123456");
+                 user = await _userCommonRepository.CreatePatientAccountAsync(guest, "123456");
                 if (user == null)
                 {
                     throw new Exception(MessageConstants.MSG.MSG76);
@@ -94,7 +95,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 AppointmentDate = request.AppointmentDate,
                 AppointmentTime = request.AppointmentTime,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = patient.PatientID,
+                CreatedBy = user.UserID,
                 IsDeleted = false
             };
             var isbookappointment = await _appointmentRepository.CreateAppointmentAsync(appointment);

@@ -52,7 +52,7 @@ namespace Application.Usecases.Dentist.ManageSchedule
                     Shift = item.Shift,
                     Status = "pending",
                     WeekStartDate = weekstart,
-                    CreatedBy = dentistExist.DentistId,
+                    CreatedBy = currentUserId,
                     CreatedAt = DateTime.Now,
                     IsActive = true,
                 };
