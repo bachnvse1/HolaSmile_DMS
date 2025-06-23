@@ -18,7 +18,8 @@ import ViewProfile from './pages/auth/ViewProfile';
 import { PatientDashboardPage } from './pages/patient/PatientDashboardPage';
 import { StaffDashboard } from './pages/staff/StaffDashboard';
 import { PatientBookingPage } from './pages/patient/PatientBookingPage';
-import { DentistScheduleViewer } from './components/appointment/DentistScheduleViewer';
+import { PatientAppointmentsPage } from './pages/patient/PatientAppointmentsPage';
+import { StaffAppointmentsPage } from './pages/staff/StaffAppointmentsPage';
 
 function App() {
   return (
@@ -40,10 +41,11 @@ function App() {
         <Route path="/add-patient" element={<AddPatient />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/view-profile" element={<ViewProfile />} />
-        <Route path="/patient/dashboard" element={<PatientDashboardPage/>} />
+        <Route path="/view-profile" element={<ViewProfile />} />        <Route path="/patient/dashboard" element={<PatientDashboardPage/>} />
         <Route path="/dashboard" element={<StaffDashboard/>} />
         <Route path="/patient/book-appointment" element={<PatientBookingPage/>} />
+        <Route path="/patient/appointments" element={<PatientAppointmentsPage/>} />
+        <Route path="/appointments" element={<StaffAppointmentsPage/>} />
       </Routes>
     </>
   );
