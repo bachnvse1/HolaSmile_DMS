@@ -14,6 +14,8 @@ interface ScheduleCalendarProps {
   onDateSelect: (date: string, timeSlot: string) => void;
   onPreviousWeek: () => void;
   onNextWeek: () => void;
+  mode?: 'view' | 'book';
+  canBookAppointment?: boolean;
 }
 
 export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
@@ -23,7 +25,9 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
   selectedTimeSlot,
   onDateSelect,
   onPreviousWeek,
-  onNextWeek
+  onNextWeek,
+  mode = 'book',
+  canBookAppointment = true
 }) => {
   const weekDates = getDatesForWeek(currentWeek);
   const weekRange = getWeekDateRange(weekDates);
@@ -99,30 +103,33 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
                 <div className="text-xs opacity-90">{slot.timeRange}</div>
               </div>
             </div>
-            {weekDates.map((date) => {
-              const dateString = getDateString(date);
+            {weekDates.map((date) => {              const dateString = getDateString(date);
               const isAvailable = isTimeSlotAvailable(dentist.schedule, dateString, slot.period);
               const isSelected = selectedDate === dateString && selectedTimeSlot === slot.period;
+              const canInteract = mode === 'book' && isAvailable && canBookAppointment;
               
               return (
                 <button
-                  key={`${dateString}-${slot.period}`}
-                  onClick={() => {
-                    if (isAvailable) {
+                  key={`${dateString}-${slot.period}`}                  onClick={() => {
+                    if (canInteract) {
                       onDateSelect(dateString, slot.period);
                     }
                   }}
-                  disabled={!isAvailable}
-                  className={`p-3 rounded-xl font-medium transition-all transform hover:scale-105 ${
+                  disabled={!canInteract}                  className={`p-3 rounded-xl font-medium transition-all transform hover:scale-105 ${
                     isAvailable
                       ? isSelected
                         ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg border-2 border-green-400'
-                        : 'bg-gradient-to-br from-green-100 to-emerald-100 text-green-800 hover:from-green-200 hover:to-emerald-200 border-2 border-green-200'
+                        : mode === 'book' && canBookAppointment
+                        ? 'bg-gradient-to-br from-green-100 to-emerald-100 text-green-800 hover:from-green-200 hover:to-emerald-200 border-2 border-green-200 cursor-pointer'
+                        : 'bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-800 border-2 border-blue-200'
                       : 'bg-gray-100 text-gray-400 cursor-not-allowed border-2 border-gray-200'
                   }`}
                 >
                   <div className="text-xs">
-                    {isAvailable ? (isSelected ? 'Đã chọn' : 'Có thể đặt') : 'Không có'}
+                    {isAvailable 
+                      ? (isSelected ? 'Đã chọn' : mode === 'book' && canBookAppointment ? 'Có thể đặt' : 'Có lịch')
+                      : 'Không có'
+                    }
                   </div>
                 </button>
               );
