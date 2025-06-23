@@ -1,5 +1,3 @@
-// ✅ Tests/Integration/Application/Usecases/Patients/ViewTreatmentProgress/ViewTreatmentProgressIntegrationTests.cs
-
 using Application.Usecases.Patients.ViewTreatmentProgress;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
@@ -9,6 +7,8 @@ using System.Security.Claims;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;
 using Xunit;
+
+namespace Tests.Integration.Application.Usecases.Patients;
 
 public class ViewTreatmentProgressIntegrationTests
 {
@@ -62,7 +62,7 @@ public class ViewTreatmentProgressIntegrationTests
         );
 
         _context.Patients.Add(new Patient { PatientID = 1, UserID = 10 });
-        _context.Dentists.Add(new Dentist { DentistId = 2, UserId = 20 });
+        _context.Dentists.Add(new global::Dentist { DentistId = 2, UserId = 20 });
 
         _context.TreatmentProgresses.Add(new TreatmentProgress
         {
@@ -73,8 +73,6 @@ public class ViewTreatmentProgressIntegrationTests
 
         _context.SaveChanges();
     }
-
-
 
     private void SetupHttpContext(string role, int userId)
     {
@@ -88,26 +86,32 @@ public class ViewTreatmentProgressIntegrationTests
         _httpContextAccessor.HttpContext = context;
     }
 
-    [Fact(DisplayName = "[Integration] Patient_Can_View_Own_Progress")]
-    public async System.Threading.Tasks.Task Patient_Can_View_Own_Progress()
+    // 🟢 Normal: Patient xem đúng hồ sơ của mình
+    [Fact(DisplayName = "[Integration - Normal] Patient_Can_View_Own_Progress")]
+    [Trait("TestType", "Normal")]
+    public async System.Threading.Tasks.Task N_Patient_Can_View_Own_Progress()
     {
         SetupHttpContext("Patient", 10);
         var result = await _handler.Handle(new ViewTreatmentProgressCommand(1), default);
         Assert.NotNull(result);
     }
 
-    [Fact(DisplayName = "[Integration] Assistant_Can_View_All_Progress")]
-    public async System.Threading.Tasks.Task Assistant_Can_View_All_Progress()
+    // 🟢 Normal: Assistant có thể xem tất cả hồ sơ
+    [Fact(DisplayName = "[Integration - Normal] Assistant_Can_View_All_Progress")]
+    [Trait("TestType", "Normal")]
+    public async System.Threading.Tasks.Task N_Assistant_Can_View_All_Progress()
     {
         SetupHttpContext("Assistant", 30);
         var result = await _handler.Handle(new ViewTreatmentProgressCommand(1), default);
         Assert.NotNull(result);
     }
 
-    [Fact(DisplayName = "[Integration] Dentist_Cannot_View_Others_Progress")]
-    public async System.Threading.Tasks.Task Dentist_Cannot_View_Others_Progress()
+    // 🔵 Abnormal: Dentist không liên quan cố gắng xem hồ sơ
+    [Fact(DisplayName = "[Integration - Abnormal] Dentist_Cannot_View_Others_Progress")]
+    [Trait("TestType", "Abnormal")]
+    public async System.Threading.Tasks.Task A_Dentist_Cannot_View_Others_Progress()
     {
-        SetupHttpContext("Dentist", 999); // Not assigned in seed
+        SetupHttpContext("Dentist", 999); // Dentist không có dữ liệu trong seed
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             _handler.Handle(new ViewTreatmentProgressCommand(1), default));
     }

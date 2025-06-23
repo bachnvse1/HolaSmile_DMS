@@ -1,4 +1,3 @@
-// ✅ INTEGRATION TEST (refactored to standard format)
 using Application.Constants;
 using Application.Usecases.Dentist.CreateTreatmentRecord;
 using AutoMapper;
@@ -9,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
 using Xunit;
+
+namespace Tests.Integration.Application.Usecases.Dentist;
 
 public class CreateTreatmentRecordIntegrationTests
 {
@@ -54,7 +55,7 @@ public class CreateTreatmentRecordIntegrationTests
             new User { UserID = 20, Username = "patient", Email = "patient@mail.com", Phone = "0922222222", CreatedAt = DateTime.Now }
         );
 
-        _context.Dentists.Add(new Dentist { DentistId = 2, UserId = 10 });
+        _context.Dentists.Add(new global::Dentist { DentistId = 2, UserId = 10 });
         _context.Procedures.Add(new Procedure { ProcedureId = 1, ProcedureName = "Trám răng" });
         _context.Appointments.Add(new Appointment { AppointmentId = 10, PatientId = 1, DentistId = 2 });
 
@@ -73,36 +74,77 @@ public class CreateTreatmentRecordIntegrationTests
         _httpContextAccessor.HttpContext = context;
     }
 
-    [Fact(DisplayName = "[Integration] Missing ProcedureId should fail")]
-    public async global::System.Threading.Tasks.Task Missing_ProcedureId_Should_Fail()
+    // 🟢 Normal: Tạo hồ sơ hợp lệ
+    [Fact(DisplayName = "[Integration - Normal] Valid_Command_Should_Return_Success")]
+    [Trait("TestType", "Normal")]
+    public async System.Threading.Tasks.Task N_Valid_Command_Should_Return_Success()
     {
         SetupHttpContext("Dentist", 10);
-        var cmd = new CreateTreatmentRecordCommand { AppointmentId = 10, DentistId = 2, ProcedureId = 0, UnitPrice = 100, Quantity = 1 };
-        await Assert.ThrowsAsync<Exception>(() => _handler.Handle(cmd, default));
-    }
+        var cmd = new CreateTreatmentRecordCommand
+        {
+            AppointmentId = 10,
+            DentistId = 2,
+            ProcedureId = 1,
+            UnitPrice = 500000,
+            Quantity = 1
+        };
 
-    [Fact(DisplayName = "[Integration] Valid command should return success")]
-    public async global::System.Threading.Tasks.Task Valid_Command_Should_Return_Success()
-    {
-        SetupHttpContext("Dentist", 10);
-        var cmd = new CreateTreatmentRecordCommand { AppointmentId = 10, DentistId = 2, ProcedureId = 1, UnitPrice = 500000, Quantity = 1 };
         var result = await _handler.Handle(cmd, default);
         Assert.Equal(MessageConstants.MSG.MSG31, result);
     }
 
-    [Fact(DisplayName = "[Integration] Discount greater than total should fail")]
-    public async global::System.Threading.Tasks.Task Discount_Too_High_Should_Throw()
+    // 🔵 Abnormal: Không có procedureId
+    [Fact(DisplayName = "[Integration - Abnormal] Missing_ProcedureId_Should_Throw")]
+    [Trait("TestType", "Abnormal")]
+    public async System.Threading.Tasks.Task A_Missing_ProcedureId_Should_Throw()
     {
         SetupHttpContext("Dentist", 10);
-        var cmd = new CreateTreatmentRecordCommand { AppointmentId = 10, DentistId = 2, ProcedureId = 1, UnitPrice = 100, Quantity = 1, DiscountAmount = 999999 };
+        var cmd = new CreateTreatmentRecordCommand
+        {
+            AppointmentId = 10,
+            DentistId = 2,
+            ProcedureId = 0, // invalid
+            UnitPrice = 100,
+            Quantity = 1
+        };
+
         await Assert.ThrowsAsync<Exception>(() => _handler.Handle(cmd, default));
     }
 
-    [Fact(DisplayName = "[Integration] Unauthorized user should not access")]
-    public async global::System.Threading.Tasks.Task Unauthorized_User_Should_Fail()
+    // 🟡 Boundary: Giảm giá > tổng tiền
+    [Fact(DisplayName = "[Integration - Boundary] Discount_Too_High_Should_Throw")]
+    [Trait("TestType", "Boundary")]
+    public async System.Threading.Tasks.Task B_Discount_Too_High_Should_Throw()
+    {
+        SetupHttpContext("Dentist", 10);
+        var cmd = new CreateTreatmentRecordCommand
+        {
+            AppointmentId = 10,
+            DentistId = 2,
+            ProcedureId = 1,
+            UnitPrice = 100,
+            Quantity = 1,
+            DiscountAmount = 999999 // quá cao
+        };
+
+        await Assert.ThrowsAsync<Exception>(() => _handler.Handle(cmd, default));
+    }
+
+    // 🔵 Abnormal: Role không hợp lệ
+    [Fact(DisplayName = "[Integration - Abnormal] Unauthorized_User_Should_Throw")]
+    [Trait("TestType", "Abnormal")]
+    public async System.Threading.Tasks.Task A_Unauthorized_User_Should_Throw()
     {
         SetupHttpContext("Patient", 20);
-        var cmd = new CreateTreatmentRecordCommand { AppointmentId = 10, DentistId = 2, ProcedureId = 1, UnitPrice = 100, Quantity = 1 };
+        var cmd = new CreateTreatmentRecordCommand
+        {
+            AppointmentId = 10,
+            DentistId = 2,
+            ProcedureId = 1,
+            UnitPrice = 100,
+            Quantity = 1
+        };
+
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(cmd, default));
     }
 }
