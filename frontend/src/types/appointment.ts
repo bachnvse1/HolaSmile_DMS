@@ -44,12 +44,14 @@ export interface AppointmentData extends AppointmentFormData {
 export interface DentistScheduleData {
   dentistID: number;
   dentistName: string;
-  avatar?: string;
+  avatar?: string | null;
   schedules: {
     scheduleId: number;
-    workDate: string;
-    shift: 'Morning' | 'Afternoon' | 'Evening';
-    status: 'active' | 'free' | string;
+    dentistName: string | null;
+    workDate: string;  // ISO date string
+    shift: string;     // "morning" | "afternoon" | "evening"
+    createdAt: string;
+    updatedAt: string | null;
   }[];
   isAvailable: boolean;
 }

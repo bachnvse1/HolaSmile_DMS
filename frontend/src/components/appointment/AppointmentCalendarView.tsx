@@ -236,7 +236,7 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
             return (
               <div 
                 key={index} 
-                className={`border border-gray-200 rounded-lg p-2 ${viewMode === 'month' ? 'min-h-[100px]' : 'min-h-[120px]'} ${
+                className={`border border-gray-200 p-2 ${viewMode === 'month' ? 'min-h-[100px]' : 'min-h-[120px]'} ${
                   isToday(date) ? 'bg-blue-50 border-blue-300' : 'bg-gray-50'
                 }`}
               >
@@ -252,7 +252,7 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
                     <div
                       key={appointment.id}
                       onClick={() => onAppointmentClick?.(appointment.details)}
-                      className={`p-2 rounded-md border cursor-pointer hover:shadow-sm transition-all text-xs ${getStatusColor(appointment.status)}`}
+                      className={`p-2 border cursor-pointer hover:shadow-sm transition-all text-xs ${getStatusColor(appointment.status)}`}
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="font-medium">{appointment.time}</span>

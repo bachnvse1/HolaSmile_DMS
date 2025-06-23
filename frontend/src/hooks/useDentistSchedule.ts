@@ -2,32 +2,36 @@ import { useMemo } from 'react';
 import { useDentistSchedules } from './useDentistSchedules';
 import { convertDentistSchedule } from '../utils/convertDentistSchedule';
 import type { Dentist } from '../types/appointment';
-import doc1 from '../assets/doc1.jpg';
 
-export const useDentistSchedule = () => {
-  const { data: dentistSchedules, isLoading: loading, error } = useDentistSchedules();
-
-  const dentists = useMemo((): Dentist[] => {
-    if (!dentistSchedules || dentistSchedules.length === 0) {
+/**
+ * Hook tùy chỉnh để lấy và chuyển đổi dữ liệu lịch bác sĩ
+ * Cung cấp dữ liệu đã được chuyển đổi phù hợp cho component lịch
+ */
+export const useDentistSchedule = (): {
+  dentists: Dentist[];
+  isLoading: boolean;
+  error: unknown;
+} => {
+  // Lấy dữ liệu từ API
+  const { data: backendData, isLoading, error } = useDentistSchedules();
+  
+  // Chuyển đổi dữ liệu từ backend sang định dạng frontend
+  const dentists = useMemo(() => {
+    try {
+      // Kiểm tra và log để debug
+      console.log('Raw backend data:', backendData);
+      
+      if (!backendData) {
+        return [];
+      }
+      
+      // Sử dụng hàm chuyển đổi để tạo ra dữ liệu cho frontend
+      return convertDentistSchedule(backendData);
+    } catch (err) {
+      console.error('Error converting dentist schedules:', err);
       return [];
     }
-
-    return dentistSchedules.map((dentist,) => {
-
-      return {
-        id: String(dentist.dentistID),
-        dentistID: dentist.dentistID,
-        name: dentist.dentistName,
-        avatar: dentist.avatar || doc1,
-        schedule: convertDentistSchedule(dentist.schedules),
-        backendSchedules: dentist.schedules, // Lưu lại để lấy scheduleId
-      };
-    });
-  }, [dentistSchedules]);
-
-  return {
-    dentists,
-    loading,
-    error
-  };
+  }, [backendData]);
+  
+  return { dentists, isLoading, error };
 };

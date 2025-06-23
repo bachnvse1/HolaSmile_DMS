@@ -6,9 +6,7 @@ export const useAppointments = () => {
   return useQuery<AppointmentDTO[]>({
     queryKey: ['appointments'],
     queryFn: async () => {
-      // Call backend ViewAppointment endpoint
-      // Backend logic: Patient sees only their appointments, Staff sees all
-      const response = await axiosInstance.get('/appointment/Appointment');
+      const response = await axiosInstance.get('/appointment/listappointment');
       return response.data;
     },
     refetchOnWindowFocus: false,
@@ -21,7 +19,7 @@ export const useAppointmentsByDateRange = (startDate: string, endDate: string) =
   return useQuery<AppointmentDTO[]>({
     queryKey: ['appointments', 'dateRange', startDate, endDate],
     queryFn: async () => {
-      const response = await axiosInstance.get('/appointment/Appointment', {
+      const response = await axiosInstance.get('/appointment/listappointment', {
         params: { startDate, endDate }
       });
       return response.data;
