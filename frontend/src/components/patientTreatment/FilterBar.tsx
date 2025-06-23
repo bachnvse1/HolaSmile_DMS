@@ -4,10 +4,9 @@ import type { FilterFormData } from "@/types/treatment"
 
 interface FilterBarProps {
   register: UseFormRegister<FilterFormData>
-  dentists: { id: number; name: string }[]
 }
 
-const FilterBar: React.FC<FilterBarProps> = ({ register, dentists }) => {
+const FilterBar: React.FC<FilterBarProps> = ({ register }) => {
   return (
     <div className="flex flex-col md:flex-row gap-4 mb-6">
       <div className="relative flex-1">
@@ -33,18 +32,6 @@ const FilterBar: React.FC<FilterBarProps> = ({ register, dentists }) => {
           <option value="cancelled">Đã huỷ</option>
         </select>
       </div>
-
-      <select
-        {...register("filterDentist")}
-        className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-      >
-        <option value="all">Tất cả bác sĩ</option>
-        {dentists.map((dentist) => (
-          <option key={dentist.id}>
-            {dentist.name}
-          </option>
-        ))}
-      </select>
     </div>
   )
 }

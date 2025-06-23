@@ -12,10 +12,7 @@ import { getTreatmentRecordsByUser } from "@/services/treatmentService"
 import { Navigation } from "@/layouts/homepage/Navigation"
 
 const PatientTreatmentRecords: React.FC = () => {
-    const {
-        register,
-        watch,
-    } = useForm<FilterFormData>({
+    const { register, watch } = useForm<FilterFormData>({
         defaultValues: {
             searchTerm: "",
             filterStatus: "all",
@@ -64,14 +61,6 @@ const PatientTreatmentRecords: React.FC = () => {
         return matchesSearch && matchesStatus && matchesDentist
     })
 
-    const uniqueDentists = Array.from(
-        new Map(
-            records
-                .filter((r) => !r.isDeleted)
-                .map((r) => [r.dentistID, { id: r.dentistID, name: r.dentistName || `ID: ${r.dentistID}` }])
-        ).values()
-    )
-
     const handleAddRecord = () => {
         setEditingRecord(null)
         resetTreatmentForm()
@@ -93,7 +82,7 @@ const PatientTreatmentRecords: React.FC = () => {
             treatmentStatus: record.treatmentStatus,
             symptoms: record.symptoms,
             diagnosis: record.diagnosis,
-            treatmentDate: record.treatmentDate,
+            treatmentDate: new Date(record.treatmentDate).toISOString().split("T")[0], // ✅ đúng định dạng yyyy-MM-dd
         })
         setIsModalOpen(true)
     }
@@ -107,8 +96,8 @@ const PatientTreatmentRecords: React.FC = () => {
                 prev.map((r) =>
                     r.treatmentRecordID === id
                         ? { ...r, isDeleted: !r.isDeleted, updatedAt: new Date().toISOString(), updatedBy: 1 }
-                        : r,
-                ),
+                        : r
+                )
             )
         }
     }
@@ -129,8 +118,8 @@ const PatientTreatmentRecords: React.FC = () => {
                             updatedAt: new Date().toISOString(),
                             updatedBy: 1,
                         }
-                        : r,
-                ),
+                        : r
+                )
             )
         } else {
             const newRecord: TreatmentRecord = {
@@ -164,22 +153,22 @@ const PatientTreatmentRecords: React.FC = () => {
                         <div className="p-6 border-b border-gray-200 flex items-center justify-between">
                             <div>
                                 <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                                    <FileText className="h-5 w-5" />
-                                    Hồ sơ điều trị nha khoa
+                                    <FileText className="h-5 w-5" /> Hồ sơ điều trị nha khoa
                                 </h2>
-                                <p className="text-gray-600 mt-1">Lịch sử đầy đủ về các phương pháp điều trị và thủ thuật nha khoa</p>
+                                <p className="text-gray-600 mt-1">
+                                    Lịch sử đầy đủ về các phương pháp điều trị và thủ thuật nha khoa
+                                </p>
                             </div>
                             <button
                                 onClick={handleAddRecord}
                                 className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"
                             >
-                                <Plus className="h-4 w-4" />
-                                Thêm Hồ sơ điều trị mới
+                                <Plus className="h-4 w-4" /> Thêm Hồ sơ điều trị mới
                             </button>
                         </div>
 
                         <div className="p-6">
-                            <FilterBar register={register} dentists={uniqueDentists} />
+                            <FilterBar register={register} />
                             <TreatmentTable
                                 records={filteredRecords}
                                 onEdit={handleEditRecord}
@@ -199,6 +188,8 @@ const PatientTreatmentRecords: React.FC = () => {
                             setEditingRecord(null)
                             resetTreatmentForm()
                         }}
+                        updatedBy={1}
+                        recordId={editingRecord?.treatmentRecordID}
                         onSubmit={handleFormSubmit}
                     />
                 </div>
