@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
 using Application.Constants;
-using Application.Usecases.Patients.CancelAppointment;
+using Application.Interfaces;
 using HDMS_API.Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -16,10 +11,15 @@ namespace Application.Usecases.Receptionist.CreateFollow_UpAppointment
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IAppointmentRepository _appointmentRepository;
-        public CreateFUAppointmentHandle(IAppointmentRepository appointmentRepository, IHttpContextAccessor httpContextAccessor)
+        private readonly IPatientRepository _patientRepository;
+        private readonly IDentistRepository _dentistRepository;
+
+        public CreateFUAppointmentHandle(IAppointmentRepository appointmentRepository, IHttpContextAccessor httpContextAccessor, IPatientRepository patientRepository, IDentistRepository dentistRepository)
         {
             _httpContextAccessor = httpContextAccessor;
             _appointmentRepository = appointmentRepository;
+            _patientRepository = patientRepository;
+            _dentistRepository = dentistRepository;
         }
         public async Task<string> Handle(CreateFUAppointmentCommand request, CancellationToken cancellationToken)
         {
@@ -27,9 +27,22 @@ namespace Application.Usecases.Receptionist.CreateFollow_UpAppointment
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-            if (!string.Equals(currentUserRole, "patient", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(currentUserRole, "receptionist", StringComparison.OrdinalIgnoreCase))
             {
                 return MessageConstants.MSG.MSG26; // "Bạn không có quyền truy cập chức năng này"
+            }
+
+            if (request.AppointmentDate < DateTime.Today)
+            {
+                return MessageConstants.MSG.MSG75; // "Ngày hẹn tái khám phải sau ngày hôm nay"
+            }
+            if(await _dentistRepository.GetDentistByUserIdAsync(request.DentistId) == null)
+            {
+                return "Bác sĩ không tồn tại"; // "Bác sĩ không tồn tại"
+            }
+            if(await _patientRepository.GetPatientByIdAsync(request.PatientId) == null)
+            {
+                return "Bệnh nhân không tồn tại"; // "Bệnh nhân không tồn tại"
             }
 
             var appointment = new Appointment
