@@ -67,7 +67,6 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
             record.TotalAmount = CalculateTotal(record);
 
             await _repository.AddAsync(record, cancellationToken);
-            await _repository.SaveChangesAsync(cancellationToken);
 
             return MessageConstants.MSG.MSG31; // Lưu dữ liệu thành công
         }

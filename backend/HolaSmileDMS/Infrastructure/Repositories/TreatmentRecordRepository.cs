@@ -57,6 +57,6 @@ public class TreatmentRecordRepository : ITreatmentRecordRepository
     public async System.Threading.Tasks.Task AddAsync(TreatmentRecord record, CancellationToken cancellationToken)
     {
         _context.TreatmentRecords.AddAsync(record, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
     }
-
 }
