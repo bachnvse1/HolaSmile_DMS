@@ -15,7 +15,6 @@ namespace HDMS_API.Controllers
         {
             _mediator = mediator;
         }
-        [Authorize]
         [HttpGet]
         [Route("listappointment")]
         public async Task<IActionResult> GetAppointment(CancellationToken cancellationToken)
