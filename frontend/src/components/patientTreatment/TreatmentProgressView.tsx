@@ -101,9 +101,9 @@ export function TreatmentProgressView({ progress }: { progress: TreatmentProgres
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600 border rounded-lg p-4 bg-white">
         <div><strong>Tạo Lúc:</strong> {formatVietnameseDateFull(new Date(progress.createdAt))}</div>
-        <div><strong>Tạo Bởi:</strong> User ID: {progress.createdBy}</div>
+        <div><strong>Tạo Bởi:</strong>  {progress.createdBy}</div>
         <div><strong>Cập Nhật Lúc:</strong> {progress.updatedAt ? formatVietnameseDateFull(new Date(progress.updatedAt)) : "Chưa"}</div>
-        <div><strong>Cập Nhật Bởi:</strong> {progress.updatedBy ? `User ID: ${progress.updatedBy}` : "Chưa"}</div>
+        <div><strong>Cập Nhật Bởi:</strong> {progress.updatedBy ? `${progress.updatedBy}` : "Chưa"}</div>
       </div>
     </div>
   )

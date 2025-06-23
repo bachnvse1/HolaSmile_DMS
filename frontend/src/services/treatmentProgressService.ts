@@ -4,6 +4,6 @@ import type { TreatmentProgress } from "@/types/treatmentProgress"
 export const getTreatmentProgressById = async (
   id: string
 ): Promise<TreatmentProgress[]> => {
-  const response = await axiosInstance.get(`/treatmentprogress/${id}`)
+  const response = await axiosInstance.get(`/treatment-progress/${id}`)
   return response.data
 }
