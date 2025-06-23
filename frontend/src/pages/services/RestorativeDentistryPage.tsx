@@ -1,4 +1,4 @@
-import { Layout } from '../../components/layout/Layout';
+import { Layout } from '../../layouts/homepage/Layout';
 import { Wrench, Crown, Shield, Clock, CheckCircle, Calendar, Star } from 'lucide-react';
 import { useNavigate } from 'react-router';
 const restorativeTreatments = [
