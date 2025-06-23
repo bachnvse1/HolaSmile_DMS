@@ -27,23 +27,18 @@ export const createOrUpdateTreatmentRecord = async (
     updatedBy,
   }
 
-  const url = `https://localhost:5001/api/treatment-records/${recordId ?? ""}`
+  try {
 
-  const response = await fetch(url, {
-    method: recordId ? "PUT" : "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  })
+    const response = recordId
+      ? await axiosInstance.put(`/treatment-records/${recordId}`, payload)
+      : await axiosInstance.post("/treatment-records", payload)
 
-  const contentType = response.headers.get("content-type")
-  if (contentType && contentType.includes("application/json")) {
-    const result = await response.json()
-    if (!response.ok) throw new Error(result.message || "Cập nhật thất bại")
-    return result
-  } else {
-    const text = await response.text()
-    throw new Error("Lỗi hệ thống: " + text)
+    return response.data
+  } catch (error: any) {
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+
+    throw new Error("Lỗi hệ thống: " + (error.message || "Không xác định"))
   }
 }
