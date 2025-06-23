@@ -34,7 +34,7 @@ namespace Application.Usecases.Receptionist.CreateFollow_UpAppointment
 
             if (request.AppointmentDate < DateTime.Today)
             {
-                return MessageConstants.MSG.MSG75; // "Ngày hẹn tái khám phải sau ngày hôm nay"
+                return MessageConstants.MSG.MSG34; // "Ngày hẹn tái khám phải sau ngày hôm nay"
             }
             if(await _dentistRepository.GetDentistByUserIdAsync(request.DentistId) == null)
             {

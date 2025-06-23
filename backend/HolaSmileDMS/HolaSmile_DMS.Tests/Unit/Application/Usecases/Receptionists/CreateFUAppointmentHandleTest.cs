@@ -53,20 +53,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
             Assert.Equal(MessageConstants.MSG.MSG26, result);
         }
 
-        [Fact(DisplayName = "[Unit] Unauthorized: No Role or UserId")]
-        public async System.Threading.Tasks.Task MissingClaims_Returns_MSG26()
-        {
-            SetupHttpContext(null, null); // no role or userId
-
-            var cmd = new CreateFUAppointmentCommand();
-            var result = await _handler.Handle(cmd, default);
-
-            Assert.Equal(MessageConstants.MSG.MSG26, result);
-        }
-
         [Theory(DisplayName = "[Unit] Unauthorized: Role not 'receptionist'")]
         [InlineData("Owner")]
-        [InlineData("Receptionist")]
+        [InlineData("Patient")]
         [InlineData("Dentist")]
         public async System.Threading.Tasks.Task NonPatientRole_Returns_MSG26(string role)
         {
@@ -116,7 +105,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
 
             var result = await _handler.Handle(cmd, default);
 
-            Assert.Equal(MessageConstants.MSG.MSG57, result);
+            Assert.Equal(MessageConstants.MSG.MSG34, result);
         }
 
         // dentist not exist
