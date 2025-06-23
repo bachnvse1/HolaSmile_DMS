@@ -24,7 +24,7 @@ namespace HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount
         {
             var user = _httpContextAccessor.HttpContext?.User;
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
-            if (currentUserRole != "receptionist")
+            if (!string.Equals(currentUserRole,"receptionist",StringComparison.OrdinalIgnoreCase))
             {
                 throw new UnauthorizedAccessException("Bạn không có quyền thực hiện hành động này.");
             }

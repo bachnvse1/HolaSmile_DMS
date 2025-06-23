@@ -4,7 +4,7 @@ namespace HDMS_API.Application.Interfaces
 {
     public interface IGuestRepository
     {
-        Task<string> BookAppointmentAsync(BookAppointmentCommand request);
+        Task<Appointment> CreateAppointmentAsync(BookAppointmentCommand request, int patientId);
         Task<IEnumerable<Schedule>> GetAvailableSlotsAsync(DateOnly date, int doctorId);
     }
 }

@@ -82,7 +82,7 @@ export default function VerifyOTP() {
         const expiryTime = new Date().toISOString()
 
         const res = await axios.post(
-          "https://localhost:5001/api/user/OTP/Verify",
+          "http://localhost:5135/api/user/OTP/Verify",
           {
             email,
             otp: otpCode,
@@ -163,7 +163,7 @@ export default function VerifyOTP() {
     setIsResending(true)
     try {
       await axios.post(
-        "https://localhost:5001/api/user/OTP/Request",
+        "http://localhost:5135/api/user/OTP/Request",
         { email },
         {
           withCredentials: true,

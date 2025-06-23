@@ -41,4 +41,21 @@ public class TreatmentRecordRepository : ITreatmentRecordRepository
 
         return await _context.SaveChangesAsync(cancellationToken) > 0;
     }
+
+    public async Task<TreatmentRecord?> GetTreatmentRecordByIdAsync(int id, CancellationToken cancellationToken)
+    {
+        return await _context.TreatmentRecords
+            .FirstOrDefaultAsync(x => x.TreatmentRecordID == id && !x.IsDeleted, cancellationToken);
+    }
+
+    public async Task<bool> SaveChangesAsync(CancellationToken cancellationToken)
+    {
+        return await _context.SaveChangesAsync(cancellationToken) > 0;
+    }
+
+    public async System.Threading.Tasks.Task AddAsync(TreatmentRecord record, CancellationToken cancellationToken)
+    {
+        _context.TreatmentRecords.AddAsync(record, cancellationToken);
+    }
+
 }
