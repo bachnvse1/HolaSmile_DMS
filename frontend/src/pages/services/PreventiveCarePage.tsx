@@ -1,4 +1,4 @@
-import { Layout } from '../../components/layout/Layout';
+import { Layout } from '../../layouts/homepage/Layout';
 import { Shield, Heart, Eye, Clock, CheckCircle, Calendar, Star } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import img2 from '@/assets/img2.jpg'

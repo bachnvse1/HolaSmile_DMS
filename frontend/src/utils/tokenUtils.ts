@@ -1,0 +1,222 @@
+// JWT Token utilities
+export interface JWTPayload {
+  "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier": string;
+  "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": string;
+  "http://schemas.microsoft.com/ws/2008/06/identity/claims/role": string;
+  exp: number;
+  iss: string;
+  aud: string;
+}
+
+export interface DecodedToken {
+  userId: string;
+  username: string;
+  role: string;
+  exp: number;
+  iss: string;
+  aud: string;
+}
+
+export class TokenUtils {
+  /**
+   * Decode JWT token without verification (client-side only)
+   */
+  static decodeToken(token: string): DecodedToken | null {
+    try {
+      // Split token into parts
+      const parts = token.split(".");
+      if (parts.length !== 3) {
+        throw new Error("Invalid token format");
+      }
+
+      // Decode payload (base64url)
+      const payload = parts[1];
+      const decodedPayload = this.base64UrlDecode(payload);
+      const parsedPayload: JWTPayload = JSON.parse(decodedPayload);
+
+      // Extract and map claims to friendly names
+      return {
+        userId:
+          parsedPayload[
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+          ],
+        username:
+          parsedPayload[
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+          ],
+        role: parsedPayload[
+          "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+        ],
+        exp: parsedPayload.exp,
+        iss: parsedPayload.iss,
+        aud: parsedPayload.aud,
+      };
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Check if token is expired
+   */
+  static isTokenExpired(token: string): boolean {
+    const decoded = this.decodeToken(token);
+    if (!decoded) return true;
+
+    const currentTime = Math.floor(Date.now() / 1000);
+    return decoded.exp < currentTime;
+  }
+
+  /**
+   * Get role from token
+   */
+  static getRoleFromToken(token: string): string | null {
+    const decoded = this.decodeToken(token);
+    return decoded?.role || null;
+  }
+
+  /**
+   * Get user ID from token
+   */
+  static getUserIdFromToken(token: string): string | null {
+    const decoded = this.decodeToken(token);
+    return decoded?.userId || null;
+  }
+
+  /**
+   * Get username from token
+   */
+  static getUsernameFromToken(token: string): string | null {
+    const decoded = this.decodeToken(token);
+    return decoded?.username || null;
+  }
+
+  /**
+   * Base64URL decode (used in JWT)
+   */
+  private static base64UrlDecode(str: string): string {
+    // Replace URL-safe characters
+    let base64 = str.replace(/-/g, "+").replace(/_/g, "/");
+
+    // Pad with '=' if needed
+    const pad = base64.length % 4;
+    if (pad) {
+      base64 += "=".repeat(4 - pad);
+    }
+
+    try {
+      // Decode base64 and handle Unicode
+      return decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
+      );
+    } catch (error) {
+      throw new Error("Invalid base64 encoding");
+    }
+  }
+  /**
+   * Save token for normal login
+   */
+  static saveLoginToken(token: string, refreshToken?: string): boolean {
+    try {
+      const decoded = this.decodeToken(token);
+      if (!decoded) return false;
+
+      localStorage.setItem("token", token);
+      if (refreshToken) {
+        localStorage.setItem("refreshToken", refreshToken);
+      }
+
+      return true;
+    } catch {
+      console.error("Error saving login token");
+      return false;
+    }
+  }
+  /**
+   * Save token for Google OAuth
+   */
+  static saveGoogleAuthToken(token: string, refreshToken?: string): boolean {
+    try {
+      const decoded = this.decodeToken(token);
+      if (!decoded) return false;
+
+      localStorage.setItem("authToken", token);
+      if (refreshToken) {
+        localStorage.setItem("refreshToken", refreshToken);
+      }
+
+      return true;
+    } catch {
+      console.error("Error saving Google auth token");
+      return false;
+    }
+  }
+  /**
+   * Get user data from localStorage (decode from token)
+   */
+  static getUserData(): {
+    token: string | null;
+    userId: string | null;
+    username: string | null;
+    role: string | null;
+    refreshToken: string | null;
+  } {
+    const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+    const refreshToken = localStorage.getItem("refreshToken");
+    
+    if (!token) {
+      return {
+        token: null,
+        userId: null,
+        username: null,
+        role: null,
+        refreshToken
+      };
+    }
+
+    // Decode token to get user info
+    const decoded = this.decodeToken(token);
+    if (!decoded) {
+      return {
+        token,
+        userId: null,
+        username: null,
+        role: null,
+        refreshToken
+      };
+    }
+
+    return {
+      token,
+      userId: decoded.userId,
+      username: decoded.username,
+      role: decoded.role,
+      refreshToken
+    };
+  }
+  /**
+   * Clear all token data
+   */
+  static clearTokenData(): void {
+    localStorage.removeItem("token");        // Normal login
+    localStorage.removeItem("authToken");    // Google OAuth
+    localStorage.removeItem("refreshToken");
+  }
+
+  /**
+   * Check if user is authenticated
+   */
+  static isAuthenticated(): boolean {
+    const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+    if (!token) return false;
+    return !this.isTokenExpired(token);
+  }
+
+  static getActiveToken(): string | null {
+    return localStorage.getItem("token") || localStorage.getItem("authToken");
+  }
+}

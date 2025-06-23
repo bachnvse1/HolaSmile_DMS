@@ -163,6 +163,15 @@ namespace HDMS_API.Migrations
                     b.ToTable("EquipmentMaintenances");
                 });
 
+            modelBuilder.Entity("HDMS_API.Infrastructure.Repositories.UserRoleResult", b =>
+                {
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.ToTable("UserRoleResult");
+                });
+
             modelBuilder.Entity("Image", b =>
                 {
                     b.Property<int>("ImageId")
@@ -785,6 +794,9 @@ namespace HDMS_API.Migrations
 
                     b.Property<int>("DentistId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Shift")
                         .IsRequired()

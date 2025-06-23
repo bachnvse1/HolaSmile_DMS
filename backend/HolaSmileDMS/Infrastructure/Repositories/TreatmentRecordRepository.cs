@@ -39,5 +39,8 @@ public class TreatmentRecordRepository : ITreatmentRecordRepository
         return await _context.SaveChangesAsync(cancellationToken) > 0;
     }
 
-
+    public async System.Threading.Tasks.Task AddAsync(TreatmentRecord record, CancellationToken cancellationToken)
+    {
+        _context.TreatmentRecords.AddAsync(record, cancellationToken);
+    }
 }
