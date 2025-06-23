@@ -36,7 +36,7 @@ namespace Application.Usecases.Receptionist.CreateFollow_UpAppointment
             {
                 return MessageConstants.MSG.MSG34; // "Ngày hẹn tái khám phải sau ngày hôm nay"
             }
-            if(await _dentistRepository.GetDentistByUserIdAsync(request.DentistId) == null)
+            if(await _dentistRepository.GetDentistByDentistIdAsync(request.DentistId) == null)
             {
                 return "Bác sĩ không tồn tại"; // "Bác sĩ không tồn tại"
             }
@@ -59,6 +59,8 @@ namespace Application.Usecases.Receptionist.CreateFollow_UpAppointment
                 CreatedBy = currentUserId,
                 IsDeleted = false
             };
+            bool already = await _appointmentRepository.ExistsAppointmentAsync(request.PatientId, request.AppointmentDate);
+            if (already) throw new Exception(MessageConstants.MSG.MSG74);
             var isbookappointment = await _appointmentRepository.CreateAppointmentAsync(appointment);
             return isbookappointment ? MessageConstants.MSG.MSG05 : MessageConstants.MSG.MSG58;
         }

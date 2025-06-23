@@ -96,7 +96,6 @@ namespace HDMS_API.Infrastructure.Repositories
 
         public async Task<bool> ExistsAppointmentAsync(int patientId, DateTime date)
         {
-
             return await _context.Appointments
             .AnyAsync(a => a.PatientId == patientId
                         && a.AppointmentDate.Date == date.Date
