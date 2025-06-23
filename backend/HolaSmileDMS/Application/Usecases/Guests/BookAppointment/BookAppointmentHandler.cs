@@ -42,14 +42,16 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
 
             var patient = new Patient();
             var user = new User();
+            var isNewPatient = true;
 
             var guest = _mapper.Map<CreatePatientDto>(request);
             var existUser = await _userCommonRepository.GetUserByPhoneAsync(guest.PhoneNumber);
             // Check if the patient already exists in the system
             if (existUser != null)
             {
-                // If the user exists, check if they have a patient record
-                 patient = await _patientRepository.GetPatientByUserIdAsync(existUser.UserID)
+                isNewPatient = false; // The patient already exists, so we will not create a new account
+                                      // If the user exists, check if they have a patient record
+                patient = await _patientRepository.GetPatientByUserIdAsync(existUser.UserID)
                       ?? throw new Exception(MessageConstants.MSG.MSG27); // "Không tìm thấy hồ sơ bệnh nhân"
                 
                 //checck duplicate appointment
@@ -88,9 +90,9 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             {
                 PatientId = patient.PatientID,
                 DentistId = request.DentistId,
-                Status = "pending",
+                Status = "confirm",
                 Content = request.MedicalIssue,
-                IsNewPatient = true,
+                IsNewPatient = isNewPatient,
                 AppointmentType = "",
                 AppointmentDate = request.AppointmentDate,
                 AppointmentTime = request.AppointmentTime,
