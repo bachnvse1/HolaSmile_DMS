@@ -11,6 +11,8 @@ public class MappingViewTreatmentRecord : Profile
             .ForMember(dest => dest.DentistName, opt => opt.MapFrom(src => src.Dentist.User.Fullname))
             .ForMember(dest => dest.ProcedureName, opt => opt.MapFrom(src => src.Procedure.ProcedureName))
             .ForMember(dest => dest.AppointmentDate, opt => opt.MapFrom(src => src.Appointment.AppointmentDate))
-            .ForMember(dest => dest.AppointmentTime, opt => opt.MapFrom(src => src.Appointment.AppointmentTime));
+            .ForMember(dest => dest.AppointmentTime, opt => opt.MapFrom(src => src.Appointment.AppointmentTime))
+            .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.Dentist.User.Fullname))
+            .ForMember(dest => dest.UpdatedBy, opt => opt.MapFrom(src => src.Dentist.User.Fullname));
     }
 }
