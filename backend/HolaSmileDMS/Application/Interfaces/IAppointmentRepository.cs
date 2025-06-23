@@ -1,6 +1,4 @@
-﻿using HDMS_API.Application.Usecases.Guests.BookAppointment;
-
-namespace HDMS_API.Application.Interfaces
+﻿namespace HDMS_API.Application.Interfaces
 {
     public interface IAppointmentRepository
     {
@@ -10,7 +8,8 @@ namespace HDMS_API.Application.Interfaces
         Task<List<Appointment>> GetAllAppointmentAsync();
         Task<Appointment> GetAppointmentByIdAsync(int appointmentId);
         Task<bool> CancelAppointmentAsync(int appId, int cancleBy);
-        Task<bool> CheckAppointmentByPatientIdAsync(int appId, int userId);
+        Task<bool> CheckPatientAppointmentByUserIdAsync(int appId, int userId);
+        Task<bool> CheckDentistAppointmentByUserIdAsync(int appId, int userId);
         Task<bool> ExistsAppointmentAsync(int patientId, DateTime date);
 
 
