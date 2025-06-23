@@ -7,6 +7,20 @@ export const getTreatmentRecordsByUser = async (userId: number): Promise<Treatme
   return response.data
 }
 
+export const deleteTreatmentRecord = async (id: number) => {
+  try {
+    const response = await axiosInstance.delete(`/treatment-records/${id}`)
+    return response.data
+  } catch (error: any) {
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+
+    throw new Error("Lỗi hệ thống: " + (error.message || "Không xác định"))
+  }
+}
+
+
 export const createOrUpdateTreatmentRecord = async (
   data: TreatmentFormData,
   totalAmount: number,
