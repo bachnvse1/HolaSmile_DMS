@@ -64,7 +64,7 @@ namespace HDMS_API.Controllers
             {
             try
             {
-                var result = await _mediator.Send(new CancleAppointmentCommand { AppointmentId = appointmentId }, cancellationToken);
+                var result = await _mediator.Send(new CancleAppointmentCommand(appointmentId), cancellationToken);
                 return Ok(result);
             }
             catch (Exception ex)

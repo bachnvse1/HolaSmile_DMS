@@ -110,7 +110,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
                 PatientId = 1,
                 DentistId = 2,
                 ReasonForFollowUp = "Follow-up check",
-                AppointmentDate = DateTime.Today, // Ngày hiện tại (không hợp lệ)
+                AppointmentDate = DateTime.Today.AddDays(-1), // Ngày hiện tại (không hợp lệ)
                 AppointmentTime = TimeSpan.FromHours(10)
             };
 
