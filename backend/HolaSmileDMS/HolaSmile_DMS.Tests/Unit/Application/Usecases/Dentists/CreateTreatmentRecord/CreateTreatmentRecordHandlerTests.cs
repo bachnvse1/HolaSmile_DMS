@@ -57,7 +57,7 @@ public class CreateTreatmentRecordHandlerTests
         var (handler, _) = SetupHandler("Dentist", 12, cmd);
 
         var ex = await Assert.ThrowsAsync<Exception>(() => handler.Handle(cmd, default));
-        Assert.Contains("Không tìm thấy lịch hẹn", ex.Message);
+        Assert.Contains(MessageConstants.MSG.MSG28, ex.Message);
     }
 
     // 🟢 Normal Case: Valid input → should return success
