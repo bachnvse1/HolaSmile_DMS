@@ -7,5 +7,5 @@ public interface ITreatmentRecordRepository
 {
     Task<List<ViewTreatmentRecordDto>> GetPatientTreatmentRecordsAsync(int patientId, CancellationToken cancellationToken);
     Task<TreatmentRecord?> GetTreatmentRecordByIdAsync(int id, CancellationToken cancellationToken);
-    Task<bool> SaveChangesAsync(CancellationToken cancellationToken);
+    Task<bool> UpdatedTreatmentRecordAsync(TreatmentRecord record, CancellationToken cancellationToken);
 }

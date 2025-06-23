@@ -21,12 +21,12 @@ namespace Application.Usecases.Patients.UpdateTreatmentRecord
         {
             var user = _httpContextAccessor.HttpContext?.User;
             var role = user?.FindFirst(ClaimTypes.Role)?.Value;
+            var userId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-            if (role == "Patient")
+            if (role != "Dentist")
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
             var record = await _repository.GetTreatmentRecordByIdAsync(request.TreatmentRecordId, cancellationToken);
-
             if (record == null)
                 throw new KeyNotFoundException(MessageConstants.MSG.MSG27);
 
@@ -61,10 +61,11 @@ namespace Application.Usecases.Patients.UpdateTreatmentRecord
                 record.TreatmentDate = request.TreatmentDate.Value;
 
             record.UpdatedAt = DateTime.UtcNow;
-            record.UpdatedBy = request.UpdatedBy ?? 0;
+            record.UpdatedBy = userId;
 
-            return await _repository.SaveChangesAsync(cancellationToken);
+            return await _repository.UpdatedTreatmentRecordAsync(record, cancellationToken);
         }
+
 
     }
 }
