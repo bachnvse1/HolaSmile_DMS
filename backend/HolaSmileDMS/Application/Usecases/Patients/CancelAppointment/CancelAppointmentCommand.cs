@@ -9,6 +9,6 @@ namespace Application.Usecases.Patients.CancelAppointment
 {
     public class CancleAppointmentCommand : IRequest<string>
     {
-        public string AppointmentId { get; set; }
+        public int AppointmentId { get; set; }
     }
 }

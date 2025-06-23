@@ -1,5 +1,5 @@
-﻿using Application.Usecases.UserCommon.ViewAppointment;
-﻿using Application.Usecases.UserCommon.ViewListPatient;
+﻿using Application.Constants;
+using Application.Usecases.UserCommon.ViewListPatient;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Common.Helpers;
 using HDMS_API.Application.Interfaces;
@@ -28,29 +28,23 @@ namespace HDMS_API.Infrastructure.Repositories
         {
             if(await _context.Users.AnyAsync(u => u.Phone == dto.PhoneNumber))
             {
-                throw new Exception("Tài khoản với số điện thoại này đã tồn tại.");
+                throw new Exception(MessageConstants.MSG.MSG23); // "Số điện thoại đã được sử dụng"
             }
 
             if (dto.FullName.IsNullOrEmpty()){
-                throw new Exception("Tên bệnh nhân không được để trống.");
+                throw new Exception(MessageConstants.MSG.MSG07); // "Vui lòng nhập thông tin bắt buộc"
             }
-
             if (!FormatHelper.FormatPhoneNumber(dto.PhoneNumber))
             {
-                throw new Exception("Số điện thoại không hợp lệ.");
-            }
-
-            if (FormatHelper.TryParseDob(dto.Dob) == null)
-            {
-                throw new Exception("Ngày sinh không hợp lệ.");
+                throw new Exception(MessageConstants.MSG.MSG56); // "Số điện thoại không đúng định dạng"
             }
             if (!FormatHelper.IsValidEmail(dto.Email))
             {
-                throw new Exception("Email không hợp lệ.");
+                throw new Exception(MessageConstants.MSG.MSG08); // "Định dạng email không hợp lệ"
             }
-            if(await _context.Users.AnyAsync(u => u.Email == dto.Email))
+            if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
             {
-                throw new Exception("Email này đã tồn tại .");
+                throw new Exception(MessageConstants.MSG.MSG22); // "Email đã tồn tại"
             }
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
 
@@ -79,7 +73,7 @@ namespace HDMS_API.Infrastructure.Repositories
         {
             if(email.IsNullOrEmpty() || !FormatHelper.IsValidEmail(email))
             {
-                throw new Exception("Email không hợp lệ.");
+                throw new Exception(MessageConstants.MSG.MSG08);
             }
             return await _emailService.SendPasswordAsync(email, "123456"); ;
         }
@@ -88,13 +82,13 @@ namespace HDMS_API.Infrastructure.Repositories
         {
             if (FormatHelper.IsValidEmail(toEmail) == false)
             {
-                throw new Exception("Email không hợp lệ.");
+                throw new Exception(MessageConstants.MSG.MSG08);
             }
             var OtpCode = await _emailService.GenerateOTP();
             var IsSent = await _emailService.SendOtpEmailAsync(toEmail, OtpCode);
             if (!IsSent)
             {
-                throw new Exception("Gửi email OTP không thành công.");
+                throw new Exception(MessageConstants.MSG.MSG78); // Gửi email không thành công
             }
             var otp = new RequestOtpDto
             {
@@ -122,13 +116,13 @@ namespace HDMS_API.Infrastructure.Repositories
             }
             else
             {
-                throw new Exception("Gửi lại OTP thất bại.");
+                throw new Exception(MessageConstants.MSG.MSG78); // Gửi mã OTP không thành công
             }
         }
 
         public async Task<string> VerifyOtpAsync(VerifyOtpCommand otp)
         {
-            if(_memoryCache.TryGetValue($"otp:{otp.Email}", out RequestOtpDto cachedOtp))
+            if (_memoryCache.TryGetValue($"otp:{otp.Email}", out RequestOtpDto cachedOtp))
             {
                 if (cachedOtp.Otp == otp.Otp && cachedOtp.ExpiryTime > DateTime.Now)
                 {
@@ -139,12 +133,12 @@ namespace HDMS_API.Infrastructure.Repositories
                 }
                 else
                 {
-                    throw new Exception("Mã OTP không hợp lệ .");
+                    throw new Exception(MessageConstants.MSG.MSG04); // Mã OTP không đúng
                 }
             }
             else
             {
-                throw new Exception("OTP đã hết hạn.");
+                throw new Exception(MessageConstants.MSG.MSG79); // thời gian thực hiện hết hạn
             }
         }
         public async Task<string> ResetPasswordAsync(ForgotPasswordCommand request)
@@ -153,28 +147,29 @@ namespace HDMS_API.Infrastructure.Repositories
             {
                 if (!FormatHelper.IsValidPassword(request.NewPassword))
                 {
-                    throw new Exception("Mật khẩu mới không hợp lệ. Mật khẩu phải chứa ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.");
+                    throw new Exception(MessageConstants.MSG.MSG02);
                 }
                 if (request.NewPassword != request.ConfirmPassword)
                 {
-                    throw new Exception("Mật khẩu xác nhận không khớp với mật khẩu mới.");
+                    throw new Exception(MessageConstants.MSG.MSG43);
                 }
-                    var user = _context.Users.FirstOrDefault(u => u.Email == email);
+                var user = _context.Users.FirstOrDefault(u => u.Email == email);
                     if (user == null)
                     {
-                        throw new Exception("Người dùng không tồn tại.");
-                    }
-                    user.Password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+                    throw new Exception(MessageConstants.MSG.MSG16);
+                }
+                user.Password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
                     user.UpdatedAt = DateTime.UtcNow;
                     user.UpdatedBy = user.UserID;
                     _context.Users.Update(user);
                     _context.SaveChanges();
                     _memoryCache.Remove($"resetPasswordToken:{request.ResetPasswordToken}");
-                    return "Đặt lại mật khẩu thành công.";
-             }
+                    return MessageConstants.MSG.MSG10;
+                ;
+            }
             else
             {
-                throw new Exception("Thời gian đặt lại mật khẩu của bạn đã hết. Vui lòng quên mật khẩu lại.");
+                throw new Exception(MessageConstants.MSG.MSG79); // thời gian thực hiện hết hạn
             }
         }
         public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken)

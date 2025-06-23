@@ -36,8 +36,9 @@ namespace HDMS_API.Controllers
             }
         }
         [Authorize]
-        [HttpGet("{appointmentId}")]
-        public async Task<IActionResult> ViewDetailAppointment([FromRoute] string appointmentId, CancellationToken cancellationToken)
+
+        [HttpGet("Appointment/{appointmentId}")]
+        public async Task<IActionResult> ViewDetailAppointment([FromRoute] int appointmentId, CancellationToken cancellationToken)
         {
             try
             {
@@ -57,9 +58,10 @@ namespace HDMS_API.Controllers
 
         [Authorize]
         [HttpPut]
-        [Route("{appointmentId}")]
-        public async Task<IActionResult> ViewDetailPatientAppointment([FromRoute] string appointmentId, CancellationToken cancellationToken)
-        {
+
+        [Route("Appointment/{appointmentId}")]
+        public async Task<IActionResult> ViewDetailPatientAppointment([FromRoute] int appointmentId, CancellationToken cancellationToken)
+            {
             try
             {
                 var result = await _mediator.Send(new CancleAppointmentCommand { AppointmentId = appointmentId }, cancellationToken);

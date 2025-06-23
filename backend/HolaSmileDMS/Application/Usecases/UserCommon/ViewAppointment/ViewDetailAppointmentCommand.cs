@@ -9,6 +9,6 @@ namespace Application.Usecases.UserCommon.ViewAppointment
 {
     public class ViewDetailAppointmentCommand : IRequest<AppointmentDTO>
     {
-        public string AppointmentId { get; set; }
+        public int AppointmentId { get; set; }
     }
 }

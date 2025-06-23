@@ -50,8 +50,8 @@ export const Footer = () => {
               <div className="flex items-center">
                 <Clock className="h-5 w-5 mr-3 text-blue-400" />
                 <div className="text-gray-300">
-                  <div>Thứ Hai - Thứ Sáu: 8:00 AM - 6:00 PM</div>
-                  <div>Thứ Bảy: 9:00 AM - 4:00 PM</div>
+                  <div>Thứ Hai - Thứ Sáu: 8:00 AM - 8:00 PM</div>
+                  <div>Thứ Bảy: 8:00 AM - 11:00 AM</div>
                   <div>Chủ Nhật: Đóng cửa</div>
                 </div>
               </div>

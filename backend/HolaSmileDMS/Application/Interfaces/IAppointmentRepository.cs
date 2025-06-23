@@ -4,7 +4,7 @@ namespace HDMS_API.Application.Interfaces
 {
     public interface IAppointmentRepository
     {
-        Task<Appointment> CreateAppointmentAsync(BookAppointmentCommand request, int patientId);
+        Task<bool> CreateAppointmentAsync(Appointment appointment);
         Task<List<Appointment>> GetAppointmentsByPatientIdAsync(int patientId);
         Task<List<Appointment>> GetAppointmentsByDentistIdAsync(int dentistId);
         Task<List<Appointment>> GetAllAppointmentAsync();
