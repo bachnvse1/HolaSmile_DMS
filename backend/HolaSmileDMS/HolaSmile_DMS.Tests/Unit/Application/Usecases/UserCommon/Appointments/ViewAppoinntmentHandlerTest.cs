@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon.Appointments
 {
     public class ViewAppoinntmentHandlerTest
     {
