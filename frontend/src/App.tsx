@@ -20,6 +20,7 @@ import { StaffDashboard } from './pages/staff/StaffDashboard';
 import { PatientBookingPage } from './pages/patient/PatientBookingPage';
 import { PatientAppointmentsPage } from './pages/patient/PatientAppointmentsPage';
 import { StaffAppointmentsPage } from './pages/staff/StaffAppointmentsPage';
+import ScheduleManagementPage from './pages/staff/ScheduleManagementPage';
 
 function App() {
   return (
@@ -46,6 +47,7 @@ function App() {
         <Route path="/patient/book-appointment" element={<PatientBookingPage/>} />
         <Route path="/patient/appointments" element={<PatientAppointmentsPage/>} />
         <Route path="/appointments" element={<StaffAppointmentsPage/>} />
+        <Route path="/schedules" element={<ScheduleManagementPage/>} />
       </Routes>
     </>
   );
