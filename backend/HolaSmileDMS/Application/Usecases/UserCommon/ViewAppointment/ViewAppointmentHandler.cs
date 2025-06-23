@@ -6,16 +6,15 @@ using Microsoft.AspNetCore.Http;
 
 namespace Application.Usecases.UserCommon.ViewAppointment
 {
-    public class ViewApponintmentHandler : IRequestHandler<ViewAppointmentCommand, List<AppointmentDTO>>
+    public class ViewAppointmentHandler : IRequestHandler<ViewAppointmentCommand, List<AppointmentDTO>>
     {
-        private readonly IUserCommonRepository _userCommonRepository;
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;
 
-        public ViewApponintmentHandler(IUserCommonRepository userCommonRepository, IHttpContextAccessor httpContextAccessor, IMapper mapper, IAppointmentRepository appointmentRepository)
+
+        public ViewAppointmentHandler(IAppointmentRepository appointmentRepository, IHttpContextAccessor httpContextAccessor, IMapper mapper)
         {
-            _userCommonRepository = userCommonRepository;
             _appointmentRepository = appointmentRepository;
             _httpContextAccessor = httpContextAccessor;
             _mapper = mapper;
@@ -37,6 +36,10 @@ namespace Application.Usecases.UserCommon.ViewAppointment
             if(string.Equals(currentUserRole,"patient",StringComparison.OrdinalIgnoreCase))
             {
                 listApp = await _appointmentRepository.GetAppointmentsByPatientIdAsync(currentUserId);
+            }
+            else if(string.Equals(currentUserRole, "dentist", StringComparison.OrdinalIgnoreCase))
+            {
+                listApp = await _appointmentRepository.GetAppointmentsByDentistIdAsync(currentUserId);
             }
             else
             {
