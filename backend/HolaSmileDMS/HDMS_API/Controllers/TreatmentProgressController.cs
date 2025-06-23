@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace HDMS_API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/treatment-progress")]
 public class TreatmentProgressController : ControllerBase
 {
     private readonly IMediator _mediator;

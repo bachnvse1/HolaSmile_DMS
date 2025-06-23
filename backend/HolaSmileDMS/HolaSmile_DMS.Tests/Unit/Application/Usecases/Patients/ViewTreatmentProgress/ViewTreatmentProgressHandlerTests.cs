@@ -1,5 +1,3 @@
-// ✅ Tests/Unit/Application/Usecases/Patients/ViewTreatmentProgress/ViewTreatmentProgressHandlerTests.cs
-
 using Application.Interfaces;
 using Application.Usecases.Patients.ViewTreatmentProgress;
 using AutoMapper;
@@ -7,6 +5,8 @@ using Microsoft.AspNetCore.Http;
 using Moq;
 using System.Security.Claims;
 using Xunit;
+
+namespace Tests.Unit.Application.Usecases.Patients;
 
 public class ViewTreatmentProgressHandlerTests
 {
@@ -38,13 +38,15 @@ public class ViewTreatmentProgressHandlerTests
         };
         var identity = new ClaimsIdentity(claims, "Test");
         var principal = new ClaimsPrincipal(identity);
-
         var context = new DefaultHttpContext { User = principal };
+
         _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
     }
 
-    [Fact(DisplayName = "[Unit] Patient_Can_View_Own_Progress")]
-    public async System.Threading.Tasks.Task Patient_Can_View_Own_Progress()
+    // 🟢 Normal: Patient xem đúng hồ sơ của mình
+    [Fact(DisplayName = "[Unit - Normal] Patient_Can_View_Own_Progress")]
+    [Trait("TestType", "Normal")]
+    public async System.Threading.Tasks.Task N_Patient_Can_View_Own_Progress()
     {
         int treatmentRecordId = 1;
         int userId = 10;
@@ -56,7 +58,7 @@ public class ViewTreatmentProgressHandlerTests
             {
                 TreatmentRecordID = treatmentRecordId,
                 Patient = new Patient { UserID = userId, User = new User { UserID = userId } },
-                Dentist = new Dentist { UserId = 2, User = new User { UserID = 2 } }
+                Dentist = new global::Dentist { UserId = 2, User = new User { UserID = 2 } }
             }
         };
 
@@ -71,8 +73,10 @@ public class ViewTreatmentProgressHandlerTests
         Assert.NotNull(result);
     }
 
-    [Fact(DisplayName = "[Unit] Patient_Cannot_View_Others_Progress")]
-    public async System.Threading.Tasks.Task Patient_Cannot_View_Others_Progress()
+    // 🔵 Abnormal: Patient cố gắng xem hồ sơ người khác
+    [Fact(DisplayName = "[Unit - Abnormal] Patient_Cannot_View_Others_Progress")]
+    [Trait("TestType", "Abnormal")]
+    public async System.Threading.Tasks.Task A_Patient_Cannot_View_Others_Progress()
     {
         int treatmentRecordId = 1;
         int userId = 10;
@@ -84,7 +88,7 @@ public class ViewTreatmentProgressHandlerTests
             {
                 TreatmentRecordID = treatmentRecordId,
                 Patient = new Patient { UserID = 999, User = new User { UserID = 999 } },
-                Dentist = new Dentist { UserId = 2, User = new User { UserID = 2 } }
+                Dentist = new global::Dentist { UserId = 2, User = new User { UserID = 2 } }
             }
         };
 
@@ -95,8 +99,10 @@ public class ViewTreatmentProgressHandlerTests
             _handler.Handle(new ViewTreatmentProgressCommand(treatmentRecordId), default));
     }
 
-    [Fact(DisplayName = "[Unit] Assistant_Can_View_All_Progress")]
-    public async System.Threading.Tasks.Task Assistant_Can_View_All_Progress()
+    // 🟢 Normal: Assistant có thể xem tất cả hồ sơ
+    [Fact(DisplayName = "[Unit - Normal] Assistant_Can_View_All_Progress")]
+    [Trait("TestType", "Normal")]
+    public async System.Threading.Tasks.Task N_Assistant_Can_View_All_Progress()
     {
         int treatmentRecordId = 1;
         SetupHttpContext("Assistant", 999);
@@ -107,7 +113,7 @@ public class ViewTreatmentProgressHandlerTests
             {
                 TreatmentRecordID = treatmentRecordId,
                 Patient = new Patient { UserID = 1, User = new User { UserID = 1 } },
-                Dentist = new Dentist { UserId = 2, User = new User { UserID = 2 } }
+                Dentist = new global::Dentist { UserId = 2, User = new User { UserID = 2 } }
             }
         };
 
@@ -122,8 +128,10 @@ public class ViewTreatmentProgressHandlerTests
         Assert.NotNull(result);
     }
 
-    [Fact(DisplayName = "[Unit] Dentist_Cannot_View_Others_Progress")]
-    public async System.Threading.Tasks.Task Dentist_Cannot_View_Others_Progress()
+    // 🔵 Abnormal: Dentist không có liên quan cố gắng xem hồ sơ
+    [Fact(DisplayName = "[Unit - Abnormal] Dentist_Cannot_View_Others_Progress")]
+    [Trait("TestType", "Abnormal")]
+    public async System.Threading.Tasks.Task A_Dentist_Cannot_View_Others_Progress()
     {
         int treatmentRecordId = 1;
         int userId = 10;
@@ -135,7 +143,7 @@ public class ViewTreatmentProgressHandlerTests
             {
                 TreatmentRecordID = treatmentRecordId,
                 Patient = new Patient { UserID = 1, User = new User { UserID = 1 } },
-                Dentist = new Dentist { UserId = 999, User = new User { UserID = 999 } }
+                Dentist = new global::Dentist { UserId = 999, User = new User { UserID = 999 } }
             }
         };
 
