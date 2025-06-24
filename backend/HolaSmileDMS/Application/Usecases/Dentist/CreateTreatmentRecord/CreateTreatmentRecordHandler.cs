@@ -38,7 +38,13 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
             // Validate IDs
             if (request.AppointmentId <= 0)
                 throw new Exception(MessageConstants.MSG.MSG28); // Không tìm thấy lịch hẹn
-
+            
+            if (request.TreatmentDate == null || request.TreatmentDate == default)
+                throw new Exception(MessageConstants.MSG.MSG75);
+            
+            if (request.TreatmentDate < DateTime.Today)
+                throw new Exception(MessageConstants.MSG.MSG76); 
+            
             if (request.DentistId <= 0)
                 throw new Exception(MessageConstants.MSG.MSG42); // Vui lòng chọn bác sĩ trước khi đặt lịch
 
@@ -55,7 +61,7 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
             var record = _mapper.Map<TreatmentRecord>(request);
             record.CreatedAt = DateTime.UtcNow;
             record.CreatedBy = currentUserId;
-
+            
             var subtotal = record.UnitPrice * record.Quantity;
 
             if (record.DiscountAmount.HasValue && record.DiscountAmount.Value > subtotal)
