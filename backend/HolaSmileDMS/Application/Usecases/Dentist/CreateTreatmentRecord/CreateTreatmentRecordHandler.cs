@@ -53,7 +53,7 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
 
             // Validate Quantity and UnitPrice
             if (request.Quantity <= 0)
-                throw new Exception(MessageConstants.MSG.MSG73); // Số lượng không hợp lệ
+                throw new Exception(MessageConstants.MSG.MSG88); // Số lượng không hợp lệ
 
             if (request.UnitPrice < 0)
                 throw new Exception(MessageConstants.MSG.MSG82); // Đơn giá không hợp lệ
