@@ -1,4 +1,5 @@
-﻿using Application.Usecases.UserCommon.ViewProfile;
+﻿using Application.Constants;
+using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -19,7 +20,7 @@ public class ViewProfileHandler : IRequestHandler<ViewProfileCommand, ViewProfil
     {
         var user = _httpContextAccessor.HttpContext?.User;
         if (user == null)
-            throw new UnauthorizedAccessException("Bạn cần đăng nhập để thực hiện thao tác này.");
+            throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53);
 
         var currentUserId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
