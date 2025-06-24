@@ -1,158 +1,226 @@
+using System.Security.Claims;
+using Application.Constants;
+using Application.Interfaces;
+using Application.Usecases.Dentist.CreateTreatmentProcess;
+using AutoMapper;
+using Microsoft.AspNetCore.Http;
+using Moq;
+using Xunit;
 
-//using Application.Interfaces;
-//using Application.Usecases.Patients.ViewTreatmentProgress;
-//using AutoMapper;
-//using Microsoft.AspNetCore.Http;
-//using Moq;
-//using System.Security.Claims;
-//using Xunit;
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists.CreateTreatmentProgress;
 
-//namespace Tests.Unit.Application.Usecases.Patients;
+public class CreateTreatmentProgressHandlerTests
+{
+    private CreateTreatmentProgressCommand GetValidCommand() => new()
+    {
+        ProgressDto = new CreateTreatmentProgressDto
+        {
+            TreatmentRecordID = 1,
+            PatientID = 2,
+            ProgressName = "Tiến trình 1",
+            ProgressContent = "Nội dung",
+            Status = "InProgress",
+            Duration = 30,
+            Description = "Chi tiết",
+            EndTime = DateTime.UtcNow.AddHours(1),
+            Note = "Ghi chú"
+        }
+    };
 
-//public class ViewTreatmentProgressHandlerTests
-//{
-//    private readonly Mock<ITreatmentProgressRepository> _repositoryMock;
-//    private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
-//    private readonly Mock<IMapper> _mapperMock;
+    private (CreateTreatmentProgressHandler Handler, Mock<ITreatmentProgressRepository> RepoMock, Mock<IDentistRepository> DentistRepoMock)
+    SetupHandler(string role, int userId, CreateTreatmentProgressCommand command)
+    {
+        var repoMock = new Mock<ITreatmentProgressRepository>();
+        var dentistRepoMock = new Mock<IDentistRepository>();
+        var mapperMock = new Mock<IMapper>();
+        var httpMock = new Mock<IHttpContextAccessor>();
 
-//    private readonly ViewTreatmentProgressHandler _handler;
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+            new Claim(ClaimTypes.Role, role)
+        }));
 
-//    public ViewTreatmentProgressHandlerTests()
-//    {
-//        _repositoryMock = new Mock<ITreatmentProgressRepository>();
-//        _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-//        _mapperMock = new Mock<IMapper>();
+        httpMock.Setup(h => h.HttpContext!.User).Returns(user);
 
-//        _handler = new ViewTreatmentProgressHandler(
-//            _repositoryMock.Object,
-//            _mapperMock.Object,
-//            _httpContextAccessorMock.Object
-//        );
-//    }
+        mapperMock.Setup(m => m.Map<TreatmentProgress>(It.IsAny<CreateTreatmentProgressDto>()))
+            .Returns(new TreatmentProgress
+            {
+                TreatmentRecordID = command.ProgressDto.TreatmentRecordID,
+                PatientID = command.ProgressDto.PatientID,
+                ProgressName = command.ProgressDto.ProgressName,
+                Duration = command.ProgressDto.Duration,
+                EndTime = command.ProgressDto.EndTime
+            });
 
-//    private void SetupHttpContext(string role, int userId)
-//    {
-//        var claims = new List<Claim>
-//        {
-//            new Claim(ClaimTypes.Role, role),
-//            new Claim(ClaimTypes.NameIdentifier, userId.ToString())
-//        };
-//        var identity = new ClaimsIdentity(claims, "Test");
-//        var principal = new ClaimsPrincipal(identity);
-//        var context = new DefaultHttpContext { User = principal };
+        return (
+            new CreateTreatmentProgressHandler(repoMock.Object, httpMock.Object, mapperMock.Object, dentistRepoMock.Object),
+            repoMock,
+            dentistRepoMock
+        );
+    }
 
-//        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
-//    }
+    [Fact(DisplayName = "Normal - UTCID01 - Valid input should return success")]
+    public async System.Threading.Tasks.Task UTCID01_ValidInput_ShouldReturnSuccess()
+    {
+        var cmd = GetValidCommand();
 
-//    // 🟢 Normal: Patient xem đúng hồ sơ của mình
-//    [Fact(DisplayName = "[Unit - Normal] Patient_Can_View_Own_Progress")]
-//    [Trait("TestType", "Normal")]
-//    public async System.Threading.Tasks.Task N_Patient_Can_View_Own_Progress()
-//    {
-//        int treatmentRecordId = 1;
-//        int userId = 10;
-//        SetupHttpContext("Patient", userId);
+        var repoMock = new Mock<ITreatmentProgressRepository>();
+        var dentistRepoMock = new Mock<IDentistRepository>();
+        var mapperMock = new Mock<IMapper>();
+        var httpMock = new Mock<IHttpContextAccessor>();
 
-//        var progressList = new List<TreatmentProgress>
-//        {
-//            new TreatmentProgress
-//            {
-//                TreatmentRecordID = treatmentRecordId,
-//                Patient = new Patient { UserID = userId, User = new User { UserID = userId } },
-//                Dentist = new global::Dentist { UserId = 2, User = new User { UserID = 2 } }
-//            }
-//        };
+        // Mock HttpContext với role Dentist
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, "1"),
+            new Claim(ClaimTypes.Role, "Dentist")
+        }));
+        httpMock.Setup(h => h.HttpContext!.User).Returns(user);
 
-//        _repositoryMock.Setup(r => r.GetByTreatmentRecordIdAsync(treatmentRecordId, It.IsAny<CancellationToken>()))
-//            .ReturnsAsync(progressList);
+        // Mock Mapper
+        mapperMock.Setup(m => m.Map<TreatmentProgress>(It.IsAny<CreateTreatmentProgressDto>()))
+            .Returns(new TreatmentProgress
+            {
+                TreatmentRecordID = cmd.ProgressDto.TreatmentRecordID,
+                PatientID = cmd.ProgressDto.PatientID,
+                ProgressName = cmd.ProgressDto.ProgressName,
+                Duration = cmd.ProgressDto.Duration,
+                EndTime = cmd.ProgressDto.EndTime
+            });
+        
+        dentistRepoMock
+            .Setup(r => r.GetDentistByUserIdAsync(1))
+            .ReturnsAsync(new Dentist { DentistId = 100 });
 
-//        _mapperMock.Setup(m => m.Map<List<ViewTreatmentProgressDto>>(progressList))
-//            .Returns(new List<ViewTreatmentProgressDto>());
+        var handler = new CreateTreatmentProgressHandler(
+            repoMock.Object,
+            httpMock.Object,
+            mapperMock.Object,
+            dentistRepoMock.Object);
 
-//        var result = await _handler.Handle(new ViewTreatmentProgressCommand(treatmentRecordId), default);
+        var result = await handler.Handle(cmd, default);
 
-//        Assert.NotNull(result);
-//    }
+        Assert.Equal(MessageConstants.MSG.MSG37, result);
+    }
 
-//    // 🔵 Abnormal: Patient cố gắng xem hồ sơ người khác
-//    [Fact(DisplayName = "[Unit - Abnormal] Patient_Cannot_View_Others_Progress")]
-//    [Trait("TestType", "Abnormal")]
-//    public async System.Threading.Tasks.Task A_Patient_Cannot_View_Others_Progress()
-//    {
-//        int treatmentRecordId = 1;
-//        int userId = 10;
-//        SetupHttpContext("Patient", userId);
+    [Fact(DisplayName = "Abnormal - UTCID02 - Role is not Dentist should throw Unauthorized")]
+    public async System.Threading.Tasks.Task UTCID02_RoleIsNotDentist_ShouldThrow()
+    {
+        var cmd = GetValidCommand();
+        var (handler, _, _) = SetupHandler("Patient", 2, cmd);
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => handler.Handle(cmd, default));
+    }
 
-//        var progressList = new List<TreatmentProgress>
-//        {
-//            new TreatmentProgress
-//            {
-//                TreatmentRecordID = treatmentRecordId,
-//                Patient = new Patient { UserID = 999, User = new User { UserID = 999 } },
-//                Dentist = new global::Dentist { UserId = 2, User = new User { UserID = 2 } }
-//            }
-//        };
+    [Fact(DisplayName = "Abnormal - UTCID03 - HttpContext is null should throw Unauthorized")]
+    public async System.Threading.Tasks.Task UTCID03_HttpContextIsNull_ShouldThrow()
+    {
+        var cmd = GetValidCommand();
 
-//        _repositoryMock.Setup(r => r.GetByTreatmentRecordIdAsync(treatmentRecordId, It.IsAny<CancellationToken>()))
-//            .ReturnsAsync(progressList);
+        var repoMock = new Mock<ITreatmentProgressRepository>();
+        var dentistRepoMock = new Mock<IDentistRepository>();
+        var mapperMock = new Mock<IMapper>();
+        var httpMock = new Mock<IHttpContextAccessor>();
+        httpMock.Setup(h => h.HttpContext).Returns((HttpContext)null!);
 
-//        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-//            _handler.Handle(new ViewTreatmentProgressCommand(treatmentRecordId), default));
-//    }
+        var handler = new CreateTreatmentProgressHandler(repoMock.Object, httpMock.Object, mapperMock.Object, dentistRepoMock.Object);
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => handler.Handle(cmd, default));
+    }
 
-//    // 🟢 Normal: Assistant có thể xem tất cả hồ sơ
-//    [Fact(DisplayName = "[Unit - Normal] Assistant_Can_View_All_Progress")]
-//    [Trait("TestType", "Normal")]
-//    public async System.Threading.Tasks.Task N_Assistant_Can_View_All_Progress()
-//    {
-//        int treatmentRecordId = 1;
-//        SetupHttpContext("Assistant", 999);
+    [Fact(DisplayName = "Abnormal - UTCID04 - TreatmentRecordID = 0 should throw MSG07")]
+    public async System.Threading.Tasks.Task UTCID04_TreatmentRecordIDIsZero_ShouldThrow()
+    {
+        var cmd = GetValidCommand();
+        cmd.ProgressDto.TreatmentRecordID = 0;
+        var (handler, _, _) = SetupHandler("Dentist", 1, cmd);
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => handler.Handle(cmd, default));
+        Assert.Contains(MessageConstants.MSG.MSG07, ex.Message);
+    }
 
-//        var progressList = new List<TreatmentProgress>
-//        {
-//            new TreatmentProgress
-//            {
-//                TreatmentRecordID = treatmentRecordId,
-//                Patient = new Patient { UserID = 1, User = new User { UserID = 1 } },
-//                Dentist = new global::Dentist { UserId = 2, User = new User { UserID = 2 } }
-//            }
-//        };
+    [Fact(DisplayName = "Abnormal - UTCID05 - PatientID = 0 should throw MSG07")]
+    public async System.Threading.Tasks.Task UTCID05_PatientIDIsZero_ShouldThrow()
+    {
+        var cmd = GetValidCommand();
+        cmd.ProgressDto.PatientID = 0;
+        var (handler, _, _) = SetupHandler("Dentist", 1, cmd);
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => handler.Handle(cmd, default));
+        Assert.Contains(MessageConstants.MSG.MSG07, ex.Message);
+    }
 
-//        _repositoryMock.Setup(r => r.GetByTreatmentRecordIdAsync(treatmentRecordId, It.IsAny<CancellationToken>()))
-//            .ReturnsAsync(progressList);
+    [Fact(DisplayName = "Abnormal - UTCID06 - ProgressName is null should throw")]
+    public async System.Threading.Tasks.Task UTCID06_ProgressNameIsNull_ShouldThrow()
+    {
+        var cmd = GetValidCommand();
+        cmd.ProgressDto.ProgressName = null;
+        var (handler, _, _) = SetupHandler("Dentist", 1, cmd);
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => handler.Handle(cmd, default));
+        Assert.Contains("Tên tiến trình không được để trống", ex.Message);
+    }
 
-//        _mapperMock.Setup(m => m.Map<List<ViewTreatmentProgressDto>>(progressList))
-//            .Returns(new List<ViewTreatmentProgressDto>());
+    [Fact(DisplayName = "Abnormal - UTCID07 - Duration <= 0 should throw")]
+    public async System.Threading.Tasks.Task UTCID07_DurationIsZero_ShouldThrow()
+    {
+        var cmd = GetValidCommand();
+        cmd.ProgressDto.Duration = 0;
+        var (handler, _, _) = SetupHandler("Dentist", 1, cmd);
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => handler.Handle(cmd, default));
+        Assert.Contains("Thời lượng phải lớn hơn 0", ex.Message);
+    }
 
-//        var result = await _handler.Handle(new ViewTreatmentProgressCommand(treatmentRecordId), default);
+    [Fact(DisplayName = "Abnormal - UTCID08 - EndTime is in the past should throw MSG76")]
+    public async System.Threading.Tasks.Task UTCID08_EndTimeInPast_ShouldThrow()
+    {
+        var cmd = GetValidCommand();
+        cmd.ProgressDto.EndTime = DateTime.UtcNow.AddMinutes(-10);
+        var (handler, _, _) = SetupHandler("Dentist", 1, cmd);
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => handler.Handle(cmd, default));
+        Assert.Contains(MessageConstants.MSG.MSG84, ex.Message);
+    }
 
-//        Assert.NotNull(result);
-//    }
+    [Fact(DisplayName = "Abnormal - UTCID09 - Status too long (>255) should throw")]
+    public async System.Threading.Tasks.Task UTCID09_StatusTooLong_ShouldThrow()
+    {
+        var cmd = GetValidCommand();
+        cmd.ProgressDto.Status = new string('x', 256);
+        var (handler, _, _) = SetupHandler("Dentist", 1, cmd);
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => handler.Handle(cmd, default));
+        Assert.Contains("Trạng thái không được vượt quá 255 ký tự", ex.Message);
+    }
 
-//    // 🔵 Abnormal: Dentist không có liên quan cố gắng xem hồ sơ
-//    [Fact(DisplayName = "[Unit - Abnormal] Dentist_Cannot_View_Others_Progress")]
-//    [Trait("TestType", "Abnormal")]
-//    public async System.Threading.Tasks.Task A_Dentist_Cannot_View_Others_Progress()
-//    {
-//        int treatmentRecordId = 1;
-//        int userId = 10;
-//        SetupHttpContext("Dentist", userId);
+    [Fact(DisplayName = "Abnormal - UTCID10 - Duplicate progress in same day should throw MSG36")]
+    public async System.Threading.Tasks.Task UTCID10_DuplicateSameDay_ShouldThrow()
+    {
+        var cmd = GetValidCommand();
 
-//        var progressList = new List<TreatmentProgress>
-//        {
-//            new TreatmentProgress
-//            {
-//                TreatmentRecordID = treatmentRecordId,
-//                Patient = new Patient { UserID = 1, User = new User { UserID = 1 } },
-//                Dentist = new global::Dentist { UserId = 999, User = new User { UserID = 999 } }
-//            }
-//        };
+        var repoMock = new Mock<ITreatmentProgressRepository>();
+        repoMock.Setup(r => r.CreateAsync(It.IsAny<TreatmentProgress>()))
+                .ThrowsAsync(new Exception(MessageConstants.MSG.MSG36)); // giả lập lỗi trùng
 
-//        _repositoryMock.Setup(r => r.GetByTreatmentRecordIdAsync(treatmentRecordId, It.IsAny<CancellationToken>()))
-//            .ReturnsAsync(progressList);
+        var dentistRepoMock = new Mock<IDentistRepository>();
+        var mapperMock = new Mock<IMapper>();
+        mapperMock.Setup(m => m.Map<TreatmentProgress>(It.IsAny<CreateTreatmentProgressDto>()))
+            .Returns(new TreatmentProgress
+            {
+                TreatmentRecordID = cmd.ProgressDto.TreatmentRecordID,
+                PatientID = cmd.ProgressDto.PatientID,
+                ProgressName = cmd.ProgressDto.ProgressName,
+                Duration = cmd.ProgressDto.Duration,
+                EndTime = cmd.ProgressDto.EndTime
+            });
 
-//        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-//            _handler.Handle(new ViewTreatmentProgressCommand(treatmentRecordId), default));
-//    }
-//}
+        var httpMock = new Mock<IHttpContextAccessor>();
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, "1"),
+            new Claim(ClaimTypes.Role, "Dentist")
+        }));
+        httpMock.Setup(h => h.HttpContext!.User).Returns(user);
+        dentistRepoMock
+            .Setup(r => r.GetDentistByUserIdAsync(1))
+            .ReturnsAsync(new Dentist { DentistId = 100 });
+        var handler = new CreateTreatmentProgressHandler(repoMock.Object, httpMock.Object, mapperMock.Object, dentistRepoMock.Object);
 
+        var ex = await Assert.ThrowsAsync<Exception>(() => handler.Handle(cmd, default));
+        Assert.Contains(MessageConstants.MSG.MSG36, ex.Message);
+    }
+}
