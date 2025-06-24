@@ -39,7 +39,7 @@ export default function PatientList() {
         patient.phone.includes(searchTerm)
 
       const matchesGender =
-        genderFilter === "all" || patient.gender.toLowerCase() === genderFilter
+        genderFilter === "all" || patient.gender === genderFilter
 
       return matchesSearch && matchesGender
     })
