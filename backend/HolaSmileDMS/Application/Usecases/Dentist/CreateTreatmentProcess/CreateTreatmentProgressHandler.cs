@@ -44,16 +44,16 @@ public class CreateTreatmentProgressHandler : IRequestHandler<CreateTreatmentPro
             throw new ArgumentException(MessageConstants.MSG.MSG07); // Vui lòng nhập thông tin bắt buộc
 
         if (string.IsNullOrWhiteSpace(dto.ProgressName))
-            throw new ArgumentException("Tên tiến trình không được để trống.");
+            throw new ArgumentException(MessageConstants.MSG.MSG77);
 
         if (dto.EndTime.HasValue && dto.EndTime.Value < DateTime.UtcNow)
             throw new ArgumentException(MessageConstants.MSG.MSG76); // Không thể chọn ngày trong quá khứ
 
         if (dto.Duration.HasValue && dto.Duration <= 0)
-            throw new ArgumentException("Thời lượng phải lớn hơn 0.");
+            throw new ArgumentException(MessageConstants.MSG.MSG78);
 
         if (!string.IsNullOrWhiteSpace(dto.Status) && dto.Status.Length > 255)
-            throw new ArgumentException("Trạng thái không được vượt quá 255 ký tự.");
+            throw new ArgumentException(MessageConstants.MSG.MSG79);
 
         // ✅ Mapping và tạo dữ liệu
         var progress = _mapper.Map<TreatmentProgress>(dto);
