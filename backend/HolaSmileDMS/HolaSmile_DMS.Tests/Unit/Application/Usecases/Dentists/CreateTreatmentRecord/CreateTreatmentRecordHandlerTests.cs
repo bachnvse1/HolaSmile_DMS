@@ -144,7 +144,7 @@ public class CreateTreatmentRecordHandlerTests
         var (handler, _) = SetupHandler("Dentist", 1, cmd);
 
         var ex = await Assert.ThrowsAsync<Exception>(() => handler.Handle(cmd, default));
-        Assert.Contains(MessageConstants.MSG.MSG75, ex.Message);
+        Assert.Contains(MessageConstants.MSG.MSG83, ex.Message);
     }
 
     [Fact(DisplayName = "Normal - UTCID10 - Zero discount is valid should return success")]

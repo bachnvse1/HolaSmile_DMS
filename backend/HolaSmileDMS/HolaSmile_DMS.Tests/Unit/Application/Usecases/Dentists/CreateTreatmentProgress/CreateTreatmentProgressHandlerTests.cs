@@ -174,7 +174,7 @@ public class CreateTreatmentProgressHandlerTests
         cmd.ProgressDto.EndTime = DateTime.UtcNow.AddMinutes(-10);
         var (handler, _, _) = SetupHandler("Dentist", 1, cmd);
         var ex = await Assert.ThrowsAsync<ArgumentException>(() => handler.Handle(cmd, default));
-        Assert.Contains(MessageConstants.MSG.MSG76, ex.Message);
+        Assert.Contains(MessageConstants.MSG.MSG84, ex.Message);
     }
 
     [Fact(DisplayName = "Abnormal - UTCID09 - Status too long (>255) should throw")]
