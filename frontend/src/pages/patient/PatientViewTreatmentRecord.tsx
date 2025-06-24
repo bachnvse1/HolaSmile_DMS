@@ -10,8 +10,12 @@ import TreatmentModal from "@/components/patient/TreatmentModal"
 import type { FilterFormData, TreatmentFormData, TreatmentRecord } from "@/types/treatment"
 import { getTreatmentRecordsByUser } from "@/services/treatmentService"
 import { Navigation } from "@/layouts/homepage/Navigation"
+import { useSearchParams } from "react-router"
 
 const PatientTreatmentRecords: React.FC = () => {
+    const [searchParams] = useSearchParams()
+    const patientId = searchParams.get("patientId")
+
     const { register, watch } = useForm<FilterFormData>({
         defaultValues: {
             searchTerm: "",
@@ -33,8 +37,9 @@ const PatientTreatmentRecords: React.FC = () => {
 
     useEffect(() => {
         const fetchRecords = async () => {
+            if (!patientId) return
             try {
-                const data = await getTreatmentRecordsByUser(6)
+                const data = await getTreatmentRecordsByUser(patientId)
                 setRecords(data)
             } catch (error) {
                 console.error("Error fetching treatment records:", error)
@@ -42,7 +47,8 @@ const PatientTreatmentRecords: React.FC = () => {
         }
 
         fetchRecords()
-    }, [])
+    }, [patientId])
+
 
     const filteredRecords = records.filter((record) => {
         const matchesSearch =
