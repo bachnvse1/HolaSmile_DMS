@@ -33,13 +33,6 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
   const weekRange = getWeekDateRange(weekDates);
   const weekLabel = currentWeek === 0 ? 'Tuần 1' : 'Tuần 2';
 
-  // Debug: hiển thị thông tin bác sĩ và lịch
-  useEffect(() => {
-    console.log('Dentist Info:', dentist);
-    console.log('Backend Schedules:', dentist.backendSchedules);
-    console.log('Frontend Schedule:', dentist.schedule);
-  }, [dentist]);
-
   // Tạo time slots với icon
   const timeSlotsWithIcons: TimeSlot[] = TIME_SLOTS.map(slot => ({
     ...slot,

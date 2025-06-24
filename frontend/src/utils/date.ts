@@ -42,4 +42,24 @@ export const getWeekDateRange = (dates: Date[]): string => {
   const endDate = dates[dates.length - 1];
   
   return `${formatDate(startDate)} - ${formatDate(endDate)}`;
+
+};
+
+export const formatVietnameseDateFull = (date: Date): string => {
+  return date.toLocaleDateString("vi-VN", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+};
+
+export const formatVietnameseDateWithDay = (date: Date): string => {
+  return date.toLocaleDateString("vi-VN", {
+    weekday: "long",
+    day: "numeric",
+    month: "numeric"
+  });
 };

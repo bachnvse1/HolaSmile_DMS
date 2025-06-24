@@ -38,6 +38,9 @@ namespace HDMS_API.DependencyInjection
             services.AddScoped<ITreatmentRecordRepository, TreatmentRecordRepository>();
             services.AddScoped<IScheduleRepository, ScheduleRepository>();
             services.AddSingleton<IHashIdService, HashIdService>();
+            services.AddScoped<ITreatmentProgressRepository, TreatmentProgressRepository>();
+            services.AddScoped<ITreatmentProgressRepository, TreatmentProgressRepository>();
+
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>
             {
@@ -63,6 +66,7 @@ namespace HDMS_API.DependencyInjection
             services.AddAutoMapper(typeof(MappingViewTreatmentRecord));
             services.AddAutoMapper(typeof(MappingCreatePatient));
             services.AddAutoMapper(typeof(MappingAppointment));
+            services.AddAutoMapper(typeof(MappingTreatmentProgress).Assembly);
 
             // Caching
             services.AddMemoryCache();
