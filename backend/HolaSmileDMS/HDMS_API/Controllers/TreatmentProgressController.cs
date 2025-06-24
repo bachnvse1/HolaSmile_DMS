@@ -1,3 +1,4 @@
+using Application.Usecases.Dentist.CreateTreatmentProcess;
 using Application.Usecases.Patients.ViewTreatmentProgress;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -39,5 +40,13 @@ public class TreatmentProgressController : ControllerBase
                 Stack = ex.StackTrace
             });
         }
+    }
+    
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> Create([FromBody] CreateTreatmentProgressDto dto)
+    {
+        var result = await _mediator.Send(new CreateTreatmentProgressCommand { ProgressDto = dto });
+        return Ok(new { message = result });
     }
 }

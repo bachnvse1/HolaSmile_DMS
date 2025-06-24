@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
 
-namespace Tests.Unit.Application.Usecases.Dentist;
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists.CreateTreatmentRecord;
 
 public class CreateTreatmentRecordHandlerTests
 {

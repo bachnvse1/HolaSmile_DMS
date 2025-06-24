@@ -1,3 +1,4 @@
+using Application.Usecases.Dentist.CreateTreatmentProcess;
 using Application.Usecases.Dentist.CreateTreatmentRecord;
 using AutoMapper;
 using Application.Usecases.Patients.ViewTreatmentProgress;
@@ -19,5 +20,6 @@ public class MappingTreatmentProgress : Profile
                 opt => opt.MapFrom(src => src.Dentist != null ? src.Dentist.User.Fullname : null));
         CreateMap<CreateTreatmentRecordCommand, TreatmentRecord>()
             .ForMember(dest => dest.TreatmentRecordID, opt => opt.Ignore());
+        CreateMap<CreateTreatmentProgressDto, TreatmentProgress>();
     }
 }

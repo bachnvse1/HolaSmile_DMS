@@ -1,14 +1,14 @@
+using System.Security.Claims;
 using Application.Usecases.Patients.ViewTreatmentProgress;
 using AutoMapper;
+using HDMS_API.Infrastructure.Persistence;
+using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System.Security.Claims;
-using HDMS_API.Infrastructure.Persistence;
-using Infrastructure.Repositories;
 using Xunit;
 
-namespace Tests.Integration.Application.Usecases.Patients;
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Patients.ViewTreatmentProgress;
 
 public class ViewTreatmentProgressIntegrationTests
 {
