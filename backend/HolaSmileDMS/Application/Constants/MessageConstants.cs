@@ -77,6 +77,11 @@ public static class MessageConstants
         public const string MSG71 = "Cập nhật thủ thuật thành công";
         public const string MSG72 = "Tài khoản của bạn đã bị khóa.";
         public const string MSG73 = "Số lượng không hợp lệ.";
-        public const string MSG74 = "Đơn giá không hợp lệ.";
+        public const string MSG82 = "Đơn giá không hợp lệ.";
+        public const string MSG83 = "Ngày điều trị không được để trống."; // 74 75 76 77 78 79
+        public const string MSG84 = "Không thể chọn ngày trong quá khứ.";
+        public const string MSG85 = "Tên tiến trình không được để trống.";
+        public const string MSG86 = "Thời lượng phải lớn hơn 0.";
+        public const string MSG87 = "Trạng thái không được vượt quá 255 ký tự.";
     }
 }

@@ -1,4 +1,3 @@
-using Application.Usecases.Patients.UpdateTreatmentRecord;
 using Application.Usecases.Patients.ViewTreatmentRecord;
 
 namespace Application.Interfaces;

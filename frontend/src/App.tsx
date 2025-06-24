@@ -20,6 +20,8 @@ import { StaffDashboard } from './pages/staff/StaffDashboard';
 import { PatientBookingPage } from './pages/patient/PatientBookingPage';
 import { DentistScheduleViewer } from './components/appointment/DentistScheduleViewer';
 import PatientTreatmentRecords from './pages/patient/PatientViewTreatmentRecord';
+import ViewTreatmentProgressPage from './pages/patient/ViewTreatmentProgress';
+import PatientList from './pages/patient/PatientList';
 
 function App() {
   return (
@@ -46,6 +48,8 @@ function App() {
         <Route path="/dashboard" element={<StaffDashboard/>} />
         <Route path="/patient/book-appointment" element={<PatientBookingPage/>} />
         <Route path="/patient/view-treatment-records" element={<PatientTreatmentRecords/>} />
+        <Route path="/patient/view-treatment-progress/:treatmentRecordId" element={<ViewTreatmentProgressPage/>} />
+        <Route path="/patients" element={<PatientList />} />
       </Routes>
     </>
   );

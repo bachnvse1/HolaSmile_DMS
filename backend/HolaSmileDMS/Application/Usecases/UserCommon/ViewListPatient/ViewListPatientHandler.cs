@@ -38,8 +38,8 @@ public class ViewListPatientHandler : IRequestHandler<ViewListPatientCommand, Li
 
         var result = rawPatients.Select(p => new ViewListPatientDto
         {
-            UserId = _hashIdService.Encode(p.UserId),
-            PatientId = _hashIdService.Encode(p.PatientId),
+            UserId = p.UserId,
+            PatientId = p.PatientId,
             Fullname = p.Fullname,
             Gender = p.Gender,
             Phone = p.Phone,
