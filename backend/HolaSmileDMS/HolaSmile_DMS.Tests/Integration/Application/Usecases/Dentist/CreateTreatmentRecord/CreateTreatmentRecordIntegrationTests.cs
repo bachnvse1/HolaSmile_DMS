@@ -86,7 +86,8 @@ public class CreateTreatmentRecordIntegrationTests
             DentistId = 2,
             ProcedureId = 1,
             UnitPrice = 500000,
-            Quantity = 1
+            Quantity = 1,
+            TreatmentDate = DateTime.Now,
         };
 
         var result = await _handler.Handle(cmd, default);

@@ -47,51 +47,114 @@ public class CreateTreatmentRecordHandlerTests
         return (new CreateTreatmentRecordHandler(repoMock.Object, mapperMock.Object, httpMock.Object), repoMock);
     }
 
-    // 🔵 Abnormal Case: AppointmentId is 0 → should throw exception
-    [Fact]
-    [Trait("TestType", "Abnormal")]
-    public async System.Threading.Tasks.Task A_AppointmentIdIsZero_ShouldThrowException()
+    [Fact(DisplayName = "Abnormal - UTCID01 - AppointmentId = 0 should throw MSG28")]
+    public async System.Threading.Tasks.Task UTCID01_AppointmentIdIsZero_ShouldThrowException()
     {
         var cmd = GetValidCommand();
         cmd.AppointmentId = 0;
-        var (handler, _) = SetupHandler("Dentist", 12, cmd);
+        var (handler, _) = SetupHandler("Dentist", 1, cmd);
 
         var ex = await Assert.ThrowsAsync<Exception>(() => handler.Handle(cmd, default));
         Assert.Contains(MessageConstants.MSG.MSG28, ex.Message);
     }
 
-    // 🟢 Normal Case: Valid input → should return success
-    [Fact]
-    [Trait("TestType", "Normal")]
-    public async System.Threading.Tasks.Task N_ValidInput_ShouldReturnSuccessMessage()
+    [Fact(DisplayName = "Abnormal - UTCID02 - ProcedureId = 0 should throw MSG16")]
+    public async System.Threading.Tasks.Task UTCID02_ProcedureIdIsZero_ShouldThrowException()
     {
         var cmd = GetValidCommand();
-        var (handler, _) = SetupHandler("Dentist", 2, cmd);
+        cmd.ProcedureId = 0;
+        var (handler, _) = SetupHandler("Dentist", 1, cmd);
 
-        var result = await handler.Handle(cmd, default);
-        Assert.Equal(MessageConstants.MSG.MSG31, result);
+        var ex = await Assert.ThrowsAsync<Exception>(() => handler.Handle(cmd, default));
+        Assert.Contains(MessageConstants.MSG.MSG16, ex.Message);
     }
 
-    // 🟡 Boundary Case: DiscountAmount too high → should throw
-    [Fact]
-    [Trait("TestType", "Boundary")]
-    public async System.Threading.Tasks.Task B_DiscountExceedsTotal_ShouldThrowException()
+    [Fact(DisplayName = "Abnormal - UTCID03 - Quantity = 0 should throw MSG73")]
+    public async System.Threading.Tasks.Task UTCID03_QuantityIsZero_ShouldThrowException()
+    {
+        var cmd = GetValidCommand();
+        cmd.Quantity = 0;
+        var (handler, _) = SetupHandler("Dentist", 1, cmd);
+
+        var ex = await Assert.ThrowsAsync<Exception>(() => handler.Handle(cmd, default));
+        Assert.Contains(MessageConstants.MSG.MSG73, ex.Message);
+    }
+
+    [Fact(DisplayName = "Abnormal - UTCID04 - UnitPrice = 0 should throw MSG20")]
+    public async System.Threading.Tasks.Task UTCID04_UnitPriceIsZero_ShouldThrowException()
+    {
+        var cmd = GetValidCommand();
+        cmd.UnitPrice = 0;
+        var (handler, _) = SetupHandler("Dentist", 1, cmd);
+
+        var ex = await Assert.ThrowsAsync<Exception>(() => handler.Handle(cmd, default));
+        Assert.Contains(MessageConstants.MSG.MSG20, ex.Message);
+    }
+
+    [Fact(DisplayName = "Boundary - UTCID05 - DiscountAmount exceeds total should throw")]
+    public async System.Threading.Tasks.Task UTCID05_DiscountAmountExceedsTotal_ShouldThrowException()
     {
         var cmd = GetValidCommand();
         cmd.DiscountAmount = 9999999;
-        var (handler, _) = SetupHandler("Dentist", 2, cmd);
+        var (handler, _) = SetupHandler("Dentist", 1, cmd);
 
-        await Assert.ThrowsAsync<Exception>(() => handler.Handle(cmd, default));
+        var ex = await Assert.ThrowsAsync<Exception>(() => handler.Handle(cmd, default));
+        Assert.Contains(MessageConstants.MSG.MSG20, ex.Message, StringComparison.OrdinalIgnoreCase);
     }
 
-    // 🔵 Abnormal Case: Role is not dentist → should throw unauthorized
-    [Fact]
-    [Trait("TestType", "Abnormal")]
-    public async System.Threading.Tasks.Task A_InvalidRole_ShouldThrowUnauthorized()
+    [Fact(DisplayName = "Abnormal - UTCID06 - Role is not dentist should throw Unauthorized")]
+    public async System.Threading.Tasks.Task UTCID06_RoleIsNotDentist_ShouldThrowUnauthorized()
     {
         var cmd = GetValidCommand();
         var (handler, _) = SetupHandler("Patient", 2, cmd);
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() => handler.Handle(cmd, default));
+    }
+
+    [Fact(DisplayName = "Normal - UTCID07 - Valid input should return success")]
+    public async System.Threading.Tasks.Task UTCID07_ValidInput_ShouldReturnSuccess()
+    {
+        var cmd = GetValidCommand();
+        var (handler, _) = SetupHandler("Dentist", 1, cmd);
+
+        var result = await handler.Handle(cmd, default);
+        Assert.Equal(MessageConstants.MSG.MSG31, result);
+    }
+
+    [Fact(DisplayName = "Abnormal - UTCID08 - HttpContext is null should throw Unauthorized")]
+    public async System.Threading.Tasks.Task UTCID08_HttpContextIsNull_ShouldThrowUnauthorized()
+    {
+        var cmd = GetValidCommand();
+
+        var repoMock = new Mock<ITreatmentRecordRepository>();
+        var mapperMock = new Mock<IMapper>();
+        var httpMock = new Mock<IHttpContextAccessor>();
+        httpMock.Setup(h => h.HttpContext).Returns((HttpContext)null!);
+
+        var handler = new CreateTreatmentRecordHandler(repoMock.Object, mapperMock.Object, httpMock.Object);
+
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => handler.Handle(cmd, default));
+    }
+
+    [Fact(DisplayName = "Abnormal - UTCID09 - TreatmentDate null should throw MSG28")]
+    public async System.Threading.Tasks.Task UTCID09_TreatmentDateIsDefault_ShouldThrowException()
+    {
+        var cmd = GetValidCommand();
+        cmd.TreatmentDate = default;
+        var (handler, _) = SetupHandler("Dentist", 1, cmd);
+
+        var ex = await Assert.ThrowsAsync<Exception>(() => handler.Handle(cmd, default));
+        Assert.Contains(MessageConstants.MSG.MSG75, ex.Message);
+    }
+
+    [Fact(DisplayName = "Normal - UTCID10 - Zero discount is valid should return success")]
+    public async System.Threading.Tasks.Task UTCID10_DiscountZero_ShouldPass()
+    {
+        var cmd = GetValidCommand();
+        cmd.DiscountAmount = 0;
+        var (handler, _) = SetupHandler("Dentist", 2, cmd);
+
+        var result = await handler.Handle(cmd, default);
+        Assert.Equal(MessageConstants.MSG.MSG31, result);
     }
 }
