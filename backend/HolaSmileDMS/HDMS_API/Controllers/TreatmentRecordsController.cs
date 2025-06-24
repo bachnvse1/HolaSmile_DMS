@@ -1,8 +1,9 @@
 using Application.Constants;
 using Application.Usecases.Dentist.CreateTreatmentRecord;
-using Application.Usecases.Patients.UpdateTreatmentRecord;
+using Application.Usecases.Dentist.UpdateTreatmentRecord;
 using Application.Usecases.Patients.ViewTreatmentRecord;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -78,6 +79,8 @@ public class TreatmentRecordsController : ControllerBase
             return Forbid(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
         }
     }
+
+    [Authorize]
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateRecord(int id, [FromBody] UpdateTreatmentRecordCommand command, CancellationToken cancellationToken)
     {

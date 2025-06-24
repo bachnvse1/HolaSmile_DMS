@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using System.Text.Json.Serialization;
 
-namespace Application.Usecases.Patients.UpdateTreatmentRecord
+namespace Application.Usecases.Dentist.UpdateTreatmentRecord
 {
     public class UpdateTreatmentRecordCommand : IRequest<bool>
     {
