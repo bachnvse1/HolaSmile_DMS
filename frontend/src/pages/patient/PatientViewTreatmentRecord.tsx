@@ -2,16 +2,20 @@ import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { Plus, FileText } from "lucide-react"
 
-import FilterBar from "@/components/patientTreatment/FilterBar"
-import SummaryStats from "@/components/patientTreatment/SummaryStats"
-import TreatmentTable from "@/components/patientTreatment/TreatmentTable"
-import TreatmentModal from "@/components/patientTreatment/TreatmentModal"
+import FilterBar from "@/components/patient/FilterBar"
+import SummaryStats from "@/components/patient/SummaryStats"
+import TreatmentTable from "@/components/patient/TreatmentTable"
+import TreatmentModal from "@/components/patient/TreatmentModal"
 
 import type { FilterFormData, TreatmentFormData, TreatmentRecord } from "@/types/treatment"
 import { getTreatmentRecordsByUser } from "@/services/treatmentService"
 import { Navigation } from "@/layouts/homepage/Navigation"
+import { useSearchParams } from "react-router"
 
 const PatientTreatmentRecords: React.FC = () => {
+    const [searchParams] = useSearchParams()
+    const userId = searchParams.get("userId")
+
     const { register, watch } = useForm<FilterFormData>({
         defaultValues: {
             searchTerm: "",
@@ -33,8 +37,10 @@ const PatientTreatmentRecords: React.FC = () => {
 
     useEffect(() => {
         const fetchRecords = async () => {
+            if (!userId) return
             try {
-                const data = await getTreatmentRecordsByUser(6)
+                const data = await getTreatmentRecordsByUser(Number(userId))
+                console.log("Fetched treatment records:", data)
                 setRecords(data)
             } catch (error) {
                 console.error("Error fetching treatment records:", error)
@@ -42,7 +48,8 @@ const PatientTreatmentRecords: React.FC = () => {
         }
 
         fetchRecords()
-    }, [])
+    }, [userId])
+
 
     const filteredRecords = records.filter((record) => {
         const matchesSearch =
