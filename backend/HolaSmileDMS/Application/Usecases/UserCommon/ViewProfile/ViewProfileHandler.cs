@@ -18,14 +18,11 @@ public class ViewProfileHandler : IRequestHandler<ViewProfileCommand, ViewProfil
     public async Task<ViewProfileDto?> Handle(ViewProfileCommand request, CancellationToken cancellationToken)
     {
         var user = _httpContextAccessor.HttpContext?.User;
+        if (user == null)
+            throw new UnauthorizedAccessException("Bạn cần đăng nhập để thực hiện thao tác này.");
 
-        var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var currentUserId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-        var isAuthen = currentUserId == request.UserId;
-
-        if (!isAuthen)
-            throw new UnauthorizedAccessException("Bạn không có quyền xem hồ sơ người dùng này.");
-
-        return await _repository.GetUserProfileAsync(request.UserId, cancellationToken);
+        return await _repository.GetUserProfileAsync(currentUserId, cancellationToken);
     }
 }
