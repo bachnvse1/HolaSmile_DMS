@@ -14,7 +14,7 @@ import { useSearchParams } from "react-router"
 
 const PatientTreatmentRecords: React.FC = () => {
     const [searchParams] = useSearchParams()
-    const patientId = searchParams.get("patientId")
+    const userId = searchParams.get("userId")
 
     const { register, watch } = useForm<FilterFormData>({
         defaultValues: {
@@ -37,9 +37,10 @@ const PatientTreatmentRecords: React.FC = () => {
 
     useEffect(() => {
         const fetchRecords = async () => {
-            if (!patientId) return
+            if (!userId) return
             try {
-                const data = await getTreatmentRecordsByUser(patientId)
+                const data = await getTreatmentRecordsByUser(Number(userId))
+                console.log("Fetched treatment records:", data)
                 setRecords(data)
             } catch (error) {
                 console.error("Error fetching treatment records:", error)
@@ -47,7 +48,7 @@ const PatientTreatmentRecords: React.FC = () => {
         }
 
         fetchRecords()
-    }, [patientId])
+    }, [userId])
 
 
     const filteredRecords = records.filter((record) => {

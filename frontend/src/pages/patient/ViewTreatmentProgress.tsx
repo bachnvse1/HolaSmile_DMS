@@ -1,6 +1,6 @@
 import { useState } from "react"
-import { TreatmentProgressList } from "@/components/patientTreatment/TreatmentProgressList" 
-import { TreatmentProgressView } from "@/components/patientTreatment/TreatmentProgressView"
+import { TreatmentProgressList } from "@/components/patient/TreatmentProgressList" 
+import { TreatmentProgressView } from "@/components/patient/TreatmentProgressView" 
 import type { TreatmentProgress } from "@/types/treatmentProgress"
 import { FileText } from "lucide-react"
 
