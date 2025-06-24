@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import type { Dentist, TimeSlot } from '../../types/appointment';
 import { TIME_SLOTS } from '../../constants/appointment';
@@ -14,6 +14,8 @@ interface ScheduleCalendarProps {
   onDateSelect: (date: string, timeSlot: string) => void;
   onPreviousWeek: () => void;
   onNextWeek: () => void;
+  mode?: 'view' | 'book';
+  canBookAppointment?: boolean;
 }
 
 export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
@@ -23,17 +25,38 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
   selectedTimeSlot,
   onDateSelect,
   onPreviousWeek,
-  onNextWeek
+  onNextWeek,
+  mode = 'book',
+  canBookAppointment = true
 }) => {
   const weekDates = getDatesForWeek(currentWeek);
   const weekRange = getWeekDateRange(weekDates);
   const weekLabel = currentWeek === 0 ? 'Tuần 1' : 'Tuần 2';
+
+  // Debug: hiển thị thông tin bác sĩ và lịch
+  useEffect(() => {
+    console.log('Dentist Info:', dentist);
+    console.log('Backend Schedules:', dentist.backendSchedules);
+    console.log('Frontend Schedule:', dentist.schedule);
+  }, [dentist]);
 
   // Tạo time slots với icon
   const timeSlotsWithIcons: TimeSlot[] = TIME_SLOTS.map(slot => ({
     ...slot,
     icon: <Clock className="h-4 w-4" />
   }));
+
+  // Kiểm tra xem một time slot có khả dụng hay không
+  const checkTimeSlotAvailability = (dateString: string, period: 'morning' | 'afternoon' | 'evening'): boolean => {
+    // Sử dụng dữ liệu mẫu nếu không có dữ liệu từ backend
+
+    
+    // Kiểm tra ca làm việc
+    const isAvailableInFrontend = isTimeSlotAvailable(dentist.schedule, dateString, period);
+    
+    // Ưu tiên sử dụng kết quả từ backend
+    return isAvailableInFrontend;
+  };
 
   return (
     <div className="mb-8">
@@ -71,11 +94,10 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
           {weekDates.map((date) => (
             <div
               key={getDateString(date)}
-              className={`text-center p-3 rounded-xl border transition-all ${
-                isToday(date)
+              className={`text-center p-3 rounded-xl border transition-all ${isToday(date)
                   ? 'bg-blue-100 border-blue-300 text-blue-900'
                   : 'bg-white border-gray-200'
-              }`}
+                }`}
             >
               <div className="text-xs font-medium text-gray-600">
                 {getShortDayName(date)}
@@ -101,28 +123,31 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
             </div>
             {weekDates.map((date) => {
               const dateString = getDateString(date);
-              const isAvailable = isTimeSlotAvailable(dentist.schedule, dateString, slot.period);
+              const isAvailable = checkTimeSlotAvailability(dateString, slot.period);
               const isSelected = selectedDate === dateString && selectedTimeSlot === slot.period;
-              
+              const canInteract = mode === 'book' && isAvailable && canBookAppointment;
+
               return (
                 <button
-                  key={`${dateString}-${slot.period}`}
-                  onClick={() => {
-                    if (isAvailable) {
+                  key={`${dateString}-${slot.period}`} onClick={() => {
+                    if (canInteract) {
                       onDateSelect(dateString, slot.period);
                     }
                   }}
-                  disabled={!isAvailable}
-                  className={`p-3 rounded-xl font-medium transition-all transform hover:scale-105 ${
-                    isAvailable
+                  disabled={!canInteract} className={`p-3 rounded-xl font-medium transition-all transform hover:scale-105 ${isAvailable
                       ? isSelected
                         ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg border-2 border-green-400'
-                        : 'bg-gradient-to-br from-green-100 to-emerald-100 text-green-800 hover:from-green-200 hover:to-emerald-200 border-2 border-green-200'
+                        : mode === 'book' && canBookAppointment
+                          ? 'bg-gradient-to-br from-green-100 to-emerald-100 text-green-800 hover:from-green-200 hover:to-emerald-200 border-2 border-green-200 cursor-pointer'
+                          : 'bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-800 border-2 border-blue-200'
                       : 'bg-gray-100 text-gray-400 cursor-not-allowed border-2 border-gray-200'
-                  }`}
+                    }`}
                 >
                   <div className="text-xs">
-                    {isAvailable ? (isSelected ? 'Đã chọn' : 'Có thể đặt') : 'Không có'}
+                    {isAvailable
+                      ? (isSelected ? 'Đã chọn' : mode === 'book' && canBookAppointment ? 'Có thể đặt' : 'Có lịch')
+                      : 'Không có'
+                    }
                   </div>
                 </button>
               );

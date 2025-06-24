@@ -15,6 +15,12 @@ import AddPatient from './pages/auth/CreatePatientAccount';
 import AuthCallback from './pages/auth/AuthCallback';
 import ResetPassword from './pages/auth/ResetPassword';
 import ViewProfile from './pages/auth/ViewProfile';
+import { PatientDashboardPage } from './pages/patient/PatientDashboardPage';
+import { StaffDashboard } from './pages/staff/StaffDashboard';
+import { PatientBookingPage } from './pages/patient/PatientBookingPage';
+import { PatientAppointmentsPage } from './pages/patient/PatientAppointmentsPage';
+import { StaffAppointmentsPage } from './pages/staff/StaffAppointmentsPage';
+import ScheduleManagementPage from './pages/staff/ScheduleManagementPage';
 
 function App() {
   return (
@@ -36,7 +42,12 @@ function App() {
         <Route path="/add-patient" element={<AddPatient />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/view-profile" element={<ViewProfile />} />
+        <Route path="/view-profile" element={<ViewProfile />} />        <Route path="/patient/dashboard" element={<PatientDashboardPage/>} />
+        <Route path="/dashboard" element={<StaffDashboard/>} />
+        <Route path="/patient/book-appointment" element={<PatientBookingPage/>} />
+        <Route path="/patient/appointments" element={<PatientAppointmentsPage/>} />
+        <Route path="/appointments" element={<StaffAppointmentsPage/>} />
+        <Route path="/schedules" element={<ScheduleManagementPage/>} />
       </Routes>
     </>
   );
