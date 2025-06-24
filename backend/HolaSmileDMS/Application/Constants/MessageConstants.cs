@@ -80,5 +80,8 @@ public static class MessageConstants
         public const string MSG74 = "Đơn giá không hợp lệ.";
         public const string MSG75 = "Ngày điều trị không được để trống.";
         public const string MSG76 = "Không thể chọn ngày trong quá khứ.";
+        public const string MSG77 = "Tên tiến trình không được để trống.";
+        public const string MSG78 = "Thời lượng phải lớn hơn 0.";
+        public const string MSG79 = "Trạng thái không được vượt quá 255 ký tự.";
     }
 }
