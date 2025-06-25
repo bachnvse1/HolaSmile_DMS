@@ -8,8 +8,8 @@ namespace Application.Usecases.Dentist.ViewAllDentistSchedule
 {
     public class ScheduleDTO
     {
-        public string ScheduleId { get; set; }
-        public string DentistName { get; set; } // Encoded Dentist ID
+        public int ScheduleId { get; set; }
+        public string DentistName { get; set; } 
         public DateTime WorkDate { get; set; }
         public string Shift { get; set; } // e.g., "Morning", "Afternoon", "Evening"
         public DateTime CreatedAt { get; set; }

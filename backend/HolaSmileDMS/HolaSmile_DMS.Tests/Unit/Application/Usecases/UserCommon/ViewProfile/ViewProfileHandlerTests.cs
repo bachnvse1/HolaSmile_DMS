@@ -1,11 +1,11 @@
-﻿using Application.Constants.Interfaces;
+﻿using System.Security.Claims;
+using Application.Constants.Interfaces;
 using Application.Usecases.UserCommon.ViewProfile;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using System.Security.Claims;
 using Xunit;
 
-namespace Tests.Unit.Application.Usecases.UserCommon;
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon;
 
 public class ViewProfileHandlerTests
 {

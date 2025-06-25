@@ -8,11 +8,10 @@ export const useUserProfile = () => {
   return useQuery({
     queryKey: ['user-profile'],
     queryFn: () => AuthService.fetchUserProfile(),
-    enabled: isAuthenticated, // Only fetch when authenticated
+    enabled: isAuthenticated, 
     staleTime: 1000 * 60 * 5, // Cache 5 minutes
     retry: false, // Don't retry on failure
     refetchOnWindowFocus: false,
-    // Gracefully handle errors - don't throw
     throwOnError: false,
   });
 };

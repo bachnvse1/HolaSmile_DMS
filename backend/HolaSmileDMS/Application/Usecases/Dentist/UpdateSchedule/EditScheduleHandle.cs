@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Constants.Interfaces;
-using Application.Services;
+using Application.Interfaces;
 using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -17,17 +12,13 @@ namespace Application.Usecases.Dentist.UpdateSchedule
     {
         private readonly IDentistRepository _dentistRepository;
         private readonly IScheduleRepository _scheduleRepository;
-        private readonly IHashIdService _hashIdService;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IMapper _mapper;
 
-        public EditScheduleHandle(IDentistRepository dentistRepository, IHashIdService hashIdService, IMapper mapper, IScheduleRepository scheduleRepository, IHttpContextAccessor httpContextAccessor)
+        public EditScheduleHandle(IDentistRepository dentistRepository, IScheduleRepository scheduleRepository, IHttpContextAccessor httpContextAccessor)
         {
             _dentistRepository = dentistRepository;
-            _hashIdService = hashIdService;
             _httpContextAccessor = httpContextAccessor;
             _scheduleRepository = scheduleRepository;
-            _mapper = mapper;
         }
         public async Task<string> Handle(EditScheduleCommand request, CancellationToken cancellationToken)
         {
@@ -37,24 +28,23 @@ namespace Application.Usecases.Dentist.UpdateSchedule
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
             // Giải mã ScheduleId và lấy lịch làm việc
-            var scheduleId = _hashIdService.Decode(request.ScheduleId);
-            var schedule = await _scheduleRepository.GetScheduleByIdAsync(scheduleId);
+            var schedule = await _scheduleRepository.GetScheduleByIdAsync(request.ScheduleId);
             if (schedule == null)
             {
-                throw new Exception("Lịch hẹn không tồn tại.");
+                throw new Exception(MessageConstants.MSG.MSG28);
             }
 
             // Kiểm tra quyền của người dùng (chỉ Dentist được sửa)
             if (!string.Equals(currentUserRole, "dentist", StringComparison.OrdinalIgnoreCase))
             {
-                throw new UnauthorizedAccessException("Bạn không có quyền chỉnh sửa lịch làm việc.");
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             }
 
             // Lấy thông tin Dentist hiện tại
             var dentist = await _dentistRepository.GetDentistByUserIdAsync(currentUserId);
             if (dentist == null || schedule.DentistId != dentist.DentistId)
             {
-                throw new Exception(MessageConstants.MSG.MSG26 ?? "Bạn không phải người sở hữu lịch này.");
+                throw new Exception(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này."
             }
 
             // Nếu lịch chưa được Owner duyệt ,cập nhật lịch thẳng
@@ -70,19 +60,17 @@ namespace Application.Usecases.Dentist.UpdateSchedule
 
                 if (isDuplicate)
                 {
-                    throw new Exception(MessageConstants.MSG.MSG51 ?? "Xung đột với lịch làm việc hiện tại.");
+                    throw new Exception(MessageConstants.MSG.MSG51); // "Xung đột với lịch làm việc hiện tại."
                 }
 
                 // Cập nhật thông tin lịch làm việc
                 schedule.WorkDate = request.WorkDate;
                 schedule.Shift = request.Shift;
                 schedule.UpdatedAt = DateTime.Now;
-                schedule.UpdatedBy = dentist.DentistId;
+                schedule.UpdatedBy = currentUserId;
 
                 var updated = await _scheduleRepository.UpdateScheduleAsync(schedule);
-                return updated
-                    ? MessageConstants.MSG.MSG52 ?? "Cập nhật lịch làm việc thành công."
-                    : "Cập nhật lịch làm việc thất bại.";
+                return updated ? MessageConstants.MSG.MSG52 : MessageConstants.MSG.MSG58;
             }
             else
             {
@@ -90,9 +78,9 @@ namespace Application.Usecases.Dentist.UpdateSchedule
                 var deleted = await _scheduleRepository.DeleteSchedule(schedule.ScheduleId);
                 if (!deleted)
                 {
-                    throw new Exception("Xoá lịch làm việc cũ thất bại.");
-                }
+                    throw new Exception(MessageConstants.MSG.MSG58); // Cập nhật dữ liệu thất bại
 
+                }
                 // Tạo lịch làm việc mới
                 var newSchedule = new Schedule
                 {
@@ -102,14 +90,13 @@ namespace Application.Usecases.Dentist.UpdateSchedule
                     WeekStartDate = schedule.WeekStartDate,
                     Status = "pending",
                     CreatedAt = DateTime.Now,
-                    CreatedBy = dentist.DentistId,
+                    CreatedBy = currentUserId,
                     IsActive = true
                 };
 
                 var created = await _scheduleRepository.RegisterScheduleByDentist(newSchedule);
-                return created
-                    ? MessageConstants.MSG.MSG52 ?? "Đã đăng ký lịch làm việc thành công. Bạn phải chờ chủ xác nhận."
-                    : "Thay đổi lịch làm việc thất bại.";
+                return created? MessageConstants.MSG.MSG52 : MessageConstants.MSG.MSG58;
+
             }
         }
     }

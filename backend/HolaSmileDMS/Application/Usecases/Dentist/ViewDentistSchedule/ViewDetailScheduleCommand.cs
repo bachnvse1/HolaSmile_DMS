@@ -5,6 +5,6 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
 {
     public class ViewDetailScheduleCommand : IRequest<ScheduleDTO>
     {
-        public string ScheduleId { get; set; }
+        public int ScheduleId { get; set; }
     }
 }
