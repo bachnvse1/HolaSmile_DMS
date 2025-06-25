@@ -83,10 +83,14 @@ public static class MessageConstants
         public const string MSG77 = "Tạo hồ sơ bệnh nhân thất bại.";
         public const string MSG78 = "Gửi Email thất bại.";
         public const string MSG79 = "Thời gian thực hiện của bạn đã hết hạn.";
-
-
-
-
-
+        public const string MSG80 = "Xác nhận lịch làm việc của bác sĩ.";
+        public const string MSG81 = "Từ chối lịch làm việc của bác sĩ.";
+        public const string MSG82 = "Đơn giá không hợp lệ.";
+        public const string MSG83 = "Ngày điều trị không được để trống."; // 74 75 76 77 78 79
+        public const string MSG84 = "Không thể chọn ngày trong quá khứ.";
+        public const string MSG85 = "Tên tiến trình không được để trống.";
+        public const string MSG86 = "Thời lượng phải lớn hơn 0.";
+        public const string MSG87 = "Trạng thái không được vượt quá 255 ký tự.";
+        public const string MSG88 = "Số lượng không hợp lệ.";
     }
 }

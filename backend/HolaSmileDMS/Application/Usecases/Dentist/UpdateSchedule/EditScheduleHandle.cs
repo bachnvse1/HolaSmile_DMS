@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
+using Application.Constants.Interfaces;
 using Application.Interfaces;
 using AutoMapper;
 using MediatR;
@@ -12,14 +13,12 @@ namespace Application.Usecases.Dentist.UpdateSchedule
         private readonly IDentistRepository _dentistRepository;
         private readonly IScheduleRepository _scheduleRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IMapper _mapper;
 
-        public EditScheduleHandle(IDentistRepository dentistRepository, IMapper mapper, IScheduleRepository scheduleRepository, IHttpContextAccessor httpContextAccessor)
+        public EditScheduleHandle(IDentistRepository dentistRepository, IScheduleRepository scheduleRepository, IHttpContextAccessor httpContextAccessor)
         {
             _dentistRepository = dentistRepository;
             _httpContextAccessor = httpContextAccessor;
             _scheduleRepository = scheduleRepository;
-            _mapper = mapper;
         }
         public async Task<string> Handle(EditScheduleCommand request, CancellationToken cancellationToken)
         {
@@ -68,7 +67,7 @@ namespace Application.Usecases.Dentist.UpdateSchedule
                 schedule.WorkDate = request.WorkDate;
                 schedule.Shift = request.Shift;
                 schedule.UpdatedAt = DateTime.Now;
-                schedule.UpdatedBy = dentist.DentistId;
+                schedule.UpdatedBy = currentUserId;
 
                 var updated = await _scheduleRepository.UpdateScheduleAsync(schedule);
                 return updated ? MessageConstants.MSG.MSG52 : MessageConstants.MSG.MSG58;
@@ -91,7 +90,7 @@ namespace Application.Usecases.Dentist.UpdateSchedule
                     WeekStartDate = schedule.WeekStartDate,
                     Status = "pending",
                     CreatedAt = DateTime.Now,
-                    CreatedBy = dentist.DentistId,
+                    CreatedBy = currentUserId,
                     IsActive = true
                 };
 

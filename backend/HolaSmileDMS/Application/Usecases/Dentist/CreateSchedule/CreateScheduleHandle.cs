@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
+using Application.Constants.Interfaces;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -52,7 +53,7 @@ namespace Application.Usecases.Dentist.ManageSchedule
                     Shift = item.Shift,
                     Status = "pending",
                     WeekStartDate = weekstart,
-                    CreatedBy = dentistExist.DentistId,
+                    CreatedBy = currentUserId,
                     CreatedAt = DateTime.Now,
                     IsActive = true,
                 };

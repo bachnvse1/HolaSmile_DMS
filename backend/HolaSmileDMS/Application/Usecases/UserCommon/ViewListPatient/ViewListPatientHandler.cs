@@ -1,7 +1,7 @@
 ﻿using Application.Constants;
+using Application.Constants.Interfaces;
 using Application.Services;
 using Application.Usecases.UserCommon.ViewListPatient;
-using HDMS_API.Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
@@ -38,8 +38,8 @@ public class ViewListPatientHandler : IRequestHandler<ViewListPatientCommand, Li
 
         var result = rawPatients.Select(p => new ViewListPatientDto
         {
-            UserId = _hashIdService.Encode(p.UserId),
-            PatientId = _hashIdService.Encode(p.PatientId),
+            UserId = p.UserId,
+            PatientId = p.PatientId,
             Fullname = p.Fullname,
             Gender = p.Gender,
             Phone = p.Phone,

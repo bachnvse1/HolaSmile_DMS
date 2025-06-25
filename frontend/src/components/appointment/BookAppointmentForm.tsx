@@ -108,8 +108,8 @@ export const BookAppointmentForm = () => {
       FullName: step1Data.fullName.trim(),
       Email: step1Data.email.trim(),
       PhoneNumber: step1Data.phoneNumber.trim(),
-      AppointmentDate: appointmentDate.toISOString().split('T')[0], // "2025-06-20"
-      AppointmentTime: timeString, // "08:00:00"
+      AppointmentDate: appointmentDate.toISOString().split('T')[0], 
+      AppointmentTime: timeString, 
       MedicalIssue: step1Data.medicalIssue.trim(),
       DentistId: selectedDentist.dentistID
     };

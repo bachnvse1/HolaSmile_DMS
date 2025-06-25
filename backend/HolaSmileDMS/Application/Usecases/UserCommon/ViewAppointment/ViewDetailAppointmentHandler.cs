@@ -1,5 +1,4 @@
 ﻿using System.Security.Claims;
-using Application.Services;
 using AutoMapper;
 using HDMS_API.Application.Interfaces;
 using MediatR;
@@ -35,7 +34,15 @@ namespace Application.Usecases.UserCommon.ViewAppointment
             if (string.Equals(currentUserRole, "patient", StringComparison.OrdinalIgnoreCase))
             {
                 // Check if the appointment belongs to the current patient
-                if (!await _appointmentRepository.CheckAppointmentByPatientIdAsync(request.AppointmentId, currentUserId)){
+                if (!await _appointmentRepository.CheckPatientAppointmentByUserIdAsync(request.AppointmentId, currentUserId)){
+                    throw new Exception("Bạn không có quyền truy cập vào lịch hẹn này");
+                }
+            }
+            else if (string.Equals(currentUserRole, "dentist", StringComparison.OrdinalIgnoreCase))
+            {
+                // Check if the appointment belongs to the current patient
+                if (!await _appointmentRepository.CheckDentistAppointmentByUserIdAsync(request.AppointmentId, currentUserId))
+                {
                     throw new Exception("Bạn không có quyền truy cập vào lịch hẹn này");
                 }
             }

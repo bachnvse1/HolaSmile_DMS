@@ -1,5 +1,5 @@
 ﻿
-using Application.Interfaces;
+using Application.Constants.Interfaces;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,7 +14,6 @@ namespace Infrastructure.Repositories
         }
         public DateTime GetWeekStart(DateTime date)
         {
-
             // This method calculates the start of the week (Monday) for a given date.
             int daysToSubtract = (int)date.DayOfWeek - 1;
             if (daysToSubtract < 0) daysToSubtract = 6; // For Sunday

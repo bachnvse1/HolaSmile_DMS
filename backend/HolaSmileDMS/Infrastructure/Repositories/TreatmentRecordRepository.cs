@@ -1,4 +1,4 @@
-using Application.Interfaces;
+﻿using Application.Constants.Interfaces;
 using Application.Usecases.Patients.ViewTreatmentRecord;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
@@ -27,15 +27,36 @@ public class TreatmentRecordRepository : ITreatmentRecordRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<bool> DeleteTreatmentRecordAsync(int id, int? updatedBy, CancellationToken cancellationToken)
+    {
+        var record = await _context.TreatmentRecords
+            .FirstOrDefaultAsync(r => r.TreatmentRecordID == id && !r.IsDeleted, cancellationToken);
+
+        if (record == null)
+            throw new KeyNotFoundException("Không tìm thấy hồ sơ điều trị để xoá.");
+
+        record.IsDeleted = true;
+        record.UpdatedAt = DateTime.UtcNow;
+        record.UpdatedBy = updatedBy ?? 0;
+
+        return await _context.SaveChangesAsync(cancellationToken) > 0;
+    }
+
     public async Task<TreatmentRecord?> GetTreatmentRecordByIdAsync(int id, CancellationToken cancellationToken)
     {
         return await _context.TreatmentRecords
             .FirstOrDefaultAsync(x => x.TreatmentRecordID == id && !x.IsDeleted, cancellationToken);
     }
 
-    public async Task<bool> SaveChangesAsync(CancellationToken cancellationToken)
+    public async Task<bool> UpdatedTreatmentRecordAsync(TreatmentRecord record, CancellationToken cancellationToken)
     {
+        _context.TreatmentRecords.Update(record);
         return await _context.SaveChangesAsync(cancellationToken) > 0;
     }
 
+    public async System.Threading.Tasks.Task AddAsync(TreatmentRecord record, CancellationToken cancellationToken)
+    {
+        _context.TreatmentRecords.AddAsync(record, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
 }
