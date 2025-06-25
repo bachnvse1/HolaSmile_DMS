@@ -51,6 +51,12 @@ export function Login() {
           } else {
             navigate("/");
           }
+        );
+        const token = response.data.token;
+
+        if (token) {
+          localStorage.setItem("token", token);
+          navigate("/");
         } else {
           setApiError("Đăng nhập thất bại. Vui lòng thử lại.");
         }

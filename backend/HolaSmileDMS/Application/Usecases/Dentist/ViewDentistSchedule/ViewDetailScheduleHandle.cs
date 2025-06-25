@@ -1,7 +1,7 @@
 ﻿
 using System.Security.Claims;
 using Application.Constants;
-using Application.Interfaces;
+using Application.Constants.Interfaces;
 using Application.Services;
 using Application.Usecases.Dentist.ViewAllDentistSchedule;
 using AutoMapper;

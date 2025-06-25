@@ -5,7 +5,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Application.Constants;
-using Application.Interfaces;
+using Application.Constants.Interfaces;
 using Application.Services;
 using AutoMapper;
 using MediatR;
