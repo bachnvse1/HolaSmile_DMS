@@ -7,6 +7,8 @@ import PatientFilters from "@/components/patient/PatientFilters"
 import PaginationControls from "@/components/ui/PaginationControls"
 import type { Patient } from "@/types/patient"
 import { getAllPatients } from "@/services/patientService"
+import { useNavigate } from "react-router"
+
 
 const PAGE_SIZE = 5
 
@@ -16,6 +18,7 @@ export default function PatientList() {
   const [searchTerm, setSearchTerm] = useState("")
   const [genderFilter, setGenderFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const fetchPatients = async () => {
@@ -61,7 +64,10 @@ export default function PatientList() {
           <h1 className="text-3xl font-bold">Danh Sách Bệnh Nhân</h1>
           <p className="text-muted-foreground">Quản lý và xem tất cả hồ sơ bệnh nhân</p>
         </div>
-        <Button className="flex items-center gap-2">
+        <Button
+          onClick={() => navigate("/add-patient")}
+          className="flex items-center gap-2"
+        >
           <UserPlus className="h-4 w-4" />
           Thêm Bệnh Nhân Mới
         </Button>

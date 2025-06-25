@@ -68,11 +68,9 @@ export default function ViewProfile() {
     )
   }
 
-  let userIDFromToken: string
   try {
     const decoded = TokenUtils.decodeToken(token)
     if (!decoded?.userId) throw new Error()
-    userIDFromToken = decoded.userId
   } catch {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
