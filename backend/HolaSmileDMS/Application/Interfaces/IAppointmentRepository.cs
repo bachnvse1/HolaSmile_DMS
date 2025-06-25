@@ -1,4 +1,4 @@
-﻿using Application.Usecases.UserCommon.ViewAppointment;
+using Application.Usecases.UserCommon.ViewAppointment;
 using HDMS_API.Application.Usecases.Guests.BookAppointment;
 
 namespace HDMS_API.Application.Interfaces

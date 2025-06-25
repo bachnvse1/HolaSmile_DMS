@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 using HDMS_API.Application.Common.Helpers;
-using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.IdentityModel.Tokens;
+using HDMS_API.Application.Interfaces;
 
 namespace HDMS_API.Application.Usecases.Guests.BookAppointment
 {
