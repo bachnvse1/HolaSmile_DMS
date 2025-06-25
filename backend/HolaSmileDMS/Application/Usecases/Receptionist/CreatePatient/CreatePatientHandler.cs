@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
+using Application.Constants.Interfaces;
 using AutoMapper;
-using HDMS_API.Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
