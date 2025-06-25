@@ -4,7 +4,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
-namespace Application.Usecases.Patients.UpdateTreatmentRecord
+namespace Application.Usecases.Dentist.UpdateTreatmentRecord
 {
     public class UpdateTreatmentRecordHandler : IRequestHandler<UpdateTreatmentRecordCommand, bool>
     {

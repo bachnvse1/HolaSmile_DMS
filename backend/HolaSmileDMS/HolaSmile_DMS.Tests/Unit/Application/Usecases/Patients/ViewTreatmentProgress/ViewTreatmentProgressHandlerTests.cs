@@ -1,12 +1,12 @@
-using Application.Constants.Interfaces;
+using System.Security.Claims;
+using Application.Interfaces;
 using Application.Usecases.Patients.ViewTreatmentProgress;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using System.Security.Claims;
 using Xunit;
 
-namespace Tests.Unit.Application.Usecases.Patients;
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients.ViewTreatmentProgress;
 
 public class ViewTreatmentProgressHandlerTests
 {

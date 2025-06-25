@@ -20,4 +20,9 @@ public class TreatmentProgressRepository : ITreatmentProgressRepository
             .Where(tp => tp.TreatmentRecordID == treatmentRecordId)
             .ToListAsync(cancellationToken);
     }
+    public async System.Threading.Tasks.Task CreateAsync(TreatmentProgress progress)
+    {
+        _context.TreatmentProgresses.Add(progress);
+        await _context.SaveChangesAsync();
+    }
 }
