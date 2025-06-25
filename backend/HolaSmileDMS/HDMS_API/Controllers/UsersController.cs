@@ -11,6 +11,7 @@ using HDMS_API.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HDMS_API.Controllers
 {
@@ -25,19 +26,20 @@ namespace HDMS_API.Controllers
             _mediator = mediator;
         }
 
-        [HttpGet("profile/{userId}")]
-        public async Task<IActionResult> ViewProfile([FromRoute] int userId, CancellationToken cancellationToken)
+        [Authorize]
+        [HttpGet("profile")]
+        public async Task<IActionResult> ViewProfile(CancellationToken cancellationToken)
         {
             try
             {
-                var result = await _mediator.Send(new ViewProfileCommand { UserId = userId }, cancellationToken);
-
-                if (result == null)
-                {
-                    return NotFound(new { message = "Không tìm thấy người dùng." });
-                }
-
-                return Ok(result);
+                var result = await _mediator.Send(new ViewProfileCommand(), cancellationToken);
+                return result != null
+                    ? Ok(result)
+                    : NotFound(new { message = "Không tìm thấy hồ sơ người dùng." });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -49,6 +51,7 @@ namespace HDMS_API.Controllers
                 });
             }
         }
+
 
 
         [HttpPut("profile")]

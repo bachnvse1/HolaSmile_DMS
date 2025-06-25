@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Application.Interfaces;
+using Application.Constants.Interfaces;
 using Application.Usecases.Patients.ViewTreatmentProgress;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
