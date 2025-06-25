@@ -1,4 +1,4 @@
-﻿using Application.Constants.Interfaces;
+﻿using Application.Interfaces;
 using Application.Usecases.Dentist.ManageSchedule;
 using Application.Usecases.Dentist.ViewDentistSchedule;
 using HDMS_API.Infrastructure.Persistence;

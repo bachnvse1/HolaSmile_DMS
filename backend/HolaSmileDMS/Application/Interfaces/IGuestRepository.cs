@@ -1,6 +1,6 @@
-﻿using HDMS_API.Application.Usecases.Guests.BookAppointment;
+using HDMS_API.Application.Usecases.Guests.BookAppointment;
 
-namespace Application.Constants.Interfaces
+namespace HDMS_API.Application.Interfaces
 {
     public interface IGuestRepository
     {

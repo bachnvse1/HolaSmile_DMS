@@ -4,7 +4,7 @@ using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.IdentityModel.Tokens;
-using Application.Constants.Interfaces;
+using HDMS_API.Application.Interfaces;
 
 namespace HDMS_API.Application.Usecases.Guests.BookAppointment
 {

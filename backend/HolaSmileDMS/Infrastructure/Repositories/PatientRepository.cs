@@ -1,5 +1,5 @@
-﻿using Application.Constants.Interfaces;
-using Application.Usecases.UserCommon.ViewListPatient;
+﻿using Application.Usecases.UserCommon.ViewListPatient;
+using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;

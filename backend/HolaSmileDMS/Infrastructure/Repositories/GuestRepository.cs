@@ -1,5 +1,5 @@
-﻿using Application.Constants.Interfaces;
-using HDMS_API.Application.Common.Helpers;
+﻿using HDMS_API.Application.Common.Helpers;
+using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Guests.BookAppointment;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;

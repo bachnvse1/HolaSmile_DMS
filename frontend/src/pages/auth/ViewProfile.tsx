@@ -20,11 +20,18 @@ type FormValues = {
   gender: "Nam" | "Nữ"
 }
 
-const getUserProfile = async (id: string): Promise<FormValues> => {
+const parseDob = (dobStr: string): string => {
+  if (!dobStr.includes("/")) return ""
+  const [day, month, year] = dobStr.split("/")
+  const date = new Date(+year, +month - 1, +day)
+  return isNaN(date.getTime()) ? "" : getDateString(date)
+}
+
+const getUserProfile = async (): Promise<FormValues> => {
   const token = localStorage.getItem("token") || localStorage.getItem("authToken")
   if (!token) throw new Error("Không tìm thấy token đăng nhập")
 
-  const response = await axiosInstance.get(`/user/profile/${id}`, {
+  const response = await axiosInstance.get(`/user/profile`, {
     headers: { Authorization: `Bearer ${token}` },
   })
 
@@ -37,7 +44,7 @@ const getUserProfile = async (id: string): Promise<FormValues> => {
     avatar: data.avatar,
     phone: data.phone,
     address: data.address,
-    dob: data.dob ? getDateString(new Date(data.dob)) : "",
+    dob: data.dob ? parseDob(data.dob) : "",
     gender: data.gender === true ? "Nam" : "Nữ",
   }
 }
@@ -89,8 +96,8 @@ export default function ViewProfile() {
   const avatar = watch("avatar")
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["user-profile", userIDFromToken],
-    queryFn: () => getUserProfile(userIDFromToken),
+    queryKey: ["user-profile",],
+    queryFn: () => getUserProfile(),
     staleTime: 1000 * 60 * 5,
   })
 
@@ -100,15 +107,13 @@ export default function ViewProfile() {
 
   const onSubmit = async (formData: FormValues) => {
     const payload = {
-      userId: Number(userIDFromToken),
       fullname: formData.fullname,
       gender: formData.gender === "Nam",
       address: formData.address,
       dob: formData.dob,
-      phone: formData.phone,
-      email: formData.email,
       avatar: formData.avatar,
     }
+
 
     try {
       setIsSubmitting(true)
@@ -166,9 +171,8 @@ export default function ViewProfile() {
               }),
             })}
             disabled={disabledField || !isEditing}
-            className={`w-full px-4 py-3 rounded border ${icon ? "pl-10" : ""} ${
-              errors[name] ? "border-red-400" : "border-gray-300"
-            } ${!isEditing || disabledField ? "bg-gray-100" : "bg-white"} focus:outline-none focus:ring-2 focus:ring-green-500`}
+            className={`w-full px-4 py-3 rounded border ${icon ? "pl-10" : ""} ${errors[name] ? "border-red-400" : "border-gray-300"
+              } ${!isEditing || disabledField ? "bg-gray-100" : "bg-white"} focus:outline-none focus:ring-2 focus:ring-green-500`}
           />
         </div>
         {errors[name] && <p className="text-red-500 text-sm">{errors[name]?.message}</p>}
@@ -177,7 +181,7 @@ export default function ViewProfile() {
   }
 
   if (isLoading) return <div className="text-center py-20">Đang tải dữ liệu...</div>
-  if (error) return <div className="text-center text-red-600 py-20">Lỗi tải hồ sơ</div>
+  if (error) return <div className="text-center text-red-600 py-20">Lỗi tải hồ sơ {(error as Error)?.message}</div>
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -222,9 +226,8 @@ export default function ViewProfile() {
                   <select
                     {...register("gender", { required: "Vui lòng chọn giới tính" })}
                     disabled={!isEditing}
-                    className={`w-full border rounded pl-10 pr-4 py-3 appearance-none focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                      errors.gender ? "border-red-400" : "border-gray-300"
-                    } ${!isEditing ? "bg-gray-100" : "bg-white"}`}
+                    className={`w-full border rounded pl-10 pr-4 py-3 appearance-none focus:outline-none focus:ring-2 focus:ring-green-500 ${errors.gender ? "border-red-400" : "border-gray-300"
+                      } ${!isEditing ? "bg-gray-100" : "bg-white"}`}
                   >
                     <option value="Nam">Nam</option>
                     <option value="Nữ">Nữ</option>
