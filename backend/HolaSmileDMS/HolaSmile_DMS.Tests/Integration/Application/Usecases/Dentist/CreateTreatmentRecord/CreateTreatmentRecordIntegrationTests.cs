@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Application.Constants;
 using Application.Usecases.Dentist.CreateTreatmentRecord;
 using AutoMapper;
@@ -6,10 +7,9 @@ using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System.Security.Claims;
 using Xunit;
 
-namespace Tests.Integration.Application.Usecases.Dentist;
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentist.CreateTreatmentRecord;
 
 public class CreateTreatmentRecordIntegrationTests
 {
@@ -86,7 +86,8 @@ public class CreateTreatmentRecordIntegrationTests
             DentistId = 2,
             ProcedureId = 1,
             UnitPrice = 500000,
-            Quantity = 1
+            Quantity = 1,
+            TreatmentDate = DateTime.Now,
         };
 
         var result = await _handler.Handle(cmd, default);
