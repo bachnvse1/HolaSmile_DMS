@@ -8,7 +8,7 @@ namespace Application.Usecases.UserCommon.ViewAppointment
 {
     public class AppointmentDTO
     {
-        public string AppointmentId { get; set; }
+        public int AppointmentId { get; set; }
         public string PatientName { get; set; }
         public string DentistName { get; set; }
         public DateTime AppointmentDate { get; set; }

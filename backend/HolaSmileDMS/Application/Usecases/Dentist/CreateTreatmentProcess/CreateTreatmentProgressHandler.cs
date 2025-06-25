@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using Application.Constants.Interfaces;
+using Application.Interfaces;
 
 namespace Application.Usecases.Dentist.CreateTreatmentProcess;
 

@@ -5,8 +5,7 @@ using Application.Usecases.UserCommon.ViewProfile;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
-
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon.ViewProfile;
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon;
 
 public class ViewProfileHandlerTests
 {

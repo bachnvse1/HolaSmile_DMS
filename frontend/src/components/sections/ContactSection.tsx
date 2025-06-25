@@ -207,7 +207,8 @@ export const ContactSection = () => {
               </button>
             </form>
           </div>
-        </div>        {/* Map Section */}
+        </div>        
+        {/* Map Section */}
         <div className="mt-16">
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
             <div className="h-96">
@@ -215,9 +216,8 @@ export const ContactSection = () => {
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.5063419425055!2d105.52271427509262!3d21.01241668063283!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135abc60e7d3f19%3A0x2be9d7d0b5abcbf4!2sFPT%20University!5e0!3m2!1sen!2s!4v1749738836602!5m2!1sen!2s"
                 width="100%"
                 height="100%"
-                style={{ border: 0 }}
+                className="border-0"
                 allowFullScreen={true}
-                loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
                 title="Dental Clinic Location"
               ></iframe>

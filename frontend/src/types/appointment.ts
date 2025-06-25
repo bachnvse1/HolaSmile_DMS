@@ -44,12 +44,14 @@ export interface AppointmentData extends AppointmentFormData {
 export interface DentistScheduleData {
   dentistID: number;
   dentistName: string;
-  avatar?: string;
+  avatar?: string | null;
   schedules: {
     scheduleId: number;
-    workDate: string;
-    shift: 'Morning' | 'Afternoon' | 'Evening';
-    status: 'active' | 'free' | string;
+    dentistName: string | null;
+    workDate: string;  // ISO date string
+    shift: string;     // "morning" | "afternoon" | "evening"
+    createdAt: string;
+    updatedAt: string | null;
   }[];
   isAvailable: boolean;
 }
@@ -74,4 +76,40 @@ export interface BookAppointmentResponse {
   message?: string;
   appointmentId?: number;
   patientId?: number;
+}
+
+// Updated AppointmentDTO to match backend logic
+export interface AppointmentDTO {
+  appointmentId: number;
+  patientName: string;
+  dentistName: string;
+  appointmentDate: string; // ISO date string
+  appointmentTime: string; // HH:mm:ss format
+  content: string;
+  appointmentType: string;
+  isNewPatient: boolean;
+  status: 'confirm' | 'canceled'; // Only 2 statuses as per backend
+  createdAt: string;
+  updatedAt?: string;
+  createdBy?: number;
+  updatedBy?: number;
+  // Additional fields for calendar view
+  patientId?: number;
+  dentistId?: number;
+}
+
+export interface AppointmentViewProps {
+  viewMode: 'list' | 'calendar';
+  onViewModeChange: (mode: 'list' | 'calendar') => void;
+}
+
+export interface CalendarAppointment {
+  id: number;
+  title: string;
+  date: string;
+  time: string;
+  status: 'confirm' | 'canceled';
+  type: string;
+  isNewPatient: boolean;
+  details: AppointmentDTO;
 }

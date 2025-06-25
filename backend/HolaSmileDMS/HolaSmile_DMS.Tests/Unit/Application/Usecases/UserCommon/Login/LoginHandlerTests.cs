@@ -5,7 +5,7 @@ using HDMS_API.Application.Usecases.UserCommon.Login;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon.Login
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
 {
     public class LoginHandlerTests
     {

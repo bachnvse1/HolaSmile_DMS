@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Constants.Interfaces;
-using Application.Services;
+using Application.Interfaces;
 using Application.Usecases.Dentist.ViewAllDentistSchedule;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -17,12 +12,10 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
     {
         private readonly IDentistRepository _dentistRepository;
         private readonly IScheduleRepository _scheduleRepository;
-        private readonly IHashIdService _hashIdService;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public ViewDentistScheduleHandle(IDentistRepository dentistRepository, IHashIdService hashIdService, IScheduleRepository scheduleRepository, IHttpContextAccessor httpContextAccessor)
+        public ViewDentistScheduleHandle(IDentistRepository dentistRepository, IScheduleRepository scheduleRepository, IHttpContextAccessor httpContextAccessor)
         {
             _dentistRepository = dentistRepository;
-            _hashIdService = hashIdService;
             _httpContextAccessor = httpContextAccessor;
             _scheduleRepository = scheduleRepository;
         }
@@ -32,39 +25,37 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-            var decodedDentistId = _hashIdService.Decode(request.DentistId);
-
             // Nếu người dùng là dentist -> chỉ cho xem lịch của chính mình
             if (string.Equals(currentUserRole, "dentist", StringComparison.OrdinalIgnoreCase))
             {
                 var currentDentist = await _dentistRepository.GetDentistByUserIdAsync(currentUserId);
-                if (currentDentist == null || currentDentist.DentistId != decodedDentistId)
+                if (currentDentist == null || currentDentist.DentistId != request.DentistId)
                 {
-                    throw new UnauthorizedAccessException("Bạn không có quyền xem lịch của dentist này.");
+                    throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
                 }
             }
             else if (!string.Equals(currentUserRole, "owner", StringComparison.OrdinalIgnoreCase)
                   && !string.Equals(currentUserRole, "receptionist", StringComparison.OrdinalIgnoreCase))
             {
-                throw new UnauthorizedAccessException("Bạn không có quyền xem lịch của dentist.");
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             }
 
-            var schedules = await _scheduleRepository.GetDentistSchedulesByDentistIdAsync(decodedDentistId);
+            var schedules = await _scheduleRepository.GetDentistSchedulesByDentistIdAsync(request.DentistId);
 
             if (schedules == null || !schedules.Any())
             {
-                return new List<DentistScheduleDTO>();
+                throw new Exception(MessageConstants.MSG.MSG16);
             }
 
             var result = schedules.GroupBy(s => s.DentistId)
                 .Select(g => new DentistScheduleDTO
                 {
-                    DentistID = _hashIdService.Encode(g.Key),
+                    DentistID = g.Key,
                     DentistName = g.First().Dentist.User.Fullname,
                     Avatar = g.First().Dentist.User.Avatar,
                     schedules = g.Select(s => new ScheduleDTO
                     {
-                        ScheduleId = _hashIdService.Encode(s.ScheduleId),
+                        ScheduleId = s.ScheduleId,
                         WorkDate = s.WorkDate.Date,
                         Shift = s.Shift,
                         CreatedAt = s.CreatedAt.Date,

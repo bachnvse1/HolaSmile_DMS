@@ -37,7 +37,7 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
     email: prefilledData?.email || ''
   });
 
-  const { dentists, loading, error } = useDentistSchedule();
+  const { dentists, isLoading, error } = useDentistSchedule();
   const bookAppointmentMutation = useBookAppointment();
 
   // Tạo time slots với icon cho SelectedAppointmentInfo
@@ -103,7 +103,7 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
     });
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -114,7 +114,7 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
   if (error) {
     return (
       <div className="text-center py-12">
-        <p className="text-red-600">Có lỗi xảy ra: {error.message}</p>
+        <p className="text-red-600">Có lỗi xảy ra: {error instanceof Error ? error.message : 'Lỗi không xác định'}</p>
       </div>
     );
   }

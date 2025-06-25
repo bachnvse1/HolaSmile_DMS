@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Application.Constants.Interfaces;
+using Application.Interfaces;
 using Application.Usecases.Dentist.UpdateTreatmentRecord;
 using Microsoft.AspNetCore.Http;
 using Moq;
