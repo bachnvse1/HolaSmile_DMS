@@ -75,7 +75,7 @@ namespace HDMS_API.Infrastructure.Repositories
             {
                 return false;
             }
-            appointment.Status = "canceled";
+            appointment.Status = "cancel";
             appointment.UpdatedAt = DateTime.Now;
             appointment.UpdatedBy = CancleBy;
             _context.Appointments.Update(appointment);

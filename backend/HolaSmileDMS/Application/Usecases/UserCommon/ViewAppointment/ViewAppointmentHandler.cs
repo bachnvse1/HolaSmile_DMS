@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using Application.Constants;
 using AutoMapper;
 using HDMS_API.Application.Interfaces;
 using MediatR;
@@ -29,7 +30,7 @@ namespace Application.Usecases.UserCommon.ViewAppointment
             //check authen
             if (currentUserRole == null)
             {
-                throw new UnauthorizedAccessException("Bạn cần đăng nhập để thực hiện thao tác này.");
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53);
             }
 
             //check if patient, only view appointment of patient, else see all
