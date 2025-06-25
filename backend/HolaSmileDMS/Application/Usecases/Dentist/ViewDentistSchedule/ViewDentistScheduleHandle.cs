@@ -53,15 +53,15 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
                     DentistID = g.Key,
                     DentistName = g.First().Dentist.User.Fullname,
                     Avatar = g.First().Dentist.User.Avatar,
-                    schedules = g.Select(s => new ScheduleDTO
+                    Schedules = g.Select(s => new ScheduleDTO
                     {
                         ScheduleId = s.ScheduleId,
                         WorkDate = s.WorkDate.Date,
                         Shift = s.Shift,
+                        Status = s.Status,
                         CreatedAt = s.CreatedAt.Date,
                         UpdatedAt = s.UpdatedAt?.Date
                     }).ToList(),
-                    IsAvailable = g.First().Dentist.Appointments.Count <= 5 ? true : false
                 }).ToList();
 
             return result;
