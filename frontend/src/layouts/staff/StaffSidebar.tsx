@@ -162,7 +162,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           id: 'settings-profile',
           label: 'Hồ Sơ Cá Nhân',
           icon: <UserCheck className="h-4 w-4" />,
-          path: '/settings/profile',
+          path: '/view-profile',
           roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
         },
         {
