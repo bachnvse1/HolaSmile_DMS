@@ -1,4 +1,4 @@
-namespace Application.Interfaces;
+namespace Application.Constants.Interfaces;
 
 public interface ITreatmentProgressRepository
 {
