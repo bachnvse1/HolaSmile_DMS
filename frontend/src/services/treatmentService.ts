@@ -10,22 +10,49 @@ export const getTreatmentRecordsByUser = async (userId: number): Promise<Treatme
 export const deleteTreatmentRecord = async (id: number) => {
   try {
     const response = await axiosInstance.delete(`/treatment-records/${id}`)
-    return response.data
+    return response.data 
   } catch (error: any) {
-    if (error.response?.data?.message) {
-      throw new Error(error.response.data.message)
-    }
-
-    throw new Error("Lỗi hệ thống: " + (error.message || "Không xác định"))
+    throw new Error(error.response?.data?.message || "Lỗi hệ thống không xác định")
   }
 }
 
-
-export const createOrUpdateTreatmentRecord = async (
+export const createTreatmentRecord = async (
   data: TreatmentFormData,
   totalAmount: number,
-  updatedBy: number,
-  recordId?: number
+  updatedBy: number
+) => {
+  const payload = {
+    appointmentId: data.appointmentID,
+    dentistId: data.dentistID,
+    procedureId: data.procedureID,
+    consultantEmployeeID: data.consultantEmployeeID,
+    toothPosition: data.toothPosition,
+    quantity: data.quantity,
+    unitPrice: data.unitPrice,
+    discountAmount: data.discountAmount ?? 0,
+    discountPercentage: data.discountPercentage ?? 0,
+    totalAmount,
+    treatmentStatus: data.treatmentStatus,
+    symptoms: data.symptoms,
+    diagnosis: data.diagnosis,
+    treatmentDate: new Date(data.treatmentDate + "T12:00:00").toISOString(),
+    updatedBy,
+  }
+
+  try {
+
+    const response = await axiosInstance.post("/treatment-records", payload)
+    return response.data
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Lỗi hệ thống không xác định")
+  }
+}
+
+export const updateTreatmentRecord = async (
+  recordId: number,
+  data: TreatmentFormData,
+  totalAmount: number,
+  updatedBy: number
 ) => {
   const payload = {
     toothPosition: data.toothPosition,
@@ -42,17 +69,9 @@ export const createOrUpdateTreatmentRecord = async (
   }
 
   try {
-
-    const response = recordId
-      ? await axiosInstance.put(`/treatment-records/${recordId}`, payload)
-      : await axiosInstance.post("/treatment-records", payload)
-
+    const response = await axiosInstance.put(`/treatment-records/${recordId}`, payload)
     return response.data
   } catch (error: any) {
-    if (error.response?.data?.message) {
-      throw new Error(error.response.data.message)
-    }
-
-    throw new Error("Lỗi hệ thống: " + (error.message || "Không xác định"))
+    throw new Error(error.response?.data?.message || "Lỗi hệ thống không xác định")
   }
 }
