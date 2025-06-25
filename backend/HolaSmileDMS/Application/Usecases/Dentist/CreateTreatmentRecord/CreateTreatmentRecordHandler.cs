@@ -1,5 +1,5 @@
 using Application.Constants;
-using Application.Interfaces;
+using Application.Constants.Interfaces;
 using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Http;

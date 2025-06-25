@@ -1,5 +1,5 @@
-﻿using Application.Usecases.UserCommon.ViewProfile;
-using HDMS_API.Application.Interfaces;
+﻿using Application.Constants.Interfaces;
+using Application.Usecases.UserCommon.ViewProfile;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using System.Security.Claims;

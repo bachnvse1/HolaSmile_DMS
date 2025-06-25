@@ -1,4 +1,4 @@
-﻿using HDMS_API.Application.Interfaces;
+﻿using Application.Constants.Interfaces;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using MediatR;
 
