@@ -1,4 +1,4 @@
-import { Layout } from '../../components/layout/Layout';
+import { Layout } from '../../layouts/homepage/Layout';
 import { Shield, Clock, Heart, CheckCircle, AlertTriangle, Calendar, Phone } from 'lucide-react';
 import { useNavigate } from 'react-router';
 const procedures = [

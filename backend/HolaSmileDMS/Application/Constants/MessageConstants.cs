@@ -76,5 +76,9 @@ public static class MessageConstants
         public const string MSG70 = "Thủ thuật này đã tồn tại";
         public const string MSG71 = "Cập nhật thủ thuật thành công";
         public const string MSG72 = "Tài khoản của bạn đã bị khóa.";
+        public const string MSG73 = "Số lượng không hợp lệ.";
+        public const string MSG74 = "Đơn giá không hợp lệ.";
+        public const string MSG75 = "Ngày điều trị không được để trống.";
+        public const string MSG76 = "Không thể chọn ngày trong quá khứ.";
     }
 }

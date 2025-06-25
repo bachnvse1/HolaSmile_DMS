@@ -37,7 +37,7 @@ export function ForgotPassword() {
     onSubmit: async (values) => {
       setIsLoading(true)
       try {
-        const res = await axios.post("https://localhost:5001/api/user/OTP/Request", {
+        const res = await axios.post("http://localhost:5135/api/user/OTP/Request", {
           email: values.email,
         })
 

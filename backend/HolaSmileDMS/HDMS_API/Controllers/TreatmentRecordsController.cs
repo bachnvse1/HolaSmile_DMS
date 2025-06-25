@@ -1,4 +1,5 @@
 using Application.Constants;
+using Application.Usecases.Dentist.CreateTreatmentRecord;
 using Application.Usecases.Patients.UpdateTreatmentRecord;
 using Application.Usecases.Patients.ViewTreatmentRecord;
 using MediatR;
@@ -46,6 +47,37 @@ public class TreatmentRecordsController : ControllerBase
             });
         }
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteRecord(int id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new DeleteTreatmentRecordCommand
+            {
+                TreatmentRecordId = id
+            };
+
+            var result = await _mediator.Send(command, cancellationToken);
+
+            return Ok(new
+            {
+                success = result,
+                message = MessageConstants.MSG.MSG57 // "Xoá dữ liệu thành công"
+            });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new
+            {
+                message = MessageConstants.MSG.MSG27 // "Không tìm thấy hồ sơ bệnh nhân"
+            });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
+        }
+    }
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateRecord(int id, [FromBody] UpdateTreatmentRecordCommand command, CancellationToken cancellationToken)
     {
@@ -68,10 +100,15 @@ public class TreatmentRecordsController : ControllerBase
             return BadRequest(new
             {
                 message = MessageConstants.MSG.MSG58,
-                Inner = ex.InnerException?.Message,
-                Stack = ex.StackTrace
             });
         }
+    }
+    
+    [HttpPost]
+    public async Task<IActionResult> CreateTreatmentRecord([FromBody] CreateTreatmentRecordCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(new { success = true, message = result });
     }
 
 
