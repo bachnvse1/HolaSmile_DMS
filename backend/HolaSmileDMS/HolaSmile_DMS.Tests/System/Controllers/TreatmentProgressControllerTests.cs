@@ -18,7 +18,7 @@ namespace HolaSmile_DMS.Tests.System.Controllers
             _client = factory.CreateClient();
         }
 
-        [Fact(DisplayName = "[Sytem] Guest_Get_Progress_Should_Fail")]
+        [Fact(DisplayName = "[System] Guest_Get_Progress_Should_Fail")]
         public async global::System.Threading.Tasks.Task Guest_Cannot_Access_Progress()
         {
             var response = await _client.GetAsync("/api/TreatmentProgress/1");
