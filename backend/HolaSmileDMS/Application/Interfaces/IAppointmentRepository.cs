@@ -1,4 +1,4 @@
-﻿namespace HDMS_API.Application.Interfaces
+﻿namespace Application.Interfaces
 {
     public interface IAppointmentRepository
     {
