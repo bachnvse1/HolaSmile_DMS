@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Application.Usecases.Dentist.ManageSchedule;
 using Application.Usecases.Dentist.ViewDentistSchedule;
 
-namespace Application.Interfaces
+namespace Application.Constants.Interfaces
 {
     public interface IDentistRepository
     {

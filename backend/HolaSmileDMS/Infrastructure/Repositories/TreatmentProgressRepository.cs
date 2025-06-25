@@ -1,4 +1,4 @@
-using Application.Interfaces;
+using Application.Constants.Interfaces;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 namespace Infrastructure.Repositories;
