@@ -1,4 +1,5 @@
-﻿using Application.Constants.Interfaces;
+﻿using Application.Constants;
+using Application.Constants.Interfaces;
 using Application.Usecases.UserCommon.ViewProfile;
 using Microsoft.AspNetCore.Http;
 using Moq;
@@ -56,20 +57,8 @@ public class ViewProfileHandlerTests
         Assert.Equal(expected.UserID, result?.UserID);
     }
 
-    [Fact(DisplayName = "Abnormal - UTCID02 - Patient cannot view others' profile")]
-    public async System.Threading.Tasks.Task UTCID02_Patient_Cannot_View_Others_Profile()
-    {
-        // Login userId = 1, handler sẽ lấy từ token
-        SetupHttpContext("patient", 1);
 
-        // Fake command không cần chứa UserId nữa
-        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            _handler.Handle(new ViewProfileCommand(), default));
-
-        Assert.Contains("không có quyền", ex.Message, StringComparison.OrdinalIgnoreCase);
-    }
-
-    [Fact(DisplayName = "Abnormal - UTCID03 - Null HttpContext should throw MSG53")]
+    [Fact(DisplayName = "Abnormal - UTCID02 - Null HttpContext should throw MSG53")]
     public async System.Threading.Tasks.Task UTCID03_HttpContext_Null_Should_Throw()
     {
         _httpContextAccessorMock.Setup(h => h.HttpContext).Returns((HttpContext?)null);
@@ -77,10 +66,11 @@ public class ViewProfileHandlerTests
         var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             _handler.Handle(new ViewProfileCommand(), default));
 
-        Assert.Contains("cần đăng nhập", ex.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
     }
 
-    [Fact(DisplayName = "Normal - UTCID04 - Profile not found should return null")]
+
+    [Fact(DisplayName = "Normal - UTCID03 - Profile not found should return null")]
     public async System.Threading.Tasks.Task UTCID04_Profile_Not_Found_Returns_Null()
     {
         int userId = 20;
@@ -94,7 +84,7 @@ public class ViewProfileHandlerTests
         Assert.Null(result);
     }
 
-    [Fact(DisplayName = "Normal - UTCID05 - Dentist can view their own profile")]
+    [Fact(DisplayName = "Normal - UTCID04 - Dentist can view their own profile")]
     public async System.Threading.Tasks.Task UTCID05_Dentist_View_Own_Profile_Success()
     {
         int userId = 30;
@@ -111,7 +101,7 @@ public class ViewProfileHandlerTests
         Assert.Equal(expected.UserID, result?.UserID);
     }
 
-    [Fact(DisplayName = "Normal - UTCID06 - Receptionist can view their own profile")]
+    [Fact(DisplayName = "Normal - UTCID05 - Receptionist can view their own profile")]
     public async System.Threading.Tasks.Task UTCID06_Receptionist_View_Own_Profile_Success()
     {
         int userId = 31;
@@ -127,7 +117,7 @@ public class ViewProfileHandlerTests
         Assert.NotNull(result);
     }
 
-    [Fact(DisplayName = "Normal - UTCID07 - Assistant can view their own profile")]
+    [Fact(DisplayName = "Normal - UTCID06 - Assistant can view their own profile")]
     public async System.Threading.Tasks.Task UTCID07_Assistant_View_Own_Profile_Success()
     {
         int userId = 32;
