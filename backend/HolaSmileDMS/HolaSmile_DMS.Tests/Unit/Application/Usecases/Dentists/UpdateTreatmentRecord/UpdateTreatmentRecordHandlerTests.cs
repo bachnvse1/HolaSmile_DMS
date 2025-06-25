@@ -1,12 +1,12 @@
 ﻿using System.Security.Claims;
-using Application.Constants;
+using Application.Constants.Interfaces;
 using Application.Interfaces;
 using Application.Usecases.Dentist.UpdateTreatmentRecord;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
 
-namespace Tests.Unit.Application.Usecases.Dentist;
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists.UpdateTreatmentRecord;
 
 public class UpdateTreatmentRecordHandlerTests
 {

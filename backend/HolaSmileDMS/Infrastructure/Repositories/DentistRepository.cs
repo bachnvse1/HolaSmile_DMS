@@ -1,6 +1,4 @@
 ﻿using Application.Interfaces;
-using Application.Usecases.Dentist.ManageSchedule;
-using Application.Usecases.Dentist.ViewDentistSchedule;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,6 +15,12 @@ namespace Infrastructure.Repositories
         public async Task<List<Dentist>> GetAllDentistsAsync()
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<Dentist> GetDentistByDentistIdAsync(int dentistId)
+        {
+            var dentist = await _context.Dentists.FindAsync(dentistId);
+            return dentist;
         }
 
         public async Task<Dentist?> GetDentistByUserIdAsync(int userID)

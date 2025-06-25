@@ -18,6 +18,9 @@ import ViewProfile from './pages/auth/ViewProfile';
 import { PatientDashboardPage } from './pages/patient/PatientDashboardPage';
 import { StaffDashboard } from './pages/staff/StaffDashboard';
 import { PatientBookingPage } from './pages/patient/PatientBookingPage';
+import { PatientAppointmentsPage } from './pages/patient/PatientAppointmentsPage';
+import { StaffAppointmentsPage } from './pages/staff/StaffAppointmentsPage';
+import ScheduleManagementPage from './pages/staff/ScheduleManagementPage';
 import { DentistScheduleViewer } from './components/appointment/DentistScheduleViewer';
 import PatientTreatmentRecords from './pages/patient/PatientViewTreatmentRecord';
 import ViewTreatmentProgressPage from './pages/patient/ViewTreatmentProgress';
@@ -43,10 +46,13 @@ function App() {
         <Route path="/add-patient" element={<AddPatient />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/view-profile" element={<ViewProfile />} />
+        <Route path="/view-profile" element={<ViewProfile />} />        
         <Route path="/patient/dashboard" element={<PatientDashboardPage/>} />
         <Route path="/dashboard" element={<StaffDashboard/>} />
         <Route path="/patient/book-appointment" element={<PatientBookingPage/>} />
+        <Route path="/patient/appointments" element={<PatientAppointmentsPage/>} />
+        <Route path="/appointments" element={<StaffAppointmentsPage/>} />
+        <Route path="/schedules" element={<ScheduleManagementPage/>} />
         <Route path="/patient/view-treatment-records" element={<PatientTreatmentRecords/>} />
         <Route path="/patient/view-treatment-progress/:treatmentRecordId" element={<ViewTreatmentProgressPage/>} />
         <Route path="/patients" element={<PatientList />} />

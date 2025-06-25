@@ -1,6 +1,7 @@
 ﻿using Application.Usecases.Dentist.ManageSchedule;
 using Application.Usecases.Dentist.UpdateSchedule;
 using Application.Usecases.Dentist.ViewDentistSchedule;
+using Application.Usecases.Owner;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,7 +37,7 @@ namespace HDMS_API.Controllers
         }
 
         [HttpGet("dentist/{dentistId}")]
-        public async Task<IActionResult> ViewDentistSchedule([FromRoute] string dentistId, CancellationToken cancellationToken)
+        public async Task<IActionResult> ViewDentistSchedule([FromRoute] int dentistId, CancellationToken cancellationToken)
         {
             try
             {
@@ -54,7 +55,7 @@ namespace HDMS_API.Controllers
             }
         }
 
-        [HttpPost("create")]
+        [HttpPost("dentist/create")]
         public async Task<IActionResult> CreateSchedule([FromBody] CreateScheduleCommand command, CancellationToken cancellationToken)
         {
             try
@@ -72,8 +73,27 @@ namespace HDMS_API.Controllers
                 });
             }
         }
-        [HttpPost("edit")]
+        [HttpPut("dentist/edit")]
         public async Task<IActionResult> EditSchedule([FromBody] EditScheduleCommand command, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var result = await _mediator.Send(command, cancellationToken);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ex.Message,
+                    Inner = ex.InnerException?.Message,
+                    Stack = ex.StackTrace
+                });
+            }
+        }
+
+        [HttpPut("dentist/approve")]
+        public async Task<IActionResult> ApproveDentistSchedule([FromBody] ApproveDentistScheduleCommand command, CancellationToken cancellationToken)
         {
             try
             {

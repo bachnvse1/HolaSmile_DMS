@@ -10,6 +10,6 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
 {
     public class ViewDentistScheduleCommand : IRequest<List<DentistScheduleDTO>>
     {
-        public string DentistId { get; set; }
+        public int DentistId { get; set; }
     }
 }
