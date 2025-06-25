@@ -1,5 +1,4 @@
 ﻿using Application.Interfaces;
-using HDMS_API.Application.Interfaces;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;

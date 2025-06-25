@@ -1,10 +1,10 @@
-using Application.Usecases.UserCommon.ViewProfile;
+﻿using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using Application.Usecases.UserCommon.ViewListPatient;
 
-namespace HDMS_API.Application.Interfaces
+namespace Application.Interfaces
 {
     public interface IUserCommonRepository
     {

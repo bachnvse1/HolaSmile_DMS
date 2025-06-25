@@ -1,4 +1,4 @@
-﻿using HDMS_API.Application.Interfaces;
+﻿using Application.Interfaces;
 using MediatR;
 
 namespace HDMS_API.Application.Usecases.Auth.ForgotPassword
