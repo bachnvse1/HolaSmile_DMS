@@ -1,4 +1,6 @@
-import { Calendar, Clock, Edit, X } from "lucide-react"
+import { Calendar, Clock, Edit, X, BarChart2 } from "lucide-react"
+import { Link } from "react-router"
+import { Button } from "@/components/ui/button"
 import type { TreatmentRecord } from "@/types/treatment"
 import { formatCurrency } from "@/utils/format"
 
@@ -100,11 +102,19 @@ const RecordRow: React.FC<RecordRowProps> = ({ record, onEdit, onToggleDelete })
                                 : "border-red-300 text-red-700 hover:bg-red-50 focus:ring-red-500"
                             }`}
                     >
-                        <>
-                            <X className="h-3 w-3" />
-                            Xóa
-                        </>
+                        <X className="h-3 w-3" />
+                        Xoá
                     </button>
+                    <Button
+                        asChild
+                        variant="outline"
+                        className="text-blue-600 border-blue-300 hover:bg-blue-50 flex items-center gap-1"
+                    >
+                        <Link to={`/patient/view-treatment-progress/${record.treatmentRecordID}`}>
+                            <BarChart2 className="h-3 w-3" />
+                            Tiến độ
+                        </Link>
+                    </Button>
                 </div>
             </td>
         </tr>
