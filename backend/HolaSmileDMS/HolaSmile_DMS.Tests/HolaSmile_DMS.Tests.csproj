@@ -37,11 +37,4 @@
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Integration\Application\Usecases\Dentist\CreateTreatmentRecord\" />
-    <Folder Include="Integration\Application\Usecases\Patients\ViewTreatmentProgress\" />
-    <Folder Include="Unit\Application\Usecases\Dentists\CreateTreatmentRecord\" />
-    <Folder Include="Unit\Application\Usecases\Patients\ViewTreatmentProgress\" />
-  </ItemGroup>
-
 </Project>
