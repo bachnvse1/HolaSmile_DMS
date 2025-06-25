@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Patients.ViewTreatmentProgress;
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Patients;
 
 public class ViewTreatmentProgressIntegrationTests
 {
