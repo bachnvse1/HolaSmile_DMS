@@ -1,5 +1,6 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
+using HDMS_API.Application.Interfaces;
 using MediatR;
 
 namespace HDMS_API.Application.Usecases.UserCommon.Login
