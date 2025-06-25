@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Application.Constants.Interfaces;
 using Application.Interfaces;
 using HDMS_API.Application.Usecases.UserCommon.Login;
 using MediatR;

@@ -1,6 +1,6 @@
 using Application.Usecases.Patients.ViewTreatmentRecord;
 
-namespace Application.Constants.Interfaces;
+namespace Application.Interfaces;
 
 public interface ITreatmentRecordRepository
 {

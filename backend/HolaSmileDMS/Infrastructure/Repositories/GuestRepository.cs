@@ -1,4 +1,4 @@
-﻿using Application.Constants.Interfaces;
+﻿using Application.Interfaces;
 using HDMS_API.Infrastructure.Persistence;
 
 namespace HDMS_API.Infrastructure.Repositories

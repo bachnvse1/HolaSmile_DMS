@@ -1,4 +1,4 @@
-﻿using Application.Constants.Interfaces;
+﻿using Application.Interfaces;
 using Application.Usecases.UserCommon.ViewListPatient;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Infrastructure.Persistence;

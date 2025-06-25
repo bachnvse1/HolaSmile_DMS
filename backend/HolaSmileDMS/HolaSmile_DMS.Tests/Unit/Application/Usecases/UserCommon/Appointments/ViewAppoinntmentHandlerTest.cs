@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
+using Application.Interfaces;
 using Application.Usecases.UserCommon.ViewAppointment;
 using AutoMapper;
-using HDMS_API.Application.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
