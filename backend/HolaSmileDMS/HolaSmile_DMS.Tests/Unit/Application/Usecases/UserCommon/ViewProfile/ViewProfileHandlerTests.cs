@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
-using Application.Constants.Interfaces;
 using Application.Usecases.UserCommon.ViewProfile;
+using HDMS_API.Application.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;

@@ -1,12 +1,14 @@
-import { useState } from "react"
-import { X } from "lucide-react"
-import { toast, ToastContainer } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
+import { useEffect, useState } from "react"
+import { X, Plus, Edit3 } from "lucide-react"
+import { toast } from "react-toastify"
 import type { UseFormReturn } from "react-hook-form"
 import type { TreatmentFormData } from "@/types/treatment"
 import { useCalculateTotal } from "@/hooks/useCalculateTotal"
 import { formatCurrency } from "@/utils/format"
-import { createOrUpdateTreatmentRecord } from "@/services/treatmentService"
+import {
+  createTreatmentRecord,
+  updateTreatmentRecord,
+} from "@/services/treatmentService"
 
 interface TreatmentModalProps {
   formMethods: UseFormReturn<TreatmentFormData>
@@ -35,6 +37,10 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
   } = formMethods
 
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [appointments, setAppointments] = useState<any[]>([])
+  const [dentists, setDentists] = useState<any[]>([])
+  const [procedures, setProcedures] = useState<any[]>([])
+  const [employees, setEmployees] = useState<any[]>([])
 
   const unitPrice = watch("unitPrice") || 0
   const quantity = watch("quantity") || 0
@@ -42,19 +48,36 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
   const discountPercentage = watch("discountPercentage") || 0
   const totalAmount = useCalculateTotal(unitPrice, quantity, discountAmount, discountPercentage)
 
+  useEffect(() => {
+    if (!isEditing) {
+      setAppointments([
+        { id: 10, name: "Lịch hẹn 10" },
+        { id: 11, name: "Lịch hẹn 11" },
+      ])
+      setDentists([
+        { id: 2, name: "Dr. John Doe" },
+      ])
+      setProcedures([
+        { id: 1, name: "Filling" },
+      ])
+      setEmployees([
+        { id: 1, name: "NVTV Hoàng" },
+        { id: 2, name: "NVTV Mai" },
+      ])
+    }
+  }, [isEditing])
+
   if (!isOpen) return null
 
   const handleInternalSubmit = async (data: TreatmentFormData) => {
     try {
       setIsSubmitting(true)
-      const result = await createOrUpdateTreatmentRecord(
-        data,
-        totalAmount,
-        updatedBy,
-        recordId
-      )
 
-      toast.success(result.message || "Cập nhật thành công")
+      const result = isEditing
+        ? await updateTreatmentRecord(recordId!, data, totalAmount, updatedBy)
+        : await createTreatmentRecord(data, totalAmount, updatedBy)
+
+      toast.success(result.message || (isEditing ? "Cập nhật thành công" : "Tạo mới thành công"))
 
       if (onSubmit) {
         onSubmit(data)
@@ -71,9 +94,10 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-gray-200">
         <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">
+          <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+            {isEditing ? <Edit3 className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
             {isEditing ? "Cập nhật hồ sơ điều trị" : "Thêm hồ sơ điều trị mới"}
           </h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 focus:outline-none">
@@ -81,16 +105,57 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(handleInternalSubmit)} className="p-6">
-          <fieldset disabled={isSubmitting} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit(handleInternalSubmit)} className="p-6 space-y-6">
+          <fieldset disabled={isSubmitting} className="space-y-6">
+            {!isEditing && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Lịch hẹn *</label>
+                  <select {...register("appointmentID", { required: "Bắt buộc",  valueAsNumber: true, })} className="w-full border rounded-md px-3 py-2">
+                    <option value="">Chọn lịch hẹn</option>
+                    {appointments.map((a) => (
+                      <option key={a.id} value={a.id}>{a.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Bác sĩ *</label>
+                  <select {...register("dentistID", { required: "Bắt buộc",  valueAsNumber: true, })} className="w-full border rounded-md px-3 py-2">
+                    <option value="">Chọn bác sĩ</option>
+                    {dentists.map((d) => (
+                      <option key={d.id} value={d.id}>{d.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Thủ thuật *</label>
+                  <select {...register("procedureID", { required: "Bắt buộc",  valueAsNumber: true, })} className="w-full border rounded-md px-3 py-2">
+                    <option value="">Chọn thủ thuật</option>
+                    {procedures.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nhân viên tư vấn</label>
+                  <select {...register("consultantEmployeeID",{ valueAsNumber: true,})} className="w-full border rounded-md px-3 py-2">
+                    <option value="">Chọn nhân viên</option>
+                    {employees.map((e) => (
+                      <option key={e.id} value={e.id}>{e.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Vị trí răng *</label>
                 <input
                   {...register("toothPosition", { required: "Bắt buộc" })}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
-                {errors.toothPosition && <p className="error">{errors.toothPosition.message}</p>}
+                {errors.toothPosition && <p className="text-sm text-red-500 mt-1">{errors.toothPosition.message}</p>}
               </div>
 
               <div>
@@ -98,13 +163,14 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                 <input
                   {...register("treatmentDate", { required: "Bắt buộc" })}
                   type="date"
+                  min={new Date().toISOString().split("T")[0]}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
-                {errors.treatmentDate && <p className="error">{errors.treatmentDate.message}</p>}
+                {errors.treatmentDate && <p className="text-sm text-red-500 mt-1">{errors.treatmentDate.message}</p>}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Số lượng *</label>
                 <input
@@ -113,7 +179,7 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                   min={1}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
-                {errors.quantity && <p className="error">{errors.quantity.message}</p>}
+                {errors.quantity && <p className="text-sm text-red-500 mt-1">{errors.quantity.message}</p>}
               </div>
 
               <div>
@@ -124,7 +190,7 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                   step="0.01"
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
-                {errors.unitPrice && <p className="error">{errors.unitPrice.message}</p>}
+                {errors.unitPrice && <p className="text-sm text-red-500 mt-1">{errors.unitPrice.message}</p>}
               </div>
 
               <div>
@@ -149,7 +215,7 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
               </div>
             </div>
 
-            <div className="bg-gray-50 p-3 rounded-md">
+            <div className="bg-gray-50 p-4 rounded-md border border-dashed">
               <p className="text-sm font-medium text-gray-700">
                 Tổng tạm tính: <span className="text-lg font-bold text-green-600">{formatCurrency(totalAmount)}</span>
               </p>
@@ -167,27 +233,27 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                 <option value="Completed">Đã hoàn tất</option>
                 <option value="Cancelled">Đã huỷ</option>
               </select>
-              {errors.treatmentStatus && <p className="error">{errors.treatmentStatus.message}</p>}
+              {errors.treatmentStatus && <p className="text-sm text-red-500 mt-1">{errors.treatmentStatus.message}</p>}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Triệu chứng *</label>
               <textarea
                 {...register("symptoms", { required: "Bắt buộc" })}
-                rows={3}
+                rows={2}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
-              {errors.symptoms && <p className="error">{errors.symptoms.message}</p>}
+              {errors.symptoms && <p className="text-sm text-red-500 mt-1">{errors.symptoms.message}</p>}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Chẩn đoán *</label>
               <textarea
                 {...register("diagnosis", { required: "Bắt buộc" })}
-                rows={3}
+                rows={2}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
-              {errors.diagnosis && <p className="error">{errors.diagnosis.message}</p>}
+              {errors.diagnosis && <p className="text-sm text-red-500 mt-1">{errors.diagnosis.message}</p>}
             </div>
           </fieldset>
 
@@ -212,9 +278,8 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
           </div>
         </form>
       </div>
-      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   )
 }
 
-export default TreatmentModal 
+export default TreatmentModal
