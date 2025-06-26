@@ -1,8 +1,6 @@
-﻿using System.Security.Claims;
-using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
+﻿using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HDMS_API.Controllers

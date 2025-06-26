@@ -42,6 +42,7 @@ export const getWeekDateRange = (dates: Date[]): string => {
   const endDate = dates[dates.length - 1];
   
   return `${formatDate(startDate)} - ${formatDate(endDate)}`;
+
 };
 
 export const formatVietnameseDateFull = (date: Date): string => {

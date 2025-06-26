@@ -1,10 +1,10 @@
 using Application.Constants;
-using Application.Interfaces;
 using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
-using HDMS_API.Application.Interfaces;
+
+using Application.Interfaces;
 
 namespace Application.Usecases.Dentist.CreateTreatmentProcess;
 
