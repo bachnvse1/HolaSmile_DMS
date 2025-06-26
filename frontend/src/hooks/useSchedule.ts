@@ -1,15 +1,31 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '../lib/axios';
-import type { Schedule, ApprovalRequest } from '../types/schedule';
+
+// Define types for the hooks
+type ScheduleInput = {
+  date: string;
+  shift: string;
+  dentistId?: number;
+  note?: string;
+  status?: string;
+};
+
+type ApiScheduleInput = {
+  regisSchedules: Array<{ workDate: string; shift: string }>;
+};
 
 // Hook để lấy lịch làm việc của tất cả bác sĩ
 export const useAllDentistSchedules = () => {
   return useQuery({
     queryKey: ['schedules', 'all'],
     queryFn: async () => {
+      console.log('Đang tải danh sách lịch làm việc...');
       const response = await axiosInstance.get('/schedule/dentist/list');
+      console.log('Dữ liệu lịch làm việc nhận được:', response.data);
       return response.data;
-    }
+    },
+    staleTime: 0, // Luôn fetch dữ liệu mới
+    gcTime: 0     // Không cache dữ liệu (gcTime thay cho cacheTime trong v5)
   });
 };
 
@@ -19,10 +35,14 @@ export const useDentistSchedule = (dentistId?: number) => {
     queryKey: ['schedules', 'dentist', dentistId],
     queryFn: async () => {
       if (!dentistId) return null;
+      console.log('Đang tải lịch bác sĩ ID:', dentistId);
       const response = await axiosInstance.get(`/schedule/dentist/${dentistId}`);
+      console.log('Dữ liệu lịch bác sĩ nhận được:', response.data);
       return response.data;
     },
-    enabled: !!dentistId // Chỉ gọi API khi có dentistId
+    enabled: !!dentistId, // Chỉ gọi API khi có dentistId
+    staleTime: 0, // Luôn fetch dữ liệu mới
+    gcTime: 0     // Không cache dữ liệu
   });
 };
 
@@ -30,35 +50,47 @@ export const useDentistSchedule = (dentistId?: number) => {
 export const useCreateSchedule = () => {
   const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: async (scheduleData: Schedule) => {
+  return useMutation({    mutationFn: async (scheduleData: ScheduleInput | ScheduleInput[] | ApiScheduleInput) => {
       console.log('Đang tạo lịch làm việc:', scheduleData);
-      const response = await axiosInstance.post('/schedule/dentist/create', scheduleData);
+      
+      // Transform data to match API format
+      let apiData;
+      if (Array.isArray(scheduleData)) {
+        // If array of schedules
+        apiData = {
+          regisSchedules: scheduleData.map(schedule => ({
+            workDate: new Date(schedule.date).toISOString(),
+            shift: schedule.shift
+          }))
+        };
+      } else if ('regisSchedules' in scheduleData) {
+        // If already in correct format
+        apiData = scheduleData;
+      } else {
+        // If single schedule object
+        apiData = {
+          regisSchedules: [{
+            workDate: new Date(scheduleData.date).toISOString(),
+            shift: scheduleData.shift
+          }]
+        };
+      }
+      
+      console.log('Dữ liệu gửi đến API:', apiData);
+      const response = await axiosInstance.post('/schedule/dentist/create', apiData);
       console.log('Phản hồi từ server:', response.data);
       return response.data;
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (data) => {
       console.log('Tạo lịch thành công:', data);
       
       // Invalidate và refetch các queries liên quan khi thành công
       queryClient.invalidateQueries({ queryKey: ['schedules'] });
-      
-      // Cụ thể hóa invalidation cho lịch của từng bác sĩ
-      if (variables.dentistId) {
-        console.log('Invalidating cache for dentist:', variables.dentistId);
-        queryClient.invalidateQueries({ 
-          queryKey: ['schedules', 'dentist', variables.dentistId] 
-        });
-        
-        // Force refetch để cập nhật UI ngay lập tức
-        queryClient.refetchQueries({ 
-          queryKey: ['schedules', 'dentist', variables.dentistId],
-          type: 'active'
-        });
-      }
+      queryClient.refetchQueries({ queryKey: ['schedules'] });
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       console.error('Lỗi khi tạo lịch:', error);
+      console.error('Chi tiết lỗi:', (error as { response?: { data?: unknown } }).response?.data);
     }
   });
 };
@@ -68,25 +100,20 @@ export const useEditSchedule = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (scheduleData: Schedule) => {
+    mutationFn: async (scheduleData: { scheduleId: number; workDate: string; shift: string }) => {
       console.log('Đang cập nhật lịch làm việc:', scheduleData);
       const response = await axiosInstance.post('/schedule/dentist/edit', scheduleData);
       console.log('Phản hồi cập nhật từ server:', response.data);
       return response.data;
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (data) => {
       console.log('Cập nhật lịch thành công:', data);
       queryClient.invalidateQueries({ queryKey: ['schedules'] });
-      
-      // Cụ thể hóa invalidation cho lịch của từng bác sĩ
-      if (variables.dentistId) {
-        queryClient.invalidateQueries({ 
-          queryKey: ['schedules', 'dentist', variables.dentistId] 
-        });
-      }
+      queryClient.refetchQueries({ queryKey: ['schedules'] });
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       console.error('Lỗi khi cập nhật lịch:', error);
+      console.error('Chi tiết lỗi:', (error as { response?: { data?: unknown } }).response?.data);
     }
   });
 };
@@ -96,12 +123,20 @@ export const useApproveSchedules = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (data: ApprovalRequest) => {
+    mutationFn: async (data: { scheduleIds: number[]; action: 'confirm' | 'reject' }) => {
+      console.log('Đang phê duyệt lịch:', data);
       const response = await axiosInstance.post('/schedule/dentist/approve', data);
+      console.log('Phản hồi phê duyệt từ server:', response.data);
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Phê duyệt lịch thành công:', data);
       queryClient.invalidateQueries({ queryKey: ['schedules'] });
+      queryClient.refetchQueries({ queryKey: ['schedules'] });
+    },
+    onError: (error: unknown) => {
+      console.error('Lỗi khi phê duyệt lịch:', error);
+      console.error('Chi tiết lỗi:', (error as { response?: { data?: unknown } }).response?.data);
     }
   });
 };
@@ -111,13 +146,45 @@ export const useBulkCreateSchedules = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (schedulesData: Schedule[]) => {
-      const response = await axiosInstance.post('/schedule/dentist/bulk-create', { schedules: schedulesData });
+    mutationFn: async (schedulesData: ScheduleInput | ScheduleInput[] | ApiScheduleInput) => {
+      console.log('Đang tạo nhiều lịch:', schedulesData);
+        // Transform data to match API format
+      let apiData;
+      if ('regisSchedules' in schedulesData) {
+        // If already in correct format
+        apiData = schedulesData;
+      } else if (Array.isArray(schedulesData)) {
+        // If array of schedules
+        apiData = {
+          regisSchedules: schedulesData.map(schedule => ({
+            workDate: new Date(schedule.date).toISOString(),
+            shift: schedule.shift
+          }))
+        };
+      } else {
+        // Single schedule
+        apiData = {
+          regisSchedules: [{
+            workDate: new Date(schedulesData.date).toISOString(),
+            shift: schedulesData.shift
+          }]
+        };
+      }
+      
+      console.log('Dữ liệu bulk gửi đến API:', apiData);
+      const response = await axiosInstance.post('/schedule/dentist/create', apiData);
+      console.log('Phản hồi tạo nhiều lịch từ server:', response.data);
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Tạo nhiều lịch thành công:', data);
       // Invalidate và refetch các queries liên quan khi thành công
       queryClient.invalidateQueries({ queryKey: ['schedules'] });
+      queryClient.refetchQueries({ queryKey: ['schedules'] });
+    },
+    onError: (error: unknown) => {
+      console.error('Lỗi khi tạo nhiều lịch:', error);
+      console.error('Chi tiết lỗi:', (error as { response?: { data?: unknown } }).response?.data);
     }
   });
 };

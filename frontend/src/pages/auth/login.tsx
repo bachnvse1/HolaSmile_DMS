@@ -39,8 +39,7 @@ export function Login() {
 
       try {
         const loginResult = await AuthService.login(values.email, values.password);
-        
-        if (loginResult.success && loginResult.token) {
+          if (loginResult.success && loginResult.token) {
           // Token already saved by AuthService.login()
           const role = TokenUtils.getRoleFromToken(loginResult.token);
           
@@ -51,12 +50,6 @@ export function Login() {
           } else {
             navigate("/");
           }
-        );
-        const token = response.data.token;
-
-        if (token) {
-          localStorage.setItem("token", token);
-          navigate("/");
         } else {
           setApiError("Đăng nhập thất bại. Vui lòng thử lại.");
         }
@@ -123,11 +116,9 @@ export function Login() {
 
         {/* Password */}
         <div className="space-y-1">
-          <div className="flex justify-between items-center">
-            <label htmlFor="password" className="text-sm font-medium text-slate-300">
+          <div className="flex justify-between items-center">            <label htmlFor="password" className="text-sm font-medium text-slate-300">
               Mật khẩu
-            </label>
-            <Link type="button" className="text-sm text-blue-400 hover:underline" to={`/forgot-password`}>
+            </label>            <Link type="button" className="text-sm text-blue-400 hover:underline" to={`/forgot-password`}>
               Quên mật khẩu?
             </Link>
           </div>

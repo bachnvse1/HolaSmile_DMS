@@ -37,10 +37,14 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ dentistId }) => {
   const allSchedulesQuery = useAllDentistSchedules();
   
   const { data, isLoading, error } = dentistId ? dentistScheduleQuery : allSchedulesQuery;
-  
-  // Lọc schedules dựa trên filters
+    // Lọc schedules dựa trên filters
   const filteredSchedules = React.useMemo(() => {
-    if (!data?.data) return [];
+    if (!data?.data) {
+      console.log('Không có dữ liệu schedule:', data);
+      return [];
+    }
+    
+    console.log('Dữ liệu schedule nhận được:', data.data);
     
     return data.data.filter((schedule: Schedule) => {
       // Lọc theo searchTerm nếu có
@@ -117,8 +121,8 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ dentistId }) => {
       </div>
     );
   }
-  
-  if (!data?.data || data.data.length === 0) {
+    if (!data?.data || data.data.length === 0) {
+    console.log('Không có dữ liệu hoặc dữ liệu rỗng:', data);
     return (
       <div className="text-center py-10 bg-gray-50 rounded-lg border border-gray-200">
         <p className="text-gray-600">Không có lịch làm việc nào được tìm thấy.</p>
@@ -291,10 +295,20 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ dentistId }) => {
           </tbody>
         </table>
       </div>
-      
-      {filteredSchedules.length === 0 && (
+        {filteredSchedules.length === 0 && (
         <div className="text-center py-8 border-t">
           <p className="text-gray-500">Không tìm thấy lịch làm việc nào phù hợp với bộ lọc.</p>
+          <p className="text-xs text-gray-400 mt-2">
+            Tổng số lịch: {data?.data?.length || 0} | Đã lọc: {filteredSchedules.length}
+          </p>
+        </div>
+      )}
+      
+      {/* Debug info */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-2 p-2 bg-gray-100 text-xs">
+          <p>Debug: Tổng lịch: {data?.data?.length || 0}, Lọc: {filteredSchedules.length}</p>
+          <p>Filters: {JSON.stringify(filters)}</p>
         </div>
       )}
     </div>

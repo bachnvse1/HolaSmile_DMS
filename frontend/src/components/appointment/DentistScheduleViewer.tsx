@@ -75,8 +75,8 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
       timeString = '13:00:00';
       appointmentDate.setHours(13, 0, 0, 0);
     } else if (selectedTimeSlot === 'evening') {
-      timeString = '18:00:00';
-      appointmentDate.setHours(18, 0, 0, 0);
+      timeString = '17:00:00';
+      appointmentDate.setHours(17, 0, 0, 0);
     }
 
     const payload = {
