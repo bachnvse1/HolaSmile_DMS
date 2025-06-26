@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using Application.Interfaces;
 
-namespace Application.Usecases.Dentist.CreateTreatmentProcess;
+namespace Application.Usecases.Dentist.CreateTreatmentProgress;
 
 public class CreateTreatmentProgressHandler : IRequestHandler<CreateTreatmentProgressCommand, string>
 {

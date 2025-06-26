@@ -1,4 +1,4 @@
-using Application.Usecases.Dentist.CreateTreatmentProcess;
+using Application.Usecases.Dentist.CreateTreatmentProgress;
 using Application.Usecases.Patients.ViewTreatmentProgress;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
