@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useCreateSchedule, useEditSchedule, useDentistSchedule } from '../../hooks/useSchedule';
+import { useCreateSchedule, useEditSchedule, useDentistSchedule, useSoftDeleteSchedule, useDeleteSchedule } from '../../hooks/useSchedule';
 import type { Schedule } from '../../types/schedule';
 import { ScheduleStatus, ShiftType } from '../../types/schedule';
 import { formatDateWithDay, shiftTypeToText, isPastDate } from '../../utils/dateUtils';
@@ -25,7 +25,8 @@ interface DentistScheduleEditorWithCalendarProps {
   dentistId?: number;
 }
 
-export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWithCalendarProps> = ({ dentistId }) => {  // States
+export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWithCalendarProps> = ({ dentistId }) => {  
+  // States
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedShift, setSelectedShift] = useState<ShiftType | ''>('');
   const [note, setNote] = useState('');
@@ -41,9 +42,16 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
   const { data, isLoading, error, refetch } = useDentistSchedule(dentistId);
   const createScheduleMutation = useCreateSchedule();
   const editScheduleMutation = useEditSchedule();
+  const softDeleteMutation = useSoftDeleteSchedule();
+  const deleteMutation = useDeleteSchedule();
   
   // Schedules data
   const schedules = data?.data || [];
+  
+  // Debug log để kiểm tra dữ liệu
+  console.log('DentistScheduleEditorWithCalendar - dentistId:', dentistId);
+  console.log('DentistScheduleEditorWithCalendar - data từ hook:', data);
+  console.log('DentistScheduleEditorWithCalendar - schedules sau khi transform:', schedules);
   
   // Handlers
   const handleAddSchedule = () => {
@@ -68,13 +76,35 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
     setDeleteDialogOpen(true);
   };
   
+  // Xử lý xóa mềm lịch (set isActive = 0)
+  const handleSoftDeleteSchedule = async (schedule: Schedule) => {
+    if (!schedule.scheduleId) return;
+    
+    try {
+      // Thử DELETE method thay vì PUT
+      await deleteMutation.mutateAsync(schedule.scheduleId);
+      
+      toast.success('Đã hủy lịch làm việc thành công!');
+      
+      // Cập nhật lại dữ liệu
+      await refetch();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi hủy lịch!');
+    }
+  };
+  
   const handleCalendarDateSelect = (date: string, shift: ShiftType) => {
     // Kiểm tra xem có phải lịch hiện tại không
     const schedule: Schedule | undefined = schedules.find((s: Schedule) => s.date === date && s.shift === shift);
     
     if (schedule) {
-      // Nếu đã có lịch, mở dialog chỉnh sửa
-      handleEditSchedule(schedule);
+      // Nếu lịch có status pending và isActive = true, thực hiện xóa mềm
+      if (schedule.status === ScheduleStatus.Pending && schedule.isActive) {
+        handleSoftDeleteSchedule(schedule);
+      } else {
+        // Nếu là lịch khác (approved/rejected hoặc đã bị xóa mềm), mở dialog chỉnh sửa
+        handleEditSchedule(schedule);
+      }
     } else {
       // Nếu chưa có lịch, mở dialog thêm mới
       setIsEditMode(false);
@@ -91,8 +121,13 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
     const existingSchedule = schedules.find(s => s.date === date && s.shift === shift);
     
     if (existingSchedule) {
-      // Nếu đã có lịch, mở dialog chỉnh sửa
-      handleEditSchedule(existingSchedule);
+      // Nếu lịch có status pending và isActive = true, thực hiện xóa mềm
+      if (existingSchedule.status === ScheduleStatus.Pending && existingSchedule.isActive) {
+        handleSoftDeleteSchedule(existingSchedule);
+      } else {
+        // Nếu là lịch khác, mở dialog chỉnh sửa
+        handleEditSchedule(existingSchedule);
+      }
     } else {
       // Nếu chưa có lịch, thêm vào danh sách đã chọn
       const isAlreadySelected = selectedSlots.some(
