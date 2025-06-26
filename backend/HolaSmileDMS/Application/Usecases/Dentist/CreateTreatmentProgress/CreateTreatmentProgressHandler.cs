@@ -3,7 +3,6 @@ using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
-
 using Application.Interfaces;
 
 namespace Application.Usecases.Dentist.CreateTreatmentProgress;

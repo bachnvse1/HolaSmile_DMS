@@ -1,6 +1,5 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
-
 using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
