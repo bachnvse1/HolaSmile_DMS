@@ -2,7 +2,7 @@ using Application.Usecases.UserCommon.ViewListPatient;
 using Application.Usecases.UserCommon.ViewAppointment;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 
-namespace Application.Constants.Interfaces
+namespace Application.Interfaces
 {
     public interface IPatientRepository
     {

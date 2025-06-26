@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
-using HDMS_API.Application.Interfaces;
+using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
