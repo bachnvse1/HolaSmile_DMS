@@ -104,19 +104,17 @@ namespace Infrastructure.Repositories
             var result = await _context.Schedules
         .Include(s => s.Dentist)
         .ThenInclude(d => d.User)
-        .Include(s => s.Dentist.Appointments)   
-        .Where(s => s.IsActive)                 
-        .Where(s =>
-            s.Dentist.Appointments.Count(a =>
-                   a.AppointmentDate.Date == s.WorkDate.Date      
-                && (
-                       (s.Shift == "morning" && a.AppointmentTime >= morningStart && a.AppointmentTime <= morningEnd) ||
-                       (s.Shift == "afternoon" && a.AppointmentTime >= afternoonStart && a.AppointmentTime < afternoonEnd) ||
-                       (s.Shift == "evening" && a.AppointmentTime >= eveningStart && a.AppointmentTime < eveningEnd)
-                   )
-                && a.Status != "cancel")        
-            < maxPerSlot)                        
-        .ToListAsync();
+        .Include(s => s.Dentist.Appointments)
+        .Where(s =>  s.IsActive && s.Status == "approved" &&
+        s.Dentist.Appointments.Count(a =>
+        a.AppointmentDate.Date == s.WorkDate.Date &&
+        (
+            (s.Shift == "morning" && a.AppointmentTime >= morningStart && a.AppointmentTime <= morningEnd) ||
+            (s.Shift == "afternoon" && a.AppointmentTime >= afternoonStart && a.AppointmentTime < afternoonEnd) ||
+            (s.Shift == "evening" && a.AppointmentTime >= eveningStart && a.AppointmentTime < eveningEnd)
+        )
+        && a.Status != "cancel"
+    ) < maxPerSlot).ToListAsync();
             return result;
         }
     }

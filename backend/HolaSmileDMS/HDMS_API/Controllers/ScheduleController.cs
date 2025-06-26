@@ -17,6 +17,25 @@ namespace HDMS_API.Controllers
             _mediator = mediator;
         }
 
+        [HttpGet("dentist/available")]
+        public async Task<IActionResult> GetAllAvailableDentistSchedule()
+        {
+            try
+            {
+                var result = await _mediator.Send(new ViewAllAvailableDentistScheduleCommand());
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ex.Message,
+                    Inner = ex.InnerException?.Message,
+                    Stack = ex.StackTrace
+                });
+            }
+        }
+
         [HttpGet("dentist/list")]
         public async Task<IActionResult> GetAllDentistSchedule()
         {
