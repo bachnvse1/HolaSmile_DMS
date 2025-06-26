@@ -27,8 +27,8 @@ export default function PatientFilters({ searchTerm, onSearchChange, genderFilte
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">Tất Cả Giới Tính</SelectItem>
-          <SelectItem value="nam">Nam</SelectItem>
-          <SelectItem value="nữ">Nữ</SelectItem>
+          <SelectItem value="Male">Nam</SelectItem>
+          <SelectItem value="Female">Nữ</SelectItem>
         </SelectContent>
       </Select>
     </div>

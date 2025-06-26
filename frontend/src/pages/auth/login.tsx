@@ -9,7 +9,7 @@ import { TokenUtils } from "../../utils/tokenUtils";
 export function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const navigate = useNavigate();
 
   const formik = useFormik({
@@ -32,24 +32,26 @@ export function Login() {
         ),
       password: Yup.string()
         .required("Bắt buộc nhập mật khẩu")
-        .min(6, "Tối thiểu 6 ký tự")
+        .min(6, "Tối thiểu 6 ký tự"),
     }),
     onSubmit: async (values, { setSubmitting }) => {
       setApiError(null);
 
       try {
         const loginResult = await AuthService.login(values.email, values.password);
-          if (loginResult.success && loginResult.token) {
-          // Token already saved by AuthService.login()
+
+        if (loginResult.success && loginResult.token) {
           const role = TokenUtils.getRoleFromToken(loginResult.token);
-          
-          if (role === 'Patient') {
+
+          if (role === "Patient") {
             navigate("/patient/dashboard");
-          } else if (role && ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist'].includes(role)) {
+          } else if (role && ["Administrator", "Owner", "Receptionist", "Assistant", "Dentist"].includes(role)) {
             navigate("/dashboard");
           } else {
             navigate("/");
           }
+
+          localStorage.setItem("token", loginResult.token);
         } else {
           setApiError("Đăng nhập thất bại. Vui lòng thử lại.");
         }
@@ -73,7 +75,7 @@ export function Login() {
       setApiError("Lỗi đăng nhập Google");
       setIsGoogleLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4">
@@ -98,10 +100,11 @@ export function Login() {
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               placeholder="Email hoặc số điện thoại"
-              className={`w-full pl-10 pr-3 py-2 rounded-md bg-slate-700/50 text-white placeholder:text-slate-400 border focus:outline-none ${formik.touched.email && formik.errors.email
-                ? "border-red-500 focus:ring-1 focus:ring-red-500"
-                : "border-slate-600 focus:ring-1 focus:ring-blue-500"
-                }`}
+              className={`w-full pl-10 pr-3 py-2 rounded-md bg-slate-700/50 text-white placeholder:text-slate-400 border focus:outline-none ${
+                formik.touched.email && formik.errors.email
+                  ? "border-red-500 focus:ring-1 focus:ring-red-500"
+                  : "border-slate-600 focus:ring-1 focus:ring-blue-500"
+              }`}
             />
             {formik.touched.email && formik.errors.email && (
               <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500" size={16} />
@@ -132,10 +135,11 @@ export function Login() {
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               placeholder="Mật khẩu"
-              className={`w-full pl-10 pr-10 py-2 rounded-md bg-slate-700/50 text-white placeholder:text-slate-400 border focus:outline-none ${formik.touched.password && formik.errors.password
-                ? "border-red-500 focus:ring-1 focus:ring-red-500"
-                : "border-slate-600 focus:ring-1 focus:ring-blue-500"
-                }`}
+              className={`w-full pl-10 pr-10 py-2 rounded-md bg-slate-700/50 text-white placeholder:text-slate-400 border focus:outline-none ${
+                formik.touched.password && formik.errors.password
+                  ? "border-red-500 focus:ring-1 focus:ring-red-500"
+                  : "border-slate-600 focus:ring-1 focus:ring-blue-500"
+              }`}
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-2 items-center">
               <button
@@ -209,7 +213,7 @@ export function Login() {
           )}
           <span>{isGoogleLoading ? "Connecting..." : "Continue with Google"}</span>
         </button>
-        
+
         <div className="text-center">
           <Link
             to="/"

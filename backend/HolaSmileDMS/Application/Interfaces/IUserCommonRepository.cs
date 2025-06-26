@@ -4,7 +4,7 @@ using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using Application.Usecases.UserCommon.ViewListPatient;
 
-namespace Application.Constants.Interfaces
+namespace Application.Interfaces
 {
     public interface IUserCommonRepository
     {

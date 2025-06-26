@@ -1,5 +1,4 @@
-﻿
-using Application.Constants.Interfaces;
+﻿using Application.Interfaces;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -44,7 +43,7 @@ namespace Infrastructure.Repositories
                 .Include(s => s.Dentist)
                 .ThenInclude(d => d.User)
                 .Include(s => s.Dentist.Appointments)
-                .Where(s => s.Dentist.DentistId == dentistId && s.IsActive) 
+                .Where(s => s.Dentist.DentistId == dentistId && s.IsActive)
                 .ToListAsync();
             return result;
         }
@@ -92,6 +91,33 @@ namespace Infrastructure.Repositories
             _context.Schedules.Update(schedule);
             await _context.SaveChangesAsync();
             return true; 
+        }
+
+        public async Task<List<Schedule>> GetAllAvailableDentistSchedulesAsync(int maxPerSlot)
+        {
+            var morningStart = new TimeSpan(8, 0, 0);
+            var morningEnd = new TimeSpan(11, 0, 0);
+            var afternoonStart = new TimeSpan(14, 0, 0);
+            var afternoonEnd = new TimeSpan(17, 0, 0);
+            var eveningStart = new TimeSpan(17, 0, 0);
+            var eveningEnd = new TimeSpan(20, 0, 0);
+            var result = await _context.Schedules
+        .Include(s => s.Dentist)
+        .ThenInclude(d => d.User)
+        .Include(s => s.Dentist.Appointments)   
+        .Where(s => s.IsActive)                 
+        .Where(s =>
+            s.Dentist.Appointments.Count(a =>
+                   a.AppointmentDate.Date == s.WorkDate.Date      
+                && (
+                       (s.Shift == "morning" && a.AppointmentTime >= morningStart && a.AppointmentTime <= morningEnd) ||
+                       (s.Shift == "afternoon" && a.AppointmentTime >= afternoonStart && a.AppointmentTime < afternoonEnd) ||
+                       (s.Shift == "evening" && a.AppointmentTime >= eveningStart && a.AppointmentTime < eveningEnd)
+                   )
+                && a.Status != "cancel")        
+            < maxPerSlot)                        
+        .ToListAsync();
+            return result;
         }
     }
 }

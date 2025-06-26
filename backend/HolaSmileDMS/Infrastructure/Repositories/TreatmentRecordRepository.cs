@@ -1,4 +1,4 @@
-﻿using Application.Constants.Interfaces;
+﻿using Application.Interfaces;
 using Application.Usecases.Patients.ViewTreatmentRecord;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;

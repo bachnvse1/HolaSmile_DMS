@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using Application.Constants;
-using Application.Constants.Interfaces;
+using Application.Interfaces;
 using Application.Usecases.Dentist.CreateTreatmentRecord;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;

@@ -16,7 +16,7 @@ export default function PatientTableRow({ patient }: Props) {
                 <div className="font-medium">{patient.fullname}</div>
             </td>
             <td className="p-4">
-                <Badge variant={patient.gender === "Nam" ? "default" : "secondary"}>{patient.gender}</Badge>
+                <Badge variant={patient.gender === "Male" ? "default" : "secondary"}>{patient.gender === "Male" ? "Nam" : "Nữ"}</Badge>
             </td>
             <td className="p-4 text-sm">{patient.dob}</td>
             <td className="p-4">
