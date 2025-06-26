@@ -43,6 +43,11 @@ namespace Application.Usecases.Receptionist.CreateFollow_UpAppointment
             {
                 return "Bệnh nhân không tồn tại"; // "Bệnh nhân không tồn tại"
             }
+            var checkValidAppointment = await _appointmentRepository.GetLatestAppointmentByPatientIdAsync(request.PatientId);
+            if(checkValidAppointment.Status == "confirmed")
+            {
+                throw new Exception(MessageConstants.MSG.MSG89); // "Kế hoạch điều trị đã tồn tại"
+            }
 
             var appointment = new Appointment
             {
