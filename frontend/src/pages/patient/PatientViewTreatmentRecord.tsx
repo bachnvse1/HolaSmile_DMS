@@ -8,14 +8,16 @@ import FilterBar from "@/components/patient/FilterBar"
 import SummaryStats from "@/components/patient/SummaryStats"
 import TreatmentTable from "@/components/patient/TreatmentTable"
 import TreatmentModal from "@/components/patient/TreatmentModal"
-import { Navigation } from "@/layouts/homepage/Navigation"
 
 import type { FilterFormData, TreatmentFormData, TreatmentRecord } from "@/types/treatment"
 import { getTreatmentRecordsByUser, deleteTreatmentRecord } from "@/services/treatmentService"
+import { useAuth } from '../../hooks/useAuth';
+import { AuthGuard } from '../../components/AuthGuard';
+import { StaffLayout } from '../../layouts/staff/StaffLayout';
 
 const PatientTreatmentRecords: React.FC = () => {
   const [searchParams] = useSearchParams()
-  const userId = searchParams.get("userId")
+  const patientId = searchParams.get("userId")
 
   const { register, watch } = useForm<FilterFormData>({
     defaultValues: {
@@ -36,10 +38,21 @@ const PatientTreatmentRecords: React.FC = () => {
   const filterStatus = watch("filterStatus")
   const filterDentist = watch("filterDentist")
 
+  const { username, role, userId } = useAuth();
+
+  // Create userInfo object for StaffLayout
+  const userInfo = {
+    id: userId || '',
+    name: username || 'User',
+    email: '',
+    role: role || '',
+    avatar: undefined
+  };
+
   const fetchRecords = async () => {
-    if (!userId) return
+    if (!patientId) return
     try {
-      const data = await getTreatmentRecordsByUser(Number(userId))
+      const data = await getTreatmentRecordsByUser(Number(patientId))
       setRecords(data)
     } catch (error) {
       console.error("Error fetching treatment records:", error)
@@ -48,7 +61,7 @@ const PatientTreatmentRecords: React.FC = () => {
 
   useEffect(() => {
     fetchRecords()
-  }, [userId])
+  }, [patientId])
 
   const filteredRecords = records.filter((record) => {
     const matchesSearch =
@@ -128,56 +141,57 @@ const PatientTreatmentRecords: React.FC = () => {
   }
 
   return (
-    <>
-      <Navigation />
-      <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                  <FileText className="h-5 w-5" /> Hồ sơ điều trị nha khoa
-                </h2>
-                <p className="text-gray-600 mt-1">
-                  Lịch sử đầy đủ về các phương pháp điều trị và thủ thuật nha khoa
-                </p>
+    <AuthGuard requiredRoles={['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']}>
+      <StaffLayout userInfo={userInfo}>
+        <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+          <div className="max-w-7xl mx-auto space-y-6">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                    <FileText className="h-5 w-5" /> Hồ sơ điều trị nha khoa
+                  </h2>
+                  <p className="text-gray-600 mt-1">
+                    Lịch sử đầy đủ về các phương pháp điều trị và thủ thuật nha khoa
+                  </p>
+                </div>
+                <button
+                  onClick={handleAddRecord}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" /> Thêm Hồ sơ điều trị mới
+                </button>
               </div>
-              <button
-                onClick={handleAddRecord}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" /> Thêm Hồ sơ điều trị mới
-              </button>
+
+              <div className="p-6">
+                <FilterBar register={register} />
+                <TreatmentTable
+                  records={filteredRecords}
+                  onEdit={handleEditRecord}
+                  onToggleDelete={handleToggleDelete}
+                />
+              </div>
             </div>
 
-            <div className="p-6">
-              <FilterBar register={register} />
-              <TreatmentTable
-                records={filteredRecords}
-                onEdit={handleEditRecord}
-                onToggleDelete={handleToggleDelete}
-              />
-            </div>
+            <SummaryStats records={records} />
+
+            <TreatmentModal
+              formMethods={treatmentForm}
+              isOpen={isModalOpen}
+              isEditing={!!editingRecord}
+              onClose={() => {
+                setIsModalOpen(false)
+                setEditingRecord(null)
+                resetTreatmentForm()
+              }}
+              updatedBy={1}
+              recordId={editingRecord?.treatmentRecordID}
+              onSubmit={handleFormSubmit}
+            />
           </div>
-
-          <SummaryStats records={records} />
-
-          <TreatmentModal
-            formMethods={treatmentForm}
-            isOpen={isModalOpen}
-            isEditing={!!editingRecord}
-            onClose={() => {
-              setIsModalOpen(false)
-              setEditingRecord(null)
-              resetTreatmentForm()
-            }}
-            updatedBy={1}
-            recordId={editingRecord?.treatmentRecordID}
-            onSubmit={handleFormSubmit}
-          />
         </div>
-      </div>
-    </>
+      </StaffLayout>
+    </AuthGuard>
   )
 }
 
