@@ -5,6 +5,7 @@ using Application.Usecases.Dentist.ViewDentistSchedule;
 using Application.Usecases.Owner;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HDMS_API.Controllers
@@ -105,7 +106,7 @@ namespace HDMS_API.Controllers
             try
             {
                 var result = await _mediator.Send(command, cancellationToken);
-                return Ok(result);
+                return result ? Ok("cập nhật lịch thành công") : Conflict("cập nhật lịch thất bại");
             }
             catch (Exception ex)
             {
@@ -145,7 +146,7 @@ namespace HDMS_API.Controllers
             try
             {
                 var result = await _mediator.Send(command, cancellationToken);
-                return Ok(result);
+                return result ? Ok("Hủy lịch thành công") : Conflict("Hủy lịch thất bại");
             }
             catch (Exception ex)
             {

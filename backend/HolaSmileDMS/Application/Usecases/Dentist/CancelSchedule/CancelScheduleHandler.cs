@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Application.Usecases.Dentist.CancelSchedule
 {
-    public class CancelScheduleHandler : IRequestHandler<CancelScheduleCommand, string>
+    public class CancelScheduleHandler : IRequestHandler<CancelScheduleCommand, bool>
     {
         private readonly IDentistRepository _dentistRepository;
         private readonly IScheduleRepository _scheduleRepository;
@@ -18,7 +18,7 @@ namespace Application.Usecases.Dentist.CancelSchedule
             _httpContextAccessor = httpContextAccessor;
             _scheduleRepository = scheduleRepository;
         }
-        public async Task<string> Handle(CancelScheduleCommand request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(CancelScheduleCommand request, CancellationToken cancellationToken)
         {
             // Lấy thông tin người dùng hiện tại
             var user = _httpContextAccessor.HttpContext?.User;
@@ -49,11 +49,11 @@ namespace Application.Usecases.Dentist.CancelSchedule
             if (schedule.Status == "pending")
             {
                 var Isdelete = await _scheduleRepository.DeleteSchedule(request.ScheduleId);
-                return Isdelete ? "Hủy lịch thành công" : "Hủy lịch thất bại";
+                return Isdelete;
             }
             else
             {
-                return "Lịch làm việc đã được duyệt, không thể chỉnh sửa."; // "Schedule has been approved, cannot edit."
+                throw new Exception("Lịch làm việc đã được duyệt, không thể chỉnh sửa."); // "Schedule has been approved, cannot edit."
             }
         }
     }

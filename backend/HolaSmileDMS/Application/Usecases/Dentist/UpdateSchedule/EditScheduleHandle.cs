@@ -3,10 +3,11 @@ using Application.Constants;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Application.Usecases.Dentist.UpdateSchedule
 {
-    public class EditScheduleHandle : IRequestHandler<EditScheduleCommand, string>
+    public class EditScheduleHandle : IRequestHandler<EditScheduleCommand, bool>
     {
         private readonly IDentistRepository _dentistRepository;
         private readonly IScheduleRepository _scheduleRepository;
@@ -18,7 +19,7 @@ namespace Application.Usecases.Dentist.UpdateSchedule
             _httpContextAccessor = httpContextAccessor;
             _scheduleRepository = scheduleRepository;
         }
-        public async Task<string> Handle(EditScheduleCommand request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(EditScheduleCommand request, CancellationToken cancellationToken)
         {
             // Lấy thông tin người dùng hiện tại
             var user = _httpContextAccessor.HttpContext?.User;
@@ -42,7 +43,7 @@ namespace Application.Usecases.Dentist.UpdateSchedule
             var dentist = await _dentistRepository.GetDentistByUserIdAsync(currentUserId);
             if (dentist == null || schedule.DentistId != dentist.DentistId)
             {
-                throw new Exception(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này."
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này."
             }
 
             // Nếu lịch chưa được Owner duyệt ,cập nhật lịch thẳng
@@ -68,11 +69,11 @@ namespace Application.Usecases.Dentist.UpdateSchedule
                 schedule.UpdatedBy = currentUserId;
 
                 var updated = await _scheduleRepository.UpdateScheduleAsync(schedule);
-                return updated ? "cập nhật lịch thành công" : "cập nhật lịch thất bại";
+                return updated; //"cập nhật lịch thành công" : "cập nhật lịch thất bại";
             }
             else
             {
-                return "Lịch làm việc đã được duyệt, không thể chỉnh sửa."; // "Schedule has been approved, cannot edit."
+                 throw new Exception("Lịch làm việc đã được duyệt, không thể chỉnh sửa."); // "Schedule has been approved, cannot edit."
             }
         }
     }
