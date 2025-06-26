@@ -32,7 +32,7 @@ const AuthCallback = () => {
       handled.current = true;
 
       if (role === "Patient") {
-        navigate("/forgot-password"); // chạy tới view profile 
+        navigate("/patient/dashboard"); 
       } else {
         navigate("/");
       }

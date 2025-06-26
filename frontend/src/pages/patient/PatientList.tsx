@@ -8,7 +8,9 @@ import PaginationControls from "@/components/ui/PaginationControls"
 import type { Patient } from "@/types/patient"
 import { getAllPatients } from "@/services/patientService"
 import { useNavigate } from "react-router"
-
+import { useAuth } from '../../hooks/useAuth';
+import { AuthGuard } from '../../components/AuthGuard';
+import { StaffLayout } from '../../layouts/staff/StaffLayout';
 
 const PAGE_SIZE = 5
 
@@ -19,6 +21,17 @@ export default function PatientList() {
   const [genderFilter, setGenderFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
   const navigate = useNavigate()
+
+  const { username, role, userId } = useAuth();
+
+  // Create userInfo object for StaffLayout
+  const userInfo = {
+    id: userId || '',
+    name: username || 'User',
+    email: '',
+    role: role || '',
+    avatar: undefined
+  };
 
   useEffect(() => {
     const fetchPatients = async () => {
@@ -58,43 +71,47 @@ export default function PatientList() {
   )
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Danh Sách Bệnh Nhân</h1>
-          <p className="text-muted-foreground">Quản lý và xem tất cả hồ sơ bệnh nhân</p>
+    <AuthGuard requiredRoles={['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']}>
+      <StaffLayout userInfo={userInfo}>
+        <div className="container mx-auto p-6 space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold">Danh Sách Bệnh Nhân</h1>
+              <p className="text-muted-foreground">Quản lý và xem tất cả hồ sơ bệnh nhân</p>
+            </div>
+            <Button
+              onClick={() => navigate("/add-patient")}
+              className="flex items-center gap-2"
+            >
+              <UserPlus className="h-4 w-4" />
+              Thêm Bệnh Nhân Mới
+            </Button>
+          </div>
+
+          <Card className="space-y-4">
+            <h3 className="text-xl font-semibold flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Bộ Lọc & Tìm Kiếm
+            </h3>
+            <PatientFilters
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              genderFilter={genderFilter}
+              onGenderChange={setGenderFilter}
+            />
+          </Card>
+
+          <PatientTable patients={paginatedPatients} />
+
+          {filteredPatients.length > PAGE_SIZE && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={pageCount}
+              onPageChange={setCurrentPage}
+            />
+          )}
         </div>
-        <Button
-          onClick={() => navigate("/add-patient")}
-          className="flex items-center gap-2"
-        >
-          <UserPlus className="h-4 w-4" />
-          Thêm Bệnh Nhân Mới
-        </Button>
-      </div>
-
-      <Card className="space-y-4">
-        <h3 className="text-xl font-semibold flex items-center gap-2">
-          <Filter className="h-5 w-5" />
-          Bộ Lọc & Tìm Kiếm
-        </h3>
-        <PatientFilters
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          genderFilter={genderFilter}
-          onGenderChange={setGenderFilter}
-        />
-      </Card>
-
-      <PatientTable patients={paginatedPatients} />
-
-      {filteredPatients.length > PAGE_SIZE && (
-        <PaginationControls
-          currentPage={currentPage}
-          totalPages={pageCount}
-          onPageChange={setCurrentPage}
-        />
-      )}
-    </div>
+      </StaffLayout>
+    </AuthGuard>
   )
 }
