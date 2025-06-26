@@ -22,11 +22,11 @@ public class TreatmentRecordRepository : ITreatmentRecordRepository
     {
         var patient = _context.Patients.Where(x=>x.UserID == userId).FirstOrDefault();
         if (patient == null)
-            return new List<ViewTreatmentRecordDto>();
-        
+            return new List<ViewTreatmentRecordDto>(); 
         return await _context.TreatmentRecords
+            .Include(tr => tr.Appointment)
             .Where(tr => tr.Appointment.PatientId == patient.PatientID && !tr.IsDeleted)
-            .ProjectTo<ViewTreatmentRecordDto>(_mapper.ConfigurationProvider)
+            .Select(tr => _mapper.Map<ViewTreatmentRecordDto>(tr))
             .ToListAsync(cancellationToken);
     }
 
