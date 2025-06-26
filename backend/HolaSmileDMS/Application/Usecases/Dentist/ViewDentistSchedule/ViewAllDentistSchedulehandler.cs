@@ -1,44 +1,56 @@
-﻿using Application.Constants;
+﻿using System.Security.Claims;
+using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Dentist.ViewAllDentistSchedule;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 
 namespace Application.Usecases.Dentist.ViewDentistSchedule
 {
     public class ViewAllDentistSchedulehandler : IRequestHandler<ViewAllDentistScheduleCommand, List<DentistScheduleDTO>>
     {
         private readonly IScheduleRepository _scheduleRepository;
-        public ViewAllDentistSchedulehandler(IScheduleRepository scheduleRepository)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public ViewAllDentistSchedulehandler(IScheduleRepository scheduleRepository, IHttpContextAccessor httpContextAccessor)
         {
+            _httpContextAccessor = httpContextAccessor;
             _scheduleRepository = scheduleRepository;
         }
         public async Task<List<DentistScheduleDTO>> Handle(ViewAllDentistScheduleCommand request, CancellationToken cancellationToken)
         {
-            var schedules = await _scheduleRepository.GetAllAvailableDentistSchedulesAsync(3);
-            if(schedules == null || schedules.Count == 0)
-            {
-                throw new Exception(MessageConstants.MSG.MSG16);
-            }
+            var user = _httpContextAccessor.HttpContext?.User;
 
-            var result = schedules
-        .GroupBy(s => s.DentistId)
-        .Select(g => new DentistScheduleDTO
-        {
-            DentistID = g.Key,
-            DentistName = g.First().Dentist.User.Fullname,
-            Avatar = g.First().Dentist.User.Avatar,
-            Schedules = g.Select(s => new ScheduleDTO
+            var currentUserRole = user.FindFirst(ClaimTypes.Role)?.Value;
+            var currentUserId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+
+            var schedules = new List<Schedule>();
+            if (string.Equals(currentUserRole, "dentist", StringComparison.OrdinalIgnoreCase) || string.Equals(currentUserRole, "owner", StringComparison.OrdinalIgnoreCase))
             {
-                ScheduleId = s.ScheduleId,
-                WorkDate = s.WorkDate.Date,
-                DentistName = s.Dentist.User.Fullname,
-                Shift = s.Shift,
-                Status = s.Status,
-                CreatedAt = s.CreatedAt.Date,
-                UpdatedAt = s.UpdatedAt?.Date
-            }).ToList()
-        })
-        .ToList();
+                schedules = await _scheduleRepository.GetAllDentistSchedulesAsync();
+            }
+            else
+            {
+                schedules = await _scheduleRepository.GetAllAvailableDentistSchedulesAsync(3);
+            }
+            var result = schedules
+                         .GroupBy(s => s.DentistId)
+                         .Select(g => new DentistScheduleDTO
+                                 {
+                                   DentistID = g.Key,
+                                   DentistName = g.First().Dentist.User.Fullname,
+                                   Avatar = g.First().Dentist.User.Avatar,
+                                   Schedules = g.Select(s => new ScheduleDTO
+                                   {
+                                      ScheduleId = s.ScheduleId,
+                                      WorkDate = s.WorkDate,
+                                      DentistName = s.Dentist.User.Fullname,
+                                      Shift = s.Shift,
+                                      CreatedAt = s.CreatedAt,
+                                      UpdatedAt = s.UpdatedAt
+                                   }).ToList()
+                                 }).ToList();
+
             return result;
         }
     }

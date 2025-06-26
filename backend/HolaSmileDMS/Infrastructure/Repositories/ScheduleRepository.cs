@@ -48,6 +48,17 @@ namespace Infrastructure.Repositories
             return result;
         }
 
+        public async Task<List<Schedule>> GetDentistApprovedSchedulesByDentistIdAsync(int dentistId)
+        {
+            var result = await _context.Schedules
+                .Include(s => s.Dentist)
+                .ThenInclude(d => d.User)
+                .Include(s => s.Dentist.Appointments)
+                .Where(s => s.Dentist.DentistId == dentistId && s.Status == "approved" && s.IsActive)
+                .ToListAsync();
+            return result;
+        }
+
         public async Task<Schedule> GetScheduleByIdAsync(int scheduleId)
         {
             var result = await _context.Schedules
@@ -69,15 +80,16 @@ namespace Infrastructure.Repositories
             return true;
         }
 
-        public async Task<bool> CheckDulplicateScheduleAsync(int dentistId, DateTime workDate, string shift, int currentScheduleId)
+        public async Task<Schedule> CheckDulplicateScheduleAsync(int dentistId, DateTime workDate, string shift, int currentScheduleId)
         {
-            return await _context.Schedules.AnyAsync(s =>
+            var schedule = await _context.Schedules.FirstOrDefaultAsync(s =>
                 s.DentistId == dentistId &&
                 s.WorkDate.Date == workDate.Date &&
                 s.Shift == shift &&
                 s.IsActive &&
                 s.ScheduleId != currentScheduleId
             );
+            return schedule;
         }
 
         public async Task<bool> DeleteSchedule(int scheduleId)
@@ -104,19 +116,17 @@ namespace Infrastructure.Repositories
             var result = await _context.Schedules
         .Include(s => s.Dentist)
         .ThenInclude(d => d.User)
-        .Include(s => s.Dentist.Appointments)   
-        .Where(s => s.IsActive)                 
-        .Where(s =>
-            s.Dentist.Appointments.Count(a =>
-                   a.AppointmentDate.Date == s.WorkDate.Date      
-                && (
-                       (s.Shift == "morning" && a.AppointmentTime >= morningStart && a.AppointmentTime <= morningEnd) ||
-                       (s.Shift == "afternoon" && a.AppointmentTime >= afternoonStart && a.AppointmentTime < afternoonEnd) ||
-                       (s.Shift == "evening" && a.AppointmentTime >= eveningStart && a.AppointmentTime < eveningEnd)
-                   )
-                && a.Status != "cancel")        
-            < maxPerSlot)                        
-        .ToListAsync();
+        .Include(s => s.Dentist.Appointments)
+        .Where(s =>  s.IsActive && s.Status == "approved" &&
+        s.Dentist.Appointments.Count(a =>
+        a.AppointmentDate.Date == s.WorkDate.Date &&
+        (
+            (s.Shift == "morning" && a.AppointmentTime >= morningStart && a.AppointmentTime <= morningEnd) ||
+            (s.Shift == "afternoon" && a.AppointmentTime >= afternoonStart && a.AppointmentTime < afternoonEnd) ||
+            (s.Shift == "evening" && a.AppointmentTime >= eveningStart && a.AppointmentTime < eveningEnd)
+        )
+        && a.Status != "cancel"
+    ) < maxPerSlot).ToListAsync();
             return result;
         }
     }

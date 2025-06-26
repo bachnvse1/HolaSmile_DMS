@@ -3,23 +3,22 @@ using Application.Constants;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Application.Usecases.Dentist.UpdateSchedule
+namespace Application.Usecases.Dentist.CancelSchedule
 {
-    public class EditScheduleHandle : IRequestHandler<EditScheduleCommand, bool>
+    public class CancelScheduleHandler : IRequestHandler<CancelScheduleCommand, bool>
     {
         private readonly IDentistRepository _dentistRepository;
         private readonly IScheduleRepository _scheduleRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public EditScheduleHandle(IDentistRepository dentistRepository, IScheduleRepository scheduleRepository, IHttpContextAccessor httpContextAccessor)
+        public CancelScheduleHandler(IDentistRepository dentistRepository, IScheduleRepository scheduleRepository, IHttpContextAccessor httpContextAccessor)
         {
             _dentistRepository = dentistRepository;
             _httpContextAccessor = httpContextAccessor;
             _scheduleRepository = scheduleRepository;
         }
-        public async Task<bool> Handle(EditScheduleCommand request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(CancelScheduleCommand request, CancellationToken cancellationToken)
         {
             // Lấy thông tin người dùng hiện tại
             var user = _httpContextAccessor.HttpContext?.User;
@@ -43,39 +42,19 @@ namespace Application.Usecases.Dentist.UpdateSchedule
             var dentist = await _dentistRepository.GetDentistByUserIdAsync(currentUserId);
             if (dentist == null || schedule.DentistId != dentist.DentistId)
             {
-                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này."
+                throw new Exception(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này."
             }
 
             // Nếu lịch chưa được Owner duyệt ,cập nhật lịch thẳng
             if (schedule.Status == "pending")
             {
-                // Kiểm tra trùng lịch với lịch khác (ngoại trừ chính lịch này)
-                var isDuplicate = await _scheduleRepository.CheckDulplicateScheduleAsync(
-                    dentist.DentistId,
-                    request.WorkDate,
-                    request.Shift,
-                    schedule.ScheduleId
-                );
-
-                if (isDuplicate)
-                {
-                    throw new Exception(MessageConstants.MSG.MSG51); // "Xung đột với lịch làm việc hiện tại."
-                }
-
-                // Cập nhật thông tin lịch làm việc
-                schedule.WorkDate = request.WorkDate;
-                schedule.Shift = request.Shift;
-                schedule.UpdatedAt = DateTime.Now;
-                schedule.UpdatedBy = currentUserId;
-
-                var updated = await _scheduleRepository.UpdateScheduleAsync(schedule);
-                return updated; //"cập nhật lịch thành công" : "cập nhật lịch thất bại";
+                var Isdelete = await _scheduleRepository.DeleteSchedule(request.ScheduleId);
+                return Isdelete;
             }
             else
             {
-                 throw new Exception("Lịch làm việc đã được duyệt, không thể chỉnh sửa."); // "Schedule has been approved, cannot edit."
+                throw new Exception("Lịch làm việc đã được duyệt, không thể chỉnh sửa."); // "Schedule has been approved, cannot edit."
             }
         }
     }
-
 }

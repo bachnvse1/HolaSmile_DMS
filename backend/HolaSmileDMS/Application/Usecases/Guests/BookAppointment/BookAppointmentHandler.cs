@@ -53,7 +53,14 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                                       // If the user exists, check if they have a patient record
                 patient = await _patientRepository.GetPatientByUserIdAsync(existUser.UserID)
                       ?? throw new Exception(MessageConstants.MSG.MSG27); // "Không tìm thấy hồ sơ bệnh nhân"
-                
+
+                // Check if the latsest appointment for the patient is confirmed
+                var checkValidAppointment = await _appointmentRepository.GetLatestAppointmentByPatientIdAsync(patient.PatientID);
+                if (checkValidAppointment.Status == "confirmed")
+                {
+                    throw new Exception(MessageConstants.MSG.MSG89); // "Kế hoạch điều trị đã tồn tại"
+                }
+
                 //checck duplicate appointment
                 bool already = await _appointmentRepository.ExistsAppointmentAsync(patient.PatientID, request.AppointmentDate);
                 if (already) throw new Exception(MessageConstants.MSG.MSG74);
@@ -96,7 +103,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 AppointmentType = "",
                 AppointmentDate = request.AppointmentDate,
                 AppointmentTime = request.AppointmentTime,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
                 CreatedBy = user.UserID,
                 IsDeleted = false
             };
