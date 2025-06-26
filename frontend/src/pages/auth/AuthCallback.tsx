@@ -32,10 +32,12 @@ const AuthCallback = () => {
       handled.current = true;
 
       if (role === "Patient") {
-        navigate("/forgot-password"); // chạy tới view profile 
-      } else {
-        navigate("/");
-      }
+            navigate("/patient/dashboard");
+          } else if (role && ["Administrator", "Owner", "Receptionist", "Assistant", "Dentist"].includes(role)) {
+            navigate("/dashboard");
+          } else {
+            navigate("/");
+          }
     } else {
       toast.error("Đăng nhập thất bại!", {
         position: "top-left",

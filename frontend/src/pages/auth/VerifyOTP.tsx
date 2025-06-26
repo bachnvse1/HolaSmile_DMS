@@ -3,7 +3,8 @@ import { useFormik } from "formik"
 import * as Yup from "yup"
 import { ArrowLeft, CheckCircle, AlertCircle, RefreshCw } from "lucide-react"
 import { useSearchParams, Link, useNavigate } from "react-router"
-import axios from "axios"
+import { toast } from "react-toastify"
+import axiosInstance from "@/lib/axios"
 
 type OTPInputProps = {
   value: string
@@ -34,8 +35,9 @@ function OTPInput({
       onChange={(e) => onChange(index, e.target.value)}
       onKeyDown={(e) => onKeyDown(index, e)}
       disabled={disabled}
-      className={`w-12 h-12 text-center text-lg font-semibold bg-slate-700/50 border rounded-md text-white focus:outline-none focus:ring-2 transition-colors ${hasError ? "border-red-500 focus:ring-red-500" : "border-slate-600 focus:ring-blue-500"
-        }`}
+      className={`w-12 h-12 text-center text-lg font-semibold bg-slate-700/50 border rounded-md text-white focus:outline-none focus:ring-2 transition-colors ${
+        hasError ? "border-red-500 focus:ring-red-500" : "border-slate-600 focus:ring-blue-500"
+      }`}
     />
   )
 }
@@ -47,14 +49,12 @@ export default function VerifyOTP() {
 
   const [isSuccess, setIsSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-
   const [countdown, setCountdown] = useState(60)
   const [canResend, setCanResend] = useState(false)
   const [isResending, setIsResending] = useState(false)
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
-  // Quản lý đếm ngược gửi lại OTP
   useEffect(() => {
     if (countdown > 0 && !canResend) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
@@ -71,46 +71,33 @@ export default function VerifyOTP() {
     validationSchema: Yup.object({
       otp: Yup.array()
         .of(Yup.string().matches(/^\d$/, "Chỉ được nhập số"))
-        .test("all-filled", "Vui lòng nhập đầy đủ mã OTP", (value) => {
-          return value?.every((digit) => digit !== "")
-        }),
+        .test("all-filled", "Vui lòng nhập đầy đủ mã OTP", (value) =>
+          value?.every((digit) => digit !== "")
+        ),
     }),
     onSubmit: async (values) => {
       setIsLoading(true)
       try {
-        const otpCode = values.otp.join("").toString()
+        const otpCode = values.otp.join("")
         const expiryTime = new Date().toISOString()
 
-        const res = await axios.post(
-          "https://localhost:5001/api/user/OTP/Verify",
-          {
-            email,
-            otp: otpCode,
-            expiryTime,
-          },
-          {
-            withCredentials: true,
-            headers: {
-              "Content-Type": "application/json",
+        const res = await axiosInstance.post("/user/OTP/Verify", {
+          email,
+          otp: otpCode,
+          expiryTime,
+        })
+
+        setIsSuccess(true)
+
+        setTimeout(() => {
+          navigate("/reset-password", {
+            state: {
+              resetPasswordToken: res.data,
             },
-          }
-        )
-
-        if (res.status === 200 ) {
-          setIsSuccess(true)
-
-          setTimeout(() => {
-            navigate("/reset-password", {
-              state: {
-                resetPasswordToken: res.data,
-              },
-            })
-          }, 1500)
-        } else {
-          formik.setFieldError("otp", "Xác thực thất bại. Vui lòng thử lại.")
-        }
+          })
+        }, 1500)
       } catch (err: any) {
-        if (axios.isAxiosError(err) && err.response?.data?.message) {
+        if (err.response?.data?.message) {
           formik.setFieldError("otp", err.response.data.message)
         } else {
           formik.setFieldError("otp", "Có lỗi xảy ra. Vui lòng thử lại.")
@@ -118,10 +105,9 @@ export default function VerifyOTP() {
       } finally {
         setIsLoading(false)
       }
-    }
+    },
   })
 
-  // Xử lý nhập từng ô OTP
   const handleInputChange = (index: number, value: string) => {
     if (!/^\d?$/.test(value)) return
     const newOtp = [...formik.values.otp]
@@ -133,22 +119,18 @@ export default function VerifyOTP() {
     }
   }
 
-  // Xử lý phím backspace
   const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
     if (e.key === "Backspace") {
       if (formik.values.otp[index]) {
-        // Nếu ô hiện tại có giá trị thì xóa giá trị đó
         const newOtp = [...formik.values.otp]
         newOtp[index] = ""
         formik.setFieldValue("otp", newOtp)
       } else if (index > 0) {
-        // Nếu ô hiện tại rỗng thì focus ô trước đó
         inputRefs.current[index - 1]?.focus()
       }
     }
   }
 
-  // Xử lý dán OTP (paste)
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault()
     const pastedData = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6)
@@ -158,30 +140,20 @@ export default function VerifyOTP() {
     inputRefs.current[nextIndex]?.focus()
   }
 
-  // Gửi lại mã OTP
   const handleResendOTP = async () => {
     setIsResending(true)
     try {
-      await axios.post(
-        "https://localhost:5001/api/user/OTP/Request",
-        { email },
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      await axiosInstance.post("/user/OTP/Request", { email })
 
       setCanResend(false)
       setCountdown(60)
       formik.resetForm()
       inputRefs.current[0]?.focus()
-    } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.data?.message) {
-        alert(err.response.data.message)
+    } catch (err: any) {
+      if (err.response?.data?.message) {
+        toast.error(err.response.data.message)
       } else {
-        alert("Không thể gửi lại mã OTP. Vui lòng thử lại sau.")
+        toast.error("Không thể gửi lại mã OTP. Vui lòng thử lại sau.")
       }
     } finally {
       setIsResending(false)
@@ -254,14 +226,14 @@ export default function VerifyOTP() {
               <button
                 type="submit"
                 disabled={isLoading || formik.values.otp.some((digit) => !digit)}
-                className={`w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-md transition-colors ${isLoading || formik.values.otp.some((digit) => !digit) ? "opacity-70 cursor-not-allowed" : ""
-                  }`}
+                className={`w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-md transition-colors ${
+                  isLoading || formik.values.otp.some((digit) => !digit) ? "opacity-70 cursor-not-allowed" : ""
+                }`}
               >
                 {isLoading ? "Đang xác thực..." : "Xác thực"}
               </button>
             </form>
 
-            {/* Nút gửi lại mã OTP */}
             <div className="mt-4 text-center">
               {canResend ? (
                 <button

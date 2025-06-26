@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Application.Usecases.Dentist.ViewDentistSchedule;
-
-namespace Application.Interfaces
+﻿namespace Application.Interfaces
 {
     public interface IDentistRepository
     {
         Task<List<Dentist>> GetAllDentistsAsync();
-        Task<Dentist?> GetDentistByIdAsync(int dentistId);
-        Task<List<DentistScheduleDTO>> GetAllDentistScheduleAsync();
+        Task<Dentist> GetDentistByUserIdAsync(int userId);
+        Task<Dentist> GetDentistByDentistIdAsync(int dentistId);
+
+
     }
 }

@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using Application.Common.Mappings;
+using Application.Interfaces;
 using Application.Services;
 using HDMS_API.Application.Common.Mappings;
 using HDMS_API.Application.Interfaces;
@@ -35,8 +36,12 @@ namespace HDMS_API.DependencyInjection
             services.AddScoped<IDentistRepository, DentistRepository>();
             services.AddScoped<IUserCommonRepository, UserCommonRepository>();
             services.AddScoped<ITreatmentRecordRepository, TreatmentRecordRepository>();
-            services.AddScoped<INotificationsRepository, NotificationsRepository>();
+            services.AddScoped<IScheduleRepository, ScheduleRepository>();
             services.AddSingleton<IHashIdService, HashIdService>();
+            services.AddScoped<ITreatmentProgressRepository, TreatmentProgressRepository>();
+            services.AddScoped<ITreatmentProgressRepository, TreatmentProgressRepository>();
+            services.AddScoped<INotificationsRepository, NotificationsRepository>();
+            
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>
             {
@@ -61,6 +66,8 @@ namespace HDMS_API.DependencyInjection
             // AutoMapper
             services.AddAutoMapper(typeof(MappingViewTreatmentRecord));
             services.AddAutoMapper(typeof(MappingCreatePatient));
+            services.AddAutoMapper(typeof(MappingAppointment));
+            services.AddAutoMapper(typeof(MappingTreatmentProgress).Assembly);
 
             // Caching
             services.AddMemoryCache();

@@ -3,13 +3,16 @@ import { useFormik } from "formik"
 import * as Yup from "yup"
 import { Lock, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react"
 import { Link } from "react-router"
-import { useLocation } from "react-router"
+import { useLocation, useNavigate } from "react-router"
+import { toast } from "react-toastify"
+import axiosInstance from "@/lib/axios"
 
 export default function ResetPassword() {
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
 
   const token = location.state?.resetPasswordToken
 
@@ -31,28 +34,30 @@ export default function ResetPassword() {
         .oneOf([Yup.ref("newPassword")], "Mật khẩu xác nhận không khớp"),
     }),
     onSubmit: async (values) => {
+      if (!token) {
+        toast.error("Thiếu token reset mật khẩu.")
+        return
+      }
+
       try {
-        const res = await fetch("https://localhost:5001/api/user/ResetPassword", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            newPassword: values.newPassword,
-            confirmPassword: values.confirmPassword,
-            resetPasswordToken: token,
-          }),
+        await axiosInstance.post("/user/ResetPassword", {
+          newPassword: values.newPassword,
+          confirmPassword: values.confirmPassword,
+          resetPasswordToken: token,
         })
 
-        if (res.ok) {
-          setIsSuccess(true)
+        toast.success("Đặt lại mật khẩu thành công.")
+        setIsSuccess(true)
+
+        setTimeout(() => {
+          navigate("/login")
+        }, 3000)
+      } catch (error: any) {
+        if (error.response) {
+          toast.error(error.response.data.message || "Đã có lỗi xảy ra.")
         } else {
-          const data = await res.json()
-          formik.setStatus(data.message || "Đã có lỗi xảy ra.")
+          toast.error("Không thể kết nối đến máy chủ.")
         }
-      } catch (error) {
-        console.error("Reset password error:", error)
-        formik.setStatus("Không thể kết nối đến máy chủ.")
       }
     },
   })
@@ -130,7 +135,6 @@ export default function ResetPassword() {
             </div>
           )}
 
-          {/* New Password */}
           <div className="space-y-1">
             <label htmlFor="newPassword" className="block text-sm font-medium text-slate-300">
               Mật khẩu mới
@@ -145,11 +149,10 @@ export default function ResetPassword() {
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 placeholder="Mật khẩu mới"
-                className={`w-full pl-10 pr-10 py-2 rounded-md bg-slate-700/50 text-white placeholder:text-slate-400 border focus:outline-none ${
-                  formik.touched.newPassword && formik.errors.newPassword
+                className={`w-full pl-10 pr-10 py-2 rounded-md bg-slate-700/50 text-white placeholder:text-slate-400 border focus:outline-none ${formik.touched.newPassword && formik.errors.newPassword
                     ? "border-red-500 focus:ring-1 focus:ring-red-500"
                     : "border-slate-600 focus:ring-1 focus:ring-blue-500"
-                }`}
+                  }`}
               />
               <button
                 type="button"
@@ -166,7 +169,6 @@ export default function ResetPassword() {
             )}
           </div>
 
-          {/* Confirm Password */}
           <div className="space-y-1">
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300">
               Xác nhận mật khẩu mới
@@ -181,11 +183,10 @@ export default function ResetPassword() {
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 placeholder="Xác nhận mật khẩu mới"
-                className={`w-full pl-10 pr-10 py-2 rounded-md bg-slate-700/50 text-white placeholder:text-slate-400 border focus:outline-none ${
-                  formik.touched.confirmPassword && formik.errors.confirmPassword
+                className={`w-full pl-10 pr-10 py-2 rounded-md bg-slate-700/50 text-white placeholder:text-slate-400 border focus:outline-none ${formik.touched.confirmPassword && formik.errors.confirmPassword
                     ? "border-red-500 focus:ring-1 focus:ring-red-500"
                     : "border-slate-600 focus:ring-1 focus:ring-blue-500"
-                }`}
+                  }`}
               />
               <button
                 type="button"
@@ -202,7 +203,6 @@ export default function ResetPassword() {
             )}
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={formik.isSubmitting}
@@ -211,7 +211,6 @@ export default function ResetPassword() {
             {formik.isSubmitting ? "Đang đổi mật khẩu..." : "Đổi mật khẩu"}
           </button>
 
-          {/* Back to Login */}
           <div className="text-center">
             <Link to="/login" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
               Trở về trang đăng nhập
