@@ -3,7 +3,6 @@ using Application.Constants;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Application.Usecases.Dentist.UpdateSchedule
 {
@@ -33,6 +32,7 @@ namespace Application.Usecases.Dentist.UpdateSchedule
                 throw new Exception(MessageConstants.MSG.MSG28);
             }
 
+
             // Kiểm tra quyền của người dùng (chỉ Dentist được sửa)
             if (!string.Equals(currentUserRole, "dentist", StringComparison.OrdinalIgnoreCase))
             {
@@ -47,35 +47,41 @@ namespace Application.Usecases.Dentist.UpdateSchedule
             }
 
             // Nếu lịch chưa được Owner duyệt ,cập nhật lịch thẳng
-            if (schedule.Status == "pending")
+            if (schedule.Status != "pending")
             {
-                // Kiểm tra trùng lịch với lịch khác (ngoại trừ chính lịch này)
-                var isDuplicate = await _scheduleRepository.CheckDulplicateScheduleAsync(
+                throw new Exception("Lịch làm việc đã được duyệt, không thể chỉnh sửa."); // "Schedule has been approved, cannot edit."
+
+            }
+            // Kiểm tra trùng lịch với lịch khác (ngoại trừ chính lịch này)
+            var isDuplicate = await _scheduleRepository.CheckDulplicateScheduleAsync(
                     dentist.DentistId,
                     request.WorkDate,
                     request.Shift,
                     schedule.ScheduleId
                 );
 
-                if (isDuplicate)
+                if (isDuplicate != null)
                 {
-                    throw new Exception(MessageConstants.MSG.MSG51); // "Xung đột với lịch làm việc hiện tại."
+                    if (isDuplicate.Status == "rejected")
+                    {
+                        // xóa mềm lịch bị từ chối cũ
+                        await _scheduleRepository.DeleteSchedule(isDuplicate.ScheduleId);
+                    }
+                    else
+                    {
+                        throw new Exception(MessageConstants.MSG.MSG51); // lịch trùng và đang pending/approved
+                    }
                 }
 
                 // Cập nhật thông tin lịch làm việc
                 schedule.WorkDate = request.WorkDate;
                 schedule.Shift = request.Shift;
                 schedule.UpdatedAt = DateTime.Now;
-                schedule.UpdatedBy = currentUserId;
+                schedule.UpdatedBy = currentUserId; 
 
                 var updated = await _scheduleRepository.UpdateScheduleAsync(schedule);
                 return updated; //"cập nhật lịch thành công" : "cập nhật lịch thất bại";
             }
-            else
-            {
-                 throw new Exception("Lịch làm việc đã được duyệt, không thể chỉnh sửa."); // "Schedule has been approved, cannot edit."
-            }
-        }
     }
 
 }
