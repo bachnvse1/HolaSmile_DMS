@@ -20,9 +20,12 @@ public class TreatmentRecordRepository : ITreatmentRecordRepository
 
     public async Task<List<ViewTreatmentRecordDto>> GetPatientTreatmentRecordsAsync(int userId, CancellationToken cancellationToken)
     {
-        var patientId = _context.Patients.Where(x=>x.UserID == userId).FirstOrDefault().PatientID;
+        var patient = _context.Patients.Where(x=>x.UserID == userId).FirstOrDefault();
+        if (patient == null)
+            return new List<ViewTreatmentRecordDto>();
+        
         return await _context.TreatmentRecords
-            .Where(tr => tr.Appointment.PatientId == patientId && !tr.IsDeleted)
+            .Where(tr => tr.Appointment.PatientId == patient.PatientID && !tr.IsDeleted)
             .ProjectTo<ViewTreatmentRecordDto>(_mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
     }
