@@ -1,12 +1,13 @@
+import { useAuth } from '@/hooks/useAuth';
 import React, { useState } from 'react';
 import { useAllDentistSchedules, useDentistSchedule } from '../../hooks/useSchedule';
 import { ScheduleStatus, ShiftType } from '../../types/schedule';
 import type { Schedule } from '../../types/schedule';
 import { formatDateWithDay, shiftTypeToText } from '../../utils/dateUtils';
-import { 
-  Loader2, 
+import {
+  Loader2,
   List,
-  Calendar as CalendarIcon, 
+  Calendar as CalendarIcon,
   Filter,
   Search,
   X
@@ -14,12 +15,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from '@/components/ui/select';
 import { ScheduleCalendarEnhanced } from './ScheduleCalendarEnhanced';
 
@@ -29,48 +30,43 @@ interface ScheduleListProps {
 
 export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistId }) => {
   // States
+  const { role } = useAuth?.() || {}; // hoặc const role = TokenUtils.getUserData().role;
+  const isDentist = role === 'Dentist';
   const [activeView, setActiveView] = useState<'list' | 'calendar'>('calendar');
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [shiftFilter, setShiftFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('upcoming'); // 'all', 'upcoming', 'past'
-  
+
   // Queries
   const { data: dentistData, isLoading: isDentistLoading } = useDentistSchedule(dentistId);
   const { data: allDentistsData, isLoading: isAllDentistsLoading } = useAllDentistSchedules();
-  
+
   const isLoading = dentistId ? isDentistLoading : isAllDentistsLoading;
-  
+
   // Use appropriate data based on the dentistId
-  const schedules = dentistId 
-    ? (dentistData?.data || []) 
+  const schedules = dentistId
+    ? (dentistData?.data || [])
     : (allDentistsData?.data || []);
-  
+
   // Filters
   const filteredSchedules = schedules.filter((schedule: Schedule) => {
     // Status filter
-    if (statusFilter !== 'all' && schedule.status !== statusFilter) return false;
-    
+    if (schedule.status !== ScheduleStatus.Approved) return false;
+
     // Shift filter
     if (shiftFilter !== 'all' && schedule.shift !== shiftFilter) return false;
-    
-    // Date filter
-    const scheduleDate = new Date(schedule.date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    if (dateFilter === 'upcoming' && scheduleDate < today) return false;
-    if (dateFilter === 'past' && scheduleDate >= today) return false;
-    
+
     // Search term - search by dentist name
     if (searchTerm.trim() && schedule.dentistName) {
       return schedule.dentistName.toLowerCase().includes(searchTerm.toLowerCase());
     }
-    
+
     return true;
   });
-  
+
+
   // Handle filter reset
   const handleResetFilters = () => {
     setSearchTerm('');
@@ -78,7 +74,8 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
     setShiftFilter('all');
     setDateFilter('upcoming');
   };
-  
+
+
   // Render status badge
   const renderStatusBadge = (status: ScheduleStatus) => {
     switch (status) {
@@ -91,16 +88,16 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
         return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Chờ duyệt</Badge>;
     }
   };
-  
+
   // Render the list view
   const renderScheduleList = () => {
     if (filteredSchedules.length === 0) {
       return (
         <div className="text-center py-10 bg-gray-50 rounded-lg border border-gray-200">
           <p className="text-gray-600">Không có lịch làm việc nào phù hợp với bộ lọc.</p>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             className="mt-4"
             onClick={handleResetFilters}
           >
@@ -109,7 +106,7 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
         </div>
       );
     }
-    
+
     return (
       <div className="overflow-x-auto rounded-md border">
         <table className="w-full divide-y divide-gray-200">
@@ -161,13 +158,14 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
       </div>
     );
   };
-  
+
   // Render the component
   return (
     <div>
       {/* Header with filters and view toggle */}
       <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
         <div className="flex flex-col sm:flex-row gap-2">
+          {!isDentist && (
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
             <Input
@@ -176,7 +174,7 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 w-full sm:w-auto min-w-[240px]"
             />            {searchTerm && (
-              <Button 
+              <Button
                 variant="ghost"
                 size="icon"
                 className="absolute right-2.5 top-2.5 h-4 w-4 p-0 text-gray-400 hover:text-gray-600"
@@ -187,9 +185,10 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
               </Button>
             )}
           </div>
-          
-          <Button 
-            variant="outline" 
+          )}
+
+          <Button
+            variant="outline"
             size="icon"
             onClick={() => setShowFilters(!showFilters)}
             className={showFilters ? "bg-blue-50 text-blue-700" : ""}
@@ -197,7 +196,7 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
             <Filter className="h-4 w-4" />
           </Button>
         </div>
-        
+
         <div className="flex p-1 bg-muted rounded-md">
           <Button
             size="sm"
@@ -219,25 +218,25 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
           </Button>
         </div>
       </div>
-      
+
       {/* Filters panel */}
       {showFilters && (
         <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
           <div className="flex flex-wrap gap-4">            <div className="flex-1 min-w-[150px]">
-              <label htmlFor="statusFilter" className="mb-1.5 block text-sm font-medium">Trạng thái</label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger id="statusFilter">
-                  <SelectValue placeholder="Chọn trạng thái" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả</SelectItem>
-                  <SelectItem value={ScheduleStatus.Pending}>Chờ duyệt</SelectItem>
-                  <SelectItem value={ScheduleStatus.Approved}>Đã duyệt</SelectItem>
-                  <SelectItem value={ScheduleStatus.Rejected}>Từ chối</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
+            <label htmlFor="statusFilter" className="mb-1.5 block text-sm font-medium">Trạng thái</label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger id="statusFilter">
+                <SelectValue placeholder="Chọn trạng thái" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+                <SelectItem value={ScheduleStatus.Pending}>Chờ duyệt</SelectItem>
+                <SelectItem value={ScheduleStatus.Approved}>Đã duyệt</SelectItem>
+                <SelectItem value={ScheduleStatus.Rejected}>Từ chối</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
             <div className="flex-1 min-w-[150px]">
               <label htmlFor="shiftFilter" className="mb-1.5 block text-sm font-medium">Ca làm việc</label>
               <Select value={shiftFilter} onValueChange={setShiftFilter}>
@@ -252,7 +251,7 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="flex-1 min-w-[150px]">
               <label htmlFor="dateFilter" className="mb-1.5 block text-sm font-medium">Thời gian</label>
               <Select value={dateFilter} onValueChange={setDateFilter}>
@@ -266,11 +265,11 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="flex items-end">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleResetFilters}
               >
                 Đặt lại
@@ -279,7 +278,7 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
           </div>
         </div>
       )}
-      
+
       {/* Loading state */}
       {isLoading ? (
         <div className="flex justify-center items-center py-12">
@@ -290,15 +289,16 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
         // Content - Calendar or List view
         <div>
           {activeView === 'calendar' ? (
-            <ScheduleCalendarEnhanced 
+            <ScheduleCalendarEnhanced
               schedules={filteredSchedules}
               showDentistInfo={!dentistId}
               disablePastDates={false}
+
             />
           ) : (
             renderScheduleList()
           )}
-          
+
           {/* Show result count */}
           <div className="mt-4 text-sm text-gray-500">
             Hiển thị {filteredSchedules.length} lịch làm việc

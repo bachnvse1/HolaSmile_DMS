@@ -109,7 +109,7 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
   const isPastDate = (date: Date) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return date < today;
+    return date <= today;
   };
     // Render giao diện ca làm việc
   const renderShift = (date: Date, shift: ShiftType) => {
