@@ -48,6 +48,17 @@ namespace Infrastructure.Repositories
             return result;
         }
 
+        public async Task<List<Schedule>> GetDentistApprovedSchedulesByDentistIdAsync(int dentistId)
+        {
+            var result = await _context.Schedules
+                .Include(s => s.Dentist)
+                .ThenInclude(d => d.User)
+                .Include(s => s.Dentist.Appointments)
+                .Where(s => s.Dentist.DentistId == dentistId && s.Status == "approved" && s.IsActive)
+                .ToListAsync();
+            return result;
+        }
+
         public async Task<Schedule> GetScheduleByIdAsync(int scheduleId)
         {
             var result = await _context.Schedules
@@ -75,6 +86,7 @@ namespace Infrastructure.Repositories
                 s.DentistId == dentistId &&
                 s.WorkDate.Date == workDate.Date &&
                 s.Shift == shift &&
+                s.Status != "rejected" &&
                 s.IsActive &&
                 s.ScheduleId != currentScheduleId
             );

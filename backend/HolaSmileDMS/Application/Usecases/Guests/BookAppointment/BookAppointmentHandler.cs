@@ -96,7 +96,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 AppointmentType = "",
                 AppointmentDate = request.AppointmentDate,
                 AppointmentTime = request.AppointmentTime,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
                 CreatedBy = user.UserID,
                 IsDeleted = false
             };

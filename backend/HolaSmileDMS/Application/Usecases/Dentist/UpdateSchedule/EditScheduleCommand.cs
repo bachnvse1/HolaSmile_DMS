@@ -2,7 +2,7 @@
 
 namespace Application.Usecases.Dentist.UpdateSchedule
 {
-    public class EditScheduleCommand : IRequest<string>
+    public class EditScheduleCommand : IRequest<bool>
     {
         public int ScheduleId { get; set; }
         public DateTime WorkDate { get; set; }

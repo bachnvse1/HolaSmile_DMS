@@ -36,7 +36,7 @@ namespace Application.Usecases.Owner
                     throw new Exception("Chỉ có thể cập nhật lịch đang ở trạng thái pending");
                 }
                 schedule.Status = request.Action == "approved" ? "approved" : "rejected";
-                schedule.UpdatedAt = DateTime.UtcNow;
+                schedule.UpdatedAt = DateTime.Now;
                 schedule.UpdatedBy = currentUserId;
 
                 var updated = await _scheduleRepository.UpdateScheduleAsync(schedule);

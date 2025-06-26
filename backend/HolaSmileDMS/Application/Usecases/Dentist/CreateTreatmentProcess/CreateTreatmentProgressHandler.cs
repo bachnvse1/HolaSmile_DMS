@@ -45,7 +45,7 @@ public class CreateTreatmentProgressHandler : IRequestHandler<CreateTreatmentPro
         if (string.IsNullOrWhiteSpace(dto.ProgressName))
             throw new ArgumentException(MessageConstants.MSG.MSG85);
 
-        if (dto.EndTime.HasValue && dto.EndTime.Value < DateTime.UtcNow)
+        if (dto.EndTime.HasValue && dto.EndTime.Value < DateTime.Now)
             throw new ArgumentException(MessageConstants.MSG.MSG84); // Không thể chọn ngày trong quá khứ
 
         if (dto.Duration.HasValue && dto.Duration <= 0)

@@ -38,7 +38,7 @@ namespace HDMS_API.Application.Usecases.UserCommon.EditProfile
             currentUser.Address = request.Address ?? currentUser.Address;
             currentUser.DOB = FormatHelper.TryParseDob(request.DOB) ?? currentUser.DOB;
             currentUser.Avatar = request.Avatar ?? currentUser.Avatar;
-            currentUser.UpdatedAt = DateTime.UtcNow;
+            currentUser.UpdatedAt = DateTime.Now;
 
             var success = await _repository.EditProfileAsync(currentUser, cancellationToken);
             if (!success)

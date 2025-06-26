@@ -54,7 +54,7 @@ namespace Application.Usecases.Receptionist.CreateFollow_UpAppointment
                 AppointmentType = "",
                 AppointmentDate = request.AppointmentDate,
                 AppointmentTime = request.AppointmentTime,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
                 CreatedBy = currentUserId,
                 IsDeleted = false
             };

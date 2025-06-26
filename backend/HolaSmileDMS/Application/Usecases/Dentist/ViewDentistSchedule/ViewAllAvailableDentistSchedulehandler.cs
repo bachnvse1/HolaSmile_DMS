@@ -1,5 +1,4 @@
-﻿
-using Application.Constants;
+﻿using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Dentist.ViewAllDentistSchedule;
 using MediatR;
@@ -22,23 +21,22 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
             }
 
             var result = schedules
-        .GroupBy(s => s.DentistId)
-        .Select(g => new DentistScheduleDTO
-        {
-            DentistID = g.Key,
-            DentistName = g.First().Dentist.User.Fullname,
-            Avatar = g.First().Dentist.User.Avatar,
-            Schedules = g.Select(s => new ScheduleDTO
-            {
-                ScheduleId = s.ScheduleId,
-                WorkDate = s.WorkDate.Date,
-                DentistName = s.Dentist.User.Fullname,
-                Shift = s.Shift,
-                CreatedAt = s.CreatedAt.Date,
-                UpdatedAt = s.UpdatedAt?.Date
-            }).ToList()
-        })
-        .ToList();
+                         .GroupBy(s => s.DentistId)
+                         .Select(g => new DentistScheduleDTO
+                         {
+                             DentistID = g.Key,
+                             DentistName = g.First().Dentist.User.Fullname,
+                             Avatar = g.First().Dentist.User.Avatar,
+                             Schedules = g.Select(s => new ScheduleDTO
+                             {
+                                 ScheduleId = s.ScheduleId,
+                                 WorkDate = s.WorkDate,
+                                 DentistName = s.Dentist.User.Fullname,
+                                 Shift = s.Shift,
+                                 CreatedAt = s.CreatedAt,
+                                 UpdatedAt = s.UpdatedAt
+                             }).ToList()
+                         }).ToList();
             return result;
         }
     }
