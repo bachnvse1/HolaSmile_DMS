@@ -18,7 +18,6 @@ import ViewProfile from './pages/auth/ViewProfile';
 import { PatientDashboardPage } from './pages/patient/PatientDashboardPage';
 import { StaffDashboard } from './pages/staff/StaffDashboard';
 import { PatientBookingPage } from './pages/patient/PatientBookingPage';
-import { DentistScheduleViewer } from './components/appointment/DentistScheduleViewer';
 import PatientTreatmentRecords from './pages/patient/PatientViewTreatmentRecord';
 import ViewTreatmentProgressPage from './pages/patient/ViewTreatmentProgress';
 import PatientList from './pages/patient/PatientList';

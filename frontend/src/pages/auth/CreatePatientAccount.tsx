@@ -128,7 +128,6 @@ export default function AddPatient() {
               className="bg-gray-50 rounded-xl border p-8 shadow space-y-6"
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Tên khách hàng */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Tên khách hàng</label>
                   <input
@@ -143,8 +142,6 @@ export default function AddPatient() {
                     <p className="text-sm text-red-500 mt-1">{formik.errors.customerName}</p>
                   )}
                 </div>
-
-                {/* Số điện thoại */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
                   <input
@@ -160,7 +157,6 @@ export default function AddPatient() {
                   )}
                 </div>
 
-                {/* Email */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                   <input
@@ -176,7 +172,6 @@ export default function AddPatient() {
                   )}
                 </div>
 
-                {/* Ngày sinh */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Ngày sinh</label>
                   <input
@@ -192,7 +187,6 @@ export default function AddPatient() {
                   )}
                 </div>
 
-                {/* Giới tính */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Giới tính</label>
                   <select
@@ -214,7 +208,6 @@ export default function AddPatient() {
                   )}
                 </div>
 
-                {/* Địa chỉ */}
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Địa chỉ</label>
                   <textarea
@@ -229,7 +222,6 @@ export default function AddPatient() {
                   )}
                 </div>
 
-                {/* Các trường tuỳ chọn */}
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Điều kiện cơ bản</label>
                   <textarea
