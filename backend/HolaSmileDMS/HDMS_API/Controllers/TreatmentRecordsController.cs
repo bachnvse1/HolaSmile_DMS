@@ -23,6 +23,7 @@ public class TreatmentRecordsController : ControllerBase
     /// Quyền truy cập đã được kiểm tra bên trong Handler.
     /// </summary>
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> GetRecords([FromQuery] int userId, CancellationToken cancellationToken)
     {
         try
@@ -36,7 +37,10 @@ public class TreatmentRecordsController : ControllerBase
         }
         catch (UnauthorizedAccessException)
         {
-            return Forbid(MessageConstants.MSG.MSG26); // Bạn không có quyền truy cập chức năng này
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                message = MessageConstants.MSG.MSG26
+            });
         }
         catch (Exception ex)
         {
@@ -50,6 +54,7 @@ public class TreatmentRecordsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize]
     public async Task<IActionResult> DeleteRecord(int id, CancellationToken cancellationToken)
     {
         try
@@ -108,6 +113,7 @@ public class TreatmentRecordsController : ControllerBase
     }
     
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> CreateTreatmentRecord([FromBody] CreateTreatmentRecordCommand command)
     {
         var result = await _mediator.Send(command);
