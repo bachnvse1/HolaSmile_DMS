@@ -80,16 +80,16 @@ namespace Infrastructure.Repositories
             return true;
         }
 
-        public async Task<bool> CheckDulplicateScheduleAsync(int dentistId, DateTime workDate, string shift, int currentScheduleId)
+        public async Task<Schedule> CheckDulplicateScheduleAsync(int dentistId, DateTime workDate, string shift, int currentScheduleId)
         {
-            return await _context.Schedules.AnyAsync(s =>
+            var schedule = await _context.Schedules.FirstOrDefaultAsync(s =>
                 s.DentistId == dentistId &&
                 s.WorkDate.Date == workDate.Date &&
                 s.Shift == shift &&
-                s.Status != "rejected" &&
                 s.IsActive &&
                 s.ScheduleId != currentScheduleId
             );
+            return schedule;
         }
 
         public async Task<bool> DeleteSchedule(int scheduleId)
