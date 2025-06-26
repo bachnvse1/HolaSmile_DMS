@@ -24,6 +24,8 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
+            var schedules = new List<Schedule>();
+
             // Nếu người dùng là dentist -> chỉ cho xem lịch của chính mình
             if (string.Equals(currentUserRole, "dentist", StringComparison.OrdinalIgnoreCase))
             {
@@ -32,18 +34,15 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
                 {
                     throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
                 }
+                schedules = await _scheduleRepository.GetDentistSchedulesByDentistIdAsync(currentDentist.DentistId);
             }
-            else if (!string.Equals(currentUserRole, "owner", StringComparison.OrdinalIgnoreCase)
-                  && !string.Equals(currentUserRole, "receptionist", StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals(currentUserRole, "owner", StringComparison.OrdinalIgnoreCase))
             {
-                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
+                schedules = await _scheduleRepository.GetDentistSchedulesByDentistIdAsync(request.DentistId);
             }
-
-            var schedules = await _scheduleRepository.GetDentistSchedulesByDentistIdAsync(request.DentistId);
-
-            if (schedules == null || !schedules.Any())
+            else
             {
-                throw new Exception(MessageConstants.MSG.MSG16);
+                schedules = await _scheduleRepository.GetDentistApprovedSchedulesByDentistIdAsync(request.DentistId);
             }
 
             var result = schedules.GroupBy(s => s.DentistId)
@@ -55,11 +54,11 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
                     Schedules = g.Select(s => new ScheduleDTO
                     {
                         ScheduleId = s.ScheduleId,
-                        WorkDate = s.WorkDate.Date,
+                        WorkDate = s.WorkDate,
                         Shift = s.Shift,
                         Status = s.Status,
-                        CreatedAt = s.CreatedAt.Date,
-                        UpdatedAt = s.UpdatedAt?.Date
+                        CreatedAt = s.CreatedAt,
+                        UpdatedAt = s.UpdatedAt
                     }).ToList(),
                 }).ToList();
 
