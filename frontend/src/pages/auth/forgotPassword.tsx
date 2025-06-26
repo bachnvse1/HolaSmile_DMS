@@ -1,10 +1,10 @@
 import { useState } from "react"
-import axios from "axios"
 import { useFormik } from "formik"
 import * as Yup from "yup"
 import { Mail, ArrowLeft, CheckCircle } from "lucide-react"
 import { Link, useNavigate } from "react-router"
-
+import { toast } from "react-toastify"
+import axiosInstance from "@/lib/axios"
 
 export function ForgotPassword() {
   const [isSuccess, setIsSuccess] = useState(false)
@@ -12,7 +12,6 @@ export function ForgotPassword() {
   const [submittedValue, setSubmittedValue] = useState("")
   const [serverMessage, setServerMessage] = useState("")
   const navigate = useNavigate()
-
 
   const validationSchema = Yup.object({
     email: Yup.string()
@@ -37,19 +36,20 @@ export function ForgotPassword() {
     onSubmit: async (values) => {
       setIsLoading(true)
       try {
-        const res = await axios.post("http://localhost:5135/api/user/OTP/Request", {
+        const res = await axiosInstance.post("/user/OTP/Request", {
           email: values.email,
         })
 
+        toast.success(res.data.message || "Gửi thành công")
         setServerMessage(res.data.message || "Gửi thành công")
         setSubmittedValue(values.email)
         setIsSuccess(true)
         navigate(`/verify-otp?email=${encodeURIComponent(values.email)}`)
-      } catch (err) {
-        if (axios.isAxiosError(err) && err.response) {
-          alert(err.response.data.message || "Đã xảy ra lỗi.")
+      } catch (error: any) {
+        if (error.response) {
+          toast.error(error.response.data.message || "Đã xảy ra lỗi.")
         } else {
-          alert("Không thể kết nối đến máy chủ.")
+          toast.error("Không thể kết nối đến máy chủ.")
         }
       } finally {
         setIsLoading(false)
@@ -123,11 +123,10 @@ export function ForgotPassword() {
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     disabled={isLoading}
-                    className={`w-full pl-10 py-2 px-3 bg-slate-700/50 border rounded-md text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-colors ${
-                      formik.touched.email && formik.errors.email
+                    className={`w-full pl-10 py-2 px-3 bg-slate-700/50 border rounded-md text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-colors ${formik.touched.email && formik.errors.email
                         ? "border-red-500 focus:ring-red-500"
                         : "border-slate-600 focus:ring-blue-500"
-                    }`}
+                      }`}
                   />
                 </div>
                 {formik.touched.email && formik.errors.email && (
@@ -138,9 +137,8 @@ export function ForgotPassword() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-md transition-colors ${
-                  isLoading ? "opacity-70 cursor-not-allowed" : ""
-                }`}
+                className={`w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-md transition-colors ${isLoading ? "opacity-70 cursor-not-allowed" : ""
+                  }`}
               >
                 {isLoading ? "Đang gửi..." : "Gửi"}
               </button>
