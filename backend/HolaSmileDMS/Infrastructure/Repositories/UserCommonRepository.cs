@@ -62,7 +62,7 @@ namespace HDMS_API.Infrastructure.Repositories
                 Email = dto .Email,
                 IsVerify = true,
                 Status = true ,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
                 CreatedBy = dto.CreatedBy 
             };
             _context.Users.Add(user);
@@ -98,7 +98,7 @@ namespace HDMS_API.Infrastructure.Repositories
                 Otp = OtpCode,
                 ExpiryTime = DateTime.Now.AddMinutes(2)
             };
-            _memoryCache.Set($"otp:{toEmail}", otp, otp.ExpiryTime - DateTime.UtcNow);
+            _memoryCache.Set($"otp:{toEmail}", otp, otp.ExpiryTime - DateTime.Now);
 
             return true;
         }
@@ -161,7 +161,7 @@ namespace HDMS_API.Infrastructure.Repositories
                     throw new Exception(MessageConstants.MSG.MSG16);
                 }
                 user.Password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
-                    user.UpdatedAt = DateTime.UtcNow;
+                    user.UpdatedAt = DateTime.Now;
                     user.UpdatedBy = user.UserID;
                     _context.Users.Update(user);
                     _context.SaveChanges();

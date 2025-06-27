@@ -59,7 +59,7 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
                 throw new Exception(MessageConstants.MSG.MSG82); // Đơn giá không hợp lệ
 
             var record = _mapper.Map<TreatmentRecord>(request);
-            record.CreatedAt = DateTime.UtcNow;
+            record.CreatedAt = DateTime.Now;
             record.CreatedBy = currentUserId;
             
             var subtotal = record.UnitPrice * record.Quantity;

@@ -25,7 +25,7 @@ public class SendNotificationHandler : IRequestHandler<SendNotificationCommand, 
             Message         = c.Message,
             Type            = c.Type,
             IsRead          = false,
-            CreatedAt       = DateTime.UtcNow,
+            CreatedAt       = DateTime.Now,
             RelatedObjectId = c.RelatedObjectId
         };
 
