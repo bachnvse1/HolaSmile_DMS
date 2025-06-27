@@ -1,4 +1,5 @@
 ﻿using Application.Constants;
+using Application.Usecases.SendNotification;
 using Application.Usecases.UserCommon.ViewNotification;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -38,6 +39,24 @@ namespace HDMS_API.Controllers
             {
                 return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
             }
+        }
+        
+        [HttpPost("{userId}/notifications")]
+        public async Task<IActionResult> Send(
+            int userId,
+            [FromBody] SendNotificationRequest req,
+            CancellationToken ct)
+        {
+            var command = new SendNotificationCommand(
+                userId,
+                req.Title,
+                req.Message,
+                req.Type,
+                req.RelatedObjectId
+            );
+
+            await _mediator.Send(command, ct);
+            return Ok(new { message = "Notification sent" });
         }
 
     }
