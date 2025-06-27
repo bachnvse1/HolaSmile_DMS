@@ -20,7 +20,8 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSide
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     navigate('/');
   };
 
