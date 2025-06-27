@@ -97,7 +97,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             {
                 PatientId = patient.PatientID,
                 DentistId = request.DentistId,
-                Status = "confirm",
+                Status = "confirmed",
                 Content = request.MedicalIssue,
                 IsNewPatient = isNewPatient,
                 AppointmentType = "",
