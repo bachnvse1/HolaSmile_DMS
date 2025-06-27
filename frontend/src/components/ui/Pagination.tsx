@@ -1,7 +1,6 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Button } from './button';
-import { ItemsPerPageSelector } from './ItemsPerPageSelector';
 
 interface PaginationProps {
   currentPage: number;
@@ -28,7 +27,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   const generatePageNumbers = () => {
     const pages = [];
     const maxVisiblePages = 5;
-    
+
     if (totalPages <= maxVisiblePages) {
       // Show all pages if total is less than max visible
       for (let i = 1; i <= totalPages; i++) {
@@ -38,7 +37,7 @@ export const Pagination: React.FC<PaginationProps> = ({
       // Show smart pagination
       const startPage = Math.max(1, currentPage - 2);
       const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-      
+
       // Add ellipsis at the beginning if needed
       if (startPage > 1) {
         pages.push(1);
@@ -46,12 +45,12 @@ export const Pagination: React.FC<PaginationProps> = ({
           pages.push('...');
         }
       }
-      
+
       // Add visible pages
       for (let i = startPage; i <= endPage; i++) {
         pages.push(i);
       }
-      
+
       // Add ellipsis at the end if needed
       if (endPage < totalPages) {
         if (endPage < totalPages - 1) {
@@ -60,7 +59,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         pages.push(totalPages);
       }
     }
-    
+
     return pages;
   };
   if (totalItems === 0) {
@@ -68,26 +67,32 @@ export const Pagination: React.FC<PaginationProps> = ({
   }
   return (
     <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 ${className}`}>
-      {/* Left side: Items info and items per page selector */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-        <div className="text-sm text-gray-700">
-          Hiển thị <span className="font-medium">{startItem}</span> đến{' '}
-          <span className="font-medium">{endItem}</span> trong tổng số{' '}
-          <span className="font-medium">{totalItems}</span> kết quả
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-gray-600">
+        <div>
+          Hiển thị <span className="font-semibold">{startItem}</span> đến <span className="font-semibold">{endItem}</span>
+          trong tổng số <span className="font-semibold">{totalItems}</span> kết quả
         </div>
-        
-        {/* Items per page selector */}
+
         {onItemsPerPageChange && (
-          <ItemsPerPageSelector
-            itemsPerPage={itemsPerPage}
-            onItemsPerPageChange={onItemsPerPageChange}
-          />
+          <div className="flex items-center gap-2">
+            <span>Hiển thị:</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => onItemsPerPageChange(parseInt(e.target.value))}
+              className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {[5, 10, 20].map((size) => (
+                <option key={size} value={size}>{size}</option>
+              ))}
+            </select>
+            <span>/ trang</span>
+          </div>
         )}
       </div>
+
       <div className="flex items-center space-x-2">
         {totalPages > 1 && (
           <>
-            {/* First page */}
             <Button
               variant="outline"
               size="sm"
@@ -99,7 +104,6 @@ export const Pagination: React.FC<PaginationProps> = ({
               <ChevronsLeft className="h-4 w-4" />
             </Button>
 
-            {/* Previous page */}
             <Button
               variant="outline"
               size="sm"
@@ -111,7 +115,6 @@ export const Pagination: React.FC<PaginationProps> = ({
               <ChevronLeft className="h-4 w-4" />
             </Button>
 
-            {/* Page numbers */}
             <div className="flex items-center space-x-1">
               {generatePageNumbers().map((page, index) => (
                 <React.Fragment key={index}>
@@ -131,7 +134,6 @@ export const Pagination: React.FC<PaginationProps> = ({
               ))}
             </div>
 
-            {/* Next page */}
             <Button
               variant="outline"
               size="sm"
@@ -143,7 +145,6 @@ export const Pagination: React.FC<PaginationProps> = ({
               <ChevronRight className="h-4 w-4" />
             </Button>
 
-            {/* Last page */}
             <Button
               variant="outline"
               size="sm"
@@ -155,7 +156,7 @@ export const Pagination: React.FC<PaginationProps> = ({
               <ChevronsRight className="h-4 w-4" />
             </Button>
           </>
-        )}        {/* Show single page indicator when only 1 page */}
+        )}
         {totalPages === 1 && (
           <div className="flex items-center text-sm text-gray-600">
             <span>Trang 1 / 1</span>

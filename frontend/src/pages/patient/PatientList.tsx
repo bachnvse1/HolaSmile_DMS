@@ -11,6 +11,7 @@ import { useNavigate } from "react-router"
 import { useAuth } from '../../hooks/useAuth';
 import { AuthGuard } from '../../components/AuthGuard';
 import { StaffLayout } from '../../layouts/staff/StaffLayout';
+import { toast } from "react-toastify"
 
 const PAGE_SIZE = 5
 
@@ -37,10 +38,10 @@ export default function PatientList() {
     const fetchPatients = async () => {
       try {
         const data = await getAllPatients()
-        console.log("Fetched patients:", data)
         setPatients(data)
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to fetch patients:", error)
+        toast.error(error.message || "Lỗi khi tải danh sách bệnh nhân")
       }
     }
 
@@ -91,7 +92,7 @@ export default function PatientList() {
           </div>
 
           <Card className="space-y-4">
-            <h3 className="text-xl font-semibold flex items-center gap-2">
+            <h3 className="px-4 pt-2 text-xl font-semibold flex items-center gap-2">
               <Filter className="h-5 w-5" />
               Bộ Lọc & Tìm Kiếm
             </h3>

@@ -33,6 +33,7 @@ export function TreatmentProgressList({
     setLoading(true)
     try {
       const res = await getTreatmentProgressById(id)
+      console.log("Fetched treatment progress:", res)
       setData(res)
     } catch (err) {
       console.error("Lỗi tải danh sách:", err)
@@ -41,19 +42,38 @@ export function TreatmentProgressList({
     }
   }
 
-
   const renderStatusBadge = (status?: string) => {
-    const statusClass = {
-      "Đang thực hiện": "bg-blue-100 text-blue-700",
-      "Tạm dừng": "bg-yellow-100 text-yellow-700",
-      "Đã huỷ": "bg-red-100 text-red-700",
-      "Hoàn thành": "bg-green-100 text-green-700",
-      "Chưa bắt đầu": "bg-gray-100 text-gray-600",
-    }[status ?? "Chưa bắt đầu"]
+    const statusMap: Record<string, { label: string; className: string }> = {
+      "Đang tiến hành": {
+        label: "Đang tiến hành",
+        className: "bg-blue-100 text-blue-800 border border-blue-200",
+      },
+      "Tạm dừng": {
+        label: "Tạm dừng",
+        className: "bg-yellow-100 text-yellow-800 border border-yellow-200",
+      },
+      "Đã huỷ": {
+        label: "Đã huỷ",
+        className: "bg-red-100 text-red-800 border border-red-200",
+      },
+      "Đã hoàn thành": {
+        label: "Đã hoàn thành",
+        className: "bg-green-100 text-green-800 border border-green-200",
+      },
+      "Chưa bắt đầu": {
+        label: "Chưa bắt đầu",
+        className: "bg-gray-100 text-gray-800 border border-gray-200",
+      },
+    }
+
+    const current = statusMap[status ?? "Chưa bắt đầu"] ?? {
+      label: status ?? "Không rõ",
+      className: "bg-gray-100 text-gray-800 border border-gray-200",
+    }
 
     return (
-      <span className={`px-2 py-1 text-xs font-medium rounded ${statusClass}`}>
-        {status || "Chưa rõ"}
+      <span className={`px-3 py-1 text-xs font-semibold rounded ${current.className}`}>
+        {current.label}
       </span>
     )
   }

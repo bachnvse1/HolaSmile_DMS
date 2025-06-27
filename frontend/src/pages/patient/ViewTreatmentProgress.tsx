@@ -2,16 +2,17 @@ import { useState } from "react"
 import { TreatmentProgressList } from "@/components/patient/TreatmentProgressList"
 import { TreatmentProgressView } from "@/components/patient/TreatmentProgressView"
 import type { TreatmentProgress } from "@/types/treatmentProgress"
-import { FileText } from "lucide-react"
+import { FileText, ArrowLeft, Plus } from "lucide-react"
 import { useAuth } from '../../hooks/useAuth';
 import { AuthGuard } from '../../components/AuthGuard';
 import { StaffLayout } from '../../layouts/staff/StaffLayout';
+import { useNavigate } from "react-router"
 
 export default function TreatmentProgressDemo() {
   const [selectedProgress, setSelectedProgress] = useState<TreatmentProgress | null>(null)
   const { username, role, userId } = useAuth();
+  const navigate = useNavigate()
 
-  // Create userInfo object for StaffLayout
   const userInfo = {
     id: userId || '',
     name: username || 'User',
@@ -21,16 +22,38 @@ export default function TreatmentProgressDemo() {
   };
 
   const renderStatusBadge = (status?: string) => {
-    const statusClass = {
-      "Đang thực hiện": "bg-blue-100 text-blue-700",
-      "Tạm dừng": "bg-yellow-100 text-yellow-700",
-      "Đã huỷ": "bg-red-100 text-red-700",
-      "Hoàn thành": "bg-green-100 text-green-700",
-      "Chưa bắt đầu": "bg-gray-100 text-gray-600",
-    }[status ?? "Chưa bắt đầu"]
+    const statusMap: Record<string, { label: string; className: string }> = {
+      "Đang tiến hành": {
+        label: "Đang tiến hành",
+        className: "bg-blue-100 text-blue-800 border border-blue-200",
+      },
+      "Tạm dừng": {
+        label: "Tạm dừng",
+        className: "bg-yellow-100 text-yellow-800 border border-yellow-200",
+      },
+      "Đã huỷ": {
+        label: "Đã huỷ",
+        className: "bg-red-100 text-red-800 border border-red-200",
+      },
+      "Đã hoàn thành": {
+        label: "Đã hoàn thành",
+        className: "bg-green-100 text-green-800 border border-green-200",
+      },
+      "Chưa bắt đầu": {
+        label: "Chưa bắt đầu",
+        className: "bg-gray-100 text-gray-800 border border-gray-200",
+      },
+    }
+
+    const current = statusMap[status ?? "Chưa bắt đầu"] ?? {
+      label: status ?? "Không rõ",
+      className: "bg-gray-100 text-gray-800 border border-gray-200",
+    }
 
     return (
-      <span className={`px-4 py-2 text-base font-bold rounded shadow-sm ${statusClass}`}>{status || "Chưa rõ"}</span>
+      <span className={`px-3 py-1 text-xs font-semibold rounded ${current.className}`}>
+        {current.label}
+      </span>
     )
   }
 
@@ -38,17 +61,46 @@ export default function TreatmentProgressDemo() {
     <AuthGuard requiredRoles={['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']}>
       <StaffLayout userInfo={userInfo}>
         <div className="w-full px-4 md:px-8 lg:px-12 py-6 space-y-6">
-          <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-            <div>
+
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => navigate(-1)}
+                className="p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                title="Quay lại"
+              >
+                <ArrowLeft className="h-5 w-5 text-gray-600" />
+              </button>
               <h1 className="text-2xl font-bold flex items-center gap-2 text-blue-700">
                 <FileText className="h-6 w-6" /> Danh Sách Tiến Độ Điều Trị
               </h1>
-              <p className="text-gray-500 text-sm">Quản lý và theo dõi tiến độ điều trị của bệnh nhân</p>
-              <p className="text-gray-400 text-sm">Theo dõi và cập nhật tiến độ điều trị của bệnh nhân theo thời gian</p>
             </div>
-            {selectedProgress?.status && renderStatusBadge(selectedProgress.status)}
+
+            <button
+              onClick={() => navigate(`/treatment-progress/create`)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" /> Thêm tiến độ
+            </button>
           </div>
 
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+            <div>
+              <p className="text-gray-500 text-sm">
+                Quản lý và theo dõi tiến độ điều trị của bệnh nhân
+              </p>
+              <p className="text-gray-400 text-sm">
+                Theo dõi và cập nhật tiến độ điều trị của bệnh nhân theo thời gian
+              </p>
+            </div>
+
+            {selectedProgress?.status && (
+              <div className="mt-2 md:mt-0 md:ml-4">
+                {renderStatusBadge(selectedProgress.status)}
+              </div>
+            )}
+          </div>
+          
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             <div className="xl:col-span-2">
               {selectedProgress ? (
@@ -67,12 +119,13 @@ export default function TreatmentProgressDemo() {
                   placeholder="Tìm theo bác sĩ hoặc bệnh nhân..."
                 />
                 <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M16.65 16.65A7.5 7.5 0 1016.65 2.5a7.5 7.5 0 000 15z" /></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M16.65 16.65A7.5 7.5 0 1016.65 2.5a7.5 7.5 0 000 15z" />
+                  </svg>
                 </button>
               </div>
 
               <TreatmentProgressList
-                treatmentRecordId="1"
                 onViewProgress={(p) => setSelectedProgress(p)}
               />
             </div>
