@@ -84,11 +84,8 @@ export default function ViewTreatmentProgress() {
   }
 
   const filteredProgressList = progressList.filter((item) =>
-    `${item.progressName}`
-      .toLowerCase()
-      .includes(searchKeyword.toLowerCase())
+    `${item.progressName}`.toLowerCase().includes(searchKeyword.toLowerCase())
   )
-
 
   return (
     <AuthGuard requiredRoles={["Administrator", "Owner", "Receptionist", "Assistant", "Dentist"]}>
@@ -114,7 +111,7 @@ export default function ViewTreatmentProgress() {
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
               {selectedProgress?.status && renderStatusBadge(selectedProgress.status)}
-              {(selectedProgress || (progressList.length === 0 && treatmentRecordId)) && (
+              {treatmentRecordId && (
                 <button
                   onClick={() => setShowCreateForm(true)}
                   className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center gap-2"
@@ -125,27 +122,24 @@ export default function ViewTreatmentProgress() {
             </div>
           </div>
 
-          {/* Modal tạo mới */}
           <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0">
               <DialogHeader className="px-6 pt-6">
                 <DialogTitle className="text-xl">Tạo Tiến Trình Điều Trị</DialogTitle>
               </DialogHeader>
-              {selectedProgress && (
-                <div className="px-6 pb-6">
-                  <NewTreatmentProgress
-                    treatmentRecordID={selectedProgress.treatmentRecordID}
-                    patientID={selectedProgress.patientID}
-                    dentistID={selectedProgress.dentistID}
-                    onClose={() => setShowCreateForm(false)}
-                    onCreated={(newProgress) => {
-                      setSelectedProgress(newProgress)
-                      fetchData(newProgress.treatmentRecordID, true)
-                      setShowCreateForm(false)
-                    }}
-                  />
-                </div>
-              )}
+              <div className="px-6 pb-6">
+                <NewTreatmentProgress
+                  treatmentRecordID={Number(treatmentRecordId)}
+                  patientID={selectedProgress?.patientID || 0}
+                  dentistID={selectedProgress?.dentistID || 0}
+                  onClose={() => setShowCreateForm(false)}
+                  onCreated={(newProgress) => {
+                    setSelectedProgress(newProgress)
+                    fetchData(newProgress.treatmentRecordID, true)
+                    setShowCreateForm(false)
+                  }}
+                />
+              </div>
             </DialogContent>
           </Dialog>
 
