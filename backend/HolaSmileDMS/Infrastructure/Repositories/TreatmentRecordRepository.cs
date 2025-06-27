@@ -41,7 +41,7 @@ public class TreatmentRecordRepository : ITreatmentRecordRepository
             throw new KeyNotFoundException("Không tìm thấy hồ sơ điều trị để xoá.");
 
         record.IsDeleted = true;
-        record.UpdatedAt = DateTime.UtcNow;
+        record.UpdatedAt = DateTime.Now;
         record.UpdatedBy = updatedBy ?? 0;
 
         return await _context.SaveChangesAsync(cancellationToken) > 0;
