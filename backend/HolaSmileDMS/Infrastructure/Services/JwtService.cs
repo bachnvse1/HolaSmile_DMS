@@ -27,7 +27,8 @@ namespace Infrastructure.Services
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
                 new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, Role)
+                new Claim(ClaimTypes.Role, Role),
+                new Claim(ClaimTypes.GivenName, user.Fullname)
             };
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],

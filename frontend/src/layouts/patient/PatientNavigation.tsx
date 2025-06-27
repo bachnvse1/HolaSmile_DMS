@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Bell, User, LogOut, Settings, ChevronDown, Menu, X } from 'lucide-react';
+import { User, LogOut, Settings, ChevronDown, Menu, X } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../../hooks/useAuth';
+import { NotificationButton } from "@/components/notification/NotificationButton"; // cập nhật đúng path của bạn
 
 interface UserInfo {
   name: string;
@@ -82,7 +83,7 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
               className="p-2 text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-full"
               title="Thông báo"
             >
-              <Bell className="h-5 w-5" />
+              <NotificationButton />
             </button>
 
             {/* Book Appointment Button */}
