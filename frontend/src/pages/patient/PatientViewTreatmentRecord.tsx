@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
-import { Plus, FileText, ArrowLeft } from "lucide-react"
+import { FileText, ArrowLeft } from "lucide-react"
 import { useSearchParams, useNavigate } from "react-router"
 import { toast } from "react-toastify"
 
@@ -108,12 +108,6 @@ const PatientTreatmentRecords: React.FC = () => {
     }
   }
 
-  const handleAddRecord = () => {
-    setEditingRecord(null)
-    resetTreatmentForm()
-    setIsModalOpen(true)
-  }
-
   const handleEditRecord = (record: TreatmentRecord) => {
     setEditingRecord(record)
     resetTreatmentForm({
@@ -166,12 +160,6 @@ const PatientTreatmentRecords: React.FC = () => {
                     Lịch sử đầy đủ về các phương pháp điều trị và thủ thuật nha khoa
                   </p>
                 </div>
-                <button
-                  onClick={handleAddRecord}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"
-                >
-                  <Plus className="h-4 w-4" /> Thêm Hồ sơ điều trị mới
-                </button>
               </div>
 
               <div className="p-6">

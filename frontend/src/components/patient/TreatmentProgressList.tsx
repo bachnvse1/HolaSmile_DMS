@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react"
-import { Eye, User, UserCheck, Clock, CalendarClock } from "lucide-react"
+import {
+  Eye, User, UserCheck, Clock, CalendarClock, Search, Filter
+} from "lucide-react"
 import { formatVietnameseDateFull } from "@/utils/date"
 import type { TreatmentProgress } from "@/types/treatmentProgress"
 import { Skeleton } from "../ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { Pagination } from "../ui/Pagination"
+import { Input } from "../ui/input"
 
 export function TreatmentProgressList({
   data,
@@ -16,13 +19,27 @@ export function TreatmentProgressList({
   onViewProgress?: (progress: TreatmentProgress) => void
   highlightId?: number
 }) {
-  const [page, setPage] = useState(1)
-  const itemsPerPage = 3
+  const [searchTerm, setSearchTerm] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(3)
 
   useEffect(() => {
-    setPage(1)
-  }, [data,])
+    setCurrentPage(1)
+  }, [data, searchTerm, statusFilter])
 
+  // Lọc và tìm kiếm
+  const filtered = data.filter((item) => {
+    const matchSearch = (item.progressName ?? "").toLowerCase().includes(searchTerm.toLowerCase())
+    const matchStatus = statusFilter === "all" || item.status === statusFilter
+    return matchSearch && matchStatus
+  })
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage)
+  const paginatedData = filtered.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
 
   const renderStatusBadge = (status?: string) => {
     const statusMap: Record<string, { label: string; className: string }> = {
@@ -60,11 +77,37 @@ export function TreatmentProgressList({
     )
   }
 
-  const totalPages = Math.ceil(data.length / itemsPerPage)
-  const paginatedData = data.slice((page - 1) * itemsPerPage, page * itemsPerPage)
-
   return (
     <div className="space-y-6">
+      {/* Tìm kiếm & lọc */}
+      <div className="flex flex-col sm:flex-row gap-4 items-center">
+        <div className="relative w-full sm:max-w-sm">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Tìm theo tiến trình..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-gray-400" />
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+          >
+            <option value="all">Tất cả trạng thái</option>
+            <option value="Chưa bắt đầu">Chưa bắt đầu</option>
+            <option value="Đang tiến hành">Đang tiến hành</option>
+            <option value="Tạm dừng">Tạm dừng</option>
+            <option value="Đã hoàn thành">Đã hoàn thành</option>
+            <option value="Đã huỷ">Đã huỷ</option>
+          </select>
+        </div>
+      </div>
+
       {loading ? (
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
@@ -75,68 +118,69 @@ export function TreatmentProgressList({
             </div>
           ))}
         </div>
-      ) : data.length === 0 ? (
-        <div className="text-center text-gray-500">Không có tiến trình điều trị nào.</div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center text-gray-500">Không có tiến trình điều trị nào phù hợp.</div>
       ) : (
         <>
           <div className="grid gap-4">
-            {paginatedData.map((item) => {
-              return (
-                <div
-                  className={`border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition relative`}
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                      <div className="flex justify-between items-center">
-                        <h3 className="font-medium text-base">{item.progressName}</h3>
-                        {renderStatusBadge(item.status)}
-                      </div>
-
-                      <div className="flex items-center text-sm text-gray-600 gap-2">
-                        <User className="h-4 w-4 text-blue-600" />
-                        <span>{item.patientName}</span>
-                      </div>
-
-                      <div className="flex items-center text-sm text-gray-600 gap-2">
-                        <UserCheck className="h-4 w-4 text-green-600" />
-                        <span>{item.dentistName}</span>
-                      </div>
-
-                      <div className="flex items-center text-sm text-gray-600 gap-2">
-                        <Clock className="h-4 w-4 text-yellow-600" />
-                        <span>{item.duration ?? "--"} phút</span>
-                      </div>
-
-                      <div className="flex items-center text-xs text-gray-400 gap-2">
-                        <CalendarClock className="h-4 w-4" />
-                        <span>
-                          {item.updatedAt || item.createdAt
-                            ? formatVietnameseDateFull(new Date(item.updatedAt || item.createdAt!))
-                            : "Không rõ thời gian"}
-                        </span>
-                      </div>
+            {paginatedData.map((item) => (
+              <div
+                key={item.treatmentProgressID}
+                className="border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition relative"
+              >
+                <div className="flex justify-between items-start">
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-medium text-base">{item.progressName}</h3>
+                      {renderStatusBadge(item.status)}
                     </div>
 
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-1"
-                      onClick={() => onViewProgress?.(item)}
-                    >
-                      <Eye className="h-4 w-4 mr-1" /> Xem
-                    </Button>
+                    <div className="flex items-center text-sm text-gray-600 gap-2">
+                      <User className="h-4 w-4 text-blue-600" />
+                      <span>{item.patientName}</span>
+                    </div>
+
+                    <div className="flex items-center text-sm text-gray-600 gap-2">
+                      <UserCheck className="h-4 w-4 text-green-600" />
+                      <span>{item.dentistName}</span>
+                    </div>
+
+                    <div className="flex items-center text-sm text-gray-600 gap-2">
+                      <Clock className="h-4 w-4 text-yellow-600" />
+                      <span>{item.duration ?? "--"} phút</span>
+                    </div>
+
+                    <div className="flex items-center text-xs text-gray-400 gap-2">
+                      <CalendarClock className="h-4 w-4" />
+                      <span>
+                        {item.updatedAt || item.createdAt
+                          ? formatVietnameseDateFull(new Date(item.updatedAt || item.createdAt!))
+                          : "Không rõ thời gian"}
+                      </span>
+                    </div>
                   </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-1"
+                    onClick={() => onViewProgress?.(item)}
+                  >
+                    <Eye className="h-4 w-4 mr-1" /> Xem
+                  </Button>
                 </div>
-              )
-            })}
+              </div>
+            ))}
           </div>
 
           <Pagination
-            currentPage={page}
+            currentPage={currentPage}
             totalPages={totalPages}
-            onPageChange={setPage}
-            totalItems={data.length}
-            className="pt-4"
+            onPageChange={setCurrentPage}
+            totalItems={filtered.length}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={setItemsPerPage}
+            className="mt-4"
           />
         </>
       )}
