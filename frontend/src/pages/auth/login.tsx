@@ -43,7 +43,8 @@ export function Login() {
 
         if (loginResult.success && loginResult.token) {
           const role = TokenUtils.getRoleFromToken(loginResult.token);
-          toast.success(`Đăng nhập thành công! Xin chào ${values.email}`, {
+          const fullName = TokenUtils.getFullNameFromToken(loginResult.token);
+          toast.success(`Đăng nhập thành công! Xin chào ${fullName}`, {
                   position: "top-left",
                   autoClose: 3000,
                 });

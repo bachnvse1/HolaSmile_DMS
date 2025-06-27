@@ -3,12 +3,12 @@ import { Users, Calendar, TrendingUp, AlertCircle, Clock, CreditCard } from 'luc
 import { StaffLayout } from '../../layouts/staff/StaffLayout';
 
 export const StaffDashboard = () => {
-  const { username, role, userId } = useAuth();
+  const { fullName, role, userId } = useAuth();
 
   // Create userInfo object for StaffLayout
   const userInfo = {
     id: userId || '',
-    name: username || 'User',
+    name: fullName || 'User',
     email: '', // Will be filled from API if needed
     role: role || '',
     avatar: undefined
@@ -83,7 +83,7 @@ export const StaffDashboard = () => {
             {title}
           </h1>
           <p className="text-gray-600">
-            Chào mừng trở lại, {username} - {role}
+            Chào mừng trở lại, {fullName} - {role}
           </p>
         </div>
 

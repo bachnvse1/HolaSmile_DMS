@@ -6,7 +6,7 @@ import { TokenUtils } from '../../utils/tokenUtils';
 import { useUserProfile } from '../../hooks/useUserProfile';
 
 export const PatientBookingPage = () => {
-  const { username } = useAuth();
+  const { fullName } = useAuth();
   
   // Fetch user profile để lấy email với custom hook
   const { data: userProfile, isLoading, error } = useUserProfile();
@@ -20,7 +20,7 @@ export const PatientBookingPage = () => {
   const token = userData.token;
   const userInfo = token ? TokenUtils.decodeToken(token) : null;  // Fallback data khi không fetch được userProfile
   const prefilledData = {
-    fullName: username || userProfile?.name || '',
+    fullName: fullName || userProfile?.name || '',
     email: userProfile?.email || '', // Will be empty if API fails
     phoneNumber: userInfo?.username || userProfile?.phone || '',
     medicalIssue: ''
@@ -59,7 +59,7 @@ export const PatientBookingPage = () => {
                 Đặt Lịch Hẹn Khám
               </h1>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Chào {username}, chọn bác sĩ và thời gian phù hợp để đặt lịch hẹn
+                Chào {fullName}, chọn bác sĩ và thời gian phù hợp để đặt lịch hẹn
               </p>
             </div>            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Error Banner */}

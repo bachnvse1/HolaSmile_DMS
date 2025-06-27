@@ -54,6 +54,7 @@ public class GoogleAuthService : IGoogleAuthService
                $"?token={jwt}" +
                $"&refreshToken={refreshToken}" +
                $"&username={user.Username}" +
+               $"&fullName={user.Fullname}" +
                $"&role={role}" +
                $"&imageUrl={Uri.EscapeDataString(imageUrl)}";
     }

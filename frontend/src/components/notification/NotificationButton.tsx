@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Bell } from "lucide-react";
 import { createNotificationConnection } from "@/services/notificationHub";
 import { toast } from "react-toastify";
-
+import axios from 'axios'
 type NotificationDto = {
   notificationId: number;
   title: string;
@@ -19,6 +19,11 @@ export function NotificationButton() {
   useEffect(() => {
     const token = localStorage.getItem("token") || "";
     const connection = createNotificationConnection(token);
+    axios.get<NotificationDto[]>(`${import.meta.env.VITE_API_BASE_URL}/notifications`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    .then((res) => setNotifications(res.data))
+    .catch(console.error);
 
     connection.on("ReceiveNotification", (notification: NotificationDto) => {
       toast.info(`${notification.title}`);

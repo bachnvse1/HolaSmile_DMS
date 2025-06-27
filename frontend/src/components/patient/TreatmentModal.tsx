@@ -153,7 +153,7 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                 <input
                   {...register("treatmentDate", { required: "Bắt buộc" })}
                   type="date"
-                  min={new Date().toISOString().split("T")[0]}
+                  min={!isEditing ? new Date().toISOString().split("T")[0] : undefined}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                 />
                 {errors.treatmentDate && <p className="text-sm text-red-500 mt-1">{errors.treatmentDate.message}</p>}
@@ -257,9 +257,8 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`px-4 py-2 rounded-md text-white ${
-                isSubmitting ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-              }`}
+              className={`px-4 py-2 rounded-md text-white ${isSubmitting ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                }`}
             >
               {isSubmitting ? "Đang gửi..." : isEditing ? "Cập nhật" : "Thêm mới"}
             </button>

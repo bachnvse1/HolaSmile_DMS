@@ -26,13 +26,12 @@ export function TreatmentProgressList({
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [data, searchTerm, statusFilter])
+  }, [data, statusFilter])
 
   // Lọc và tìm kiếm
   const filtered = data.filter((item) => {
-    const matchSearch = (item.progressName ?? "").toLowerCase().includes(searchTerm.toLowerCase())
     const matchStatus = statusFilter === "all" || item.status === statusFilter
-    return matchSearch && matchStatus
+    return matchStatus
   })
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage)
@@ -90,7 +89,6 @@ export function TreatmentProgressList({
             className="pl-10"
           />
         </div>
-
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-gray-400" />
           <select
