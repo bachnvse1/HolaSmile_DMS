@@ -1,4 +1,4 @@
-﻿using HDMS_API.DependencyInjection;
+﻿using HDMS_API.wwwroot.avatar.Container.DependencyInjection;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
