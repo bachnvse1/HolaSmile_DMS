@@ -11,6 +11,7 @@ import { useNavigate } from "react-router"
 import { useAuth } from '../../hooks/useAuth';
 import { AuthGuard } from '../../components/AuthGuard';
 import { StaffLayout } from '../../layouts/staff/StaffLayout';
+import { toast } from "react-toastify"
 
 const PAGE_SIZE = 5
 
@@ -37,10 +38,10 @@ export default function PatientList() {
     const fetchPatients = async () => {
       try {
         const data = await getAllPatients()
-        console.log("Fetched patients:", data)
         setPatients(data)
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to fetch patients:", error)
+        toast.error(error.message || "Lỗi khi tải danh sách bệnh nhân")
       }
     }
 
@@ -79,17 +80,19 @@ export default function PatientList() {
               <h1 className="text-3xl font-bold">Danh Sách Bệnh Nhân</h1>
               <p className="text-muted-foreground">Quản lý và xem tất cả hồ sơ bệnh nhân</p>
             </div>
-            <Button
-              onClick={() => navigate("/add-patient")}
-              className="flex items-center gap-2"
-            >
-              <UserPlus className="h-4 w-4" />
-              Thêm Bệnh Nhân Mới
-            </Button>
+            {role === "Receptionist" && (
+              <Button
+                onClick={() => navigate("/add-patient")}
+                className="flex items-center gap-2"
+              >
+                <UserPlus className="h-4 w-4" />
+                Thêm Bệnh Nhân Mới
+              </Button>
+            )}
           </div>
 
           <Card className="space-y-4">
-            <h3 className="text-xl font-semibold flex items-center gap-2">
+            <h3 className="px-4 pt-2 text-xl font-semibold flex items-center gap-2">
               <Filter className="h-5 w-5" />
               Bộ Lọc & Tìm Kiếm
             </h3>
