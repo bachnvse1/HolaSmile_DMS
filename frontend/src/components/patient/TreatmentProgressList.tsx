@@ -1,46 +1,28 @@
-import { useEffect, useState } from "react"
+import { useState, useEffect } from "react"
 import { Eye, User, UserCheck, Clock, CalendarClock } from "lucide-react"
-import { getTreatmentProgressById } from "@/services/treatmentProgressService"
 import { formatVietnameseDateFull } from "@/utils/date"
 import type { TreatmentProgress } from "@/types/treatmentProgress"
-import { useParams } from "react-router"
 import { Skeleton } from "../ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { Pagination } from "../ui/Pagination"
 
-const DEFAULT_ITEMS_PER_PAGE = 5
-
 export function TreatmentProgressList({
+  data,
+  loading,
   onViewProgress,
 }: {
+  data: TreatmentProgress[]
+  loading?: boolean
   onViewProgress?: (progress: TreatmentProgress) => void
+  highlightId?: number
 }) {
-  const [data, setData] = useState<TreatmentProgress[]>([])
-  const [loading, setLoading] = useState(true)
-
   const [page, setPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_ITEMS_PER_PAGE)
-
-  const { treatmentRecordId } = useParams<{ treatmentRecordId: string }>()
+  const itemsPerPage = 3
 
   useEffect(() => {
-    if (treatmentRecordId) {
-      fetchData(treatmentRecordId)
-    }
-  }, [treatmentRecordId])
+    setPage(1)
+  }, [data,])
 
-  const fetchData = async (id: string) => {
-    setLoading(true)
-    try {
-      const res = await getTreatmentProgressById(id)
-      console.log("Fetched treatment progress:", res)
-      setData(res)
-    } catch (err) {
-      console.error("Lỗi tải danh sách:", err)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const renderStatusBadge = (status?: string) => {
     const statusMap: Record<string, { label: string; className: string }> = {
@@ -98,50 +80,55 @@ export function TreatmentProgressList({
       ) : (
         <>
           <div className="grid gap-4">
-            {paginatedData.map((item) => (
-              <div
-                key={item.treatmentProgressID}
-                className="border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition"
-              >
-                <div className="flex justify-between items-start">
-                  <div className="space-y-1">
-                    <div className="flex justify-between items-center">
-                      <h3 className="font-medium text-base">{item.progressName}</h3>
-                      {renderStatusBadge(item.status)}
+            {paginatedData.map((item) => {
+              return (
+                <div
+                  className={`border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition relative`}
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <h3 className="font-medium text-base">{item.progressName}</h3>
+                        {renderStatusBadge(item.status)}
+                      </div>
+
+                      <div className="flex items-center text-sm text-gray-600 gap-2">
+                        <User className="h-4 w-4 text-blue-600" />
+                        <span>{item.patientName}</span>
+                      </div>
+
+                      <div className="flex items-center text-sm text-gray-600 gap-2">
+                        <UserCheck className="h-4 w-4 text-green-600" />
+                        <span>{item.dentistName}</span>
+                      </div>
+
+                      <div className="flex items-center text-sm text-gray-600 gap-2">
+                        <Clock className="h-4 w-4 text-yellow-600" />
+                        <span>{item.duration ?? "--"} phút</span>
+                      </div>
+
+                      <div className="flex items-center text-xs text-gray-400 gap-2">
+                        <CalendarClock className="h-4 w-4" />
+                        <span>
+                          {item.updatedAt || item.createdAt
+                            ? formatVietnameseDateFull(new Date(item.updatedAt || item.createdAt!))
+                            : "Không rõ thời gian"}
+                        </span>
+                      </div>
                     </div>
 
-                    <div className="flex items-center text-sm text-gray-600 gap-2">
-                      <User className="h-4 w-4 text-blue-600" />
-                      <span>{item.patientName}</span>
-                    </div>
-
-                    <div className="flex items-center text-sm text-gray-600 gap-2">
-                      <UserCheck className="h-4 w-4 text-green-600" />
-                      <span>{item.dentistName}</span>
-                    </div>
-
-                    <div className="flex items-center text-sm text-gray-600 gap-2">
-                      <Clock className="h-4 w-4 text-yellow-600" />
-                      <span>{item.duration ?? "--"} phút</span>
-                    </div>
-
-                    <div className="flex items-center text-xs text-gray-400 gap-2">
-                      <CalendarClock className="h-4 w-4" />
-                      <span>{formatVietnameseDateFull(new Date(item.updatedAt || item.createdAt))}</span>
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-1"
+                      onClick={() => onViewProgress?.(item)}
+                    >
+                      <Eye className="h-4 w-4 mr-1" /> Xem
+                    </Button>
                   </div>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-1"
-                    onClick={() => onViewProgress?.(item)}
-                  >
-                    <Eye className="h-4 w-4 mr-1" /> Xem
-                  </Button>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           <Pagination
@@ -149,8 +136,6 @@ export function TreatmentProgressList({
             totalPages={totalPages}
             onPageChange={setPage}
             totalItems={data.length}
-            itemsPerPage={itemsPerPage}
-            onItemsPerPageChange={setItemsPerPage}
             className="pt-4"
           />
         </>
