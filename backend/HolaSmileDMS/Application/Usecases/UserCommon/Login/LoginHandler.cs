@@ -38,8 +38,8 @@ namespace HDMS_API.Application.Usecases.UserCommon.Login
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG01);
             }
 
-            var role = await _userCommonRepository.GetUserRoleAsync(user.Username, cancellationToken);
-            var token = _jwtService.GenerateJWTToken(user, role);
+            var userRole = await _userCommonRepository.GetUserRoleAsync(user.Username, cancellationToken);
+            var token = _jwtService.GenerateJWTToken(user, userRole.Role, userRole.RoleTableId);
             var refreshToken = _jwtService.GenerateRefreshToken(user.UserID.ToString());
 
             return new LoginResultDto
@@ -47,7 +47,7 @@ namespace HDMS_API.Application.Usecases.UserCommon.Login
                 Success = true,
                 Token = token,
                 refreshToken = refreshToken,
-                Role = role
+                Role = userRole.Role
             };
         }
     }

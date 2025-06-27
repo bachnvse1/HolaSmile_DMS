@@ -44,8 +44,8 @@ public sealed class LoginHandlerIntegrationTests
 
         _passwordHasherMock.Setup(x => x.Verify(password, "hashed-pw")).Returns(true);
         _repoMock.Setup(x => x.GetUserRoleAsync(username, It.IsAny<CancellationToken>()))
-                 .ReturnsAsync("Patient");
-        _jwtServiceMock.Setup(x => x.GenerateJWTToken(It.IsAny<User>(), "Patient"))
+                 .ReturnsAsync(new UserRoleResult(){Role = "Patient", RoleTableId = 1});
+        _jwtServiceMock.Setup(x => x.GenerateJWTToken(It.IsAny<User>(), "Patient", 1))
                        .Returns("fake-jwt-token");
         _jwtServiceMock.Setup(x => x.GenerateRefreshToken("1")).Returns("fake-refresh-token");
 
