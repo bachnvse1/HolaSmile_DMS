@@ -5,6 +5,7 @@ import { useNavigate, Link } from "react-router";
 import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowLeft } from "lucide-react";
 import { AuthService } from "../../services/AuthService";
 import { TokenUtils } from "../../utils/tokenUtils";
+import { toast } from "react-toastify";
 
 export function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -42,7 +43,10 @@ export function Login() {
 
         if (loginResult.success && loginResult.token) {
           const role = TokenUtils.getRoleFromToken(loginResult.token);
-
+          toast.success(`Đăng nhập thành công! Xin chào ${values.email}`, {
+                  position: "top-left",
+                  autoClose: 3000,
+                });
           if (role === "Patient") {
             navigate("/patient/dashboard");
           } else if (role && ["Administrator", "Owner", "Receptionist", "Assistant", "Dentist"].includes(role)) {
