@@ -32,7 +32,6 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
   onPreviousWeek,
   onNextWeek,
   canAddSchedule = false,
-  disablePastDates = true
 }) => {
   // State để theo dõi tuần hiện tại
   const [weekOffset, setWeekOffset] = useState(currentWeek);
@@ -175,7 +174,7 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
     // Thời gian ca làm việc
     const shiftTimes = {
       morning: '8:00 - 11:00',
-      afternoon: '14:00 - 17:00',
+      afternoon: '13:00 - 17:00',
       evening: '17:00 - 20:00'
     };
 

@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { useCreateSchedule, useEditSchedule, useDentistSchedule, useSoftDeleteSchedule, useDeleteSchedule } from '../../hooks/useSchedule';
+import { useCreateSchedule, useEditSchedule, useDentistSchedule, useDeleteSchedule } from '../../hooks/useSchedule';
 import type { Schedule } from '../../types/schedule';
 import { ScheduleStatus, ShiftType } from '../../types/schedule';
 import { formatDateWithDay, shiftTypeToText, isPastDate } from '../../utils/dateUtils';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import {
-  PlusCircle,
   Loader2,
   Edit,
   Trash,
@@ -18,7 +17,6 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
 import { ScheduleCalendar } from './ScheduleCalendar';
 
 interface DentistScheduleEditorWithCalendarProps {
@@ -42,25 +40,19 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
   const { data, isLoading, error, refetch } = useDentistSchedule(dentistId);
   const createScheduleMutation = useCreateSchedule();
   const editScheduleMutation = useEditSchedule();
-  const softDeleteMutation = useSoftDeleteSchedule();
   const deleteMutation = useDeleteSchedule();
 
   // Schedules data
   const schedules = data?.data || [];
 
-  // Debug log để kiểm tra dữ liệu
-  console.log('DentistScheduleEditorWithCalendar - dentistId:', dentistId);
-  console.log('DentistScheduleEditorWithCalendar - data từ hook:', data);
-  console.log('DentistScheduleEditorWithCalendar - schedules sau khi transform:', schedules);
-
   // Handlers
-  const handleAddSchedule = () => {
-    setIsEditMode(false);
-    setSelectedDate('');
-    setSelectedShift('');
-    setNote('');
-    setIsDialogOpen(true);
-  };
+  // const handleAddSchedule = () => {
+  //   setIsEditMode(false);
+  //   setSelectedDate('');
+  //   setSelectedShift('');
+  //   setNote('');
+  //   setIsDialogOpen(true);
+  // };
 
   const handleEditSchedule = (schedule: Schedule) => {
     setIsEditMode(true);
@@ -164,17 +156,13 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
   };
 
   const confirmDeleteSchedule = async () => {
-    if (!scheduleToDelete || !scheduleToDelete.id) return;
+    if (!scheduleToDelete || !scheduleToDelete.scheduleId) return;
 
     try {
-      // Sử dụng editScheduleMutation để đánh dấu lịch là đã xóa
-      await editScheduleMutation.mutateAsync({
-        ...scheduleToDelete,
-        status: ScheduleStatus.Rejected
-      });
-
+      await deleteMutation.mutateAsync(scheduleToDelete.scheduleId);
       toast.success('Đã xóa lịch làm việc thành công!');
       setDeleteDialogOpen(false);
+      await refetch();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi xóa lịch!');
     }
@@ -230,8 +218,6 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
     }
 
     try {
-      // Hiển thị thông báo đang xử lý
-      toast.info(`Đang xử lý ${selectedSlots.length} lịch làm việc...`);
 
       // Tạo nhiều lịch làm việc
       const createPromises = selectedSlots.map(slot =>
@@ -248,24 +234,18 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
 
       // Đếm kết quả thành công và thất bại
       let successCount = 0;
-      let errorCount = 0;
 
       results.forEach(result => {
         if (result.status === 'fulfilled') {
           successCount++;
         } else {
-          errorCount++;
           console.error('Lỗi khi tạo lịch:', result.reason);
         }
       });
 
       // Hiển thị thông báo kết quả
       if (successCount > 0) {
-        toast.success(`Đã tạo thành công ${successCount}/${selectedSlots.length} lịch làm việc!`);
-      }
-
-      if (errorCount > 0) {
-        toast.error(`Có ${errorCount} lịch không thể tạo. Vui lòng thử lại sau.`);
+        toast.success(`Đã tạo lịch làm việc thành công!`);
       }
 
       // Reset trạng thái
@@ -276,7 +256,6 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
       // Cập nhật lại dữ liệu
       await refetch();
     } catch (error) {
-      console.error('Lỗi khi tạo lịch hàng loạt:', error);
       toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi tạo lịch!');
     }
   };
@@ -380,16 +359,6 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
                   <div className="flex space-x-2">
                     {schedule.status !== ScheduleStatus.Approved && (
                       <>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditSchedule(schedule)}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <Edit className="h-4 w-4 mr-1" />
-                          Sửa
-                        </Button>
-
                         <Button
                           variant="ghost"
                           size="sm"
@@ -594,9 +563,9 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
             <Button
               variant="destructive"
               onClick={confirmDeleteSchedule}
-              disabled={editScheduleMutation.isPending}
+              disabled={deleteMutation.isPending}
             >
-              {editScheduleMutation.isPending ? (
+              {deleteMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Đang xử lý...

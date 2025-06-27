@@ -42,11 +42,11 @@ export const getDaysInWeek = (date: Date = new Date()): Date[] => {
 export const shiftTypeToText = (shift: ShiftType): string => {
   switch (shift) {
     case ShiftType.Morning:
-      return 'Sáng (8:00 - 12:00)';
+      return 'Sáng (8:00 - 11:00)';
     case ShiftType.Afternoon:
       return 'Chiều (13:00 - 17:00)';
     case ShiftType.Evening:
-      return 'Tối (18:00 - 21:00)';
+      return 'Tối (17:00 - 20:00)';
     default:
       return 'Không xác định';
   }
@@ -83,3 +83,11 @@ export const isFarFutureDate = (date: Date | string): boolean => {
 export const formatDateForApi = (date: Date): string => {
   return format(date, 'yyyy-MM-dd');
 };
+
+// Hàm parse ngày theo local để tránh lệch múi giờ khi render lịch
+export function parseLocalDate(dateString: string) {
+  const [datePart, timePart] = dateString.split('T');
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hour = 0, minute = 0, second = 0] = (timePart || '00:00:00').split(':').map(Number);
+  return new Date(year, month - 1, day, hour, minute, second);
+}

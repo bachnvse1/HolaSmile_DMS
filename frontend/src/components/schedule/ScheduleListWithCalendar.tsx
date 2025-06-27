@@ -53,7 +53,7 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
   // Filters
   const filteredSchedules = schedules.filter((schedule: Schedule) => {
     // Status filter
-    if (schedule.status !== ScheduleStatus.Approved) return false;
+    if (schedule.status !== ScheduleStatus.Approved && schedule.status) return false;
 
     // Shift filter
     if (shiftFilter !== 'all' && schedule.shift !== shiftFilter) return false;

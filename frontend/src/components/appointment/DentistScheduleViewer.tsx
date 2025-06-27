@@ -83,7 +83,7 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
       FullName: prefilledData?.fullName || '',
       Email: bookingData.email || prefilledData?.email || '',
       PhoneNumber: prefilledData?.phoneNumber || '',
-      AppointmentDate: appointmentDate.toISOString().split('T')[0],
+      AppointmentDate: `${appointmentDate.getFullYear()}-${(appointmentDate.getMonth()+1).toString().padStart(2,'0')}-${appointmentDate.getDate().toString().padStart(2,'0')}`,
       AppointmentTime: timeString,
       MedicalIssue: bookingData.medicalIssue.trim(),
       DentistId: selectedDentist.dentistID
