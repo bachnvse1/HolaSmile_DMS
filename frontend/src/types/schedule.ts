@@ -30,7 +30,7 @@ export interface Schedule {
 // Interface cho request phê duyệt
 export interface ApprovalRequest {
   scheduleIds: number[];
-  action: 'approve' | 'reject';
+  action: 'approved' | 'rejected';
 }
 
 // Interface cho filter lịch làm việc

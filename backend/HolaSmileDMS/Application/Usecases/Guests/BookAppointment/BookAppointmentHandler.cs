@@ -60,11 +60,10 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
 
                 // Check if the latsest appointment for the patient is confirmed
                 var checkValidAppointment = await _appointmentRepository.GetLatestAppointmentByPatientIdAsync(patient.PatientID);
-                if (checkValidAppointment.Status == "confirmed")
+                if (checkValidAppointment != null && checkValidAppointment.Status == "confirmed")
                 {
                     throw new Exception(MessageConstants.MSG.MSG89); // "Kế hoạch điều trị đã tồn tại"
                 }
-
                 //checck duplicate appointment
                 bool already = await _appointmentRepository.ExistsAppointmentAsync(patient.PatientID, request.AppointmentDate);
                 if (already) throw new Exception(MessageConstants.MSG.MSG74);

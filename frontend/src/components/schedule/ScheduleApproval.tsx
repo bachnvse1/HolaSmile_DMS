@@ -21,8 +21,8 @@ export const ScheduleApproval: React.FC = () => {
   // States
   const [selectedSchedules, setSelectedSchedules] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [approvalAction, setApprovalAction] = useState<'approve' | 'reject' | null>(null);
+  const [confirmedDialogOpen, setconfirmedDialogOpen] = useState(false);
+  const [approvalAction, setApprovalAction] = useState<'approved' | 'rejected' | null>(null);
   
   // Queries
   const { 
@@ -87,8 +87,8 @@ export const ScheduleApproval: React.FC = () => {
       return;
     }
     
-    setApprovalAction('approve');
-    setConfirmDialogOpen(true);
+    setApprovalAction('approved');
+    setconfirmedDialogOpen(true);
   };
   
   const openRejectDialog = () => {
@@ -97,11 +97,11 @@ export const ScheduleApproval: React.FC = () => {
       return;
     }
     
-    setApprovalAction('reject');
-    setConfirmDialogOpen(true);
+    setApprovalAction('rejected');
+    setconfirmedDialogOpen(true);
   };
   
-  const handleConfirmAction = async () => {
+  const handleconfirmedAction = async () => {
     if (!approvalAction) return;
     
     try {
@@ -111,13 +111,13 @@ export const ScheduleApproval: React.FC = () => {
       });
       
       toast.success(
-        approvalAction === 'approve' 
+        approvalAction === 'approved' 
           ? `Đã phê duyệt ${selectedSchedules.length} lịch làm việc!` 
           : `Đã từ chối ${selectedSchedules.length} lịch làm việc!`
       );
       
       setSelectedSchedules([]);
-      setConfirmDialogOpen(false);
+      setconfirmedDialogOpen(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra!');
     }
@@ -195,7 +195,7 @@ export const ScheduleApproval: React.FC = () => {
             disabled={selectedSchedules.length === 0 || approveMutation.isPending}
             onClick={openRejectDialog}
           >
-            {approveMutation.isPending && approvalAction === 'reject' ? (
+            {approveMutation.isPending && approvalAction === 'rejected' ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (
               <XCircle className="h-4 w-4 mr-2" />
@@ -208,7 +208,7 @@ export const ScheduleApproval: React.FC = () => {
             disabled={selectedSchedules.length === 0 || approveMutation.isPending}
             onClick={openApproveDialog}
           >
-            {approveMutation.isPending && approvalAction === 'approve' ? (
+            {approveMutation.isPending && approvalAction === 'approved' ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (
               <CheckCircle2 className="h-4 w-4 mr-2" />
@@ -289,15 +289,15 @@ export const ScheduleApproval: React.FC = () => {
         </table>
       </div>
       
-      {/* Confirmation Dialog */}
-      <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+      {/* confirmedation Dialog */}
+      <Dialog open={confirmedDialogOpen} onOpenChange={setconfirmedDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {approvalAction === 'approve' ? 'Xác nhận phê duyệt' : 'Xác nhận từ chối'}
+              {approvalAction === 'approved' ? 'Xác nhận phê duyệt' : 'Xác nhận từ chối'}
             </DialogTitle>
             <DialogDescription>
-              {approvalAction === 'approve' 
+              {approvalAction === 'approved' 
                 ? `Bạn có chắc chắn muốn phê duyệt ${selectedSchedules.length} lịch làm việc đã chọn?`
                 : `Bạn có chắc chắn muốn từ chối ${selectedSchedules.length} lịch làm việc đã chọn?`}
             </DialogDescription>
@@ -307,7 +307,7 @@ export const ScheduleApproval: React.FC = () => {
             <div className="flex items-center gap-2 rounded-md bg-amber-50 p-3 text-amber-700">
               <AlertTriangle className="h-4 w-4" />
               <span className="text-sm">
-                {approvalAction === 'approve' 
+                {approvalAction === 'approved' 
                   ? 'Lịch được phê duyệt sẽ hiển thị cho bệnh nhân đặt lịch hẹn.' 
                   : 'Lịch bị từ chối sẽ không hiển thị cho bệnh nhân và cần được tạo lại.'}
               </span>
@@ -317,14 +317,14 @@ export const ScheduleApproval: React.FC = () => {
           <DialogFooter>
             <Button 
               variant="outline" 
-              onClick={() => setConfirmDialogOpen(false)} 
+              onClick={() => setconfirmedDialogOpen(false)} 
               disabled={approveMutation.isPending}
             >
               Hủy
             </Button>
             <Button 
-              variant={approvalAction === 'approve' ? 'default' : 'destructive'}
-              onClick={handleConfirmAction} 
+              variant={approvalAction === 'approved' ? 'default' : 'destructive'}
+              onClick={handleconfirmedAction} 
               disabled={approveMutation.isPending}
             >
               {approveMutation.isPending ? (
@@ -334,7 +334,7 @@ export const ScheduleApproval: React.FC = () => {
                 </>
               ) : (
                 <>
-                  {approvalAction === 'approve' ? (
+                  {approvalAction === 'approved' ? (
                     <>
                       <CheckCircle2 className="h-4 w-4 mr-2" />
                       Xác nhận phê duyệt
