@@ -79,13 +79,15 @@ export default function PatientList() {
               <h1 className="text-3xl font-bold">Danh Sách Bệnh Nhân</h1>
               <p className="text-muted-foreground">Quản lý và xem tất cả hồ sơ bệnh nhân</p>
             </div>
-            <Button
-              onClick={() => navigate("/add-patient")}
-              className="flex items-center gap-2"
-            >
-              <UserPlus className="h-4 w-4" />
-              Thêm Bệnh Nhân Mới
-            </Button>
+            {role === "Receptionist" && (
+              <Button
+                onClick={() => navigate("/add-patient")}
+                className="flex items-center gap-2"
+              >
+                <UserPlus className="h-4 w-4" />
+                Thêm Bệnh Nhân Mới
+              </Button>
+            )}
           </div>
 
           <Card className="space-y-4">
