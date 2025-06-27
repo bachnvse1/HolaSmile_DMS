@@ -9,6 +9,7 @@ interface RecordRowProps {
   record: TreatmentRecord
   onEdit: (record: TreatmentRecord) => void
   onToggleDelete: (id: number) => void
+  patientId: number
 }
 
 const getStatusColor = (status: string) => {
@@ -41,7 +42,7 @@ const getVietnameseStatus = (status: string) => {
   }
 }
 
-const RecordRow: React.FC<RecordRowProps> = ({ record, onEdit, onToggleDelete }) => {
+const RecordRow: React.FC<RecordRowProps> = ({ record, onEdit, onToggleDelete, patientId }) => {
   return (
     <tr className={`hover:bg-gray-50 ${record.isDeleted ? "opacity-50 bg-gray-50" : ""}`}>
       <td className="px-6 py-4 whitespace-nowrap">
@@ -138,7 +139,7 @@ const RecordRow: React.FC<RecordRowProps> = ({ record, onEdit, onToggleDelete })
             variant="outline"
             className="text-blue-600 border-blue-300 hover:bg-blue-50 flex items-center gap-1"
           >
-            <Link to={`/patient/view-treatment-progress/${record.treatmentRecordID}`}>
+            <Link to={`/patient/view-treatment-progress/${record.treatmentRecordID}?patientId=${patientId}&dentistId=${record.dentistID}`}>
               <BarChart2 className="h-3 w-3" />
               Tiến độ
             </Link>
