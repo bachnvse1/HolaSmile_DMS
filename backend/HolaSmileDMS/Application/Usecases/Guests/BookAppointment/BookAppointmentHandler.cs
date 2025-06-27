@@ -39,6 +39,10 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             {
                 throw new Exception(MessageConstants.MSG.MSG74);
             }
+            if (request.AppointmentDate.Date == DateTime.Now.Date && request.AppointmentTime < DateTime.Now.TimeOfDay)
+            {
+                throw new Exception(MessageConstants.MSG.MSG74);
+            }
 
             var patient = new Patient();
             var user = new User();
