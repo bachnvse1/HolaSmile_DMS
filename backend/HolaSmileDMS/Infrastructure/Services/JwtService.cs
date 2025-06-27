@@ -18,28 +18,36 @@ namespace Infrastructure.Services
         {
             _configuration = configuration;
         }
-        public string GenerateJWTToken(User user, string Role)
+        public string GenerateJWTToken(User user, string Role, int RoleTableId)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+            var key       = _configuration["Jwt:Key"]!;
+            var issuer    = _configuration["Jwt:Issuer"];
+            var audience  = _configuration["Jwt:Audience"];
 
-            var userClaims = new[]
+            var securityKey  = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+            var credentials  = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, Role)
+                new Claim(ClaimTypes.Name, user.Username ?? string.Empty),
+                new Claim(ClaimTypes.Role, Role),
+                new Claim(ClaimTypes.GivenName,   user.Fullname ?? string.Empty),
+                new Claim("role_table_id",  RoleTableId.ToString()),          // custom ID
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())   // chống replay
             };
+
             var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: userClaims,
-                expires: DateTime.UtcNow.AddHours(2),
-                signingCredentials: credentials
-            );
+                issuer: issuer,
+                audience: audience,
+                claims: claims,
+                notBefore: DateTime.UtcNow,
+                expires:  DateTime.UtcNow.AddHours(2),
+                signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-        
+
         public string GenerateRefreshToken(string userId)
         {
             var claims = new[]

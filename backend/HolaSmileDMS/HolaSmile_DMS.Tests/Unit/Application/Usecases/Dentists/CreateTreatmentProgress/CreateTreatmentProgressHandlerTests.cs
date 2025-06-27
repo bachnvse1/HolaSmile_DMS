@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.Dentist.CreateTreatmentProcess;
+using Application.Usecases.Dentist.CreateTreatmentProgress;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Moq;

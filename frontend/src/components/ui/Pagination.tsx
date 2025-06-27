@@ -28,7 +28,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   const generatePageNumbers = () => {
     const pages = [];
     const maxVisiblePages = 5;
-    
+
     if (totalPages <= maxVisiblePages) {
       // Show all pages if total is less than max visible
       for (let i = 1; i <= totalPages; i++) {
@@ -38,7 +38,7 @@ export const Pagination: React.FC<PaginationProps> = ({
       // Show smart pagination
       const startPage = Math.max(1, currentPage - 2);
       const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-      
+
       // Add ellipsis at the beginning if needed
       if (startPage > 1) {
         pages.push(1);
@@ -46,12 +46,12 @@ export const Pagination: React.FC<PaginationProps> = ({
           pages.push('...');
         }
       }
-      
+
       // Add visible pages
       for (let i = startPage; i <= endPage; i++) {
         pages.push(i);
       }
-      
+
       // Add ellipsis at the end if needed
       if (endPage < totalPages) {
         if (endPage < totalPages - 1) {
@@ -60,23 +60,22 @@ export const Pagination: React.FC<PaginationProps> = ({
         pages.push(totalPages);
       }
     }
-    
+
     return pages;
   };
   if (totalItems === 0) {
     return null;
   }
   return (
-    <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 ${className}`}>
-      {/* Left side: Items info and items per page selector */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+    <div className={`flex flex-col gap-4 ${className}`}>
+      {/* TOP: Info + ItemsPerPage */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div className="text-sm text-gray-700">
           Hiển thị <span className="font-medium">{startItem}</span> đến{' '}
           <span className="font-medium">{endItem}</span> trong tổng số{' '}
           <span className="font-medium">{totalItems}</span> kết quả
         </div>
-        
-        {/* Items per page selector */}
+
         {onItemsPerPageChange && (
           <ItemsPerPageSelector
             itemsPerPage={itemsPerPage}
@@ -84,84 +83,80 @@ export const Pagination: React.FC<PaginationProps> = ({
           />
         )}
       </div>
-      <div className="flex items-center space-x-2">
-        {totalPages > 1 && (
-          <>
-            {/* First page */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(1)}
-              disabled={currentPage === 1}
-              className="h-8 w-8 p-0"
-              title="Trang đầu"
-            >
-              <ChevronsLeft className="h-4 w-4" />
-            </Button>
 
-            {/* Previous page */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="h-8 w-8 p-0"
-              title="Trang trước"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
+      <div className="w-full ">
+        <div className="flex items-center space-x-2 min-w-[360px]">
+          {totalPages > 1 ? (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(1)}
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+                title="Trang đầu"
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
 
-            {/* Page numbers */}
-            <div className="flex items-center space-x-1">
-              {generatePageNumbers().map((page, index) => (
-                <React.Fragment key={index}>
-                  {page === '...' ? (
-                    <span className="px-2 py-1 text-gray-500">...</span>
-                  ) : (
-                    <Button
-                      variant={page === currentPage ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => onPageChange(page as number)}
-                      className="h-8 min-w-[32px] px-2"
-                    >
-                      {page}
-                    </Button>
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+                title="Trang trước"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
 
-            {/* Next page */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="h-8 w-8 p-0"
-              title="Trang sau"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+              <div className="flex items-center space-x-1">
+                {generatePageNumbers().map((page, index) => (
+                  <React.Fragment key={index}>
+                    {page === '...' ? (
+                      <span className="px-2 py-1 text-gray-500">...</span>
+                    ) : (
+                      <Button
+                        variant={page === currentPage ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => onPageChange(page as number)}
+                        className="h-8 min-w-[32px] px-2"
+                      >
+                        {page}
+                      </Button>
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
 
-            {/* Last page */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(totalPages)}
-              disabled={currentPage === totalPages}
-              className="h-8 w-8 p-0"
-              title="Trang cuối"
-            >
-              <ChevronsRight className="h-4 w-4" />
-            </Button>
-          </>
-        )}        {/* Show single page indicator when only 1 page */}
-        {totalPages === 1 && (
-          <div className="flex items-center text-sm text-gray-600">
-            <span>Trang 1 / 1</span>
-          </div>
-        )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+                title="Trang sau"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(totalPages)}
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+                title="Trang cuối"
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            </>
+          ) : (
+            <div className="text-sm text-gray-600">Trang 1 / 1</div>
+          )}
+        </div>
       </div>
     </div>
-  );
+  )
+
 };

@@ -9,7 +9,7 @@ namespace Application.Interfaces
 {
     public interface IJwtService
     {
-        string GenerateJWTToken(User user, string Role);
+        string GenerateJWTToken(User user, string Role, int RoleTableId);
         string GenerateRefreshToken(string userId);
         ClaimsPrincipal? GetPrincipalFromExpiredToken(string token, bool isRefresh = false);
     }

@@ -1,4 +1,4 @@
-using Application.Usecases.Dentist.CreateTreatmentProcess;
+using Application.Usecases.Dentist.CreateTreatmentProgress;
 using Application.Usecases.Dentist.CreateTreatmentRecord;
 using AutoMapper;
 using Application.Usecases.Patients.ViewTreatmentProgress;

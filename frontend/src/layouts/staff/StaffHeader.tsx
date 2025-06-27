@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Menu, Bell, User, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { Menu, User, LogOut, Settings, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { NotificationButton } from "@/components/notification/NotificationButton"; // cập nhật đúng path của bạn
 
 interface UserInfo {
   name: string;
@@ -19,7 +20,8 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSide
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     navigate('/');
   };
 
@@ -65,7 +67,7 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSide
           className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full relative"
           title="Thông báo"
         >
-          <Bell className="h-5 w-5" />
+          <NotificationButton />
           <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
         </button>
 
