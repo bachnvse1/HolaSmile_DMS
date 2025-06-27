@@ -7,8 +7,6 @@ interface PaginationProps {
   totalPages: number;
   onPageChange: (page: number) => void;
   totalItems: number;
-  itemsPerPage: number;
-  onItemsPerPageChange?: (value: number) => void;
   className?: string;
 }
 
@@ -17,19 +15,14 @@ export const Pagination: React.FC<PaginationProps> = ({
   totalPages,
   onPageChange,
   totalItems,
-  itemsPerPage,
-  onItemsPerPageChange,
   className = ''
 }) => {
-  const startItem = (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
   const generatePageNumbers = () => {
     const pages = [];
     const maxVisiblePages = 5;
 
     if (totalPages <= maxVisiblePages) {
-      // Show all pages if total is less than max visible
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
@@ -67,29 +60,6 @@ export const Pagination: React.FC<PaginationProps> = ({
   }
   return (
     <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 ${className}`}>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-gray-600">
-        <div>
-          Hiển thị <span className="font-semibold">{startItem}</span> đến <span className="font-semibold">{endItem}</span>
-          trong tổng số <span className="font-semibold">{totalItems}</span> kết quả
-        </div>
-
-        {onItemsPerPageChange && (
-          <div className="flex items-center gap-2">
-            <span>Hiển thị:</span>
-            <select
-              value={itemsPerPage}
-              onChange={(e) => onItemsPerPageChange(parseInt(e.target.value))}
-              className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {[5, 10, 20].map((size) => (
-                <option key={size} value={size}>{size}</option>
-              ))}
-            </select>
-            <span>/ trang</span>
-          </div>
-        )}
-      </div>
-
       <div className="flex items-center space-x-2">
         {totalPages > 1 && (
           <>
