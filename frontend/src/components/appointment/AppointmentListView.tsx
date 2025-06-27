@@ -259,20 +259,20 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                     <Eye className="h-4 w-4" />
                     Chi tiết
                   </Button>
-
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedAppointmentId(appointment.appointmentId);
-                      setShowTreatmentModal(true);
-                    }}
-                    className="flex items-center gap-2"
-                  >
-                    <FileText className="h-4 w-4" />
-                    Tạo hồ sơ điều trị
-                  </Button>
-
+                  {role === 'Dentist' &&
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedAppointmentId(appointment.appointmentId);
+                        setShowTreatmentModal(true);
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Tạo hồ sơ điều trị
+                    </Button>
+                  }
                 </div>
 
               </div>
@@ -360,7 +360,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
         isOpen={showTreatmentModal}
         isEditing={false}
         onClose={() => setShowTreatmentModal(false)}
-        updatedBy={0} 
+        updatedBy={0}
         appointmentId={selectedAppointmentId ?? undefined}
         defaultStatus="In Progress"
         onSubmit={() => {
