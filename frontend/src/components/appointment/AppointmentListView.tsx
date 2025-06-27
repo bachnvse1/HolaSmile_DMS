@@ -22,7 +22,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   onAppointmentClick
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'confirm' | 'canceled'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'confirmed' | 'canceled'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5); // Make it configurable
   const { role } = useAuth();
@@ -33,14 +33,14 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   const treatmentFormMethods = useForm<TreatmentFormData>();
 
 
-  // const getStatusColor = (status: 'confirm' | 'canceled') => {
-  //   return status === 'confirm'
+  // const getStatusColor = (status: 'confirmed' | 'canceled') => {
+  //   return status === 'confirmed'
   //     ? 'bg-green-100 text-green-800'
   //     : 'bg-red-100 text-red-800';
   // };
 
-  const getStatusText = (status: 'confirm' | 'canceled') => {
-    return status === 'confirm' ? 'Đã xác nhận' : 'Đã hủy';
+  const getStatusText = (status: 'confirmed' | 'canceled') => {
+    return status === 'confirmed' ? 'Đã xác nhận' : 'Đã hủy';
   };
 
   const formatDate = (dateString: string) => {
@@ -132,7 +132,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   };
 
   // Group appointments by status for summary
-  const confirmedCount = filteredAppointments.filter(a => a.status === 'confirm').length;
+  const confirmedCount = filteredAppointments.filter(a => a.status === 'confirmed').length;
   const cancelledCount = filteredAppointments.filter(a => a.status === 'canceled').length;
   return (
     <div className="space-y-6">
@@ -207,12 +207,12 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
               <Filter className="h-4 w-4 text-gray-400" />
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'confirm' | 'canceled')}
+                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'confirmed' | 'canceled')}
                 className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 title="Lọc theo trạng thái"
               >
                 <option value="all">Tất cả trạng thái</option>
-                <option value="confirm">Đã xác nhận</option>
+                <option value="confirmed">Đã xác nhận</option>
                 <option value="canceled">Đã hủy</option>
               </select>
             </div>
@@ -231,7 +231,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-3">
                   <Badge
-                    variant={appointment.status === 'confirm' ? 'success' : 'destructive'}
+                    variant={appointment.status === 'confirmed' ? 'success' : 'destructive'}
                     className="text-xs font-medium"
                   >
                     {getStatusText(appointment.status)}
@@ -241,7 +241,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                     </Badge>
                   )}
                   {/* Show cancellation warning for Patient */}
-                  {role === 'Patient' && appointment.status === 'confirm' &&
+                  {role === 'Patient' && appointment.status === 'confirmed' &&
                     !isAppointmentCancellable(appointment.appointmentDate, appointment.appointmentTime) && (
                       <Badge variant="warning" className="text-xs font-medium flex items-center">
                         <AlertTriangle className="h-3 w-3 mr-1" />
