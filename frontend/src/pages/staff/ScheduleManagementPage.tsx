@@ -5,12 +5,12 @@ import { StaffLayout } from '@/layouts/staff';
 import { useAuth } from '@/hooks/useAuth';
 
 const ScheduleManagementPage: React.FC = () => {
-    const { username, role, userId } = useAuth();
+    const { username, role, userId, fullName } = useAuth();
     const user = {
         username: username || '',
         role: role || '',
         userId: userId || '',
-        name: username || '',
+        name: fullName || '',
         email: ''
     };
 

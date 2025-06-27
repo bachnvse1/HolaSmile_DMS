@@ -23,12 +23,12 @@ export default function PatientList() {
   const [currentPage, setCurrentPage] = useState(1)
   const navigate = useNavigate()
 
-  const { username, role, userId } = useAuth();
+  const { fullName, role, userId } = useAuth();
 
   // Create userInfo object for StaffLayout
   const userInfo = {
     id: userId || '',
-    name: username || 'User',
+    name: fullName || 'User',
     email: '',
     role: role || '',
     avatar: undefined
