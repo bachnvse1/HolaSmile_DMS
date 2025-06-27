@@ -28,7 +28,7 @@ public class ViewProfileHandlerIntegrationTests
             options.UseInMemoryDatabase("ViewProfileTestDb"));
 
         services.AddHttpContextAccessor();
-        services.AddMemoryCache(); // 👈 Cần thiết cho repository
+        services.AddMemoryCache();
 
         var provider = services.BuildServiceProvider();
 
