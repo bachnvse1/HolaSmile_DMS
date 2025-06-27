@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react"
 import {
-  Eye, User, UserCheck, Clock, CalendarClock, Filter
+  Eye, User, UserCheck, Clock, CalendarClock, Search, Filter
 } from "lucide-react"
 import { formatVietnameseDateFull } from "@/utils/date"
 import type { TreatmentProgress } from "@/types/treatmentProgress"
 import { Skeleton } from "../ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { Pagination } from "../ui/Pagination"
+import { Input } from "../ui/input"
 
 export function TreatmentProgressList({
   data,
@@ -18,6 +19,7 @@ export function TreatmentProgressList({
   onViewProgress?: (progress: TreatmentProgress) => void
   highlightId?: number
 }) {
+  const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(3)
@@ -78,6 +80,15 @@ export function TreatmentProgressList({
     <div className="space-y-6">
       {/* Tìm kiếm & lọc */}
       <div className="flex flex-col sm:flex-row gap-4 items-center">
+        <div className="relative w-full sm:max-w-sm">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Tìm theo tiến trình..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-gray-400" />
           <select
