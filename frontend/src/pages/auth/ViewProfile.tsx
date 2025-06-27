@@ -7,6 +7,7 @@ import axiosInstance from "@/lib/axios"
 import { toast } from "react-toastify"
 import { TokenUtils } from "@/utils/tokenUtils"
 import { getDateString } from "@/utils/date"
+import { Skeleton } from "@/components/ui/skeleton"
 import "react-toastify/dist/ReactToastify.css"
 
 type FormValues = {
@@ -36,7 +37,6 @@ const getUserProfile = async (): Promise<FormValues> => {
   })
 
   const data = response.data
-
   return {
     username: data.username,
     fullname: data.fullname,
@@ -53,34 +53,18 @@ export default function ViewProfile() {
   const navigate = useNavigate()
   const [isEditing, setIsEditing] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isValidToken, setIsValidToken] = useState(true)
 
-  const isAuthenticated = TokenUtils.isAuthenticated()
-  const token = localStorage.getItem("token") || localStorage.getItem("authToken")
+  const token = localStorage.getItem("token") ?? localStorage.getItem("authToken") ?? ""
 
-  if (!isAuthenticated || !token) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-center space-y-4">
-          <h1 className="text-xl font-bold text-gray-700">Bạn chưa đăng nhập</h1>
-          <Link to="/login" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Đăng nhập</Link>
-        </div>
-      </div>
-    )
-  }
-
-  try {
-    const decoded = TokenUtils.decodeToken(token)
-    if (!decoded?.userId) throw new Error()
-  } catch {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-center space-y-4">
-          <h1 className="text-xl font-bold text-red-600">Token không hợp lệ</h1>
-          <Link to="/login" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Đăng nhập lại</Link>
-        </div>
-      </div>
-    )
-  }
+  useEffect(() => {
+    try {
+      const decoded = TokenUtils.decodeToken(token)
+      if (!decoded?.userId) throw new Error()
+    } catch {
+      setIsValidToken(false)
+    }
+  }, [token])
 
   const {
     register,
@@ -88,15 +72,16 @@ export default function ViewProfile() {
     reset,
     setValue,
     watch,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<FormValues>()
 
   const avatar = watch("avatar")
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["user-profile",],
-    queryFn: () => getUserProfile(),
+    queryKey: ["user-profile"],
+    queryFn: getUserProfile,
     staleTime: 1000 * 60 * 5,
+    enabled: isValidToken,
   })
 
   useEffect(() => {
@@ -112,16 +97,16 @@ export default function ViewProfile() {
       avatar: formData.avatar,
     }
 
-
     try {
       setIsSubmitting(true)
       await axiosInstance.put("/user/profile", payload, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      toast.success("Cập nhật thành công!")
+      toast.success("✅ Cập nhật thành công!")
       setIsEditing(false)
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Lỗi khi cập nhật thông tin.")
+      const msg = err.response?.data?.message || err.message || "Lỗi không xác định."
+      toast.error(`❌ ${msg}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -132,6 +117,9 @@ export default function ViewProfile() {
     if (file) {
       const url = URL.createObjectURL(file)
       setValue("avatar", url)
+
+      // Clean up after render
+      return () => URL.revokeObjectURL(url)
     }
   }
 
@@ -178,8 +166,37 @@ export default function ViewProfile() {
     )
   }
 
-  if (isLoading) return <div className="text-center py-20">Đang tải dữ liệu...</div>
-  if (error) return <div className="text-center text-red-600 py-20">Lỗi tải hồ sơ {(error as Error)?.message}</div>
+  if (!isValidToken) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center space-y-4">
+          <h1 className="text-xl font-bold text-red-600">Token không hợp lệ hoặc đã hết hạn</h1>
+          <Link to="/login" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Đăng nhập lại</Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <div className="max-w-6xl mx-auto px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-4">
+          <Skeleton className="h-8 w-1/2" />
+          <Skeleton className="h-40" />
+          <Skeleton className="h-40" />
+        </div>
+        <Skeleton className="h-64 w-full" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="text-center text-red-600 py-20">
+        ❌ Lỗi tải hồ sơ: {(error as Error)?.message}
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -249,7 +266,7 @@ export default function ViewProfile() {
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !isDirty}
                   className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
                 >
                   {isSubmitting ? "Đang lưu..." : "Lưu thay đổi"}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
-import { Plus, FileText } from "lucide-react"
-import { useSearchParams } from "react-router"
+import { Plus, FileText, ArrowLeft } from "lucide-react"
+import { useSearchParams, useNavigate } from "react-router"
 import { toast } from "react-toastify"
 
 import FilterBar from "@/components/patient/FilterBar"
@@ -37,6 +37,7 @@ const PatientTreatmentRecords: React.FC = () => {
   const searchTerm = watch("searchTerm")
   const filterStatus = watch("filterStatus")
   const filterDentist = watch("filterDentist")
+  const navigate = useNavigate()
 
   const { username, role, userId } = useAuth();
 
@@ -148,9 +149,19 @@ const PatientTreatmentRecords: React.FC = () => {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
               <div className="p-6 border-b border-gray-200 flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                    <FileText className="h-5 w-5" /> Hồ sơ điều trị nha khoa
-                  </h2>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => navigate(-1)}
+                      className="p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      title="Quay lại"
+                    >
+                      <ArrowLeft className="h-5 w-5 text-gray-600" />
+                    </button>
+                    <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                      <FileText className="h-5 w-5" /> Hồ sơ điều trị nha khoa
+                    </h2>
+                  </div>
+
                   <p className="text-gray-600 mt-1">
                     Lịch sử đầy đủ về các phương pháp điều trị và thủ thuật nha khoa
                   </p>
