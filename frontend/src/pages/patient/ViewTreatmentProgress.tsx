@@ -1,5 +1,6 @@
+// ✅ ViewTreatmentProgress.tsx
 import { useEffect, useRef, useState } from "react"
-import { useParams, useNavigate } from "react-router"
+import { useParams, useNavigate, useSearchParams } from "react-router"
 import { FileText, Plus, ArrowLeft, Search } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { AuthGuard } from "@/components/AuthGuard"
@@ -25,6 +26,10 @@ export default function ViewTreatmentProgress() {
 
   const viewRef = useRef<HTMLDivElement>(null)
   const { treatmentRecordId } = useParams<{ treatmentRecordId: string }>()
+  const [searchParams] = useSearchParams()
+  const patientId = Number(searchParams.get("patientId"))
+  const dentistId = Number(searchParams.get("dentistId"))
+
   const navigate = useNavigate()
   const { fullName, role, userId } = useAuth()
 
@@ -41,7 +46,6 @@ export default function ViewTreatmentProgress() {
     try {
       const data = await getTreatmentProgressById(recordId.toString())
       setProgressList(data)
-
       if (data.length > 0) {
         const latest = data[data.length - 1]
         setSelectedProgress(latest)
@@ -84,7 +88,9 @@ export default function ViewTreatmentProgress() {
   }
 
   const filteredProgressList = progressList.filter((item) =>
-    `${item.progressName}`.toLowerCase().includes(searchKeyword.toLowerCase())
+    `${item.progressName}`
+      .toLowerCase()
+      .includes(searchKeyword.toLowerCase())
   )
 
   return (
@@ -111,7 +117,7 @@ export default function ViewTreatmentProgress() {
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
               {selectedProgress?.status && renderStatusBadge(selectedProgress.status)}
-              {treatmentRecordId && (
+              {(selectedProgress || (progressList.length === 0 && treatmentRecordId)) && (
                 <button
                   onClick={() => setShowCreateForm(true)}
                   className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center gap-2"
@@ -127,11 +133,11 @@ export default function ViewTreatmentProgress() {
               <DialogHeader className="px-6 pt-6">
                 <DialogTitle className="text-xl">Tạo Tiến Trình Điều Trị</DialogTitle>
               </DialogHeader>
-              <div className="px-6 pb-6">
+              {showCreateForm && treatmentRecordId && patientId && dentistId && (
                 <NewTreatmentProgress
                   treatmentRecordID={Number(treatmentRecordId)}
-                  patientID={selectedProgress?.patientID || 0}
-                  dentistID={selectedProgress?.dentistID || 0}
+                  patientID={Number(patientId)}
+                  dentistID={Number(dentistId)}
                   onClose={() => setShowCreateForm(false)}
                   onCreated={(newProgress) => {
                     setSelectedProgress(newProgress)
@@ -139,7 +145,7 @@ export default function ViewTreatmentProgress() {
                     setShowCreateForm(false)
                   }}
                 />
-              </div>
+              )}
             </DialogContent>
           </Dialog>
 

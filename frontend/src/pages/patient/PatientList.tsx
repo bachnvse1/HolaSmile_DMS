@@ -38,6 +38,7 @@ export default function PatientList() {
     const fetchPatients = async () => {
       try {
         const data = await getAllPatients()
+        console.log("Fetched patients:", data)
         setPatients(data)
       } catch (error: any) {
         console.error("Failed to fetch patients:", error)
