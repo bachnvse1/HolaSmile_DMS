@@ -49,13 +49,27 @@ namespace HDMS_API.Infrastructure.Repositories
 
         public async Task<Patient> GetPatientByIdAsync(int patientId)
         {
-            var patient = await _context.Patients.FindAsync(patientId);
+            var patient = await _context.Patients.Include(p => p.User).FirstOrDefaultAsync(p => p.PatientID == patientId);
             return patient;
         }
 
         public async Task<Patient> GetPatientByUserIdAsync(int userId)
         {
             var patient = await _context.Patients.FirstOrDefaultAsync(p => p.UserID == userId);
+            return patient;
+        }
+
+        public async Task<bool> UpdatePatientInforAsync(Patient patient)
+        {
+            _context.Patients.Update(patient);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<Patient> CheckEmailPatientAsync(string email)
+        {
+            var patient = await _context.Patients
+                .Include(p => p.User)
+                .FirstOrDefaultAsync(p => p.User.Email == email);
             return patient;
         }
 

@@ -1,4 +1,6 @@
-﻿using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
+﻿using Application.Constants;
+using Application.Usecases.Receptionist.EditPatientInformation;
+using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,6 +29,26 @@ namespace HDMS_API.Controllers
             {
                 var result = await _mediator.Send(request);
                 return Ok(new { Message = "Tạo hồ sơ bệnh ánh thành công.", PatientId = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ex.Message,
+                    Inner = ex.InnerException?.Message,
+                    Stack = ex.StackTrace
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPut("patients")]
+        public async Task<IActionResult> EditPatientInformationByReceptionist([FromBody] EditPatientInformationCommand command)
+        {
+            try
+            {
+                var result = await _mediator.Send(command);
+                return Ok(new { message = MessageConstants.MSG.MSG09, data = result });
             }
             catch (Exception ex)
             {
