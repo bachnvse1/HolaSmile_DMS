@@ -134,7 +134,7 @@ const PatientTreatmentRecords: React.FC = () => {
     setEditingRecord(null)
     resetTreatmentForm()
   }
-
+  
   return (
     <AuthGuard requiredRoles={['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']}>
       <StaffLayout userInfo={userInfo}>
