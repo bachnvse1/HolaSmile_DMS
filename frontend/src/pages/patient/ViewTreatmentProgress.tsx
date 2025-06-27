@@ -1,5 +1,6 @@
+// ✅ ViewTreatmentProgress.tsx
 import { useEffect, useRef, useState } from "react"
-import { useParams, useNavigate } from "react-router"
+import { useParams, useNavigate, useSearchParams } from "react-router"
 import { FileText, Plus, ArrowLeft, Search } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { AuthGuard } from "@/components/AuthGuard"
@@ -25,12 +26,16 @@ export default function ViewTreatmentProgress() {
 
   const viewRef = useRef<HTMLDivElement>(null)
   const { treatmentRecordId } = useParams<{ treatmentRecordId: string }>()
+  const [searchParams] = useSearchParams()
+  const patientId = Number(searchParams.get("patientId"))
+  const dentistId = Number(searchParams.get("dentistId"))
+
   const navigate = useNavigate()
-  const { username, role, userId } = useAuth()
+  const { fullName, role, userId } = useAuth()
 
   const userInfo = {
     id: userId || '',
-    name: username || 'User',
+    name: fullName || 'User',
     email: '',
     role: role || '',
     avatar: undefined
@@ -41,7 +46,6 @@ export default function ViewTreatmentProgress() {
     try {
       const data = await getTreatmentProgressById(recordId.toString())
       setProgressList(data)
-
       if (data.length > 0) {
         const latest = data[data.length - 1]
         setSelectedProgress(latest)
@@ -89,7 +93,6 @@ export default function ViewTreatmentProgress() {
       .includes(searchKeyword.toLowerCase())
   )
 
-
   return (
     <AuthGuard requiredRoles={["Administrator", "Owner", "Receptionist", "Assistant", "Dentist"]}>
       <StaffLayout userInfo={userInfo}>
@@ -125,26 +128,23 @@ export default function ViewTreatmentProgress() {
             </div>
           </div>
 
-          {/* Modal tạo mới */}
           <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0">
               <DialogHeader className="px-6 pt-6">
                 <DialogTitle className="text-xl">Tạo Tiến Trình Điều Trị</DialogTitle>
               </DialogHeader>
-              {selectedProgress && (
-                <div className="px-6 pb-6">
-                  <NewTreatmentProgress
-                    treatmentRecordID={selectedProgress.treatmentRecordID}
-                    patientID={selectedProgress.patientID}
-                    dentistID={selectedProgress.dentistID}
-                    onClose={() => setShowCreateForm(false)}
-                    onCreated={(newProgress) => {
-                      setSelectedProgress(newProgress)
-                      fetchData(newProgress.treatmentRecordID, true)
-                      setShowCreateForm(false)
-                    }}
-                  />
-                </div>
+              {showCreateForm && treatmentRecordId && patientId && dentistId && (
+                <NewTreatmentProgress
+                  treatmentRecordID={Number(treatmentRecordId)}
+                  patientID={Number(patientId)}
+                  dentistID={Number(dentistId)}
+                  onClose={() => setShowCreateForm(false)}
+                  onCreated={(newProgress) => {
+                    setSelectedProgress(newProgress)
+                    fetchData(newProgress.treatmentRecordID, true)
+                    setShowCreateForm(false)
+                  }}
+                />
               )}
             </DialogContent>
           </Dialog>

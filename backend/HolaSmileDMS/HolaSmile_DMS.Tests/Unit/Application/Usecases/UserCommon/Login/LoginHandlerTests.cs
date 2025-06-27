@@ -57,8 +57,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
             var user = new User { UserID = 1, Username = command.Username, Status = true, Password = "hashedpwd" };
             _userRepoMock.Setup(r => r.GetByUsernameAsync(command.Username, default)).ReturnsAsync(user);
             _passwordHasherMock.Setup(h => h.Verify(command.Password, user.Password)).Returns(true);
-            _userRepoMock.Setup(r => r.GetUserRoleAsync(user.Username, default)).ReturnsAsync("Patient");
-            _jwtServiceMock.Setup(j => j.GenerateJWTToken(user, "Patient")).Returns("mock-jwt");
+            _userRepoMock.Setup(r => r.GetUserRoleAsync(user.Username, default)).ReturnsAsync(new UserRoleResult(){Role = "Patient", RoleTableId = 1});
+            _jwtServiceMock.Setup(j => j.GenerateJWTToken(user, "Patient", 1)).Returns("mock-jwt");
             _jwtServiceMock.Setup(j => j.GenerateRefreshToken(user.UserID.ToString())).Returns("mock-refresh");
             var result = await _handler.Handle(command, default);
             Assert.True(result.Success);
@@ -104,9 +104,14 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
             var user = new User { UserID = 2, Username = command.Username, Status = true, Password = "hashedpwd" };
             _userRepoMock.Setup(r => r.GetByUsernameAsync(command.Username, default)).ReturnsAsync(user);
             _passwordHasherMock.Setup(h => h.Verify(command.Password, user.Password)).Returns(true);
-            _userRepoMock.Setup(r => r.GetUserRoleAsync(user.Username, default)).ReturnsAsync("Receptionist");
-            _jwtServiceMock.Setup(j => j.GenerateJWTToken(user, "Receptionist")).Returns("token-recep");
-            _jwtServiceMock.Setup(j => j.GenerateRefreshToken(user.UserID.ToString())).Returns("refresh-recep");
+            _userRepoMock.Setup(r => r.GetUserRoleAsync(user.Username, default))
+                .ReturnsAsync(new UserRoleResult { Role = "Receptionist", RoleTableId = 1 });
+
+            _jwtServiceMock.Setup(j => j.GenerateJWTToken(user, "Receptionist", 1))
+                .Returns("token-recep");
+
+            _jwtServiceMock.Setup(j => j.GenerateRefreshToken(user.UserID.ToString()))
+                .Returns("refresh-recep");
             var result = await _handler.Handle(command, default);
             Assert.True(result.Success);
             Assert.Equal("token-recep", result.Token);

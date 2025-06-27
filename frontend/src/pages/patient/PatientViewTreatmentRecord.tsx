@@ -17,7 +17,11 @@ import { StaffLayout } from '../../layouts/staff/StaffLayout';
 
 const PatientTreatmentRecords: React.FC = () => {
   const [searchParams] = useSearchParams()
-  const patientId = searchParams.get("userId")
+  const userIdParam = searchParams.get("userId")
+  const patientIdParam = searchParams.get("patientId")
+
+  const patientUserId = Number(userIdParam)
+  const patientId = Number(patientIdParam)
 
   const { register, watch } = useForm<FilterFormData>({
     defaultValues: {
@@ -39,21 +43,19 @@ const PatientTreatmentRecords: React.FC = () => {
   const filterDentist = watch("filterDentist")
   const navigate = useNavigate()
 
-  const { fullName, role, userId } = useAuth();
-
-  // Create userInfo object for StaffLayout
+  const { fullName, userId, role } = useAuth()
   const userInfo = {
     id: userId || '',
     name: fullName || 'User',
     email: '',
     role: role || '',
     avatar: undefined
-  };
+  }
 
   const fetchRecords = async () => {
-    if (!patientId) return
+    if (!patientUserId) return
     try {
-      const data = await getTreatmentRecordsByUser(Number(patientId))
+      const data = await getTreatmentRecordsByUser(Number(patientUserId))
       setRecords(data)
     } catch (error) {
       console.error("Error fetching treatment records:", error)
@@ -62,7 +64,7 @@ const PatientTreatmentRecords: React.FC = () => {
 
   useEffect(() => {
     fetchRecords()
-  }, [patientId])
+  }, [patientUserId])
 
   const filteredRecords = records.filter((record) => {
     const matchesSearch =
@@ -88,9 +90,7 @@ const PatientTreatmentRecords: React.FC = () => {
 
     try {
       const response = await deleteTreatmentRecord(id)
-
       setRecords((prev) => prev.filter((r) => r.treatmentRecordID !== id))
-
       toast.update(toastId, {
         render: response?.message || "Đã xoá thành công",
         type: "success",
@@ -104,7 +104,6 @@ const PatientTreatmentRecords: React.FC = () => {
         isLoading: false,
         autoClose: 3000,
       })
-      console.error("Delete error:", error)
     }
   }
 
@@ -155,7 +154,6 @@ const PatientTreatmentRecords: React.FC = () => {
                       <FileText className="h-5 w-5" /> Hồ sơ điều trị nha khoa
                     </h2>
                   </div>
-
                   <p className="text-gray-600 mt-1">
                     Lịch sử đầy đủ về các phương pháp điều trị và thủ thuật nha khoa
                   </p>
@@ -168,6 +166,7 @@ const PatientTreatmentRecords: React.FC = () => {
                   records={filteredRecords}
                   onEdit={handleEditRecord}
                   onToggleDelete={handleToggleDelete}
+                  patientId={patientId}
                 />
               </div>
             </div>
@@ -183,7 +182,7 @@ const PatientTreatmentRecords: React.FC = () => {
                 setEditingRecord(null)
                 resetTreatmentForm()
               }}
-              updatedBy={1}
+              updatedBy={Number(userId)}
               recordId={editingRecord?.treatmentRecordID}
               onSubmit={handleFormSubmit}
             />
@@ -195,3 +194,4 @@ const PatientTreatmentRecords: React.FC = () => {
 }
 
 export default PatientTreatmentRecords
+

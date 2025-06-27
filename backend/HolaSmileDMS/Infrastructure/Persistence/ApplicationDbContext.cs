@@ -1,4 +1,4 @@
-﻿using HDMS_API.Infrastructure.Repositories;
+﻿using HDMS_API.Application.Usecases.UserCommon.Login;
 using Microsoft.EntityFrameworkCore;
 
 namespace HDMS_API.Infrastructure.Persistence
