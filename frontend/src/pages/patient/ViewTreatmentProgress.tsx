@@ -26,11 +26,11 @@ export default function ViewTreatmentProgress() {
   const viewRef = useRef<HTMLDivElement>(null)
   const { treatmentRecordId } = useParams<{ treatmentRecordId: string }>()
   const navigate = useNavigate()
-  const { username, role, userId } = useAuth()
+  const { fullName, role, userId } = useAuth()
 
   const userInfo = {
     id: userId || '',
-    name: username || 'User',
+    name: fullName || 'User',
     email: '',
     role: role || '',
     avatar: undefined
