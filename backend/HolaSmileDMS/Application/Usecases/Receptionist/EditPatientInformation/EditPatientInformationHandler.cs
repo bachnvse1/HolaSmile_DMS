@@ -80,7 +80,7 @@ namespace Application.Usecases.Receptionist.EditPatientInformation
             }
 
             await _mediator.Send(new SendNotificationCommand(
-                userId,
+                patient.User.UserID,
                     "Cập nhật hồ sơ bệnh nhân",
                     $"Lễ Tân đã thay đổi hồ sơ bệnh án của bạn vào lúc {DateTime.Now}",
                     "Cập nhật hồ sơ bệnh nhân",
