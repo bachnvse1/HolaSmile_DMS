@@ -16,12 +16,14 @@ interface Props {
   onScheduleSelect?: (scheduleId: number) => void;
   /** Mảng id lịch đang được chọn (highlight) */
   selectedScheduleIds?: number[];
+  viewOnly?: boolean; 
 }
 
 export const ScheduleCalendarApproval: React.FC<Props> = ({
   schedules,
   onScheduleSelect,
-  selectedScheduleIds = []
+  selectedScheduleIds = [],
+  viewOnly = false
 }) => {
   /* ====== tính tuần ====== */
   const [weekOffset, setWeekOffset] = useState(0);
@@ -74,7 +76,7 @@ export const ScheduleCalendarApproval: React.FC<Props> = ({
                 badgeColor = 'bg-green-100 text-green-800 border-green-300';
               } else if (sch.status === 'pending') {
                 badgeColor = 'bg-yellow-100 text-yellow-800 border-yellow-300';
-                clickable = true;
+                clickable = !viewOnly;
               } else if (sch.status === 'rejected') {
                 badgeColor = 'bg-red-100 text-red-800 border-red-300';
               }

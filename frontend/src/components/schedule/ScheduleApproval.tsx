@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAllDentistSchedules, useApproveSchedules } from '../../hooks/useSchedule';
 import type { Schedule } from '../../types/schedule';
-import { ScheduleStatus } from '../../types/schedule';
+import { ScheduleStatus, ShiftType } from '../../types/schedule';
 import { Button } from '@/components/ui/button';
 import { ScheduleCalendarApproval } from './ScheduleCalendarApproval';
 import {
@@ -9,17 +9,31 @@ import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
-  InfoIcon
+  InfoIcon,
+  Filter,
+  X,
+  Search,
 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { toast } from 'react-toastify';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-export const ScheduleApproval: React.FC = () => {
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+export const ScheduleApproval: React.FC<{ viewOnlyApproved?: boolean }> = ({ viewOnlyApproved }) => {
   // States
   const [selectedSchedules, setSelectedSchedules] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [approvalAction, setApprovalAction] = useState<'approved' | 'rejected' | null>(null);
-
+  const [showFilters, setShowFilters] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [shiftFilter, setShiftFilter] = useState<string>('all');
+  const [dateFilter, setDateFilter] = useState<string>('all')
   // Queries
   const {
     data,
@@ -42,6 +56,37 @@ export const ScheduleApproval: React.FC = () => {
     return result;
   }, [data]);
 
+  const isUpcoming = (dateStr: string) => new Date(dateStr) >= new Date();
+  const isPast = (dateStr: string) => new Date(dateStr) < new Date();
+
+  // Filters
+  const filteredSchedules = allSchedules.filter((schedule: Schedule) => {
+    // Nếu chỉ xem các lịch đã approved
+    if (viewOnlyApproved && schedule.status !== ScheduleStatus.Approved) return false;
+    // Status filter
+    if (!viewOnlyApproved && statusFilter !== "all" && schedule.status !== statusFilter) return false;
+    // Shift filter
+    if (shiftFilter !== 'all' && schedule.shift !== shiftFilter) return false;
+    // Search term - search by dentist name
+    if (searchTerm.trim() && schedule.dentistName) {
+      return schedule.dentistName.toLowerCase().includes(searchTerm.toLowerCase());
+    }
+    if (
+      (dateFilter === "upcoming" && (!schedule.workDate || !isUpcoming(schedule.workDate))) ||
+      (dateFilter === "past" && (!schedule.workDate || !isPast(schedule.workDate)))
+    ) return false;
+    return true;
+  });
+
+
+  // Handle filter reset
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+    setShiftFilter('all');
+    setDateFilter('all');
+  };
+
   // Lọc schedules theo trạng thái pending và theo searchTerm nếu có
   const pendingSchedules = React.useMemo(() => {
     return allSchedules
@@ -54,17 +99,6 @@ export const ScheduleApproval: React.FC = () => {
         return new Date(a.workDate).getTime() - new Date(b.workDate).getTime();
       });
   }, [allSchedules, searchTerm]);
-
-  // Handlers
-  const handleSelectAll = () => {
-    if (selectedSchedules.length === pendingSchedules.length) {
-      // Nếu đã chọn tất cả, bỏ chọn tất cả
-      setSelectedSchedules([]);
-    } else {
-      // Nếu chưa chọn tất cả, chọn tất cả
-      setSelectedSchedules(pendingSchedules.map((schedule: Schedule) => schedule.scheduleId as number));
-    }
-  };
 
   const handleSelectSchedule = (scheduleId: number) => {
     if (selectedSchedules.includes(scheduleId)) {
@@ -138,7 +172,7 @@ export const ScheduleApproval: React.FC = () => {
   }
 
   // Không có lịch cần phê duyệt
-  if (pendingSchedules.length === 0) {
+  if (pendingSchedules.length === 0 && !viewOnlyApproved) {
     return (
       <div className="text-center py-10 bg-gray-50 rounded-lg border border-gray-200">
         <div className="flex justify-center mb-4">
@@ -146,6 +180,102 @@ export const ScheduleApproval: React.FC = () => {
         </div>
         <h3 className="text-lg font-medium text-gray-900 mb-2">Không có lịch nào cần phê duyệt!</h3>
         <p className="text-gray-600">Tất cả lịch làm việc đã được xử lý.</p>
+      </div>
+    );
+  }
+
+  if (viewOnlyApproved) {
+    return (
+      <div>
+        <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+              <Input
+                placeholder="Tìm theo tên bác sĩ..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 w-full sm:w-auto min-w-[240px]"
+              />
+              {searchTerm && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2.5 top-2.5 h-4 w-4 p-0 text-gray-400 hover:text-gray-600"
+                  onClick={() => setSearchTerm('')}
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowFilters(!showFilters)}
+              className={showFilters ? "bg-blue-50 text-blue-700" : ""}
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        {showFilters && (
+          <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            {showFilters && (
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex flex-wrap gap-4">
+
+                  <div className="flex-1 min-w-[150px]">
+                    <label htmlFor="shiftFilter" className="mb-1.5 block text-sm font-medium">Ca làm việc</label>
+                    <Select value={shiftFilter} onValueChange={setShiftFilter}>
+                      <SelectTrigger id="shiftFilter">
+                        <SelectValue placeholder="Chọn ca làm việc" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tất cả</SelectItem>
+                        <SelectItem value={ShiftType.Morning}>Sáng</SelectItem>
+                        <SelectItem value={ShiftType.Afternoon}>Chiều</SelectItem>
+                        <SelectItem value={ShiftType.Evening}>Tối</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex-1 min-w-[150px]">
+                    <label htmlFor="dateFilter" className="mb-1.5 block text-sm font-medium">Thời gian</label>
+                    <Select value={dateFilter} onValueChange={setDateFilter}>
+                      <SelectTrigger id="dateFilter">
+                        <SelectValue placeholder="Chọn thời gian" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tất cả</SelectItem>
+                        <SelectItem value="upcoming">Sắp tới</SelectItem>
+                        <SelectItem value="past">Đã qua</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleResetFilters}
+                    >
+                      Đặt lại
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        <div className="overflow-x-auto">
+          <ScheduleCalendarApproval
+            schedules={filteredSchedules}
+            selectedScheduleIds={[]}
+            onScheduleSelect={() => { }}
+            viewOnly
+          />
+        </div>
       </div>
     );
   }
@@ -165,10 +295,103 @@ export const ScheduleApproval: React.FC = () => {
           </div>
         </div>
       </div>
+      <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+            <Input
+              placeholder="Tìm theo tên bác sĩ..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 w-full sm:w-auto min-w-[240px]"
+            />            {searchTerm && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-2.5 top-2.5 h-4 w-4 p-0 text-gray-400 hover:text-gray-600"
+                onClick={() => setSearchTerm('')}
+                aria-label="Clear search"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setShowFilters(!showFilters)}
+            className={showFilters ? "bg-blue-50 text-blue-700" : ""}
+          >
+            <Filter className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Filters panel */}
+      {showFilters && (
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex flex-wrap gap-4">
+            <div className="flex-1 min-w-[150px]">
+              <label htmlFor="statusFilter" className="mb-1.5 block text-sm font-medium">Trạng thái</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger id="statusFilter">
+                  <SelectValue placeholder="Chọn trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value={ScheduleStatus.Pending}>Chờ duyệt</SelectItem>
+                  <SelectItem value={ScheduleStatus.Approved}>Đã duyệt</SelectItem>
+                  <SelectItem value={ScheduleStatus.Rejected}>Từ chối</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex-1 min-w-[150px]">
+              <label htmlFor="shiftFilter" className="mb-1.5 block text-sm font-medium">Ca làm việc</label>
+              <Select value={shiftFilter} onValueChange={setShiftFilter}>
+                <SelectTrigger id="shiftFilter">
+                  <SelectValue placeholder="Chọn ca làm việc" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value={ShiftType.Morning}>Sáng</SelectItem>
+                  <SelectItem value={ShiftType.Afternoon}>Chiều</SelectItem>
+                  <SelectItem value={ShiftType.Evening}>Tối</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex-1 min-w-[150px]">
+              <label htmlFor="dateFilter" className="mb-1.5 block text-sm font-medium">Thời gian</label>
+              <Select value={dateFilter} onValueChange={setDateFilter}>
+                <SelectTrigger id="dateFilter">
+                  <SelectValue placeholder="Chọn thời gian" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value="upcoming">Sắp tới</SelectItem>
+                  <SelectItem value="past">Đã qua</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleResetFilters}
+              >
+                Đặt lại
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Pending Schedule List */}
       <div className="overflow-x-auto">
         <ScheduleCalendarApproval
-          schedules={allSchedules}
+          schedules={filteredSchedules}
           selectedScheduleIds={selectedSchedules}
           onScheduleSelect={handleSelectSchedule}
         />

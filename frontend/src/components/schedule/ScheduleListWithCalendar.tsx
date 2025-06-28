@@ -166,25 +166,25 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
       <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
         <div className="flex flex-col sm:flex-row gap-2">
           {!isDentist && (
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-            <Input
-              placeholder="Tìm theo tên bác sĩ..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 w-full sm:w-auto min-w-[240px]"
-            />            {searchTerm && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-2.5 top-2.5 h-4 w-4 p-0 text-gray-400 hover:text-gray-600"
-                onClick={() => setSearchTerm('')}
-                aria-label="Clear search"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+              <Input
+                placeholder="Tìm theo tên bác sĩ..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 w-full sm:w-auto min-w-[240px]"
+              />            {searchTerm && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2.5 top-2.5 h-4 w-4 p-0 text-gray-400 hover:text-gray-600"
+                  onClick={() => setSearchTerm('')}
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           )}
 
           <Button
