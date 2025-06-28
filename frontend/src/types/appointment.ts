@@ -108,7 +108,7 @@ export interface CalendarAppointment {
   title: string;
   date: string;
   time: string;
-  status: 'confirmed' | 'canceled';
+  status: 'confirmed' | 'canceled' | 'attended' | 'absented' ;
   type: string;
   isNewPatient: boolean;
   details: AppointmentDTO;

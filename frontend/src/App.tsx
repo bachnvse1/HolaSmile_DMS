@@ -27,7 +27,7 @@ import ViewTreatmentProgressPage from './pages/patient/ViewTreatmentProgress';
 import PatientList from './pages/patient/PatientList';
 import OrthodonticTreatmentPlansPage from './pages/OrthodonticTreatmentPlans';
 import OrthodonticTreatmentPlanFormPage from './pages/OrthodonticTreatmentPlanFormPage';
-
+import FUAppointmentPage from './pages/appointment/FUAppointmentPage';
 function App() {
   return (
     <>
@@ -48,19 +48,20 @@ function App() {
         <Route path="/add-patient" element={<AddPatient />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/view-profile" element={<ViewProfile />} />        
-        <Route path="/patient/dashboard" element={<PatientDashboardPage/>} />
-        <Route path="/dashboard" element={<StaffDashboard/>} />
-        <Route path="/patient/book-appointment" element={<PatientBookingPage/>} />
-        <Route path="/patient/appointments" element={<PatientAppointmentsPage/>} />
-        <Route path="/appointments" element={<StaffAppointmentsPage/>} />
-        <Route path="/schedules" element={<ScheduleManagementPage/>} />
-        <Route path="/patient/view-treatment-records" element={<PatientTreatmentRecords/>} />
-        <Route path="/patient/view-treatment-progress/:treatmentRecordId" element={<ViewTreatmentProgressPage/>} />
+        <Route path="/view-profile" element={<ViewProfile />} />
+        <Route path="/patient/dashboard" element={<PatientDashboardPage />} />
+        <Route path="/dashboard" element={<StaffDashboard />} />
+        <Route path="/patient/book-appointment" element={<PatientBookingPage />} />
+        <Route path="/patient/appointments" element={<PatientAppointmentsPage />} />
+        <Route path="/appointments" element={<StaffAppointmentsPage />} />
+        <Route path="/schedules" element={<ScheduleManagementPage />} />
+        <Route path="/patient/view-treatment-records" element={<PatientTreatmentRecords />} />
+        <Route path="/patient/view-treatment-progress/:treatmentRecordId" element={<ViewTreatmentProgressPage />} />
         <Route path="/patients" element={<PatientList />} />
-        <Route path ="/patients/:patientId/orthodontic-treatment-plans" element={<OrthodonticTreatmentPlansPage />} />
+        <Route path="/patients/:patientId/orthodontic-treatment-plans" element={<OrthodonticTreatmentPlansPage />} />
         <Route path="/patients/:patientId/orthodontic-treatment-plans/new" element={<OrthodonticTreatmentPlanFormPage />} />
         <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId/edit" element={<OrthodonticTreatmentPlanFormPage />} />
+        <Route path="/patient/follow-up" element={<FUAppointmentPage />} />
       </Routes>
     </>
   );

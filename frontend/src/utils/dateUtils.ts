@@ -14,18 +14,24 @@ export const formatDate = (date: Date | string, formatStr = 'dd/MM/yyyy'): strin
 
 // Format date với tên thứ
 export const formatDateWithDay = (input: string | Date): string => {
-  let date: Date
+  let date: Date | null = null;
+
+  if (!input) return "Không xác định";
 
   if (typeof input === "string") {
-    date = parse(input, "dd/MM/yyyy", new Date())
+    // Thử parse theo ISO trước, nếu fail thì parse dd/MM/yyyy
+    date = parseISO(input);
+    if (!isValid(date)) {
+      date = parse(input, "dd/MM/yyyy", new Date());
+    }
   } else {
-    date = input
+    date = input;
   }
 
-  if (isNaN(date.getTime())) return "Không xác định"
+  if (!date || isNaN(date.getTime())) return "Không xác định";
 
-  return format(date, "EEEE, dd/MM/yyyy", { locale: vi })
-}
+  return format(date, "EEEE, dd/MM/yyyy", { locale: vi });
+};
 
 // Lấy ngày đầu tiên của tuần
 export const getWeekStart = (date: Date = new Date()): Date => {
