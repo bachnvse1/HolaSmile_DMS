@@ -22,10 +22,11 @@ export const formatDateWithDay = (input: string | Date): string => {
     date = input
   }
 
-  if (isNaN(date.getTime())) return "Không xác định"
+  if (!isValid(date)) return "Không xác định"
 
   return format(date, "EEEE, dd/MM/yyyy", { locale: vi })
 }
+
 
 // Lấy ngày đầu tiên của tuần
 export const getWeekStart = (date: Date = new Date()): Date => {
@@ -61,26 +62,26 @@ export const shiftTypeToText = (shift: ShiftType): string => {
 export const isPastDate = (date: Date | string): boolean => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
+
   if (typeof date === 'string') {
     const parsedDate = parseISO(date);
     if (!isValid(parsedDate)) return false;
     date = parsedDate;
   }
-  
+
   return isBefore(date, today);
 };
 
 // Kiểm tra xem ngày có trong tương lai xa không (> 3 tháng)
 export const isFarFutureDate = (date: Date | string): boolean => {
   const threeMonthsLater = addMonths(new Date(), 3);
-  
+
   if (typeof date === 'string') {
     const parsedDate = parseISO(date);
     if (!isValid(parsedDate)) return false;
     date = parsedDate;
   }
-  
+
   return isAfter(date, threeMonthsLater);
 };
 
