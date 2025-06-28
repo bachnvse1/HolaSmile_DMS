@@ -57,9 +57,17 @@ namespace Application.Usecases.Dentist.ManageSchedule
                     IsActive = true,
                 };
                 var isDuplicate = await _scheduleRepository.CheckDulplicateScheduleAsync(schedule.DentistId, schedule.WorkDate, schedule.Shift, schedule.ScheduleId);
-                if (isDuplicate)
+                if (isDuplicate != null)
                 {
-                    throw new Exception(MessageConstants.MSG.MSG51); // trùng lịch làm việc hiện tại
+                    if (isDuplicate.Status == "rejected")
+                    {
+                        // xóa mềm lịch bị từ chối cũ
+                        await _scheduleRepository.DeleteSchedule(isDuplicate.ScheduleId);
+                    }
+                    else
+                    {
+                        throw new Exception(MessageConstants.MSG.MSG51); // lịch trùng và đang pending/approved
+                    }
                 }
                 var isRegistered = await _scheduleRepository.RegisterScheduleByDentist(schedule);
                 if (!isRegistered)

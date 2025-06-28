@@ -53,7 +53,6 @@ export default function NewTreatmentProgress({
 }: Props) {
     const [selectedDate, setSelectedDate] = useState<Date | undefined>()
     const [selectedTime, setSelectedTime] = useState<string>("")
-
     const {
         register,
         handleSubmit,

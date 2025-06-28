@@ -6,12 +6,14 @@ interface TreatmentTableProps {
   records: TreatmentRecord[]
   onEdit: (record: TreatmentRecord) => void
   onToggleDelete: (id: number) => void
+  patientId: number
 }
 
 const TreatmentTable: React.FC<TreatmentTableProps> = ({
   records,
   onEdit,
   onToggleDelete,
+  patientId,
 }) => {
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden">
@@ -55,6 +57,7 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
                 record={record}
                 onEdit={onEdit}
                 onToggleDelete={onToggleDelete}
+                patientId={patientId}
               />
             ))}
           </tbody>

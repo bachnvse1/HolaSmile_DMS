@@ -104,8 +104,8 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
     return appointmentMap;
   }, [filteredAppointments]);
 
-  const getStatusColor = (status: 'confirm' | 'canceled') => {
-    return status === 'confirm' 
+  const getStatusColor = (status: 'confirmed' | 'canceled') => {
+    return status === 'confirmed' 
       ? 'bg-green-100 border-green-300 text-green-800'
       : 'bg-red-100 border-red-300 text-red-800';
   };
@@ -260,7 +260,7 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
                           {appointment.isNewPatient && (
                             <Badge variant="outline" className="text-xs px-1">Mới</Badge>
                           )}
-                          {role === 'Patient' && appointment.status === 'confirm' && 
+                          {role === 'Patient' && appointment.status === 'confirmed' && 
                            !isAppointmentCancellable(appointment.details.appointmentDate, appointment.details.appointmentTime) && (
                             <div title="Không thể hủy">
                               <AlertTriangle className="h-3 w-3 text-yellow-600" />

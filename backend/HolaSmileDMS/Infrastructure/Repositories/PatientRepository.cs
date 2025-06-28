@@ -20,7 +20,7 @@ namespace HDMS_API.Infrastructure.Repositories
                 UserID = userID,
                 PatientGroup = dto.PatientGroup,
                 UnderlyingConditions = dto.UnderlyingConditions,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
                 CreatedBy = dto.CreatedBy,
             };
             _context.Patients.Add(patient);

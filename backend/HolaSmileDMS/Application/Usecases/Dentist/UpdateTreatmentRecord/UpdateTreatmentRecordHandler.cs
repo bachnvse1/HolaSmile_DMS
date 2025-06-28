@@ -63,7 +63,7 @@ namespace Application.Usecases.Dentist.UpdateTreatmentRecord
             if (request.TreatmentDate.HasValue)
                 record.TreatmentDate = request.TreatmentDate.Value;
 
-            record.UpdatedAt = DateTime.UtcNow;
+            record.UpdatedAt = DateTime.Now;
             record.UpdatedBy = userId;
 
             return await _repository.UpdatedTreatmentRecordAsync(record, cancellationToken);
