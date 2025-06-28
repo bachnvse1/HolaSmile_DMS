@@ -199,6 +199,11 @@ namespace HDMS_API.Infrastructure.Repositories
             return await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId, cancellationToken);
         }
 
+        public async Task<List<Receptionist>> GetAllReceptionistAsync()
+        {
+            return await _context.Receptionists.Include(r => r.User).ToListAsync();
+        }
+
         public Task<List<ViewListPatientDto>> GetAllPatientsAsync(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();

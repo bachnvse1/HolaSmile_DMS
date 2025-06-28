@@ -77,8 +77,8 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 IsDeleted = false
             };
             var isbookappointment = await _appointmentRepository.CreateAppointmentAsync(appointment);
-
             var dentist = _dentistRepository.GetDentistByDentistIdAsync(request.DentistId);
+            var receptionists = await _userCommonRepository.GetAllReceptionistAsync();
 
             await _mediator.Send(new SendNotificationCommand(
                 patient.User.UserID,
@@ -94,6 +94,15 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                     "Xoá hồ sơ",
                     null),
                 cancellationToken);
+
+            var notifyReceptionists = receptionists.Select(r =>
+             _mediator.Send(new SendNotificationCommand(
+                           r.UserId,
+                           "Đăng ký khám",
+                            $"Bệnh nhân mới đã đăng ký khám vào ngày {request.AppointmentDate.Date}.",
+                            "Tạo lịch khám lần đầu", null),
+                            cancellationToken));
+            await System.Threading.Tasks.Task.WhenAll(notifyReceptionists);
 
             return isbookappointment ? MessageConstants.MSG.MSG05 : MessageConstants.MSG.MSG58;
         }
