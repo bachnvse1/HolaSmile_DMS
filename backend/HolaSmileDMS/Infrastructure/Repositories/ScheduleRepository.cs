@@ -122,10 +122,9 @@ namespace Infrastructure.Repositories
         a.AppointmentDate.Date == s.WorkDate.Date &&
         (
             (s.Shift == "morning" && a.AppointmentTime >= morningStart && a.AppointmentTime <= morningEnd) ||
-            (s.Shift == "afternoon" && a.AppointmentTime >= afternoonStart && a.AppointmentTime < afternoonEnd) ||
-            (s.Shift == "evening" && a.AppointmentTime >= eveningStart && a.AppointmentTime < eveningEnd)
+            (s.Shift == "afternoon" && a.AppointmentTime >= afternoonStart && a.AppointmentTime <= afternoonEnd) ||
+            (s.Shift == "evening" && a.AppointmentTime >= eveningStart && a.AppointmentTime <= eveningEnd)
         )
-        && a.Status != "cancel"
     ) < maxPerSlot).ToListAsync();
             return result;
         }
