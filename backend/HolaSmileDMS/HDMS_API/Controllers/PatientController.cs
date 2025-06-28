@@ -19,7 +19,6 @@ namespace HDMS_API.Controllers
         }
 
         [HttpGet]
-        [Authorize]
         public async Task<IActionResult> ViewPatientList()
         {
             try
@@ -33,7 +32,10 @@ namespace HDMS_API.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { message = ex.Message });
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    message = MessageConstants.MSG.MSG26
+                });
             }
             catch (Exception ex)
             {

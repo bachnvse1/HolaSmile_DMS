@@ -5,6 +5,7 @@ import { useNavigate, Link } from "react-router";
 import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowLeft } from "lucide-react";
 import { AuthService } from "../../services/AuthService";
 import { TokenUtils } from "../../utils/tokenUtils";
+import { toast } from "react-toastify";
 
 export function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -42,7 +43,11 @@ export function Login() {
 
         if (loginResult.success && loginResult.token) {
           const role = TokenUtils.getRoleFromToken(loginResult.token);
-
+          const fullName = TokenUtils.getFullNameFromToken(loginResult.token);
+          toast.success(`Đăng nhập thành công! Xin chào ${fullName}`, {
+                  position: "top-left",
+                  autoClose: 3000,
+                });
           if (role === "Patient") {
             navigate("/patient/dashboard");
           } else if (role && ["Administrator", "Owner", "Receptionist", "Assistant", "Dentist"].includes(role)) {
@@ -85,7 +90,6 @@ export function Login() {
       >
         <h1 className="text-2xl font-bold text-white text-center">Đăng nhập</h1>
 
-        {/* Email or Phone */}
         <div className="space-y-1">
           <label htmlFor="email" className="block text-sm font-medium text-slate-300">
             Email hoặc số điện thoại
@@ -117,13 +121,10 @@ export function Login() {
           )}
         </div>
 
-        {/* Password */}
         <div className="space-y-1">
-          <div className="flex justify-between items-center">
-            <label htmlFor="password" className="text-sm font-medium text-slate-300">
+          <div className="flex justify-between items-center">            <label htmlFor="password" className="text-sm font-medium text-slate-300">
               Mật khẩu
-            </label>
-            <Link type="button" className="text-sm text-blue-400 hover:underline" to={`/forgot-password`}>
+            </label>            <Link type="button" className="text-sm text-blue-400 hover:underline" to={`/forgot-password`}>
               Quên mật khẩu?
             </Link>
           </div>
@@ -161,14 +162,12 @@ export function Login() {
           )}
         </div>
 
-        {/* API error message */}
         {apiError && (
           <p className="text-center text-red-500 text-sm font-medium" role="alert">
             {apiError}
           </p>
         )}
 
-        {/* Submit */}
         <button
           type="submit"
           className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition disabled:opacity-60"

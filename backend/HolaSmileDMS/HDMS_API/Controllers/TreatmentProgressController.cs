@@ -1,4 +1,5 @@
-using Application.Usecases.Dentist.CreateTreatmentProcess;
+using Application.Constants;
+using Application.Usecases.Dentist.CreateTreatmentProgress;
 using Application.Usecases.Patients.ViewTreatmentProgress;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -19,7 +20,6 @@ public class TreatmentProgressController : ControllerBase
 
     // GET: api/TreatmentProgress/{treatmentRecordId}
     [HttpGet("{treatmentRecordId}")]
-    [Authorize]
     public async Task<IActionResult> GetTreatmentProgressByRecordId(int treatmentRecordId, CancellationToken cancellationToken)
     {
         try
@@ -29,7 +29,10 @@ public class TreatmentProgressController : ControllerBase
         }
         catch (UnauthorizedAccessException ex)
         {
-            return Forbid(ex.Message);
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                message = MessageConstants.MSG.MSG26
+            });
         }
         catch (Exception ex)
         {
@@ -43,7 +46,6 @@ public class TreatmentProgressController : ControllerBase
     }
     
     [HttpPost]
-    [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateTreatmentProgressDto dto)
     {
         var result = await _mediator.Send(new CreateTreatmentProgressCommand { ProgressDto = dto });

@@ -1,21 +1,27 @@
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
-import { Plus, FileText } from "lucide-react"
-import { useSearchParams } from "react-router"
+import { FileText, ArrowLeft } from "lucide-react"
+import { useSearchParams, useNavigate } from "react-router"
 import { toast } from "react-toastify"
 
 import FilterBar from "@/components/patient/FilterBar"
 import SummaryStats from "@/components/patient/SummaryStats"
 import TreatmentTable from "@/components/patient/TreatmentTable"
 import TreatmentModal from "@/components/patient/TreatmentModal"
-import { Navigation } from "@/layouts/homepage/Navigation"
 
 import type { FilterFormData, TreatmentFormData, TreatmentRecord } from "@/types/treatment"
 import { getTreatmentRecordsByUser, deleteTreatmentRecord } from "@/services/treatmentService"
+import { useAuth } from '../../hooks/useAuth';
+import { AuthGuard } from '../../components/AuthGuard';
+import { StaffLayout } from '../../layouts/staff/StaffLayout';
 
 const PatientTreatmentRecords: React.FC = () => {
   const [searchParams] = useSearchParams()
-  const userId = searchParams.get("userId")
+  const userIdParam = searchParams.get("userId")
+  const patientIdParam = searchParams.get("patientId")
+
+  const patientUserId = Number(userIdParam)
+  const patientId = Number(patientIdParam)
 
   const { register, watch } = useForm<FilterFormData>({
     defaultValues: {
@@ -35,11 +41,21 @@ const PatientTreatmentRecords: React.FC = () => {
   const searchTerm = watch("searchTerm")
   const filterStatus = watch("filterStatus")
   const filterDentist = watch("filterDentist")
+  const navigate = useNavigate()
+
+  const { fullName, userId, role } = useAuth()
+  const userInfo = {
+    id: userId || '',
+    name: fullName || 'User',
+    email: '',
+    role: role || '',
+    avatar: undefined
+  }
 
   const fetchRecords = async () => {
-    if (!userId) return
+    if (!patientUserId) return
     try {
-      const data = await getTreatmentRecordsByUser(Number(userId))
+      const data = await getTreatmentRecordsByUser(Number(patientUserId))
       setRecords(data)
     } catch (error) {
       console.error("Error fetching treatment records:", error)
@@ -48,7 +64,7 @@ const PatientTreatmentRecords: React.FC = () => {
 
   useEffect(() => {
     fetchRecords()
-  }, [userId])
+  }, [patientUserId])
 
   const filteredRecords = records.filter((record) => {
     const matchesSearch =
@@ -74,9 +90,7 @@ const PatientTreatmentRecords: React.FC = () => {
 
     try {
       const response = await deleteTreatmentRecord(id)
-
       setRecords((prev) => prev.filter((r) => r.treatmentRecordID !== id))
-
       toast.update(toastId, {
         render: response?.message || "Đã xoá thành công",
         type: "success",
@@ -90,14 +104,7 @@ const PatientTreatmentRecords: React.FC = () => {
         isLoading: false,
         autoClose: 3000,
       })
-      console.error("Delete error:", error)
     }
-  }
-
-  const handleAddRecord = () => {
-    setEditingRecord(null)
-    resetTreatmentForm()
-    setIsModalOpen(true)
   }
 
   const handleEditRecord = (record: TreatmentRecord) => {
@@ -126,59 +133,65 @@ const PatientTreatmentRecords: React.FC = () => {
     setEditingRecord(null)
     resetTreatmentForm()
   }
-
+  
   return (
-    <>
-      <Navigation />
-      <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                  <FileText className="h-5 w-5" /> Hồ sơ điều trị nha khoa
-                </h2>
-                <p className="text-gray-600 mt-1">
-                  Lịch sử đầy đủ về các phương pháp điều trị và thủ thuật nha khoa
-                </p>
+    <AuthGuard requiredRoles={['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']}>
+      <StaffLayout userInfo={userInfo}>
+        <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+          <div className="max-w-7xl mx-auto space-y-6">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => navigate(-1)}
+                      className="p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      title="Quay lại"
+                    >
+                      <ArrowLeft className="h-5 w-5 text-gray-600" />
+                    </button>
+                    <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                      <FileText className="h-5 w-5" /> Hồ sơ điều trị nha khoa
+                    </h2>
+                  </div>
+                  <p className="text-gray-600 mt-1">
+                    Lịch sử đầy đủ về các phương pháp điều trị và thủ thuật nha khoa
+                  </p>
+                </div>
               </div>
-              <button
-                onClick={handleAddRecord}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" /> Thêm Hồ sơ điều trị mới
-              </button>
+
+              <div className="p-6">
+                <FilterBar register={register} />
+                <TreatmentTable
+                  records={filteredRecords}
+                  onEdit={handleEditRecord}
+                  onToggleDelete={handleToggleDelete}
+                  patientId={patientId}
+                />
+              </div>
             </div>
 
-            <div className="p-6">
-              <FilterBar register={register} />
-              <TreatmentTable
-                records={filteredRecords}
-                onEdit={handleEditRecord}
-                onToggleDelete={handleToggleDelete}
-              />
-            </div>
+            <SummaryStats records={records} />
+
+            <TreatmentModal
+              formMethods={treatmentForm}
+              isOpen={isModalOpen}
+              isEditing={!!editingRecord}
+              onClose={() => {
+                setIsModalOpen(false)
+                setEditingRecord(null)
+                resetTreatmentForm()
+              }}
+              updatedBy={Number(userId)}
+              recordId={editingRecord?.treatmentRecordID}
+              onSubmit={handleFormSubmit}
+            />
           </div>
-
-          <SummaryStats records={records} />
-
-          <TreatmentModal
-            formMethods={treatmentForm}
-            isOpen={isModalOpen}
-            isEditing={!!editingRecord}
-            onClose={() => {
-              setIsModalOpen(false)
-              setEditingRecord(null)
-              resetTreatmentForm()
-            }}
-            updatedBy={1}
-            recordId={editingRecord?.treatmentRecordID}
-            onSubmit={handleFormSubmit}
-          />
         </div>
-      </div>
-    </>
+      </StaffLayout>
+    </AuthGuard>
   )
 }
 
 export default PatientTreatmentRecords
+

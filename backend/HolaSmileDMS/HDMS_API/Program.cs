@@ -1,4 +1,5 @@
 ﻿using HDMS_API.DependencyInjection;
+using Infrastructure.Hubs;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -51,5 +52,6 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<NotifyHub>("/notify");
 app.Run();
 public partial class Program { }

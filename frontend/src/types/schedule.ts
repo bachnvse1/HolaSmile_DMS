@@ -3,7 +3,7 @@
 // Enum cho status của lịch làm việc
 export enum ScheduleStatus {
   Pending = 'pending',
-  Approved = 'approved',
+  Approved = 'approved', 
   Rejected = 'rejected'
 }
 
@@ -17,20 +17,23 @@ export enum ShiftType {
 // Interface cho một lịch làm việc
 export interface Schedule {
   id?: number;
+  scheduleId?: number; // Thêm để map với backend
   dentistId: number;
   dentistName?: string;
   date: string;
+  workDate?: string; // Thêm để map với backend
   shift: ShiftType;
   status: ScheduleStatus;
   note?: string;
   createdAt?: string;
   updatedAt?: string;
+  isActive?: boolean; // Thêm field isActive
 }
 
 // Interface cho request phê duyệt
 export interface ApprovalRequest {
   scheduleIds: number[];
-  action: 'approve' | 'reject';
+  action: 'approved' | 'rejected';
 }
 
 // Interface cho filter lịch làm việc

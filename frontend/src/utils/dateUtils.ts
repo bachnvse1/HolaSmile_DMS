@@ -1,4 +1,4 @@
-import { format, addDays, startOfWeek, endOfWeek, parseISO, isValid, isBefore, isAfter, addMonths } from 'date-fns';
+import { format, addDays, startOfWeek, endOfWeek, parseISO, isValid, isBefore, isAfter, addMonths, parse } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { ShiftType } from '../types/schedule';
 
@@ -13,13 +13,24 @@ export const formatDate = (date: Date | string, formatStr = 'dd/MM/yyyy'): strin
 };
 
 // Format date với tên thứ
-export const formatDateWithDay = (date: Date | string): string => {
-  if (typeof date === 'string') {
-    const parsedDate = parseISO(date);
-    if (!isValid(parsedDate)) return 'Invalid date';
-    date = parsedDate;
+export const formatDateWithDay = (input: string | Date): string => {
+  let date: Date | null = null;
+
+  if (!input) return "Không xác định";
+
+  if (typeof input === "string") {
+    // Thử parse theo ISO trước, nếu fail thì parse dd/MM/yyyy
+    date = parseISO(input);
+    if (!isValid(date)) {
+      date = parse(input, "dd/MM/yyyy", new Date());
+    }
+  } else {
+    date = input;
   }
-  return format(date, 'EEEE, dd/MM/yyyy', { locale: vi });
+
+  if (!date || isNaN(date.getTime())) return "Không xác định";
+
+  return format(date, "EEEE, dd/MM/yyyy", { locale: vi });
 };
 
 // Lấy ngày đầu tiên của tuần
@@ -42,11 +53,11 @@ export const getDaysInWeek = (date: Date = new Date()): Date[] => {
 export const shiftTypeToText = (shift: ShiftType): string => {
   switch (shift) {
     case ShiftType.Morning:
-      return 'Sáng (8:00 - 12:00)';
+      return 'Sáng (8:00 - 11:00)';
     case ShiftType.Afternoon:
       return 'Chiều (13:00 - 17:00)';
     case ShiftType.Evening:
-      return 'Tối (18:00 - 21:00)';
+      return 'Tối (17:00 - 20:00)';
     default:
       return 'Không xác định';
   }
@@ -83,3 +94,11 @@ export const isFarFutureDate = (date: Date | string): boolean => {
 export const formatDateForApi = (date: Date): string => {
   return format(date, 'yyyy-MM-dd');
 };
+
+// Hàm parse ngày theo local để tránh lệch múi giờ khi render lịch
+export function parseLocalDate(dateString: string) {
+  const [datePart, timePart] = dateString.split('T');
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hour = 0, minute = 0, second = 0] = (timePart || '00:00:00').split(':').map(Number);
+  return new Date(year, month - 1, day, hour, minute, second);
+}

@@ -24,9 +24,10 @@ public class ViewPatientTreatmentRecordHandler : IRequestHandler<ViewTreatmentRe
         var currentRole = user?.FindFirst(ClaimTypes.Role)?.Value;
 
         var isDentist = currentRole == "Dentist";
+        var isReceptionist = currentRole == "Receptionist";
         var isSelfPatient = currentRole == "Patient" && currentUserId == request.UserId;
 
-        if (!isDentist && !isSelfPatient)
+        if (!isDentist && !isSelfPatient && !isReceptionist)
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Bạn không có quyền truy cập chức năng này
 
         var records = await _repository.GetPatientTreatmentRecordsAsync(request.UserId, cancellationToken);
