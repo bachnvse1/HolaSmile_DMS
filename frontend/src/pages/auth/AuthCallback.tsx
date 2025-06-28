@@ -14,6 +14,7 @@ const AuthCallback = () => {
     const token = query.get("token");
     const refreshToken = query.get("refreshToken");
     const username = query.get("username");
+    const fullName = query.get("fullName");
     const role = query.get("role");
     const imageUrl = query.get("imageUrl");
 
@@ -24,7 +25,7 @@ const AuthCallback = () => {
       localStorage.setItem("role", role);
       localStorage.setItem("avatar", imageUrl ?? "");
 
-      toast.success(`Đăng nhập thành công! Xin chào ${username}`, {
+      toast.success(`Đăng nhập thành công! Xin chào ${fullName}`, {
         position: "top-left",
         autoClose: 3000,
       });
@@ -32,10 +33,12 @@ const AuthCallback = () => {
       handled.current = true;
 
       if (role === "Patient") {
-        navigate("/forgot-password"); // chạy tới view profile 
-      } else {
-        navigate("/");
-      }
+            navigate("/patient/dashboard");
+          } else if (role && ["Administrator", "Owner", "Receptionist", "Assistant", "Dentist"].includes(role)) {
+            navigate("/dashboard");
+          } else {
+            navigate("/");
+          }
     } else {
       toast.error("Đăng nhập thất bại!", {
         position: "top-left",

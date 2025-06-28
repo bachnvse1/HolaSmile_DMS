@@ -7,14 +7,14 @@ using Xunit;
 
 namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.UserCommon;
 
-public sealed class LoginHandlerTests
+public sealed class LoginHandlerIntegrationTests
 {
     private readonly Mock<IUserCommonRepository> _repoMock;
     private readonly Mock<IPasswordHasher> _passwordHasherMock;
     private readonly Mock<IJwtService> _jwtServiceMock;
     private readonly LoginHandler _handler;
 
-    public LoginHandlerTests()
+    public LoginHandlerIntegrationTests()
     {
         _repoMock = new Mock<IUserCommonRepository>();
         _passwordHasherMock = new Mock<IPasswordHasher>();
@@ -27,8 +27,8 @@ public sealed class LoginHandlerTests
         );
     }
 
-    [Fact]
-    public async System.Threading.Tasks.Task Login_WithValidCredentials_ReturnsSuccess()
+    [Fact(DisplayName = "Normal - UTCID01 - Login with valid credentials should return token")]
+    public async System.Threading.Tasks.Task UTCID01_LoginWithValidCredentials_ReturnsSuccess()
     {
         var username = "testuser";
         var password = "password";
@@ -44,11 +44,12 @@ public sealed class LoginHandlerTests
 
         _passwordHasherMock.Setup(x => x.Verify(password, "hashed-pw")).Returns(true);
         _repoMock.Setup(x => x.GetUserRoleAsync(username, It.IsAny<CancellationToken>()))
-                 .ReturnsAsync("Patient");
-        _jwtServiceMock.Setup(x => x.GenerateJWTToken(It.IsAny<User>(), "Patient"))
+                 .ReturnsAsync(new UserRoleResult(){Role = "Patient", RoleTableId = 1});
+        _jwtServiceMock.Setup(x => x.GenerateJWTToken(It.IsAny<User>(), "Patient", 1))
                        .Returns("fake-jwt-token");
         _jwtServiceMock.Setup(x => x.GenerateRefreshToken("1")).Returns("fake-refresh-token");
-        var command = new LoginCommand { Username = "testuser", Password = "password" };
+
+        var command = new LoginCommand { Username = username, Password = password };
         var result = await _handler.Handle(command, CancellationToken.None);
 
         Assert.True(result.Success);
@@ -57,20 +58,22 @@ public sealed class LoginHandlerTests
         Assert.Equal("Patient", result.Role);
     }
 
-    [Fact]
-    public async System.Threading.Tasks.Task Login_WithInvalidUsername_ThrowsMSG01()
+    [Fact(DisplayName = "Abnormal - UTCID02 - Login with invalid username should throw MSG01")]
+    public async System.Threading.Tasks.Task UTCID02_LoginWithInvalidUsername_ThrowsMSG01()
     {
         _repoMock.Setup(x => x.GetByUsernameAsync("invaliduser", It.IsAny<CancellationToken>()))
                  .ReturnsAsync((User?)null);
+
         var command = new LoginCommand { Username = "invaliduser", Password = "any" };
+
         var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             _handler.Handle(command, CancellationToken.None));
 
         Assert.Equal(MessageConstants.MSG.MSG01, ex.Message);
     }
 
-    [Fact]
-    public async System.Threading.Tasks.Task Login_WithWrongPassword_ThrowsMSG01()
+    [Fact(DisplayName = "Abnormal - UTCID03 - Login with wrong password should throw MSG01")]
+    public async System.Threading.Tasks.Task UTCID03_LoginWithWrongPassword_ThrowsMSG01()
     {
         _repoMock.Setup(x => x.GetByUsernameAsync("testuser", It.IsAny<CancellationToken>()))
                  .ReturnsAsync(new User
@@ -82,15 +85,17 @@ public sealed class LoginHandlerTests
                  });
 
         _passwordHasherMock.Setup(x => x.Verify("wrongpw", "hashed-pw")).Returns(false);
+
         var command = new LoginCommand { Username = "testuser", Password = "wrongpw" };
+
         var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             _handler.Handle(command, CancellationToken.None));
 
         Assert.Equal(MessageConstants.MSG.MSG01, ex.Message);
     }
 
-    [Fact]
-    public async System.Threading.Tasks.Task Login_WithInactiveAccount_ThrowsMSG72()
+    [Fact(DisplayName = "Abnormal - UTCID04 - Login with inactive account should throw MSG72")]
+    public async System.Threading.Tasks.Task UTCID04_LoginWithInactiveAccount_ThrowsMSG72()
     {
         _repoMock.Setup(x => x.GetByUsernameAsync("lockeduser", It.IsAny<CancellationToken>()))
                  .ReturnsAsync(new User
@@ -100,7 +105,9 @@ public sealed class LoginHandlerTests
                      Password = "pw",
                      Status = false
                  });
+
         var command = new LoginCommand { Username = "lockeduser", Password = "pw" };
+
         var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             _handler.Handle(command, CancellationToken.None));
 

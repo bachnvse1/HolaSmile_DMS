@@ -1,4 +1,4 @@
-namespace Application.Usecases.Dentist.CreateTreatmentProcess;
+namespace Application.Usecases.Dentist.CreateTreatmentProgress;
 
 public class CreateTreatmentProgressDto
 {

@@ -5,6 +5,7 @@ interface UserData {
   token: string | null;
   userId: string | null;
   username: string | null;
+  fullName: string | null;
   role: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
@@ -15,6 +16,7 @@ export const useAuth = () => {
     token: null,
     userId: null,
     username: null,
+    fullName: null,
     role: null,
     refreshToken: null,
     isAuthenticated: false

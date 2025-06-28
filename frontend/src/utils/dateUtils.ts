@@ -1,4 +1,4 @@
-import { format, addDays, startOfWeek, endOfWeek, parseISO, isValid, isBefore, isAfter, addMonths } from 'date-fns';
+import { format, addDays, startOfWeek, endOfWeek, parseISO, isValid, isBefore, isAfter, addMonths, parse } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { ShiftType } from '../types/schedule';
 
@@ -13,14 +13,19 @@ export const formatDate = (date: Date | string, formatStr = 'dd/MM/yyyy'): strin
 };
 
 // Format date với tên thứ
-export const formatDateWithDay = (date: Date | string): string => {
-  if (typeof date === 'string') {
-    const parsedDate = parseISO(date);
-    if (!isValid(parsedDate)) return 'Invalid date';
-    date = parsedDate;
+export const formatDateWithDay = (input: string | Date): string => {
+  let date: Date
+
+  if (typeof input === "string") {
+    date = parse(input, "dd/MM/yyyy", new Date())
+  } else {
+    date = input
   }
-  return format(date, 'EEEE, dd/MM/yyyy', { locale: vi });
-};
+
+  if (isNaN(date.getTime())) return "Không xác định"
+
+  return format(date, "EEEE, dd/MM/yyyy", { locale: vi })
+}
 
 // Lấy ngày đầu tiên của tuần
 export const getWeekStart = (date: Date = new Date()): Date => {

@@ -2,13 +2,13 @@ import { useAuth } from '../../hooks/useAuth';
 import { Calendar, Clock, FileText, User } from 'lucide-react';
 
 export const PatientDashboard = () => {
-  const { username, userId, role } = useAuth();
+  const { fullName, userId, role } = useAuth();
 
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Chào mừng trở lại, {username}!
+          Chào mừng trở lại, {fullName}!
         </h1>
         <p className="text-gray-600">
           Quản lý lịch hẹn và theo dõi quá trình điều trị của bạn

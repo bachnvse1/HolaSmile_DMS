@@ -39,6 +39,10 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             {
                 throw new Exception(MessageConstants.MSG.MSG74);
             }
+            if (request.AppointmentDate.Date == DateTime.Now.Date && request.AppointmentTime < DateTime.Now.TimeOfDay)
+            {
+                throw new Exception(MessageConstants.MSG.MSG74);
+            }
 
             var patient = new Patient();
             var user = new User();
@@ -56,11 +60,10 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
 
                 // Check if the latsest appointment for the patient is confirmed
                 var checkValidAppointment = await _appointmentRepository.GetLatestAppointmentByPatientIdAsync(patient.PatientID);
-                if (checkValidAppointment.Status == "confirmed")
+                if (checkValidAppointment != null && checkValidAppointment.Status == "confirmed")
                 {
                     throw new Exception(MessageConstants.MSG.MSG89); // "Kế hoạch điều trị đã tồn tại"
                 }
-
                 //checck duplicate appointment
                 bool already = await _appointmentRepository.ExistsAppointmentAsync(patient.PatientID, request.AppointmentDate);
                 if (already) throw new Exception(MessageConstants.MSG.MSG74);
@@ -97,7 +100,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             {
                 PatientId = patient.PatientID,
                 DentistId = request.DentistId,
-                Status = "confirm",
+                Status = "confirmed",
                 Content = request.MedicalIssue,
                 IsNewPatient = isNewPatient,
                 AppointmentType = "",

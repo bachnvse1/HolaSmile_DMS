@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.Dentist.CreateTreatmentProcess;
+using Application.Usecases.Dentist.CreateTreatmentProgress;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Moq;
@@ -22,7 +22,7 @@ public class CreateTreatmentProgressHandlerTests
             Status = "InProgress",
             Duration = 30,
             Description = "Chi tiết",
-            EndTime = DateTime.UtcNow.AddHours(1),
+            EndTime = DateTime.Now.AddHours(1),
             Note = "Ghi chú"
         }
     };

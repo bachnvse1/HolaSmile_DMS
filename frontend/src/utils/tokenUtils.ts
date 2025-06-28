@@ -3,6 +3,7 @@ export interface JWTPayload {
   "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier": string;
   "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": string;
   "http://schemas.microsoft.com/ws/2008/06/identity/claims/role": string;
+  "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname": string;
   exp: number;
   iss: string;
   aud: string;
@@ -12,6 +13,7 @@ export interface DecodedToken {
   userId: string;
   username: string;
   role: string;
+  givenname: string;
   exp: number;
   iss: string;
   aud: string;
@@ -46,6 +48,9 @@ export class TokenUtils {
           ],
         role: parsedPayload[
           "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+        ],
+        givenname: parsedPayload[
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"
         ],
         exp: parsedPayload.exp,
         iss: parsedPayload.iss,
@@ -90,6 +95,11 @@ export class TokenUtils {
   static getUsernameFromToken(token: string): string | null {
     const decoded = this.decodeToken(token);
     return decoded?.username || null;
+  }
+
+  static getFullNameFromToken(token: string): string | null {
+    const decoded = this.decodeToken(token);
+    return decoded?.givenname || null;
   }
 
   /**
@@ -162,6 +172,7 @@ export class TokenUtils {
     token: string | null;
     userId: string | null;
     username: string | null;
+    fullName: string | null;
     role: string | null;
     refreshToken: string | null;
   } {
@@ -173,6 +184,7 @@ export class TokenUtils {
         token: null,
         userId: null,
         username: null,
+        fullName: null,
         role: null,
         refreshToken
       };
@@ -184,6 +196,7 @@ export class TokenUtils {
       return {
         token,
         userId: null,
+        fullName: null,
         username: null,
         role: null,
         refreshToken
@@ -194,6 +207,7 @@ export class TokenUtils {
       token,
       userId: decoded.userId,
       username: decoded.username,
+      fullName: decoded.givenname,
       role: decoded.role,
       refreshToken
     };

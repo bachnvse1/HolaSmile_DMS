@@ -4,12 +4,12 @@ import { AppointmentViewManager } from '../../components/appointment/Appointment
 import { useAuth } from '../../hooks/useAuth';
 
 export const StaffAppointmentsPage = () => {
-  const { username, role, userId } = useAuth();
+  const { fullName, role, userId } = useAuth();
 
   // Create userInfo object for StaffLayout
   const userInfo = {
     id: userId || '',
-    name: username || 'User',
+    name: fullName || 'User',
     email: '', 
     role: role || '',
     avatar: undefined

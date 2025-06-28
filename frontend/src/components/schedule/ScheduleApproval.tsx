@@ -165,7 +165,6 @@ export const ScheduleApproval: React.FC = () => {
           </div>
         </div>
       </div>
-
       {/* Pending Schedule List */}
       <div className="overflow-x-auto">
         <ScheduleCalendarApproval
