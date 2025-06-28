@@ -1,4 +1,4 @@
-﻿using Application.Usecases.UserCommon.ViewListPatient;
+﻿using Application.Usecases.Patients.ViewListPatient;
 using AutoMapper;
 
 namespace HDMS_API.Application.Common.Mappings

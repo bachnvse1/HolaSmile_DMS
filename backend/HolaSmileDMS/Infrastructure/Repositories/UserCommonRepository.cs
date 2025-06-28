@@ -1,6 +1,6 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.UserCommon.ViewListPatient;
+using Application.Usecases.Patients.ViewListPatient;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Common.Helpers;
 using HDMS_API.Application.Interfaces;
