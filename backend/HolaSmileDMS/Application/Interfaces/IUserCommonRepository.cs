@@ -24,5 +24,6 @@ namespace Application.Interfaces
         Task<UserRoleResult?> GetUserRoleAsync(string username, CancellationToken cancellationToken);
         Task<User?> GetByIdAsync(int userId, CancellationToken cancellationToken);
         Task<List<ViewListPatientDto>> GetAllPatientsAsync(CancellationToken cancellationToken);
+        Task<List<Receptionist>> GetAllReceptionistAsync();
     }
 }
