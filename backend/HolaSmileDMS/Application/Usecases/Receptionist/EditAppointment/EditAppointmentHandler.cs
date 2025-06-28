@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using Application.Usecases.SendNotification;
 
 namespace Application.Usecases.Receptionist.EditAppointment
 {
@@ -12,13 +13,16 @@ namespace Application.Usecases.Receptionist.EditAppointment
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly IPatientRepository _patientRepository;
         private readonly IDentistRepository _dentistRepository;
+        private readonly IMediator _mediator;
 
-        public EditAppointmentHandler(IAppointmentRepository appointmentRepository, IHttpContextAccessor httpContextAccessor, IPatientRepository patientRepository, IDentistRepository dentistRepository)
+
+        public EditAppointmentHandler(IAppointmentRepository appointmentRepository, IMediator mediator, IHttpContextAccessor httpContextAccessor, IPatientRepository patientRepository, IDentistRepository dentistRepository)
         {
             _httpContextAccessor = httpContextAccessor;
             _appointmentRepository = appointmentRepository;
             _patientRepository = patientRepository;
             _dentistRepository = dentistRepository;
+            _mediator = mediator;
         }
         public async Task<bool> Handle(EditAppointmentCommand request, CancellationToken cancellationToken)
         {
@@ -57,6 +61,10 @@ namespace Application.Usecases.Receptionist.EditAppointment
                 throw new Exception("Bác sĩ không tồn tại"); // "Bác sĩ không tồn tại"
             }
 
+            var newDentist = _dentistRepository.GetDentistByDentistIdAsync(request.DentistId);
+            var currentDentist = _dentistRepository.GetDentistByDentistIdAsync(existApp.DentistId);
+            var currentPatient = _patientRepository.GetPatientByPatientIdAsync(existApp.PatientId);
+
             existApp.DentistId = request.DentistId;
             existApp.AppointmentDate = request.AppointmentDate;
             existApp.AppointmentTime = request.AppointmentTime;
@@ -64,6 +72,30 @@ namespace Application.Usecases.Receptionist.EditAppointment
             existApp.UpdatedAt = DateTime.Now;
             existApp.UpdatedBy = currentUserId;
             var isUpdate = await _appointmentRepository.UpdateAppointmentAsync(existApp);
+
+
+
+            await _mediator.Send(new SendNotificationCommand(
+                    currentPatient.Result.PatientID,
+                   "Thay đổi thông tin lịch khám",
+                   $"Lịch khám của bạn đã được thay đổi vào ngày {request.AppointmentDate.Date}.",
+                   "Tạo lịch khám lần đầu", null),
+             cancellationToken);
+
+            await _mediator.Send(new SendNotificationCommand(
+                    currentDentist.Result.DentistId,
+                    "Thay đổi thông tin lịch khám",
+                    $"Lịch khám của bạn đã được thay đổi vào ngày {request.AppointmentDate.Date}.",
+                    "Tạo lịch khám lần đầu", null),
+             cancellationToken);
+
+            await _mediator.Send(new SendNotificationCommand(
+                    newDentist.Result.DentistId,
+                    "Thay đổi thông tin lịch khám",
+                    $"Lịch khám của bạn đã được thay đổi vào ngày {request.AppointmentDate.Date}.",
+                    "Tạo lịch khám lần đầu", null),
+             cancellationToken);
+
             return isUpdate;
         }
     }
