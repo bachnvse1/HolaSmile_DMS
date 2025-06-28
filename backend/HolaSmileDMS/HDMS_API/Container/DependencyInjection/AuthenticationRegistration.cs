@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-namespace HDMS_API.wwwroot.avatar.Container.DependencyInjection
+namespace HDMS_API.Container.DependencyInjection
 {
     public static class AuthenticationRegistration
     {

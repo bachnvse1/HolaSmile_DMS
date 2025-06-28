@@ -14,7 +14,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 
-namespace HDMS_API.wwwroot.avatar.Container.DependencyInjection
+namespace HDMS_API.Container.DependencyInjection
 {
     public static class ServiceRegistration
     {
