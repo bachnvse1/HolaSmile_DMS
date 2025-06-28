@@ -32,8 +32,11 @@ namespace Application.Usecases.Dentist.DeleteTreatmentRecord
             var userId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var fullName = user?.FindFirst(ClaimTypes.GivenName)?.Value;
 
-            if (role != "Dentist")
+            if (string.IsNullOrEmpty(role) ||
+            (role != "Dentist" && role != "Receptionist"))
+            {
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
+            }
 
             var record = _repository.GetTreatmentRecordByIdAsync(request.TreatmentRecordId, cancellationToken);
             if (record is null) throw new KeyNotFoundException(MessageConstants.MSG.MSG27);

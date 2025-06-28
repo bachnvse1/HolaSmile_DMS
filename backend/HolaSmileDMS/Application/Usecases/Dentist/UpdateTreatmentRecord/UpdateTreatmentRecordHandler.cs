@@ -23,8 +23,11 @@ namespace Application.Usecases.Dentist.UpdateTreatmentRecord
             var role = user?.FindFirst(ClaimTypes.Role)?.Value;
             var userId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-            if (role != "Dentist")
+            if (string.IsNullOrEmpty(role) ||
+            (role != "Dentist" && role != "Receptionist"))
+            {
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
+            }
 
             var record = await _repository.GetTreatmentRecordByIdAsync(request.TreatmentRecordId, cancellationToken);
             if (record == null)
