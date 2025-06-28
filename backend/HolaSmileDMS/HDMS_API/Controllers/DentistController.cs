@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HDMS_API.Controllers
 {
-    [Route("api/Dentist")]
+    [Route("api/dentist")]
     [ApiController]
     public class DentistController : ControllerBase
     {

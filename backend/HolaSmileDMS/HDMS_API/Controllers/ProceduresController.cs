@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HDMS_API.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/procedures")]
 [ApiController]
 public class ProceduresController : ControllerBase
 {
