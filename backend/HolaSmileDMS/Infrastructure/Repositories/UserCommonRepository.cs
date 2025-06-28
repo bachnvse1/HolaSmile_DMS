@@ -6,6 +6,7 @@ using HDMS_API.Application.Common.Helpers;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
+using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -223,37 +224,37 @@ namespace HDMS_API.Infrastructure.Repositories
                 })
                 .FirstOrDefaultAsync(cancellationToken);
         }
-        public async Task<string?> GetUserRoleAsync(string username, CancellationToken cancellationToken)
+        public async Task<UserRoleResult?> GetUserRoleAsync(
+            string username,
+            CancellationToken cancellationToken)
         {
-            var userExist = await GetByUsernameAsync(username, cancellationToken);
-            if (userExist == null) return null;
+            var user = await GetByUsernameAsync(username, cancellationToken);
+            if (user == null) return null;
 
-            var result =  await _context.Set<UserRoleResult>()
-                .FromSqlInterpolated($@"
-                    SELECT 'Administrator' as Role FROM Administrators WHERE UserId = {userExist.UserID}
-                    UNION ALL
-                    SELECT 'Assistant' FROM Assistants WHERE UserId = {userExist.UserID}
-                    UNION ALL
-                    SELECT 'Dentist' FROM Dentists WHERE UserId = {userExist.UserID}
-                    UNION ALL
-                    SELECT 'Owner' FROM Owners WHERE UserId = {userExist.UserID}
-                    UNION ALL
-                    SELECT 'Patient' FROM Patients WHERE UserId = {userExist.UserID}
-                    UNION ALL
-                    SELECT 'Receptionist' FROM Receptionists WHERE UserId = {userExist.UserID}
-                    LIMIT 1
-                ")
+            string sql = $@"
+        SELECT AdministratorId AS RoleTableId, 'Administrator' AS Role
+        FROM   Administrators   WHERE UserId = {user.UserID}
+        UNION ALL
+        SELECT AssistantId,     'Assistant'
+        FROM   Assistants       WHERE UserId = {user.UserID}
+        UNION ALL
+        SELECT DentistId,       'Dentist'
+        FROM   Dentists         WHERE UserId = {user.UserID}
+        UNION ALL
+        SELECT OwnerId,         'Owner'
+        FROM   Owners           WHERE UserId = {user.UserID}
+        UNION ALL
+        SELECT PatientID,       'Patient'
+        FROM   Patients         WHERE UserId = {user.UserID}
+        UNION ALL
+        SELECT ReceptionistId,  'Receptionist'
+        FROM   Receptionists    WHERE UserId = {user.UserID}
+        LIMIT 1";
+
+            return await _context.Set<UserRoleResult>()
+                .FromSqlRaw(sql)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(cancellationToken);
-
-            return result?.Role;
         }
-
-
-
-    }
-    public class UserRoleResult
-    {
-        public string Role { get; set; }
     }
 }
