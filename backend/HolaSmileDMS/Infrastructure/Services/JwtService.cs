@@ -41,8 +41,8 @@ namespace Infrastructure.Services
                 issuer: issuer,
                 audience: audience,
                 claims: claims,
-                notBefore: DateTime.UtcNow,
-                expires:  DateTime.UtcNow.AddHours(2),
+                notBefore: DateTime.Now,
+                expires:  DateTime.Now.AddHours(2),
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
@@ -62,7 +62,7 @@ namespace Infrastructure.Services
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddDays(7),
+                expires: DateTime.Now.AddDays(7),
                 signingCredentials: credentials
             );
 

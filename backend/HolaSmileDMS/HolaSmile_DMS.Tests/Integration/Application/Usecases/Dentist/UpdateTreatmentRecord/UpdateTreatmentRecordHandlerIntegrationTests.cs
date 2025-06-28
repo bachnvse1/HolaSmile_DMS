@@ -64,7 +64,7 @@ public class UpdateTreatmentRecordHandlerIntegrationTests
             UnitPrice = 500000,
             TotalAmount = 500000,
             TreatmentStatus = "Initial",
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.Now,
             CreatedBy = 10
         });
 

@@ -35,15 +35,15 @@ namespace Application.Usecases.Owner
                 {
                     throw new Exception("Chỉ có thể cập nhật lịch đang ở trạng thái pending");
                 }
-                schedule.Status = request.Action == "approve" ? "approved" : "rejected";
-                schedule.UpdatedAt = DateTime.UtcNow;
+                schedule.Status = request.Action == "approved" ? "approved" : "rejected";
+                schedule.UpdatedAt = DateTime.Now;
                 schedule.UpdatedBy = currentUserId;
 
                 var updated = await _scheduleRepository.UpdateScheduleAsync(schedule);
                 if (!updated)
                     throw new Exception("Cập nhật lịch làm việc không thành công");
             }
-            return request.Action == "approve"
+            return request.Action == "approved"
                                      ? MessageConstants.MSG.MSG80 // approve thành công
                                      : MessageConstants.MSG.MSG81; // reject thành công
         }

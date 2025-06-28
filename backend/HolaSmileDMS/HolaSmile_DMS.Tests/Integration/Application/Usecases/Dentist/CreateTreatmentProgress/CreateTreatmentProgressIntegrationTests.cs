@@ -98,7 +98,7 @@ public class CreateTreatmentProgressIntegrationTests
                 Status = "InProgress",
                 Duration = 45,
                 Description = "Chi tiết tiến trình",
-                EndTime = DateTime.UtcNow.AddHours(1),
+                EndTime = DateTime.Now.AddHours(1),
                 Note = "Ghi chú thêm"
             }
         };
@@ -151,7 +151,7 @@ public class CreateTreatmentProgressIntegrationTests
         Assert.Contains(MessageConstants.MSG.MSG85, ex.Message);
     }
 
-    // ⚠️ Test 4: EndTime < DateTime.UtcNow => throw MSG84
+    // ⚠️ Test 4: EndTime < DateTime.Now => throw MSG84
     [Fact(DisplayName = "[Integration - ITCID04 - Abnormal] EndTime_In_Past_Should_Throw")]
     [Trait("TestType", "Abnormal")]
     public async System.Threading.Tasks.Task A_EndTime_In_Past_Should_Throw()
@@ -165,7 +165,7 @@ public class CreateTreatmentProgressIntegrationTests
                 TreatmentRecordID = 1,
                 PatientID = 5,
                 ProgressName = "Tiến trình lỗi",
-                EndTime = DateTime.UtcNow.AddMinutes(-5)
+                EndTime = DateTime.Now.AddMinutes(-5)
             }
         };
 
