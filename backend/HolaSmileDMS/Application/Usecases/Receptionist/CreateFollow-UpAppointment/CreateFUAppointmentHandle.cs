@@ -53,10 +53,10 @@ namespace Application.Usecases.Receptionist.CreateFollow_UpAppointment
             {
                 PatientId = request.PatientId,
                 DentistId = request.DentistId,
-                Status = "pending",
+                Status = "confirmed",
                 Content = request.ReasonForFollowUp,
                 IsNewPatient = false,
-                AppointmentType = "",
+                AppointmentType = "follow-up",
                 AppointmentDate = request.AppointmentDate,
                 AppointmentTime = request.AppointmentTime,
                 CreatedAt = DateTime.Now,

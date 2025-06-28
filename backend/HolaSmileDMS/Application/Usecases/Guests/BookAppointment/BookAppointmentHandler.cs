@@ -54,7 +54,8 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             if (existUser != null)
             {
                 isNewPatient = false; // The patient already exists, so we will not create a new account
-                                      // If the user exists, check if they have a patient record
+                user = existUser; // Use the existing user
+                // If the user exists, check if they have a patient record
                 patient = await _patientRepository.GetPatientByUserIdAsync(existUser.UserID)
                       ?? throw new Exception(MessageConstants.MSG.MSG27); // "Không tìm thấy hồ sơ bệnh nhân"
 

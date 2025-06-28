@@ -10,7 +10,8 @@ import { Phone, Mail, MoreHorizontal } from "lucide-react"
 import type { Patient } from "@/types/patient"
 import { Link } from "react-router"
 import { formatDateWithDay } from "@/utils/dateUtils"
-
+import { useState } from "react"
+import { useNavigate } from "react-router"
 interface Props {
     patient: Patient
     index: number
@@ -18,7 +19,7 @@ interface Props {
 
 export default function PatientTableRow({ patient, index }: Props) {
     const rowBg = index % 2 === 0 ? "bg-white" : "bg-gray-50"
-
+    const navigate = useNavigate();
     return (
         <tr
             className={`shadow-sm ${rowBg} hover:bg-gray-100 transition-colors duration-200`}
@@ -69,6 +70,11 @@ export default function PatientTableRow({ patient, index }: Props) {
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                             <Link to={`/edit-patient/${patient.userId}`}>Chỉnh Sửa Bệnh Nhân</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            onClick={() => navigate(`/patient/follow-up?patientId=${patient.patientId}`)}
+                        >
+                            Tạo Lịch Tái Khám
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
