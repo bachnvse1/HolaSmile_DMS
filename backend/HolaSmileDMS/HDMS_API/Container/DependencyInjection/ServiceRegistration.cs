@@ -43,6 +43,9 @@ namespace HDMS_API.DependencyInjection
             services.AddScoped<ITreatmentProgressRepository, TreatmentProgressRepository>();
             services.AddScoped<ITreatmentProgressRepository, TreatmentProgressRepository>();
             services.AddScoped<INotificationsRepository, NotificationsRepository>();
+            services.AddScoped<IReceptionistRepository, ReceptionistRepository>();
+            services.AddScoped<IProcedureRepository, ProcedureRepository>();
+            
             
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>
