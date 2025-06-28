@@ -7,7 +7,7 @@ namespace Application.Interfaces
     public interface IPatientRepository
     {
         Task<Patient> CreatePatientAsync(CreatePatientDto createPatientDto, int userID);
-        Task<Patient> GetPatientByIdAsync(int patientId);
+        Task<Patient> GetPatientByPatientIdAsync(int? patientId);
         Task<Patient> GetPatientByUserIdAsync(int userId);
         Task<List<RawPatientDto>> GetAllPatientsAsync(CancellationToken cancellationToken);
     }

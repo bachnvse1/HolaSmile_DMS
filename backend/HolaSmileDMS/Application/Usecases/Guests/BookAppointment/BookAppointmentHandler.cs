@@ -15,7 +15,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
         private readonly IUserCommonRepository _userCommonRepository;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
-        public BookAppointmentHandler(IAppointmentRepository appointmentRepository, IMediator mediator , IPatientRepository patientRepository, IUserCommonRepository userCommonRepository,IMapper mapper)
+        public BookAppointmentHandler(IAppointmentRepository appointmentRepository, IMediator mediator, IPatientRepository patientRepository, IUserCommonRepository userCommonRepository,IMapper mapper)
         {
             _appointmentRepository = appointmentRepository;
             _patientRepository = patientRepository;
