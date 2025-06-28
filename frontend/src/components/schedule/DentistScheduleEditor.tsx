@@ -348,7 +348,7 @@ export const DentistScheduleEditor: React.FC<DentistScheduleEditorProps> = ({ de
         </DialogContent>
       </Dialog>
       
-      {/* Delete confirmation dialog */}
+      {/* Delete confirmedation dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>

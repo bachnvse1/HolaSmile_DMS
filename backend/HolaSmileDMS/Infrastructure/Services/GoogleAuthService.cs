@@ -45,9 +45,9 @@ public class GoogleAuthService : IGoogleAuthService
         if (user == null || user.Status == false)
             return null;
 
-        var role = await _userCommonRepository.GetUserRoleAsync(user.Username, cancellation);
+        var userRole = await _userCommonRepository.GetUserRoleAsync(user.Username, cancellation);
 
-        var jwt = _jwtService.GenerateJWTToken(user, role);
+        var jwt = _jwtService.GenerateJWTToken(user, userRole.Role, userRole.RoleTableId);
         var refreshToken = _jwtService.GenerateRefreshToken(user.UserID.ToString());
 
         return $"http://localhost:5173/auth/callback" +
@@ -55,7 +55,8 @@ public class GoogleAuthService : IGoogleAuthService
                $"&refreshToken={refreshToken}" +
                $"&username={user.Username}" +
                $"&fullName={user.Fullname}" +
-               $"&role={role}" +
+               $"&role={userRole.Role}" +
+               $"&userRole.RoleTableId={userRole.RoleTableId}" +
                $"&imageUrl={Uri.EscapeDataString(imageUrl)}";
     }
 
