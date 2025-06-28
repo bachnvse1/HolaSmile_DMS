@@ -39,7 +39,6 @@ namespace HDMS_API.Application.Usecases.UserCommon.EditProfile
             currentUser.Gender = request.Gender ?? currentUser.Gender;
             currentUser.Address = request.Address ?? currentUser.Address;
             currentUser.DOB = FormatHelper.TryParseDob(request.DOB) ?? currentUser.DOB;
-
             if (!string.IsNullOrEmpty(request.Avatar) && File.Exists(request.Avatar))
             {
                 currentUser.Avatar = _fileStorageService.SaveAvatar(request.Avatar);

@@ -43,7 +43,8 @@ export function Login() {
 
         if (loginResult.success && loginResult.token) {
           const role = TokenUtils.getRoleFromToken(loginResult.token);
-          toast.success(`Đăng nhập thành công! Xin chào ${values.email}`, {
+          const fullName = TokenUtils.getFullNameFromToken(loginResult.token);
+          toast.success(`Đăng nhập thành công! Xin chào ${fullName}`, {
                   position: "top-left",
                   autoClose: 3000,
                 });
@@ -89,7 +90,6 @@ export function Login() {
       >
         <h1 className="text-2xl font-bold text-white text-center">Đăng nhập</h1>
 
-        {/* Email or Phone */}
         <div className="space-y-1">
           <label htmlFor="email" className="block text-sm font-medium text-slate-300">
             Email hoặc số điện thoại
@@ -121,7 +121,6 @@ export function Login() {
           )}
         </div>
 
-        {/* Password */}
         <div className="space-y-1">
           <div className="flex justify-between items-center">
             <label htmlFor="password" className="text-sm font-medium text-slate-300">
@@ -165,14 +164,12 @@ export function Login() {
           )}
         </div>
 
-        {/* API error message */}
         {apiError && (
           <p className="text-center text-red-500 text-sm font-medium" role="alert">
             {apiError}
           </p>
         )}
 
-        {/* Submit */}
         <button
           type="submit"
           className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition disabled:opacity-60"

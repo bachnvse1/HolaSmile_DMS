@@ -32,9 +32,9 @@ public class RefreshTokenHandler : IRequestHandler<RefreshTokenCommand, LoginRes
 
         var claims = accessPrincipal.Claims.ToList();
         User user = await _userCommonRepository.GetByUsernameAsync(claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value, cancellationToken);
-        var role = claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+        var userRole = await _userCommonRepository.GetUserRoleAsync(user.Username, cancellationToken);
 
-        var newAccessToken = _jwtService.GenerateJWTToken(user, role);
+        var newAccessToken = _jwtService.GenerateJWTToken(user, userRole.Role, userRole.RoleTableId);
         var newRefreshToken = _jwtService.GenerateRefreshToken(userId!);
 
         return new LoginResultDto
@@ -42,7 +42,7 @@ public class RefreshTokenHandler : IRequestHandler<RefreshTokenCommand, LoginRes
             Success = true,
             Token = newAccessToken,
             refreshToken = newRefreshToken,
-            Role = role
+            Role = userRole.Role
         };
     }
 }

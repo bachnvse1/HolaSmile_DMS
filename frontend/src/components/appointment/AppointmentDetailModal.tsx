@@ -30,7 +30,7 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
   });
 
   const canCancelAppointment = role === 'Patient' &&
-    appointment.status === 'confirm' &&
+    appointment.status === 'confirmed' &&
     isAppointmentCancellable(appointment.appointmentDate, appointment.appointmentTime);
 
   const timeUntilAppointment = getTimeUntilAppointment(appointment.appointmentDate, appointment.appointmentTime);
@@ -55,8 +55,8 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
     return timeString.substring(0, 5); // "HH:MM"
   };
 
-  const getStatusConfig = (status: 'confirm' | 'canceled') => {
-    if (status === 'confirm') {
+  const getStatusConfig = (status: 'confirmed' | 'canceled') => {
+    if (status === 'confirmed') {
       return {
         color: 'bg-green-100 text-green-800 border-green-200',
         icon: <CheckCircle className="h-4 w-4" />,
@@ -103,7 +103,7 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-600">Trạng thái:</span>
               <Badge
-                variant={appointment.status === 'confirm' ? 'success' : 'destructive'}
+                variant={appointment.status === 'confirmed' ? 'success' : 'destructive'}
                 className="flex items-center space-x-2"
               >
                 {statusConfig.icon}
@@ -149,7 +149,7 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-600">Giờ hẹn</p>
                   <p className="font-semibold text-gray-900">{formatTime(appointment.appointmentTime)}</p>
-                  {role === 'Patient' && appointment.status === 'confirm' && (
+                  {role === 'Patient' && appointment.status === 'confirmed' && (
                     <p className={`text-xs mt-1 ${canCancelAppointment ? 'text-green-600' : 'text-red-600'
                       }`}>
                       {timeUntilAppointment}
@@ -197,7 +197,7 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
           </div>         
 
           {/* Warning for non-cancellable appointments */}
-          {role === 'Patient' && appointment.status === 'confirm' && !canCancelAppointment && (
+          {role === 'Patient' && appointment.status === 'confirmed' && !canCancelAppointment && (
             <div className="flex-1 my-3 mx-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg ">
               <div className="flex items-center">
                 <AlertTriangle className="h-4 w-4 text-yellow-600 mr-2" />

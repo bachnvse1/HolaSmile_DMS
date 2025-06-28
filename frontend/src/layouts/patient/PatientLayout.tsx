@@ -10,7 +10,7 @@ interface UserInfo {
 
 interface PatientLayoutProps {
   children: React.ReactNode;
-  userInfo?: UserInfo; // Make optional
+  userInfo?: UserInfo; 
 }
 
 export const PatientLayout: React.FC<PatientLayoutProps> = ({ children, userInfo }) => {

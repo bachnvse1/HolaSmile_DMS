@@ -1,6 +1,7 @@
 ﻿using Application.Common.Mappings;
 using Application.Interfaces;
 using Application.Services;
+using Application.Usecases.SendNotification;
 using HDMS_API.Application.Common.Mappings;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
@@ -8,6 +9,7 @@ using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Infrastructure.Persistence;
 using HDMS_API.Infrastructure.Repositories;
 using HDMS_API.Infrastructure.Services;
+using Infrastructure.Hubs;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
 using MediatR;
@@ -41,7 +43,7 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<ITreatmentProgressRepository, TreatmentProgressRepository>();
             services.AddScoped<ITreatmentProgressRepository, TreatmentProgressRepository>();
             services.AddScoped<IFileStorageService, FileStorageService>();
-
+            services.AddScoped<INotificationsRepository, NotificationsRepository>();
 
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>
@@ -63,6 +65,7 @@ namespace HDMS_API.Container.DependencyInjection
             // MediatR
             services.AddMediatR(typeof(CreatePatientCommand).Assembly);
             services.AddMediatR(typeof(LoginCommand).Assembly);
+            services.AddMediatR(typeof(SendNotificationHandler).Assembly);
 
             // AutoMapper
             services.AddAutoMapper(typeof(MappingViewTreatmentRecord));
@@ -73,7 +76,11 @@ namespace HDMS_API.Container.DependencyInjection
             // Caching
             services.AddMemoryCache();
             services.AddHttpClient();
-
+            services.AddSignalR()
+                .AddHubOptions<NotifyHub>(options =>
+                {
+                    options.EnableDetailedErrors = true;
+                });
             return services;
         }
     }

@@ -12,7 +12,7 @@ export interface TreatmentProgress {
   description?: string
   endTime?: string
   note?: string
-  createdAt: string
+  createdAt?: string
   updatedAt?: string
   createdBy?: number
   updatedBy?: number
