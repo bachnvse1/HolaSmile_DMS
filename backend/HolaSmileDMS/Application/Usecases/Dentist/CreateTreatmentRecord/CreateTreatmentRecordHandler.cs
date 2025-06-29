@@ -41,7 +41,49 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
             var fullName = user?.FindFirst(ClaimTypes.GivenName)?.Value;
             if (role != "Dentist")
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Không có quyền truy cập
-
+            
+            var appointment = await _appointmentRepository.GetAppointmentByIdAsync(request.AppointmentId);
+            if (request.treatmentToday == false)
+            {
+                var appointmentTreatment = new Appointment
+                {
+                    PatientId = appointment.PatientId,
+                    DentistId = request.DentistId,
+                    Status = "confirmed",
+                    Content = $"Lịch hẹn điều trị vào ngày {request.TreatmentDate}",
+                    IsNewPatient = false,
+                    AppointmentType = "treatment",
+                    AppointmentDate = request.TreatmentDate.Date,
+                    AppointmentTime = request.TreatmentDate.TimeOfDay,
+                    CreatedAt = DateTime.Now,
+                    CreatedBy = currentUserId,
+                    IsDeleted = false
+                };
+                var isBookAppointment = await _appointmentRepository.CreateAppointmentAsync(appointmentTreatment);
+                if (!isBookAppointment)
+                {
+                    throw new Exception("Tạo lịch điều trị thất bại");
+                }
+                if (appointment != null)
+                {
+                    var patient = await _patientRepository.GetPatientByPatientIdAsync(appointment.PatientId ?? 0);
+                    if (patient != null)
+                    {
+                        int userIdNotification = patient.UserID ?? 0;
+                        if (userIdNotification > 0)
+                        {
+                            await _mediator.Send(new SendNotificationCommand(
+                                userIdNotification,
+                                "Tạo lịch hẹn điều trị",
+                                $"Lịch hẹn điều trị mới của bạn là ngày {request.TreatmentDate} đã được nha sĩ {fullName} tạo.",
+                                "Lịch điều trị",
+                                0
+                            ), cancellationToken);
+                        }
+                    }
+                }
+            } else request.TreatmentDate = DateTime.Now; //nếu làm ngay hôm đó thì ngày điều trị chính là tại thời điểm đó
+            
             // Validate IDs
             if (request.AppointmentId <= 0)
                 throw new Exception(MessageConstants.MSG.MSG28); // Không tìm thấy lịch hẹn
@@ -81,10 +123,10 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
 
             await _repository.AddAsync(record, cancellationToken);
             
-            var appointment = await _appointmentRepository.GetAppointmentByIdAsync(record.AppointmentID);
+           
             if (appointment != null)
             {
-                var patient = await _patientRepository.GetPatientByIdAsync(appointment.PatientId ?? 0);
+                var patient = await _patientRepository.GetPatientByPatientIdAsync(appointment.PatientId ?? 0);
                 if (patient != null)
                 {
                     int userIdNotification = patient.UserID ?? 0;

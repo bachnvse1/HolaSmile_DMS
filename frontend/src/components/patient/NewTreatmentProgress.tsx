@@ -23,6 +23,7 @@ import { createTreatmentProgress } from "@/services/treatmentProgressService"
 
 const statusOptions = ["Đang tiến hành", "Tạm dừng", "Đã huỷ", "Đã hoàn thành", "Chưa bắt đầu"]
 
+
 const schema = yup.object({
     progressName: yup.string().required("Tên tiến trình không được bỏ trống"),
     progressContent: yup.string().required("Nội dung không được bỏ trống"),
@@ -144,7 +145,7 @@ export default function NewTreatmentProgress({
                         </div>
 
                         <div>
-                            <Label>Mô tả *</Label>
+                            <Label>Ghi chú *</Label>
                             <Textarea rows={3} {...register("description")} />
                             <p className="text-red-500 text-sm">{errors.description?.message}</p>
                         </div>

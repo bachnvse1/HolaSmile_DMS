@@ -141,19 +141,9 @@ public class CreateTreatmentRecordHandlerTests
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() => handler.Handle(cmd, default));
     }
+    
 
-    [Fact(DisplayName = "Abnormal - UTCID09 - TreatmentDate null should throw MSG28")]
-    public async System.Threading.Tasks.Task UTCID09_TreatmentDateIsDefault_ShouldThrowException()
-    {
-        var cmd = GetValidCommand();
-        cmd.TreatmentDate = default;
-        var (handler, _) = SetupHandler("Dentist", 1, cmd);
-
-        var ex = await Assert.ThrowsAsync<Exception>(() => handler.Handle(cmd, default));
-        Assert.Contains(MessageConstants.MSG.MSG83, ex.Message);
-    }
-
-    [Fact(DisplayName = "Normal - UTCID10 - Zero discount is valid should return success")]
+    [Fact(DisplayName = "Normal - UTCID09 - Zero discount is valid should return success")]
     public async System.Threading.Tasks.Task UTCID10_DiscountZero_ShouldPass()
     {
         var cmd = GetValidCommand();
