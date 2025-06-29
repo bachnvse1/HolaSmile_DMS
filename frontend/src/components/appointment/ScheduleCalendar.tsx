@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import type { Dentist, TimeSlot } from '../../types/appointment';
 import { TIME_SLOTS } from '../../constants/appointment';
