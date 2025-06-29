@@ -66,37 +66,37 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
 
         /* ---------- tests ---------- */
 
-        [Fact(DisplayName = "Normal - UTCID01 - Dentist cập nhật hợp lệ trả về true")]
-        public async System.Threading.Tasks.Task UTCID01_DentistValid_ShouldSuccess()
+        [Fact(DisplayName = "Normal - ITCID01 - Dentist cập nhật hợp lệ trả về true")]
+        public async System.Threading.Tasks.Task ITCID01_DentistValid_ShouldSuccess()
         {
             var (handler, _, _, _) = Setup("Dentist");
             var ok = await handler.Handle(GetValidCmd(), default);
             Assert.True(ok);
         }
 
-        [Fact(DisplayName = "Normal - UTCID02 - Receptionist cập nhật trạng thái pending trả về true")]
-        public async System.Threading.Tasks.Task UTCID02_ReceptionistPending_ShouldSuccess()
+        [Fact(DisplayName = "Normal - ITCID02 - Receptionist cập nhật trạng thái pending trả về true")]
+        public async System.Threading.Tasks.Task ITCID02_ReceptionistPending_ShouldSuccess()
         {
             var (handler, _, _, _) = Setup("Receptionist", "pending");
             var ok = await handler.Handle(GetValidCmd(), default);
             Assert.True(ok);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID03 - Receptionist cập nhật status!=pending bị cấm")]
-        public async System.Threading.Tasks.Task UTCID03_ReceptionistNotPending_ShouldThrow()
+        [Fact(DisplayName = "Abnormal - ITCID03 - Receptionist cập nhật status!=pending bị cấm")]
+        public async System.Threading.Tasks.Task ITCID03_ReceptionistNotPending_ShouldThrow()
         {
             var (handler, _, _, _) = Setup("Receptionist", "in-progress");
             await Assert.ThrowsAsync<UnauthorizedAccessException>(() => handler.Handle(GetValidCmd(), default));
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID04 - Role không hợp lệ bị cấm")]
+        [Fact(DisplayName = "Abnormal - ITCID04  - Role không hợp lệ bị cấm")]
         public async System.Threading.Tasks.Task UTCID04_InvalidRole_ShouldThrow()
         {
             var (handler, _, _, _) = Setup("Patient");
             await Assert.ThrowsAsync<UnauthorizedAccessException>(() => handler.Handle(GetValidCmd(), default));
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID05 - Status sai giá trị báo lỗi")]
+        [Fact(DisplayName = "Abnormal - ITCID05  - Status sai giá trị báo lỗi")]
         public async System.Threading.Tasks.Task UTCID05_InvalidStatus_ShouldThrow()
         {
             var cmd = GetValidCmd();
@@ -105,7 +105,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
             await Assert.ThrowsAsync<ArgumentException>(() => handler.Handle(cmd, default));
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID06 - Duration âm báo lỗi")]
+        [Fact(DisplayName = "Abnormal - ITCID06 - Duration âm báo lỗi")]
         public async System.Threading.Tasks.Task UTCID06_NegativeDuration_ShouldThrow()
         {
             var cmd = GetValidCmd();
@@ -114,7 +114,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
             await Assert.ThrowsAsync<ArgumentException>(() => handler.Handle(cmd, default));
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID07 - EndTime < CreatedAt báo lỗi")]
+        [Fact(DisplayName = "Abnormal - ITCID07 - EndTime < CreatedAt báo lỗi")]
         public async System.Threading.Tasks.Task UTCID07_EndTimeBeforeCreated_ShouldThrow()
         {
             var cmd = GetValidCmd();
@@ -123,7 +123,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
             await Assert.ThrowsAsync<ArgumentException>(() => handler.Handle(cmd, default));
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID08 - ProgressName trắng báo lỗi")]
+        [Fact(DisplayName = "Abnormal - ITCID08 - ProgressName trắng báo lỗi")]
         public async System.Threading.Tasks.Task UTCID08_BlankProgressName_ShouldThrow()
         {
             var cmd = GetValidCmd();
