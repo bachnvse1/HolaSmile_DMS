@@ -79,12 +79,12 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
           {/* Right side - Desktop */}
           <div className="hidden md:flex items-center space-x-4">
             {/* Notifications */}
-            <button 
+            <div 
               className="p-2 text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-full"
               title="Thông báo"
             >
               <NotificationButton />
-            </button>
+            </div>
 
             {/* Book Appointment Button */}
             <button

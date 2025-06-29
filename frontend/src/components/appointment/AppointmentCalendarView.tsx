@@ -285,7 +285,15 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
                         </div>
                         <div className="flex items-center">
                           <FileText className="h-3 w-3 mr-1" />
-                          <span className="truncate">{appointment.type}</span>
+                          <span className="truncate">{appointment.type === 'follow-up'
+                            ? 'Tái khám'
+                            : appointment.type === 'consultation'
+                              ? 'Tư vấn'
+                              : appointment.type === 'treatment'
+                                ? 'Điều trị'
+                                : appointment.type === 'first-time'
+                                  ? 'Khám lần đầu '
+                                  : appointment.type}</span>
                         </div>
                       </div>
                     </div>
