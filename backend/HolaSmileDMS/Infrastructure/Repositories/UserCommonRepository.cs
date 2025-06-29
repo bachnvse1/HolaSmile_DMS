@@ -1,5 +1,6 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
+using Application.Usecases.Admintrator;
 using Application.Usecases.Patients.ViewListPatient;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Common.Helpers;
@@ -258,6 +259,110 @@ namespace HDMS_API.Infrastructure.Repositories
                 .FromSqlRaw(sql)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        public async Task<List<ViewListUserDTO>> GetAllUserAsync()
+        {
+            //var allUsers = await _context.Users.Select(u => new
+            //{
+            //    u.Email,
+            //    u.Fullname,
+            //    u.Phone,
+            //    u.CreatedAt,
+            //    u.Status,
+            //    Role = _context.Dentists.Any(d => d.UserId == u.UserID) ? "nha sĩ" :
+            //   _context.Receptionists.Any(r => r.UserId == u.UserID) ? "lễ tân" :
+            //   _context.Assistants.Any(a => a.UserId == u.UserID) ? "trợ thủ" :
+            //   _context.Owners.Any(o => o.UserId == u.UserID) ? "chủ phòng khám" :
+            //   _context.Patients.Any(p => p.UserID == u.UserID) ? "chủ phòng khám" : "không xác định"
+            //}).Select(x => new ViewListUserDTO
+            //{
+            //    email = x.Email,
+            //    fullName = x.Fullname,
+            //    phoneNumber = x.Phone,
+            //    role = x.Role,
+            //    createdAt = x.CreatedAt,
+            //    isActive = x.Status
+            //}).ToListAsync();
+
+            var dentistUsers = _context.Users
+            .Join(_context.Dentists,
+             u => u.UserID,
+             d => d.UserId,
+            (u, d) => new ViewListUserDTO
+            {
+            Email = u.Email,
+            FullName = u.Fullname,
+            PhoneNumber = u.Phone,
+            Role = "Dentist",
+            CreatedAt = u.CreatedAt,
+            isActive = !u.Status // Status = true là bị khoá
+             });
+
+            var patientUsers = _context.Users
+            .Join(_context.Patients,
+             u => u.UserID,
+             p => p.UserID,
+            (u, d) => new ViewListUserDTO
+            {
+                Email = u.Email,
+                FullName = u.Fullname,
+                PhoneNumber = u.Phone,
+                Role = "Patient",
+                CreatedAt = u.CreatedAt,
+                isActive = !u.Status // Status = true là bị khoá
+            });
+
+            var receptionistUsers = _context.Users
+                .Join(_context.Receptionists,
+                    u => u.UserID,
+                    r => r.UserId,
+                    (u, r) => new ViewListUserDTO
+                    {
+                        Email = u.Email,
+                        FullName = u.Fullname,
+                        PhoneNumber = u.Phone,
+                        Role = "Receptionist",
+                        CreatedAt = u.CreatedAt,
+                        isActive = !u.Status
+                    });
+
+            var assistantUsers = _context.Users
+                .Join(_context.Assistants,
+                    u => u.UserID,
+                    a => a.UserId,
+                    (u, a) => new ViewListUserDTO
+                    {
+                        Email = u.Email,
+                        FullName = u.Fullname,
+                        PhoneNumber = u.Phone,
+                        Role = "Assistant",
+                        CreatedAt = u.CreatedAt,
+                        isActive = !u.Status
+                    });
+
+            var ownerUsers = _context.Users
+                .Join(_context.Owners,
+                    u => u.UserID,
+                    o => o.UserId,
+                    (u, o) => new ViewListUserDTO
+                    {
+                        Email = u.Email,
+                        FullName = u.Fullname,
+                        PhoneNumber = u.Phone,
+                        Role = "Owner",
+                        CreatedAt = u.CreatedAt,
+                        isActive = !u.Status
+                    });
+
+            var allUsers = await dentistUsers
+                          .Union(receptionistUsers)
+                          .Union(assistantUsers)
+                          .Union(ownerUsers)
+                          .Union(patientUsers)
+                          .ToListAsync();
+
+            return allUsers;
         }
     }
 }
