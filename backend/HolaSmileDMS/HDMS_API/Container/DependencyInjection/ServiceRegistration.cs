@@ -16,7 +16,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 
-namespace HDMS_API.DependencyInjection
+namespace HDMS_API.Container.DependencyInjection
 {
     public static class ServiceRegistration
     {
