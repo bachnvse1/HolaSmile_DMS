@@ -8,6 +8,8 @@ import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import type { AppointmentDTO } from '../../types/appointment';
+import { useDentistSchedules } from '@/hooks/useDentistSchedules';
+import { mapBackendScheduleToFrontend } from '@/utils/schedule';
 
 export const AppointmentViewManager = () => {
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
@@ -15,6 +17,8 @@ export const AppointmentViewManager = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: appointments, isLoading, error, refetch } = useAppointments();
+  const { data: dentistsRaw } = useDentistSchedules();
+  const dentists = mapBackendScheduleToFrontend(dentistsRaw || []);
   const handleAppointmentClick = (appointment: AppointmentDTO) => {
     setSelectedAppointment(appointment);
     setIsModalOpen(true);
@@ -59,8 +63,8 @@ export const AppointmentViewManager = () => {
   }
 
   return (
-    <div className="space-y-6">      
-    {/* View Toggle & Actions */}
+    <div className="space-y-6">
+      {/* View Toggle & Actions */}
       <Card className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
@@ -94,7 +98,7 @@ export const AppointmentViewManager = () => {
               <RotateCcw className="h-4 w-4 mr-1" />
               Làm mới
             </Button>
-            
+
             <Badge variant="secondary" className="text-sm">
               {appointments?.length || 0} lịch hẹn
             </Badge>
@@ -104,13 +108,13 @@ export const AppointmentViewManager = () => {
 
       {/* View Content */}
       {viewMode === 'list' ? (
-        <AppointmentListView 
-          appointments={appointments || []} 
+        <AppointmentListView
+          appointments={appointments || []}
           onAppointmentClick={handleAppointmentClick}
         />
       ) : (
-        <AppointmentCalendarView 
-          appointments={appointments || []} 
+        <AppointmentCalendarView
+          appointments={appointments || []}
           onAppointmentClick={handleAppointmentClick}
         />
       )}
@@ -120,6 +124,7 @@ export const AppointmentViewManager = () => {
         appointment={selectedAppointment}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
+        dentists={dentists}
       />
     </div>
   );

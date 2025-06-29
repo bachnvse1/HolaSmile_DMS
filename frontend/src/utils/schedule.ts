@@ -6,9 +6,7 @@ export const isTimeSlotAvailable = (
   date: string,
   period: 'morning' | 'afternoon' | 'evening'
 ): boolean => {
-  if (!schedule[date]) {
-    return false;
-  }
+  if (!schedule || !schedule[date]) return false;
   return schedule[date][period];
 };
 
