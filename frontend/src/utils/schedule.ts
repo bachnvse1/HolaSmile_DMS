@@ -52,3 +52,9 @@ export const mapBackendScheduleToFrontend = (backendData: DentistScheduleData[])
     };
   });
 };
+
+export const SHIFT_TIME_MAP: Record<'morning' | 'afternoon' | 'evening', string> = {
+  morning: '08:00',
+  afternoon: '14:00',
+  evening: '17:00',
+};

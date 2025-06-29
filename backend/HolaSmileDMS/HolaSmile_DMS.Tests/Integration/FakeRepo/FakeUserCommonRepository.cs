@@ -95,4 +95,9 @@ public class FakeUserCommonRepository : IUserCommonRepository
     {
         throw new NotImplementedException();
     }
+
+    public Task<int?> GetUserIdByRoleTableIdAsync(string role, int id)
+    {
+        throw new NotImplementedException();
+    }
 }

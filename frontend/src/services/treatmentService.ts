@@ -10,7 +10,7 @@ export const getTreatmentRecordsByUser = async (userId: number): Promise<Treatme
 export const deleteTreatmentRecord = async (id: number) => {
   try {
     const response = await axiosInstance.delete(`/treatment-records/${id}`)
-    return response.data 
+    return response.data
   } catch (error: any) {
     throw new Error(error.response?.data?.message || "Lỗi hệ thống không xác định")
   }
@@ -29,13 +29,14 @@ export const createTreatmentRecord = async (
     toothPosition: data.toothPosition,
     quantity: data.quantity,
     unitPrice: data.unitPrice,
+    treatmentToday: data.treatmentToday ?? false,
     discountAmount: data.discountAmount ?? 0,
     discountPercentage: data.discountPercentage ?? 0,
     totalAmount,
     treatmentStatus: data.treatmentStatus,
     symptoms: data.symptoms,
     diagnosis: data.diagnosis,
-    treatmentDate: new Date(data.treatmentDate + "T12:00:00").toISOString(),
+    treatmentDate: new Date(data.treatmentDate).toISOString(),
     updatedBy,
   }
 
