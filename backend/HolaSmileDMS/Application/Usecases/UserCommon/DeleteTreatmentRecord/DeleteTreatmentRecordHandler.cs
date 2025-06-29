@@ -39,7 +39,7 @@ namespace Application.Usecases.UserCommon.DeleteTreatmentRecord
             if (record is null) throw new KeyNotFoundException(MessageConstants.MSG.MSG27);
             
             var appointment = await _appointmentRepository.GetAppointmentByIdAsync(record.Result.AppointmentID);
-            var patient = await _patientRepository.GetPatientByIdAsync(appointment.PatientId ?? 0);
+            var patient = await _patientRepository.GetPatientByUserIdAsync(appointment.PatientId ?? 0);
             int userIdNotification = patient?.UserID ?? 0;
             
             await _mediator.Send(new SendNotificationCommand(
