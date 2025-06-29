@@ -81,7 +81,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
             });
 
             _patientRepositorymock
-            .Setup(repo => repo.GetPatientByIdAsync(1))
+            .Setup(repo => repo.GetPatientByUserIdAsync(1))
             .ReturnsAsync(new Patient
             {
                 PatientID = 1,
@@ -154,7 +154,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
             _dentistRepositoryMock.Setup(x => x.GetDentistByDentistIdAsync(It.IsAny<int>()))
                 .ReturnsAsync(new Dentist());
 
-            _patientRepositorymock.Setup(x => x.GetPatientByIdAsync(It.IsAny<int>()))
+            _patientRepositorymock.Setup(x => x.GetPatientByUserIdAsync(It.IsAny<int>()))
                 .ReturnsAsync((Patient)null);
 
             var cmd = new CreateFUAppointmentCommand
@@ -189,7 +189,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
             var dummyDentist = new Dentist { DentistId = request.DentistId };
 
             _patientRepositorymock
-                .Setup(r => r.GetPatientByIdAsync(request.PatientId))
+                .Setup(r => r.GetPatientByUserIdAsync(request.PatientId))
                 .ReturnsAsync(dummyPatient);
 
             _dentistRepositoryMock

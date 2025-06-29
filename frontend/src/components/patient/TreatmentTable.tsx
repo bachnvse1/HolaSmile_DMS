@@ -7,6 +7,7 @@ interface TreatmentTableProps {
   onEdit: (record: TreatmentRecord) => void
   onToggleDelete: (id: number) => void
   patientId: number
+  readonly?: boolean
 }
 
 const TreatmentTable: React.FC<TreatmentTableProps> = ({
@@ -14,6 +15,7 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
   onEdit,
   onToggleDelete,
   patientId,
+  readonly,
 }) => {
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden">
@@ -45,9 +47,11 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Trạng thái
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Hành động
-              </th>
+              {!readonly && (
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Hành động
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -58,6 +62,7 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
                 onEdit={onEdit}
                 onToggleDelete={onToggleDelete}
                 patientId={patientId}
+                readonly={readonly}
               />
             ))}
           </tbody>

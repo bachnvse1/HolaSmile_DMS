@@ -1,6 +1,6 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.UserCommon.ViewListPatient;
+using Application.Usecases.Patients.ViewListPatient;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Common.Helpers;
 using HDMS_API.Application.Interfaces;
@@ -69,8 +69,6 @@ namespace HDMS_API.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return user;
         }
-
-
         public async Task<bool> SendPasswordForGuestAsync(string email)
         {
             if(email.IsNullOrEmpty() || !FormatHelper.IsValidEmail(email))
@@ -79,7 +77,6 @@ namespace HDMS_API.Infrastructure.Repositories
             }
             return await _emailService.SendPasswordAsync(email, "123456"); ;
         }
-
         public async Task<bool> SendOtpEmailAsync(string toEmail)
         {
             if (FormatHelper.IsValidEmail(toEmail) == false)
@@ -102,7 +99,6 @@ namespace HDMS_API.Infrastructure.Repositories
 
             return true;
         }
-
         public async Task<bool> ResendOtpAsync(string toEmail)
         {
             if(_memoryCache.TryGetValue($"otp:{toEmail}", out RequestOtpDto cachedOtp))
@@ -121,7 +117,6 @@ namespace HDMS_API.Infrastructure.Repositories
                 throw new Exception(MessageConstants.MSG.MSG78); // Gửi mã OTP không thành công
             }
         }
-
         public async Task<string> VerifyOtpAsync(VerifyOtpCommand otp)
         {
             if (_memoryCache.TryGetValue($"otp:{otp.Email}", out RequestOtpDto cachedOtp))
@@ -178,10 +173,14 @@ namespace HDMS_API.Infrastructure.Repositories
         {
             return await _context.Users.FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
         }
-
         public Task<User?> GetUserByPhoneAsync(string phone)
         {
             var user = _context.Users.FirstOrDefaultAsync(u => u.Phone == phone);
+            return user;
+        }
+        public Task<User?> GetUserByEmailAsync(string email)
+        {
+            var user = _context.Users.FirstOrDefaultAsync(u => u.Phone == email);
             return user;
         }
 
@@ -195,10 +194,14 @@ namespace HDMS_API.Infrastructure.Repositories
             await _context.SaveChangesAsync(cancellationToken);
             return true;
         }
-
         public async Task<User?> GetByIdAsync(int userId, CancellationToken cancellationToken)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId, cancellationToken);
+        }
+
+        public async Task<List<Receptionist>> GetAllReceptionistAsync()
+        {
+            return await _context.Receptionists.Include(r => r.User).ToListAsync();
         }
 
         public Task<List<ViewListPatientDto>> GetAllPatientsAsync(CancellationToken cancellationToken)
@@ -256,5 +259,44 @@ namespace HDMS_API.Infrastructure.Repositories
                 .AsNoTracking()
                 .FirstOrDefaultAsync(cancellationToken);
         }
+        
+        public async Task<int?> GetUserIdByRoleTableIdAsync(string role, int id)
+        {
+            return role.ToLower() switch
+            {
+                "patient" => await _context.Patients
+                    .Where(p => p.PatientID == id)
+                    .Select(p => (int?)p.UserID)
+                    .FirstOrDefaultAsync(),
+
+                "dentist" => await _context.Dentists
+                    .Where(d => d.DentistId == id)
+                    .Select(d => (int?)d.UserId)
+                    .FirstOrDefaultAsync(),
+
+                "assistant" => await _context.Assistants
+                    .Where(a => a.AssistantId == id)
+                    .Select(a => (int?)a.UserId)
+                    .FirstOrDefaultAsync(),
+
+                "receptionist" => await _context.Receptionists
+                    .Where(r => r.ReceptionistId == id)
+                    .Select(r => (int?)r.UserId)
+                    .FirstOrDefaultAsync(),
+
+                "owner" => await _context.Owners
+                    .Where(o => o.OwnerId == id)
+                    .Select(o => (int?)o.UserId)
+                    .FirstOrDefaultAsync(),
+
+                "administrator" => await _context.Administrators
+                    .Where(ad => ad.AdministratorId == id)
+                    .Select(ad => (int?)ad.UserId)
+                    .FirstOrDefaultAsync(),
+
+                _ => null
+            };
+        }
+
     }
 }

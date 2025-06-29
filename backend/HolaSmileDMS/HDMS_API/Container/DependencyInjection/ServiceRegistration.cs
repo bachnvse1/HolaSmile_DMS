@@ -42,9 +42,14 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddSingleton<IHashIdService, HashIdService>();
             services.AddScoped<ITreatmentProgressRepository, TreatmentProgressRepository>();
             services.AddScoped<ITreatmentProgressRepository, TreatmentProgressRepository>();
-            services.AddScoped<IFileStorageService, FileStorageService>();
             services.AddScoped<INotificationsRepository, NotificationsRepository>();
             services.AddScoped<IAssistantRepository, AssistantRepository>();
+            services.AddScoped<IProcedureRepository, ProcedureRepository>();
+            services.AddScoped<IReceptionistRepository, ReceptionistRepository>();
+            services.AddScoped<IFileStorageService, FileStorageService>();
+            services.AddScoped<ITaskRepository, TaskRepository>();
+
+
 
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>
