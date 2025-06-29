@@ -39,7 +39,7 @@ namespace Application.Usecases.Receptionist.CreateFollow_UpAppointment
             {
                 return "Bác sĩ không tồn tại"; // "Bác sĩ không tồn tại"
             }
-            if(await _patientRepository.GetPatientByIdAsync(request.PatientId) == null)
+            if(await _patientRepository.GetPatientByUserIdAsync(request.PatientId) == null)
             {
                 return "Bệnh nhân không tồn tại"; // "Bệnh nhân không tồn tại"
             }
@@ -53,10 +53,10 @@ namespace Application.Usecases.Receptionist.CreateFollow_UpAppointment
             {
                 PatientId = request.PatientId,
                 DentistId = request.DentistId,
-                Status = "pending",
+                Status = "confirmed",
                 Content = request.ReasonForFollowUp,
                 IsNewPatient = false,
-                AppointmentType = "",
+                AppointmentType = "follow-up",
                 AppointmentDate = request.AppointmentDate,
                 AppointmentTime = request.AppointmentTime,
                 CreatedAt = DateTime.Now,

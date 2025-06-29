@@ -12,6 +12,7 @@
         Task<bool> CheckDentistAppointmentByUserIdAsync(int appId, int userId);
         Task<bool> ExistsAppointmentAsync(int patientId, DateTime date);
         Task<Appointment> GetLatestAppointmentByPatientIdAsync(int patientId);
+        Task<bool> UpdateAppointmentAsync(Appointment appointment);
 
 
     }

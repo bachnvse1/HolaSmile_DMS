@@ -1,4 +1,4 @@
-using HDMS_API.DependencyInjection;
+using HDMS_API.Container.DependencyInjection;
 using Infrastructure.Hubs;
 using Microsoft.OpenApi.Models;
 

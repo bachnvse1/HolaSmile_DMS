@@ -31,27 +31,32 @@ namespace Application.Usecases.Dentist.DeleteTreatmentRecord
             var role = user?.FindFirst(ClaimTypes.Role)?.Value;
             var userId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var fullName = user?.FindFirst(ClaimTypes.GivenName)?.Value;
-
-            if (string.IsNullOrEmpty(role) ||
-            (role != "Dentist" && role != "Receptionist"))
-            {
+            
+            if (role != "Dentist")
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
-            }
 
             var record = _repository.GetTreatmentRecordByIdAsync(request.TreatmentRecordId, cancellationToken);
             if (record is null) throw new KeyNotFoundException(MessageConstants.MSG.MSG27);
-
+            
             var appointment = await _appointmentRepository.GetAppointmentByIdAsync(record.Result.AppointmentID);
-            var patient = await _patientRepository.GetPatientByIdAsync(appointment.PatientId ?? 0);
-            int userIdNotification = patient?.UserID ?? 0;
-
-            await _mediator.Send(new SendNotificationCommand(
-                userIdNotification,
-                    "Xóa hồ sơ điều trị",
-                    $"Hồ sơ điều trị #{request.TreatmentRecordId} của của bạn đã được nha sĩ {fullName} xoá!!!",
-                    "Xoá hồ sơ",
-                    request.TreatmentRecordId),
-                cancellationToken);
+            if (appointment != null)
+            {
+                var patient = await _patientRepository.GetPatientByIdAsync(appointment.PatientId ?? 0);
+                if (patient != null)
+                {
+                    int userIdNotification = patient?.UserID ?? 0;
+                    if (userIdNotification > 0)
+                    {
+                        await _mediator.Send(new SendNotificationCommand(
+                                userIdNotification,
+                                "Xóa hồ sơ điều trị",
+                                $"Hồ sơ điều trị #{request.TreatmentRecordId} của của bạn đã được nha sĩ {fullName} xoá!!!",
+                                "Xoá hồ sơ",
+                                request.TreatmentRecordId),
+                            cancellationToken);
+                    }
+                }
+            }
 
             return await _repository.DeleteTreatmentRecordAsync(
                 request.TreatmentRecordId,

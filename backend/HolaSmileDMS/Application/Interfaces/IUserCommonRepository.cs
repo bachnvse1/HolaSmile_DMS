@@ -16,6 +16,7 @@ namespace Application.Interfaces
         Task<string> VerifyOtpAsync(VerifyOtpCommand otp);
         Task<string> ResetPasswordAsync(ForgotPasswordCommand request);
         Task<User?> GetUserByPhoneAsync(string phone);
+        Task<User?> GetUserByEmailAsync(string email);
         public Task<User> GetByUsernameAsync(string username, CancellationToken cancellationToken);
         Task<User?> GetByEmailAsync(string email);
         Task<bool> EditProfileAsync(User user, CancellationToken cancellationToken);
@@ -23,5 +24,6 @@ namespace Application.Interfaces
         Task<UserRoleResult?> GetUserRoleAsync(string username, CancellationToken cancellationToken);
         Task<User?> GetByIdAsync(int userId, CancellationToken cancellationToken);
         Task<List<ViewListPatientDto>> GetAllPatientsAsync(CancellationToken cancellationToken);
+        Task<List<Receptionist>> GetAllReceptionistAsync();
     }
 }
