@@ -11,7 +11,6 @@ namespace Application.Interfaces
         Task<Patient> GetPatientByUserIdAsync(int userId);
         Task<bool> UpdatePatientInforAsync(Patient patient);
         Task<Patient> CheckEmailPatientAsync(string email);
-        Task<List<RawPatientDto>> GetAllPatientsAsync(CancellationToken cancellationToken);
         Task<List<ViewListPatientDto>> GetAllPatientsAsync(CancellationToken cancellationToken);
     }
 }

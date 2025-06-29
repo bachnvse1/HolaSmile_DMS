@@ -39,7 +39,7 @@ namespace Application.Usecases.Receptionist.EditPatientInformation
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
             }
 
-            var patient = await _patientRepository.GetPatientByIdAsync(request.PatientID);
+            var patient = await _patientRepository.GetPatientByPatientIdAsync(request.PatientID);
             if (patient == null)
             {
                 throw new KeyNotFoundException(MessageConstants.MSG.MSG27); // "Không tìm thấy hồ sơ bệnh nhân"

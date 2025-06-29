@@ -84,7 +84,7 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
             var appointment = await _appointmentRepository.GetAppointmentByIdAsync(record.AppointmentID);
             if (appointment != null)
             {
-                var patient = await _patientRepository.GetPatientByIdAsync(appointment.PatientId ?? 0);
+                var patient = await _patientRepository.GetPatientByPatientIdAsync(appointment.PatientId ?? 0);
                 if (patient != null)
                 {
                     int userIdNotification = patient.UserID ?? 0;
