@@ -69,8 +69,6 @@ namespace HDMS_API.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return user;
         }
-
-
         public async Task<bool> SendPasswordForGuestAsync(string email)
         {
             if(email.IsNullOrEmpty() || !FormatHelper.IsValidEmail(email))
@@ -79,7 +77,6 @@ namespace HDMS_API.Infrastructure.Repositories
             }
             return await _emailService.SendPasswordAsync(email, "123456"); ;
         }
-
         public async Task<bool> SendOtpEmailAsync(string toEmail)
         {
             if (FormatHelper.IsValidEmail(toEmail) == false)
@@ -102,7 +99,6 @@ namespace HDMS_API.Infrastructure.Repositories
 
             return true;
         }
-
         public async Task<bool> ResendOtpAsync(string toEmail)
         {
             if(_memoryCache.TryGetValue($"otp:{toEmail}", out RequestOtpDto cachedOtp))
@@ -121,7 +117,6 @@ namespace HDMS_API.Infrastructure.Repositories
                 throw new Exception(MessageConstants.MSG.MSG78); // Gửi mã OTP không thành công
             }
         }
-
         public async Task<string> VerifyOtpAsync(VerifyOtpCommand otp)
         {
             if (_memoryCache.TryGetValue($"otp:{otp.Email}", out RequestOtpDto cachedOtp))
@@ -178,10 +173,14 @@ namespace HDMS_API.Infrastructure.Repositories
         {
             return await _context.Users.FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
         }
-
         public Task<User?> GetUserByPhoneAsync(string phone)
         {
             var user = _context.Users.FirstOrDefaultAsync(u => u.Phone == phone);
+            return user;
+        }
+        public Task<User?> GetUserByEmailAsync(string email)
+        {
+            var user = _context.Users.FirstOrDefaultAsync(u => u.Phone == email);
             return user;
         }
 
@@ -195,10 +194,14 @@ namespace HDMS_API.Infrastructure.Repositories
             await _context.SaveChangesAsync(cancellationToken);
             return true;
         }
-
         public async Task<User?> GetByIdAsync(int userId, CancellationToken cancellationToken)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId, cancellationToken);
+        }
+
+        public async Task<List<Receptionist>> GetAllReceptionistAsync()
+        {
+            return await _context.Receptionists.Include(r => r.User).ToListAsync();
         }
 
         public Task<List<ViewListPatientDto>> GetAllPatientsAsync(CancellationToken cancellationToken)
