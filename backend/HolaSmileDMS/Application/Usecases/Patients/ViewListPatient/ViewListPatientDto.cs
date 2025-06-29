@@ -1,6 +1,6 @@
-﻿namespace Application.Usecases.UserCommon.ViewListPatient
+﻿namespace Application.Usecases.Patients.ViewListPatient
 {
-    public class RawPatientDto
+    public class ViewListPatientDto
     {
         public int UserId { get; set; }
         public int PatientId { get; set; }

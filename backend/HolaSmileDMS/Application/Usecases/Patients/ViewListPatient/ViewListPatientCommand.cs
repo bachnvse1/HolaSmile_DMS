@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Application.Usecases.UserCommon.ViewListPatient
+namespace Application.Usecases.Patients.ViewListPatient
 {
     public class ViewListPatientCommand : IRequest<List<ViewListPatientDto>>
     {
