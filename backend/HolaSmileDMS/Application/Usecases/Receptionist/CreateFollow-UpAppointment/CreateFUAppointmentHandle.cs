@@ -39,22 +39,27 @@ namespace Application.Usecases.Receptionist.CreateFollow_UpAppointment
             {
                 return "Bác sĩ không tồn tại"; // "Bác sĩ không tồn tại"
             }
-            if(await _patientRepository.GetPatientByIdAsync(request.PatientId) == null)
+            if(await _patientRepository.GetPatientByUserIdAsync(request.PatientId) == null)
             {
                 return "Bệnh nhân không tồn tại"; // "Bệnh nhân không tồn tại"
+            }
+            var checkValidAppointment = await _appointmentRepository.GetLatestAppointmentByPatientIdAsync(request.PatientId);
+            if(checkValidAppointment.Status == "confirmed")
+            {
+                throw new Exception(MessageConstants.MSG.MSG89); // "Kế hoạch điều trị đã tồn tại"
             }
 
             var appointment = new Appointment
             {
                 PatientId = request.PatientId,
                 DentistId = request.DentistId,
-                Status = "pending",
+                Status = "confirmed",
                 Content = request.ReasonForFollowUp,
                 IsNewPatient = false,
-                AppointmentType = "",
+                AppointmentType = "follow-up",
                 AppointmentDate = request.AppointmentDate,
                 AppointmentTime = request.AppointmentTime,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
                 CreatedBy = currentUserId,
                 IsDeleted = false
             };

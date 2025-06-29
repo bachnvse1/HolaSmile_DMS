@@ -92,5 +92,7 @@ public static class MessageConstants
         public const string MSG86 = "Thời lượng phải lớn hơn 0.";
         public const string MSG87 = "Trạng thái không được vượt quá 255 ký tự.";
         public const string MSG88 = "Số lượng không hợp lệ.";
+        public const string MSG89 = "Bạn đã đăng ký lịch khám trước đó rồi.";
+        public const string MSG90 = "Số điện thoại đã được đăng ký tài khoản";
     }
 }

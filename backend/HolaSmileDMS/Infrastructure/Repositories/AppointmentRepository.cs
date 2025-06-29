@@ -87,13 +87,11 @@ namespace HDMS_API.Infrastructure.Repositories
             var result = await _context.Appointments.AnyAsync(a => a.AppointmentId == appId && a.Patient.User.UserID == userId);
             return result;
         }
-
         public async Task<bool> CheckDentistAppointmentByUserIdAsync(int appId, int userId)
         {
             var result = await _context.Appointments.AnyAsync(a => a.AppointmentId == appId && a.Dentist.User.UserID == userId);
             return result;
         }
-
         public async Task<bool> ExistsAppointmentAsync(int patientId, DateTime date)
         {
             return await _context.Appointments
@@ -101,5 +99,20 @@ namespace HDMS_API.Infrastructure.Repositories
                         && a.AppointmentDate.Date == date.Date
                         && a.Status != "cancel");
         }
+        public async Task<Appointment?> GetLatestAppointmentByPatientIdAsync(int patientId)
+        {
+            return await _context.Appointments
+                .OrderByDescending(a => a.AppointmentDate)
+                .ThenByDescending(a => a.AppointmentTime)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> UpdateAppointmentAsync(Appointment appointment)
+        {
+            _context.Appointments.Update(appointment);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
     }
 }

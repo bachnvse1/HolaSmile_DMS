@@ -48,10 +48,8 @@ export class AuthService {
     }
   }  static async fetchUserProfile(): Promise<EnhancedUserInfo> {
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('authToken');
-      const userId = token ? TokenUtils.getUserIdFromToken(token) : null;
       console.log('[AuthService] Fetching user profile...');
-      const response = await axiosInstance.get(`/user/profile/${userId}`);
+      const response = await axiosInstance.get(`/user/profile`);
       console.log('[AuthService] Profile response:', response.data);
       return response.data;
     } catch (error) {

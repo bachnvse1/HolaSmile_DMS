@@ -1,5 +1,6 @@
-﻿using Application.Constants;
+using Application.Constants;
 using Application.Usecases.Receptionist.EditPatientInformation;
+using Application.Usecases.Dentist.ViewListReceptionistName;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -59,6 +60,15 @@ namespace HDMS_API.Controllers
                     Stack = ex.StackTrace
                 });
             }
+        }
+        /// <summary>
+        /// Get all receptionists (name + id)
+        /// </summary>
+        [HttpGet("listPatientsName")]
+        public async Task<IActionResult> listPatientsName(CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new ViewReceptionistListCommand(), cancellationToken);
+            return Ok(result);
         }
     }
 }

@@ -22,7 +22,7 @@ public class CreateTreatmentProgressHandlerTests
             Status = "InProgress",
             Duration = 30,
             Description = "Chi tiết",
-            EndTime = DateTime.UtcNow.AddHours(1),
+            EndTime = DateTime.Now.AddHours(1),
             Note = "Ghi chú"
         }
     };
@@ -171,7 +171,7 @@ public class CreateTreatmentProgressHandlerTests
     public async System.Threading.Tasks.Task UTCID08_EndTimeInPast_ShouldThrow()
     {
         var cmd = GetValidCommand();
-        cmd.ProgressDto.EndTime = DateTime.UtcNow.AddMinutes(-10);
+        cmd.ProgressDto.EndTime = DateTime.Now.AddMinutes(-10);
         var (handler, _, _) = SetupHandler("Dentist", 1, cmd);
         var ex = await Assert.ThrowsAsync<ArgumentException>(() => handler.Handle(cmd, default));
         Assert.Contains(MessageConstants.MSG.MSG84, ex.Message);

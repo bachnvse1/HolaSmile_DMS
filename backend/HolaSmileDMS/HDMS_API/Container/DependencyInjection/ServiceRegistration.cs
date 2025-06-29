@@ -16,7 +16,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 
-namespace HDMS_API.DependencyInjection
+namespace HDMS_API.Container.DependencyInjection
 {
     public static class ServiceRegistration
     {
@@ -43,6 +43,10 @@ namespace HDMS_API.DependencyInjection
             services.AddScoped<ITreatmentProgressRepository, TreatmentProgressRepository>();
             services.AddScoped<ITreatmentProgressRepository, TreatmentProgressRepository>();
             services.AddScoped<INotificationsRepository, NotificationsRepository>();
+            services.AddScoped<IProcedureRepository, ProcedureRepository>();
+            services.AddScoped<IReceptionistRepository, ReceptionistRepository>();
+            services.AddScoped<IFileStorageService, FileStorageService>();
+
             
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>

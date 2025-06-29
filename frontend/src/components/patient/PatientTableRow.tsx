@@ -10,7 +10,8 @@ import { Phone, Mail, MoreHorizontal } from "lucide-react"
 import type { Patient } from "@/types/patient"
 import { Link } from "react-router"
 import { formatDateWithDay } from "@/utils/dateUtils"
-
+import { useState } from "react"
+import { useNavigate } from "react-router"
 interface Props {
     patient: Patient
     index: number
@@ -18,14 +19,13 @@ interface Props {
 
 export default function PatientTableRow({ patient, index }: Props) {
     const rowBg = index % 2 === 0 ? "bg-white" : "bg-gray-50"
-
+    const navigate = useNavigate();
     return (
         <tr
             className={`shadow-sm ${rowBg} hover:bg-gray-100 transition-colors duration-200`}
             style={{ boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)" }}
         >
             <td className="p-4 first:rounded-l-md">{patient.fullname}</td>
-
             <td className="p-4">
                 <Badge
                     className={
@@ -37,11 +37,7 @@ export default function PatientTableRow({ patient, index }: Props) {
                     {patient.gender === "Male" ? "Nam" : "Nữ"}
                 </Badge>
             </td>
-
-            <td className="p-4 text-sm">
-                {formatDateWithDay(patient.dob)}
-            </td>
-
+            <td className="p-4 text-sm">{formatDateWithDay(patient.dob)}</td>
             <td className="p-4">
                 <div className="space-y-1 text-sm">
                     <div className="flex items-center gap-1">
@@ -54,15 +50,13 @@ export default function PatientTableRow({ patient, index }: Props) {
                     </div>
                 </div>
             </td>
-
             <td className="p-4">
                 <Button asChild variant="outline" size="sm">
-                    <Link to={`/patient/view-treatment-records?userId=${patient.userId}`}>
+                    <Link to={`/patient/view-treatment-records?userId=${patient.userId}&patientId=${patient.patientId}`}>
                         Xem Hồ Sơ Điều Trị
                     </Link>
                 </Button>
             </td>
-
             <td className="p-4 last:rounded-r-md">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -76,6 +70,11 @@ export default function PatientTableRow({ patient, index }: Props) {
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                             <Link to={`/edit-patient/${patient.userId}`}>Chỉnh Sửa Bệnh Nhân</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            onClick={() => navigate(`/patient/follow-up?patientId=${patient.patientId}`)}
+                        >
+                            Tạo Lịch Tái Khám
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

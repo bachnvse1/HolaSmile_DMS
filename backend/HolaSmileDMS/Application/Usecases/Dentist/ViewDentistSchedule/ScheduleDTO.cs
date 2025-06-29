@@ -12,6 +12,7 @@ namespace Application.Usecases.Dentist.ViewAllDentistSchedule
         public string DentistName { get; set; } 
         public DateTime WorkDate { get; set; }
         public string Shift { get; set; } // e.g., "Morning", "Afternoon", "Evening"
+        public string Status { get; set; } // e.g., "approved", "pending", "rejected" 
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
     }

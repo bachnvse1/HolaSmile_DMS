@@ -1,5 +1,5 @@
 ﻿using Application.Constants;
-using Application.Usecases.UserCommon.ViewListPatient;
+using Application.Usecases.Patients.ViewListPatient;
 using HDMS_API.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

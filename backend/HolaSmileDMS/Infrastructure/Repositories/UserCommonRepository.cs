@@ -1,11 +1,12 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.UserCommon.ViewListPatient;
+using Application.Usecases.Patients.ViewListPatient;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Common.Helpers;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
+using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -61,15 +62,13 @@ namespace HDMS_API.Infrastructure.Repositories
                 Email = dto .Email,
                 IsVerify = true,
                 Status = true ,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
                 CreatedBy = dto.CreatedBy 
             };
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
             return user;
         }
-
-
         public async Task<bool> SendPasswordForGuestAsync(string email)
         {
             if(email.IsNullOrEmpty() || !FormatHelper.IsValidEmail(email))
@@ -78,7 +77,6 @@ namespace HDMS_API.Infrastructure.Repositories
             }
             return await _emailService.SendPasswordAsync(email, "123456"); ;
         }
-
         public async Task<bool> SendOtpEmailAsync(string toEmail)
         {
             if (FormatHelper.IsValidEmail(toEmail) == false)
@@ -97,11 +95,10 @@ namespace HDMS_API.Infrastructure.Repositories
                 Otp = OtpCode,
                 ExpiryTime = DateTime.Now.AddMinutes(2)
             };
-            _memoryCache.Set($"otp:{toEmail}", otp, otp.ExpiryTime - DateTime.UtcNow);
+            _memoryCache.Set($"otp:{toEmail}", otp, otp.ExpiryTime - DateTime.Now);
 
             return true;
         }
-
         public async Task<bool> ResendOtpAsync(string toEmail)
         {
             if(_memoryCache.TryGetValue($"otp:{toEmail}", out RequestOtpDto cachedOtp))
@@ -120,7 +117,6 @@ namespace HDMS_API.Infrastructure.Repositories
                 throw new Exception(MessageConstants.MSG.MSG78); // Gửi mã OTP không thành công
             }
         }
-
         public async Task<string> VerifyOtpAsync(VerifyOtpCommand otp)
         {
             if (_memoryCache.TryGetValue($"otp:{otp.Email}", out RequestOtpDto cachedOtp))
@@ -160,7 +156,7 @@ namespace HDMS_API.Infrastructure.Repositories
                     throw new Exception(MessageConstants.MSG.MSG16);
                 }
                 user.Password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
-                    user.UpdatedAt = DateTime.UtcNow;
+                    user.UpdatedAt = DateTime.Now;
                     user.UpdatedBy = user.UserID;
                     _context.Users.Update(user);
                     _context.SaveChanges();
@@ -177,10 +173,14 @@ namespace HDMS_API.Infrastructure.Repositories
         {
             return await _context.Users.FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
         }
-
         public Task<User?> GetUserByPhoneAsync(string phone)
         {
             var user = _context.Users.FirstOrDefaultAsync(u => u.Phone == phone);
+            return user;
+        }
+        public Task<User?> GetUserByEmailAsync(string email)
+        {
+            var user = _context.Users.FirstOrDefaultAsync(u => u.Phone == email);
             return user;
         }
 
@@ -194,10 +194,14 @@ namespace HDMS_API.Infrastructure.Repositories
             await _context.SaveChangesAsync(cancellationToken);
             return true;
         }
-
         public async Task<User?> GetByIdAsync(int userId, CancellationToken cancellationToken)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId, cancellationToken);
+        }
+
+        public async Task<List<Receptionist>> GetAllReceptionistAsync()
+        {
+            return await _context.Receptionists.Include(r => r.User).ToListAsync();
         }
 
         public Task<List<ViewListPatientDto>> GetAllPatientsAsync(CancellationToken cancellationToken)
@@ -223,37 +227,37 @@ namespace HDMS_API.Infrastructure.Repositories
                 })
                 .FirstOrDefaultAsync(cancellationToken);
         }
-        public async Task<string?> GetUserRoleAsync(string username, CancellationToken cancellationToken)
+        public async Task<UserRoleResult?> GetUserRoleAsync(
+            string username,
+            CancellationToken cancellationToken)
         {
-            var userExist = await GetByUsernameAsync(username, cancellationToken);
-            if (userExist == null) return null;
+            var user = await GetByUsernameAsync(username, cancellationToken);
+            if (user == null) return null;
 
-            var result =  await _context.Set<UserRoleResult>()
-                .FromSqlInterpolated($@"
-                    SELECT 'Administrator' as Role FROM Administrators WHERE UserId = {userExist.UserID}
-                    UNION ALL
-                    SELECT 'Assistant' FROM Assistants WHERE UserId = {userExist.UserID}
-                    UNION ALL
-                    SELECT 'Dentist' FROM Dentists WHERE UserId = {userExist.UserID}
-                    UNION ALL
-                    SELECT 'Owner' FROM Owners WHERE UserId = {userExist.UserID}
-                    UNION ALL
-                    SELECT 'Patient' FROM Patients WHERE UserId = {userExist.UserID}
-                    UNION ALL
-                    SELECT 'Receptionist' FROM Receptionists WHERE UserId = {userExist.UserID}
-                    LIMIT 1
-                ")
+            string sql = $@"
+        SELECT AdministratorId AS RoleTableId, 'Administrator' AS Role
+        FROM   Administrators   WHERE UserId = {user.UserID}
+        UNION ALL
+        SELECT AssistantId,     'Assistant'
+        FROM   Assistants       WHERE UserId = {user.UserID}
+        UNION ALL
+        SELECT DentistId,       'Dentist'
+        FROM   Dentists         WHERE UserId = {user.UserID}
+        UNION ALL
+        SELECT OwnerId,         'Owner'
+        FROM   Owners           WHERE UserId = {user.UserID}
+        UNION ALL
+        SELECT PatientID,       'Patient'
+        FROM   Patients         WHERE UserId = {user.UserID}
+        UNION ALL
+        SELECT ReceptionistId,  'Receptionist'
+        FROM   Receptionists    WHERE UserId = {user.UserID}
+        LIMIT 1";
+
+            return await _context.Set<UserRoleResult>()
+                .FromSqlRaw(sql)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(cancellationToken);
-
-            return result?.Role;
         }
-
-
-
-    }
-    public class UserRoleResult
-    {
-        public string Role { get; set; }
     }
 }

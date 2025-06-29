@@ -22,7 +22,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   onAppointmentClick
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'confirm' | 'canceled'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'confirmed' | 'canceled'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5); // Make it configurable
   const { role } = useAuth();
@@ -33,14 +33,27 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   const treatmentFormMethods = useForm<TreatmentFormData>();
 
 
-  // const getStatusColor = (status: 'confirm' | 'canceled') => {
-  //   return status === 'confirm'
+  // const getStatusColor = (status: 'confirmed' | 'canceled') => {
+  //   return status === 'confirmed'
   //     ? 'bg-green-100 text-green-800'
   //     : 'bg-red-100 text-red-800';
   // };
 
-  const getStatusText = (status: 'confirm' | 'canceled') => {
-    return status === 'confirm' ? 'Đã xác nhận' : 'Đã hủy';
+  const getStatusText = (
+    status: 'confirmed' | 'canceled' | 'attended' | 'absented'
+  ) => {
+    switch (status) {
+      case 'confirmed':
+        return 'Đã xác nhận';
+      case 'canceled':
+        return 'Đã hủy';
+      case 'attended':
+        return 'Đã đến';
+      case 'absented':
+        return 'Vắng';
+      default:
+        return status;
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -90,13 +103,14 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
       }
 
       const now = new Date();
+      // Ưu tiên lịch tương lai lên trước
+      const isAFuture = dateA >= now;
+      const isBFuture = dateB >= now;
+      if (isAFuture && !isBFuture) return -1;
+      if (!isAFuture && isBFuture) return 1;
 
-      // Calculate absolute difference from current time
-      const diffA = Math.abs(dateA.getTime() - now.getTime());
-      const diffB = Math.abs(dateB.getTime() - now.getTime());
-
-      // Sort by closest to current time (smallest difference first)
-      return diffA - diffB;
+      // Nếu cùng nhóm (đều tương lai hoặc đều quá khứ), sắp xếp gần hiện tại nhất
+      return Math.abs(dateA.getTime() - now.getTime()) - Math.abs(dateB.getTime() - now.getTime());
     } catch (error) {
       console.error('Error sorting appointments:', error, { a, b });
       return 0; // Keep original order if parsing fails
@@ -132,8 +146,10 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   };
 
   // Group appointments by status for summary
-  const confirmedCount = filteredAppointments.filter(a => a.status === 'confirm').length;
+  const confirmedCount = filteredAppointments.filter(a => a.status === 'confirmed').length;
   const cancelledCount = filteredAppointments.filter(a => a.status === 'canceled').length;
+  const attendedCount = filteredAppointments.filter(a => a.status === 'attended').length;
+  const absentedCount = filteredAppointments.filter(a => a.status === 'absented').length;
   return (
     <div className="space-y-6">
       {/* Header & Filters */}
@@ -146,16 +162,16 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
               <CardContent className="p-4">
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-blue-500 rounded-lg">
+                  <div className="p-2 bg-yellow-500 rounded-lg">
                     <Calendar className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-blue-700">Tổng lịch hẹn</p>
-                    <p className="text-2xl font-bold text-blue-900">{filteredAppointments.length}</p>
+                    <p className="text-sm font-medium text-yellow-700">Tổng lịch hẹn</p>
+                    <p className="text-2xl font-bold text-yellow-900">{filteredAppointments.length}</p>
                   </div>
                 </div>
               </CardContent>
@@ -188,6 +204,33 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                 </div>
               </CardContent>
             </Card>
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-blue-400 rounded-lg">
+                    <Calendar className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-blue-700">Đã đến</p>
+                    <p className="text-2xl font-bold text-blue-900">{attendedCount}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200">
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-gray-500 rounded-lg">
+                    <Calendar className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Vắng</p>
+                    <p className="text-2xl font-bold text-gray-900">{absentedCount}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Search & Filter */}
@@ -207,13 +250,15 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
               <Filter className="h-4 w-4 text-gray-400" />
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'confirm' | 'canceled')}
+                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'confirmed' | 'canceled')}
                 className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 title="Lọc theo trạng thái"
               >
                 <option value="all">Tất cả trạng thái</option>
-                <option value="confirm">Đã xác nhận</option>
+                <option value="confirmed">Đã xác nhận</option>
                 <option value="canceled">Đã hủy</option>
+                <option value="attended">Đã đến</option>
+                <option value="absented">Vắng</option>
               </select>
             </div>
           </div>
@@ -231,17 +276,26 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-3">
                   <Badge
-                    variant={appointment.status === 'confirm' ? 'success' : 'destructive'}
+                    variant={
+                      appointment.status === 'confirmed'
+                        ? 'success'
+                        : appointment.status === 'canceled'
+                          ? 'destructive'
+                          : appointment.status === 'attended'
+                            ? 'info'
+                            : 'secondary'
+                    }
                     className="text-xs font-medium"
                   >
                     {getStatusText(appointment.status)}
-                  </Badge>                    {appointment.isNewPatient && (
+                  </Badge>
+                  {appointment.isNewPatient && (
                     <Badge variant="info" className="text-xs font-medium">
                       Bệnh nhân mới
                     </Badge>
                   )}
                   {/* Show cancellation warning for Patient */}
-                  {role === 'Patient' && appointment.status === 'confirm' &&
+                  {role === 'Patient' && appointment.status === 'confirmed' &&
                     !isAppointmentCancellable(appointment.appointmentDate, appointment.appointmentTime) && (
                       <Badge variant="warning" className="text-xs font-medium flex items-center">
                         <AlertTriangle className="h-3 w-3 mr-1" />
@@ -319,7 +373,15 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 font-medium">Loại hẹn</p>
-                    <p className="font-semibold text-gray-900">{appointment.appointmentType}</p>
+                    <p className="font-semibold text-gray-900">
+                      {appointment.appointmentType === 'follow-up'
+                        ? 'Tái khám'
+                        : appointment.appointmentType === 'consult'
+                          ? 'Tư vấn'
+                          : appointment.appointmentType === 'treatment'
+                            ? 'Điều trị'
+                            : appointment.appointmentType}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -338,7 +400,8 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                     <span> • Cập nhật: {formatDate(appointment.updatedAt)}</span>
                   )}
                 </p>
-              </div>              </CardContent>
+              </div>
+            </CardContent>
           </Card>
         ))
       )}
