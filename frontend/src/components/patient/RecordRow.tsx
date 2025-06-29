@@ -10,6 +10,7 @@ interface RecordRowProps {
   onEdit: (record: TreatmentRecord) => void
   onToggleDelete: (id: number) => void
   patientId: number
+  readonly?: boolean
 }
 
 const getStatusColor = (status: string) => {
@@ -42,7 +43,7 @@ const getVietnameseStatus = (status: string) => {
   }
 }
 
-const RecordRow: React.FC<RecordRowProps> = ({ record, onEdit, onToggleDelete, patientId }) => {
+const RecordRow: React.FC<RecordRowProps> = ({ record, onEdit, onToggleDelete, patientId, readonly }) => {
   return (
     <tr className={`hover:bg-gray-50 ${record.isDeleted ? "opacity-50 bg-gray-50" : ""}`}>
       <td className="px-6 py-4 whitespace-nowrap">
@@ -115,36 +116,37 @@ const RecordRow: React.FC<RecordRowProps> = ({ record, onEdit, onToggleDelete, p
       </td>
 
       <td className="px-6 py-4 whitespace-nowrap">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => onEdit(record)}
-            className="bg-white border border-gray-300 text-gray-700 px-2 py-1 rounded-md text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-1"
-          >
-            <Edit className="h-3 w-3" />
-            Sửa
-          </button>
-          <button
-            onClick={() => onToggleDelete(record.treatmentRecordID)}
-            className={`bg-white border px-2 py-1 rounded-md text-sm font-medium focus:outline-none focus:ring-2 flex items-center gap-1 ${
-              record.isDeleted
+        {!readonly && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onEdit(record)}
+              className="bg-white border border-gray-300 text-gray-700 px-2 py-1 rounded-md text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-1"
+            >
+              <Edit className="h-3 w-3" />
+              Sửa
+            </button>
+            <button
+              onClick={() => onToggleDelete(record.treatmentRecordID)}
+              className={`bg-white border px-2 py-1 rounded-md text-sm font-medium focus:outline-none focus:ring-2 flex items-center gap-1 ${record.isDeleted
                 ? "border-green-300 text-green-700 hover:bg-green-50 focus:ring-green-500"
                 : "border-red-300 text-red-700 hover:bg-red-50 focus:ring-red-500"
-            }`}
-          >
-            <X className="h-3 w-3" />
-            {record.isDeleted ? "Khôi phục" : "Xoá"}
-          </button>
-          <Button
-            asChild
-            variant="outline"
-            className="text-blue-600 border-blue-300 hover:bg-blue-50 flex items-center gap-1"
-          >
-            <Link to={`/patient/view-treatment-progress/${record.treatmentRecordID}?patientId=${patientId}&dentistId=${record.dentistID}`}>
-              <BarChart2 className="h-3 w-3" />
-              Tiến độ
-            </Link>
-          </Button>
-        </div>
+                }`}
+            >
+              <X className="h-3 w-3" />
+              {record.isDeleted ? "Khôi phục" : "Xoá"}
+            </button>
+            <Button
+              asChild
+              variant="outline"
+              className="text-blue-600 border-blue-300 hover:bg-blue-50 flex items-center gap-1"
+            >
+              <Link to={`/patient/view-treatment-progress/${record.treatmentRecordID}?patientId=${patientId}&dentistId=${record.dentistID}`}>
+                <BarChart2 className="h-3 w-3" />
+                Tiến độ
+              </Link>
+            </Button>
+          </div>
+        )}
       </td>
     </tr>
   )
