@@ -19,5 +19,18 @@ namespace Infrastructure.Repositories
             var result = await _context.SaveChangesAsync(cancellationToken);
             return result > 0;
         }
+
+        public async Task<Task?> GetTaskByIdAsync(int taskId, CancellationToken cancellationToken)
+        {
+            return await _context.Tasks
+                .Include(t => t.TreatmentProgress)
+                    .ThenInclude(tp => tp.TreatmentRecord)
+                        .ThenInclude(tr => tr.Procedure)
+                .Include(t => t.TreatmentProgress)
+                    .ThenInclude(tp => tp.TreatmentRecord)
+                        .ThenInclude(tr => tr.Dentist)
+                            .ThenInclude(d => d.User)
+                .FirstOrDefaultAsync(t => t.TaskID == taskId, cancellationToken);
+        }
     }
 }
