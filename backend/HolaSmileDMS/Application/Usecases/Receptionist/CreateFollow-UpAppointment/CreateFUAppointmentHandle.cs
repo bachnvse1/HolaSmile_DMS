@@ -63,8 +63,7 @@ namespace Application.Usecases.Receptionist.CreateFollow_UpAppointment
                 CreatedBy = currentUserId,
                 IsDeleted = false
             };
-            bool already = await _appointmentRepository.ExistsAppointmentAsync(request.PatientId, request.AppointmentDate);
-            if (already) throw new Exception(MessageConstants.MSG.MSG74);
+
             var isbookappointment = await _appointmentRepository.CreateAppointmentAsync(appointment);
             return isbookappointment ? MessageConstants.MSG.MSG05 : MessageConstants.MSG.MSG58;
         }
