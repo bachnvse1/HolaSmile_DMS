@@ -36,4 +36,8 @@
     <ProjectReference Include="..\Application\Application.csproj" />
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Integration\Application\Usecases\Admintrator\" />
+  </ItemGroup>
 </Project>

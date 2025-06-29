@@ -4,6 +4,7 @@ using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using Application.Usecases.Patients.ViewListPatient;
 using HDMS_API.Application.Usecases.UserCommon.Login;
+using Application.Usecases.Admintrator;
 
 namespace Application.Interfaces
 {
@@ -25,5 +26,6 @@ namespace Application.Interfaces
         Task<User?> GetByIdAsync(int userId, CancellationToken cancellationToken);
         Task<List<ViewListPatientDto>> GetAllPatientsAsync(CancellationToken cancellationToken);
         Task<List<Receptionist>> GetAllReceptionistAsync();
+        Task<List<ViewListUserDTO>> GetAllUserAsync();
     }
 }
