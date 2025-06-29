@@ -48,12 +48,6 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
       ? bookFUAppointment
       : bookAppointment;
 
-  // Tạo time slots với icon cho SelectedAppointmentInfo
-  const timeSlotsWithIcons: TimeSlot[] = TIME_SLOTS.map(slot => ({
-    ...slot,
-    icon: <Clock className="h-4 w-4" />
-  }));
-
   // Kiểm tra quyền đặt lịch
   const canBookAppointment = mode === 'book' && (!isAuthenticated || role === 'Patient' || role === 'Receptionist');
 
@@ -80,8 +74,8 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
       timeString = '08:00:00';
       appointmentDate.setHours(8, 0, 0, 0);
     } else if (selectedTimeSlot === 'afternoon') {
-      timeString = '13:00:00';
-      appointmentDate.setHours(13, 0, 0, 0);
+      timeString = '14:00:00';
+      appointmentDate.setHours(14, 0, 0, 0);
     } else if (selectedTimeSlot === 'evening') {
       timeString = '17:00:00';
       appointmentDate.setHours(17, 0, 0, 0);
@@ -199,7 +193,6 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
             selectedDentist={selectedDentist}
             selectedDate={selectedDate}
             selectedTimeSlot={selectedTimeSlot}
-            timeSlotsWithIcons={timeSlotsWithIcons}
           />
 
           {/* Action Buttons */}

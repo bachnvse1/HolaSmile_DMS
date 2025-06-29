@@ -7,9 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Pencil, Trash2, Plus, FileText, Layers, User, CalendarDays, BadgeCheck, Settings2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { StaffLayout } from '../layouts/staff/StaffLayout';
-import { useAuth } from '../hooks/useAuth';
 import { AuthGuard } from '../components/AuthGuard';
 import type { OrthodonticTreatmentPlan } from '../types/orthodontic';
+import { useUserInfo } from '@/hooks/useUserInfo';
 
 // Dữ liệu mẫu
 const MOCK_PLANS: OrthodonticTreatmentPlan[] = [
@@ -37,18 +37,9 @@ const MOCK_PLANS: OrthodonticTreatmentPlan[] = [
 ];
 
 export default function OrthodonticTreatmentPlansPage() {
-    const { username, role, userId } = useAuth();
     const navigate = useNavigate();
     const { patientId } = useParams();
-
-    // Create userInfo object for StaffLayout
-    const userInfo = {
-        id: userId || '',
-        name: username || 'User',
-        email: '',
-        role: role || '',
-        avatar: undefined
-    };
+    const userInfo = useUserInfo();
 
     const [plans, setPlans] = useState<OrthodonticTreatmentPlan[]>(MOCK_PLANS);
 

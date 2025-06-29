@@ -5,44 +5,34 @@ import { Badge } from '../ui/badge';
 import { CancelAppointmentDialog } from './CancelAppointmentDialog';
 import { useAuth } from '../../hooks/useAuth';
 import { isAppointmentCancellable, getTimeUntilAppointment } from '../../utils/appointmentUtils';
-import type { AppointmentDTO } from '../../types/appointment';
+import type { AppointmentDTO, Dentist } from '../../types/appointment';
 import { Link, useParams } from 'react-router';
+import { EditAppointmentDialog } from './EditAppointmentDialog';
 
 interface AppointmentDetailModalProps {
   appointment: AppointmentDTO | null;
   isOpen: boolean;
   onClose: () => void;
+  dentists: Dentist[];
 }
 
 export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
   appointment,
   isOpen,
-  onClose
+  onClose,
+  dentists
 }) => {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const { role } = useAuth();
   const { patientId } = useParams<{ patientId: string }>();
   if (!isOpen || !appointment) return null;
-  // Debug logging
-  console.log('AppointmentDetailModal - Appointment data:', {
-    appointmentDate: appointment.appointmentDate,
-    appointmentTime: appointment.appointmentTime,
-    status: appointment.status,
-    now: new Date().toISOString()
-  });
 
   const canCancelAppointment = role === 'Patient' &&
     appointment.status === 'confirmed' &&
     isAppointmentCancellable(appointment.appointmentDate, appointment.appointmentTime);
 
   const timeUntilAppointment = getTimeUntilAppointment(appointment.appointmentDate, appointment.appointmentTime);
-
-  console.log('AppointmentDetailModal - Cancellation check:', {
-    role,
-    status: appointment.status,
-    canCancelAppointment,
-    timeUntilAppointment
-  });
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('vi-VN', {
@@ -190,11 +180,13 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
                 <p className="font-semibold text-gray-900">
                   {appointment.appointmentType === 'follow-up'
                     ? 'Tái khám'
-                    : appointment.appointmentType === 'consult'
+                    : appointment.appointmentType === 'consultation'
                       ? 'Tư vấn'
                       : appointment.appointmentType === 'treatment'
                         ? 'Điều trị'
-                        : appointment.appointmentType}
+                        : appointment.appointmentType === 'first-time'
+                          ? 'Khám lần đầu '
+                          : appointment.appointmentType}
                 </p>
               </div>
             </div>
@@ -260,7 +252,7 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
             {role === 'Receptionist' && appointment.status === 'confirmed' && (
               <Button
                 variant="default"
-                onClick={() => setShowCancelDialog(true)}
+                onClick={() => setShowEditDialog(true)}
                 className="flex-1 ml-3"
               >
                 Cập nhật lịch hẹn
@@ -277,6 +269,20 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
           isOpen={showCancelDialog}
           onClose={() => setShowCancelDialog(false)}
           onSuccess={() => {
+            onClose();
+          }}
+        />
+      )}
+
+      {/* Edit Appointment Dialog */}
+      {showEditDialog && (
+        <EditAppointmentDialog
+          appointment={appointment}
+          isOpen={showEditDialog}
+          dentists={dentists}
+          onClose={() => setShowEditDialog(false)}
+          onSuccess={() => {
+            setShowEditDialog(false);
             onClose();
           }}
         />
