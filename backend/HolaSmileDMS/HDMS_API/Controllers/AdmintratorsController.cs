@@ -1,4 +1,6 @@
-﻿using Application.Usecases.Admintrator;
+﻿using Application.Constants;
+using Application.Usecases.Admintrator.CreateUser;
+using Application.Usecases.Admintrator.ViewListUser;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -35,5 +37,25 @@ namespace HDMS_API.Controllers
             }
         }
 
+        //[Authorize]
+        [HttpPost("create-user")]
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserCommand command, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var result = await _mediator.Send(command, cancellationToken);
+                return result ? Ok(MessageConstants.MSG.MSG21) : Conflict(MessageConstants.MSG.MSG76);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ex.Message,
+                    Inner = ex.InnerException?.Message,
+                    Stack = ex.StackTrace
+                });
+            }
+
+        }
     }
 }

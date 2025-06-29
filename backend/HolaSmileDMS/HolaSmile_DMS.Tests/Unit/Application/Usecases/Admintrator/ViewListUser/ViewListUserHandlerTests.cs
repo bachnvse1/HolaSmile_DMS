@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.Admintrator;
+using Application.Usecases.Admintrator.ViewListUser;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;

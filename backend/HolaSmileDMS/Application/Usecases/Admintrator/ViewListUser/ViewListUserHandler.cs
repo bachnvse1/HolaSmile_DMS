@@ -4,7 +4,7 @@ using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
-namespace Application.Usecases.Admintrator
+namespace Application.Usecases.Admintrator.ViewListUser
 {
     public class ViewListUserHandler : IRequestHandler<ViewListUserCommand, List<ViewListUserDTO>>
     {
