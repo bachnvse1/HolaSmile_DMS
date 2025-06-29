@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using Application.Interfaces;
+using Application.Usecases.SendNotification;
 
 namespace Application.Usecases.Dentist.CreateTreatmentProgress;
 
@@ -13,16 +14,20 @@ public class CreateTreatmentProgressHandler : IRequestHandler<CreateTreatmentPro
     private readonly IDentistRepository _dentistRepository;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IMapper _mapper;
+    private readonly IPatientRepository _patientRepository;
+    private readonly IMediator _mediator;
 
     public CreateTreatmentProgressHandler(
         ITreatmentProgressRepository repository,
         IHttpContextAccessor httpContextAccessor,
-        IMapper mapper, IDentistRepository dentistRepository)
+        IMapper mapper, IDentistRepository dentistRepository, IPatientRepository patientRepository, IMediator mediator)
     {
         _repository = repository;
         _httpContextAccessor = httpContextAccessor;
         _mapper = mapper;
         _dentistRepository = dentistRepository;
+        _patientRepository = patientRepository;
+        _mediator = mediator;
     }
 
     public async Task<string> Handle(CreateTreatmentProgressCommand request, CancellationToken cancellationToken)
@@ -33,7 +38,8 @@ public class CreateTreatmentProgressHandler : IRequestHandler<CreateTreatmentPro
 
         var role = user.FindFirstValue(ClaimTypes.Role);
         var userId = int.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
-
+        var fullName = user?.FindFirst(ClaimTypes.GivenName)?.Value;
+        
         if (role != "Dentist")
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Không có quyền
 
@@ -60,6 +66,22 @@ public class CreateTreatmentProgressHandler : IRequestHandler<CreateTreatmentPro
         progress.CreatedBy = userId;
 
         await _repository.CreateAsync(progress);
+        
+            var patient = await _patientRepository.GetPatientByPatientIdAsync(request.ProgressDto.PatientID);
+            if (patient != null)
+            {
+                int userIdNotification = patient.UserID ?? 0;
+                if (userIdNotification > 0)
+                {
+                    await _mediator.Send(new SendNotificationCommand(
+                        userIdNotification,
+                        "Tạo tiến trình điều trị",
+                        $"Tiến trình mới của thủ thuật #{request.ProgressDto.TreatmentRecordID}  của bạn đã được nha sĩ {fullName} tạo.",
+                        "Xem hồ sơ",
+                        0
+                    ), cancellationToken);
+                }
+            }
         return MessageConstants.MSG.MSG37; // Tạo kế hoạch điều trị thành công
     }
 
