@@ -226,7 +226,6 @@ export const BookAppointmentForm = () => {
             selectedDentist={selectedDentist}
             selectedDate={selectedDate}
             selectedTimeSlot={selectedTimeSlot}
-            timeSlotsWithIcons={timeSlotsWithIcons}
           />
         )}
 

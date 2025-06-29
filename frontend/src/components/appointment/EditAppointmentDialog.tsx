@@ -35,12 +35,6 @@ export const EditAppointmentDialog: React.FC<EditAppointmentDialogProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentWeek, setCurrentWeek] = useState(0);
 
-  const timeSlotsWithIcons = [
-    { label: 'Ca Sáng', period: 'morning', timeRange: '8:00 - 11:00', icon: <Clock className="h-4 w-4" /> },
-    { label: 'Ca Chiều', period: 'afternoon', timeRange: '14:00 - 17:00', icon: <Clock className="h-4 w-4" /> },
-    { label: 'Ca Tối', period: 'evening', timeRange: '17:00 - 20:00', icon: <Clock className="h-4 w-4" /> },
-  ] as const;
-
   React.useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -142,7 +136,6 @@ export const EditAppointmentDialog: React.FC<EditAppointmentDialogProps> = ({
                 selectedDentist={selectedDentist}
                 selectedDate={selectedDate}
                 selectedTimeSlot={selectedTimeSlot}
-                timeSlotsWithIcons={[...timeSlotsWithIcons]}
               />
             )}
             {/* Lý do khám */}
