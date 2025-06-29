@@ -122,11 +122,9 @@ export function Login() {
         </div>
 
         <div className="space-y-1">
-          <div className="flex justify-between items-center">
-            <label htmlFor="password" className="text-sm font-medium text-slate-300">
+          <div className="flex justify-between items-center">            <label htmlFor="password" className="text-sm font-medium text-slate-300">
               Mật khẩu
-            </label>
-            <Link type="button" className="text-sm text-blue-400 hover:underline" to={`/forgot-password`}>
+            </label>            <Link type="button" className="text-sm text-blue-400 hover:underline" to={`/forgot-password`}>
               Quên mật khẩu?
             </Link>
           </div>

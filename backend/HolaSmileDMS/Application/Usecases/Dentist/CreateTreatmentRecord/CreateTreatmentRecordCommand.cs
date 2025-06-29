@@ -12,6 +12,7 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
         public decimal? DiscountAmount { get; set; }
+        public bool? treatmentToday { get; set; }
         public float? DiscountPercentage { get; set; }
         public string? TreatmentStatus { get; set; }
         public string? Symptoms { get; set; }
