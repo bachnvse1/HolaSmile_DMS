@@ -132,10 +132,13 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
                     int userIdNotification = patient.UserID ?? 0;
                     if (userIdNotification > 0)
                     {
+                        var message = 
+                            $"Lịch hẹn điều trị mới của bạn là ngày {request.TreatmentDate:dd/MM/yyyy} đã được nha sĩ {fullName} tạo.\n" +
+                            $"Mã hồ sơ điều trị: #{record.TreatmentRecordID}";
                         await _mediator.Send(new SendNotificationCommand(
                             userIdNotification,
                             "Tạo thủ thuật điều trị",
-                            $"Thủ thuật mới của bạn đã được nha sĩ {fullName} tạo.",
+                            message,
                             "Xem hồ sơ",
                             0
                         ), cancellationToken);
