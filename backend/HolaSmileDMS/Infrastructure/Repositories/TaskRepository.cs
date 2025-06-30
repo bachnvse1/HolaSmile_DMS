@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces;
+using Application.Usecases.Assistant.ViewAssignedTasks;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,6 +21,21 @@ namespace Infrastructure.Repositories
             return result > 0;
         }
 
+        public async Task<List<AssignedTaskDto>> GetTasksByAssistantIdAsync(int assistantId, CancellationToken cancellationToken)
+        {
+            return await _context.Tasks
+                .Where(t => t.AssistantID == assistantId)
+                .Select(t => new AssignedTaskDto
+                {
+                    TaskId = t.TaskID,
+                    ProgressName = t.ProgressName,
+                    Description = t.Description,
+                    Status = t.Status == true ? "Completed" : "Pending",
+                    StartTime = t.StartTime.ToString(),
+                    EndTime = t.EndTime.ToString()
+                })
+                .ToListAsync(cancellationToken);
+
         public async Task<Task?> GetTaskByIdAsync(int taskId, CancellationToken cancellationToken)
         {
             return await _context.Tasks
@@ -31,6 +47,7 @@ namespace Infrastructure.Repositories
                         .ThenInclude(tr => tr.Dentist)
                             .ThenInclude(d => d.User)
                 .FirstOrDefaultAsync(t => t.TaskID == taskId, cancellationToken);
+
         }
     }
 }
