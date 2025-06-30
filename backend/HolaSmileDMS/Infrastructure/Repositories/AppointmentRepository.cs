@@ -104,6 +104,7 @@ namespace HDMS_API.Infrastructure.Repositories
             return await _context.Appointments
                 .OrderByDescending(a => a.AppointmentDate)
                 .ThenByDescending(a => a.AppointmentTime)
+                .Where(a => a.PatientId == patientId && !a.IsDeleted)
                 .FirstOrDefaultAsync();
         }
 

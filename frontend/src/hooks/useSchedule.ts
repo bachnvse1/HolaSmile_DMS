@@ -36,7 +36,7 @@ type ApiDentistData = {
 
 const shiftHourMap: Record<string, string> = {
   morning: "08:00:00",
-  afternoon: "13:00:00",
+  afternoon: "14:00:00",
   evening: "17:00:00",
 };
 

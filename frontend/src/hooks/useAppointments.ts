@@ -6,7 +6,7 @@ export const useAppointments = () => {
   return useQuery<AppointmentDTO[]>({
     queryKey: ['appointments'],
     queryFn: async () => {
-      const response = await axiosInstance.get('/appointment/listappointment');
+      const response = await axiosInstance.get('/appointment/listAppointment');
       return response.data;
     },
     refetchOnWindowFocus: false,
@@ -19,7 +19,7 @@ export const useAppointmentsByDateRange = (startDate: string, endDate: string) =
   return useQuery<AppointmentDTO[]>({
     queryKey: ['appointments', 'dateRange', startDate, endDate],
     queryFn: async () => {
-      const response = await axiosInstance.get('/appointment/listappointment', {
+      const response = await axiosInstance.get('/appointment/listAppointment', {
         params: { startDate, endDate }
       });
       return response.data;

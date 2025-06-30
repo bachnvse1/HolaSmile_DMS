@@ -2,8 +2,8 @@ import { useNavigate, useParams } from 'react-router';
 import OrthodonticTreatmentPlanForm from '../components/OrthodonticTreatmentPlanForm';
 import type { OrthodonticTreatmentPlan } from '../types/orthodontic';
 import { StaffLayout } from '../layouts/staff/StaffLayout';
-import { useAuth } from '../hooks/useAuth';
 import { AuthGuard } from '../components/AuthGuard';
+import { useUserInfo } from '@/hooks/useUserInfo';
 // Dữ liệu mẫu cho edit demo
 const MOCK_PLAN: OrthodonticTreatmentPlan = {
     planId: 1,
@@ -28,15 +28,7 @@ const MOCK_PLAN: OrthodonticTreatmentPlan = {
 };
 
 export default function OrthodonticTreatmentPlanFormPage() {
-    const { username, role, userId } = useAuth();
-    // Create userInfo object for StaffLayout
-    const userInfo = {
-        id: userId || '',
-        name: username || 'User',
-        email: '',
-        role: role || '',
-        avatar: undefined
-    };
+    const userInfo = useUserInfo();
     const navigate = useNavigate();
     const { patientId, planId } = useParams();
     // Lấy dữ liệu mẫu nếu là edit
