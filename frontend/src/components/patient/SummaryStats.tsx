@@ -10,8 +10,8 @@ const SummaryStats: React.FC<SummaryStatsProps> = ({ records }) => {
   const activeRecords = records.filter((r) => !r.isDeleted)
 
   const totalRevenue = activeRecords.reduce((sum, r) => sum + r.totalAmount, 0)
-  const completedCount = activeRecords.filter((r) => r.treatmentStatus.toLowerCase() === "completed").length
-  const pendingCount = activeRecords.filter((r) => r.treatmentStatus.toLowerCase() !== "completed").length
+  const completedCount = activeRecords.filter((r) => r.treatmentStatus?.toLowerCase() === "completed").length
+  const pendingCount = activeRecords.filter((r) => r.treatmentStatus?.toLowerCase() !== "completed").length
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
