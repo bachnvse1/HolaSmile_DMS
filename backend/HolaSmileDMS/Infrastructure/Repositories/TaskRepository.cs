@@ -21,7 +21,6 @@ namespace Infrastructure.Repositories
             return result > 0;
         }
 
-
         public async Task<List<AssignedTaskDto>> GetTasksByAssistantIdAsync(int assistantId, CancellationToken cancellationToken)
         {
             return await _context.Tasks
@@ -36,6 +35,19 @@ namespace Infrastructure.Repositories
                     EndTime = t.EndTime.ToString()
                 })
                 .ToListAsync(cancellationToken);
+
+        public async Task<Task?> GetTaskByIdAsync(int taskId, CancellationToken cancellationToken)
+        {
+            return await _context.Tasks
+                .Include(t => t.TreatmentProgress)
+                    .ThenInclude(tp => tp.TreatmentRecord)
+                        .ThenInclude(tr => tr.Procedure)
+                .Include(t => t.TreatmentProgress)
+                    .ThenInclude(tp => tp.TreatmentRecord)
+                        .ThenInclude(tr => tr.Dentist)
+                            .ThenInclude(d => d.User)
+                .FirstOrDefaultAsync(t => t.TaskID == taskId, cancellationToken);
+
         }
     }
 }

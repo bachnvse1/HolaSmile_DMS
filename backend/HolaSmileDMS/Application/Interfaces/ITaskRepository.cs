@@ -7,5 +7,8 @@ namespace Application.Interfaces
         Task<bool> CreateTaskAsync(Task task, CancellationToken cancellationToken);
 
         Task<List<AssignedTaskDto>> GetTasksByAssistantIdAsync(int assistantId, CancellationToken cancellationToken);
+
+        Task<Task?> GetTaskByIdAsync(int taskId, CancellationToken cancellationToken);
+
     }
 }
