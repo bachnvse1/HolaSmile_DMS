@@ -429,7 +429,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
         updatedBy={0}
         appointmentId={selectedAppointmentId ?? undefined}
         treatmentToday={treatmentToday ?? undefined}
-        defaultStatus="In Progress"
+        defaultStatus="in-progress"
         onSubmit={() => {
           setShowTreatmentModal(false);
         }}
