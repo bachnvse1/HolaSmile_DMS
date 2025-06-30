@@ -3,6 +3,7 @@ using Application.Interfaces;
 using Application.Usecases.Patients.ViewTreatmentRecord;
 using AutoMapper;
 using HDMS_API.Infrastructure.Persistence;
+using HDMS_API.Infrastructure.Repositories;
 using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,7 @@ public class ViewPatientTreatmentRecordIntegrationTests
     private readonly ApplicationDbContext _context;
     private readonly ViewPatientTreatmentRecordHandler _handler;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IPatientRepository _patientRepository;
     private readonly IMapper _mapper;
 
     public ViewPatientTreatmentRecordIntegrationTests()
@@ -26,6 +28,7 @@ public class ViewPatientTreatmentRecordIntegrationTests
             options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
 
         services.AddHttpContextAccessor();
+        services.AddScoped<IPatientRepository, PatientRepository>();
 
         // Add AutoMapper using Application layer assembly (adjust if needed)
         services.AddAutoMapper(typeof(ViewPatientTreatmentRecordHandler).Assembly);
@@ -35,12 +38,13 @@ public class ViewPatientTreatmentRecordIntegrationTests
         _context = provider.GetRequiredService<ApplicationDbContext>();
         _httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
         _mapper = provider.GetRequiredService<IMapper>();
+        _patientRepository = provider.GetRequiredService<IPatientRepository>();
 
         var repo = new TreatmentRecordRepository(_context, _mapper);
 
         SeedData();
 
-        _handler = new ViewPatientTreatmentRecordHandler(repo, _httpContextAccessor);
+        _handler = new ViewPatientTreatmentRecordHandler(repo, _patientRepository, _httpContextAccessor);
     }
 
     private void SeedData()
@@ -112,7 +116,7 @@ public class ViewPatientTreatmentRecordIntegrationTests
     {
         SetupHttpContext("Patient", 20);
 
-        var result = await _handler.Handle(new ViewTreatmentRecordsCommand(20), default);
+        var result = await _handler.Handle(new ViewTreatmentRecordCommand(20), default);
 
         Assert.NotNull(result);
         Assert.Single(result);
@@ -123,7 +127,7 @@ public class ViewPatientTreatmentRecordIntegrationTests
     public async System.Threading.Tasks.Task ITCID02_Dentist_Can_View_Patient_Records()
     {
         SetupHttpContext("Dentist", 10);
-        var result = await _handler.Handle(new ViewTreatmentRecordsCommand(20), default);
+        var result = await _handler.Handle(new ViewTreatmentRecordCommand(20), default);
 
         Assert.NotNull(result);
         Assert.Single(result); 
@@ -136,7 +140,7 @@ public class ViewPatientTreatmentRecordIntegrationTests
         SetupHttpContext("Patient", 30);
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            _handler.Handle(new ViewTreatmentRecordsCommand(20), default));
+            _handler.Handle(new ViewTreatmentRecordCommand(20), default));
     }
 
     [Fact(DisplayName = "[Integration - Abnormal] No_Records_Should_Throw_MSG16")]
@@ -146,6 +150,6 @@ public class ViewPatientTreatmentRecordIntegrationTests
         SetupHttpContext("Dentist", 10);
         
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _handler.Handle(new ViewTreatmentRecordsCommand(999), default));
+            _handler.Handle(new ViewTreatmentRecordCommand(999), default));
     }
 }

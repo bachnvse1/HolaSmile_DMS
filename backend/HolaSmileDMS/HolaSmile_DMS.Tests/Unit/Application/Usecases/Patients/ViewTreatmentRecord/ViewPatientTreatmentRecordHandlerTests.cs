@@ -11,13 +11,15 @@ public class ViewPatientTreatmentRecordHandlerTests
 {
     private readonly Mock<ITreatmentRecordRepository> _repositoryMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
+    private readonly Mock<IPatientRepository> _repositoryPatientMock;
     private readonly ViewPatientTreatmentRecordHandler _handler;
 
     public ViewPatientTreatmentRecordHandlerTests()
     {
         _repositoryMock = new Mock<ITreatmentRecordRepository>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        _handler = new ViewPatientTreatmentRecordHandler(_repositoryMock.Object, _httpContextAccessorMock.Object);
+        _repositoryPatientMock = new Mock<IPatientRepository>();
+        _handler = new ViewPatientTreatmentRecordHandler(_repositoryMock.Object,_repositoryPatientMock.Object, _httpContextAccessorMock.Object);
     }
 
     private void SetupHttpContext(string role, int userId)
@@ -49,7 +51,7 @@ public class ViewPatientTreatmentRecordHandlerTests
         _repositoryMock.Setup(r => r.GetPatientTreatmentRecordsAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(dummyRecords);
 
-        var result = await _handler.Handle(new ViewTreatmentRecordsCommand(userId), default);
+        var result = await _handler.Handle(new ViewTreatmentRecordCommand(userId), default);
 
         Assert.NotNull(result);
         Assert.Single(result);
@@ -60,7 +62,7 @@ public class ViewPatientTreatmentRecordHandlerTests
     public async System.Threading.Tasks.Task UTCID02_Patient_Cannot_View_Others_Records()
     {
         SetupHttpContext("Patient", 5); // đang login userId = 5
-        var request = new ViewTreatmentRecordsCommand(99); // yêu cầu xem của userId = 99
+        var request = new ViewTreatmentRecordCommand(99); // yêu cầu xem của userId = 99
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             _handler.Handle(request, default));
@@ -81,7 +83,7 @@ public class ViewPatientTreatmentRecordHandlerTests
         _repositoryMock.Setup(r => r.GetPatientTreatmentRecordsAsync(patientId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(dummyRecords);
 
-        var result = await _handler.Handle(new ViewTreatmentRecordsCommand(patientId), default);
+        var result = await _handler.Handle(new ViewTreatmentRecordCommand(patientId), default);
 
         Assert.NotNull(result);
         Assert.Single(result);
@@ -98,7 +100,7 @@ public class ViewPatientTreatmentRecordHandlerTests
             .ReturnsAsync(new List<ViewTreatmentRecordDto>());
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _handler.Handle(new ViewTreatmentRecordsCommand(userId), default));
+            _handler.Handle(new ViewTreatmentRecordCommand(userId), default));
     }
 
     // 🔵 Abnormal - UTCID05 - Unauthorized role (Assistant) không có quyền
@@ -108,7 +110,7 @@ public class ViewPatientTreatmentRecordHandlerTests
         SetupHttpContext("Assistant", 3);
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            _handler.Handle(new ViewTreatmentRecordsCommand(5), default));
+            _handler.Handle(new ViewTreatmentRecordCommand(5), default));
     }
 
     // 🔵 Abnormal - UTCID06 - Không có User trong HttpContext
@@ -118,7 +120,7 @@ public class ViewPatientTreatmentRecordHandlerTests
         _httpContextAccessorMock.Setup(x => x.HttpContext).Returns((HttpContext?)null);
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            _handler.Handle(new ViewTreatmentRecordsCommand(5), default));
+            _handler.Handle(new ViewTreatmentRecordCommand(5), default));
     }
 
     // 🔵 Abnormal - UTCID07 - Role null hoặc không có Claim
@@ -132,7 +134,7 @@ public class ViewPatientTreatmentRecordHandlerTests
         _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            _handler.Handle(new ViewTreatmentRecordsCommand(5), default));
+            _handler.Handle(new ViewTreatmentRecordCommand(5), default));
     }
 
     // 🔵 Abnormal - UTCID08 - Dữ liệu từ repository trả về null
@@ -146,6 +148,6 @@ public class ViewPatientTreatmentRecordHandlerTests
             .ReturnsAsync((List<ViewTreatmentRecordDto>?)null);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _handler.Handle(new ViewTreatmentRecordsCommand(userId), default));
+            _handler.Handle(new ViewTreatmentRecordCommand(userId), default));
     }
 }
