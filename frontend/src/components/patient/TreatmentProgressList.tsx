@@ -21,7 +21,7 @@ export function TreatmentProgressList({
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(3)
   const [openTaskListModal, setOpenTaskListModal] = useState(false)
-  const [selectedProgressId, setSelectedProgressId] = useState<number | null>(null)
+  const [selectedProgressId, setSelectedProgressId] = useState<number>(0)
 
   useEffect(() => {
     setCurrentPage(1)
