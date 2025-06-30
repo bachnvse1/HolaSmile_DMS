@@ -1,5 +1,6 @@
 ﻿using Application.Constants;
 using Application.Usecases.Administrator.BanAndUnban;
+using Application.Usecases.Administrator.CreateUser;
 using Application.Usecases.Administrator.ViewListUser;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -38,7 +39,27 @@ namespace HDMS_API.Controllers
         }
 
         [Authorize]
-        [HttpPost("ban-unban-user")]
+        [HttpPost("create-user")]
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserCommand command, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var result = await _mediator.Send(command, cancellationToken);
+                return result ? Ok(MessageConstants.MSG.MSG21) : Conflict(MessageConstants.MSG.MSG76);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ex.Message,
+                    Inner = ex.InnerException?.Message,
+                    Stack = ex.StackTrace
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPut("ban-unban-user")]
         public async Task<IActionResult> BanAndUnbanUser([FromBody] BanAndUnbanUserCommand command, CancellationToken cancellationToken)
         {
             try
@@ -56,6 +77,5 @@ namespace HDMS_API.Controllers
                 });
             }
         }
-
     }
 }

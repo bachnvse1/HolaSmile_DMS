@@ -27,6 +27,7 @@ namespace Application.Interfaces
         Task<List<ViewListPatientDto>> GetAllPatientsAsync(CancellationToken cancellationToken);
         Task<List<Receptionist>> GetAllReceptionistAsync();
         Task<List<ViewListUserDTO>> GetAllUserAsync();
+        Task<bool> CreateUserAsync(User user, string role);
         Task<bool> UpdateUserStatusAsync(int userId);
     }
 }

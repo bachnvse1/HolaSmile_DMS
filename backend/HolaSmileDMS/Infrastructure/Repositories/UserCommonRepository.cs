@@ -42,6 +42,10 @@ namespace HDMS_API.Infrastructure.Repositories
             {
                 throw new Exception(MessageConstants.MSG.MSG56); // "Số điện thoại không đúng định dạng"
             }
+            if (await _context.Users.AnyAsync(u => u.Phone == dto.PhoneNumber))
+            {
+                throw new Exception(MessageConstants.MSG.MSG23); // "Sdt đã tồn tại"
+            }
             if (!FormatHelper.IsValidEmail(dto.Email))
             {
                 throw new Exception(MessageConstants.MSG.MSG08); // "Định dạng email không hợp lệ"
@@ -182,7 +186,7 @@ namespace HDMS_API.Infrastructure.Repositories
         }
         public Task<User?> GetUserByEmailAsync(string email)
         {
-            var user = _context.Users.FirstOrDefaultAsync(u => u.Phone == email);
+            var user = _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             return user;
         }
 
@@ -366,7 +370,34 @@ namespace HDMS_API.Infrastructure.Repositories
             return allUsers;
         }
 
-        public async Task<bool> UpdateUserStatusAsync(int userId)
+        public async Task<bool> CreateUserAsync(User user, string role)
+        {
+            await _context.Users.AddAsync(user);
+            await _context.SaveChangesAsync();
+            switch (role.ToLower())
+            {
+                case "dentist":
+                    var dentist = new Dentist { UserId = user.UserID };
+                    await _context.Dentists.AddAsync(dentist);
+                    break;
+                case "receptionist":
+                    var receptionist = new Receptionist { UserId = user.UserID };
+                    await _context.Receptionists.AddAsync(receptionist);
+                    break;
+                case "assistant":
+                    var assistant = new Assistant { UserId = user.UserID };
+                    await _context.Assistants.AddAsync(assistant);
+                    break;
+                case "owner":
+                    var owner = new Owner { UserId = user.UserID };
+                    await _context.Owners.AddAsync(owner);
+                    break;
+                default:
+                    return false;
+            }
+            return await _context.SaveChangesAsync() > 0;
+        }
+    public async Task<bool> UpdateUserStatusAsync(int userId)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId);
             if (user == null)
