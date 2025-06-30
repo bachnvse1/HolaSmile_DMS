@@ -1,6 +1,6 @@
 ﻿using Application.Constants;
-using Application.Usecases.Administrator;
 using Application.Usecases.Administrator.BanAndUnban;
+using Application.Usecases.Administrator.ViewListUser;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
