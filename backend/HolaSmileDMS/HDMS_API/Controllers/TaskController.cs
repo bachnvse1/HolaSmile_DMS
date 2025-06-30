@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Application.Constants;
 using Application.Usecases.Assistant.ViewAssignedTasks;
+using Application.Usecases.Assistant.UpdateTaskStatus;
 
 namespace HDMS_API.Controllers
 {
@@ -78,5 +79,34 @@ namespace HDMS_API.Controllers
                 });
             }
         }
+
+        [HttpPut("tasks/{id}/status")]
+        [Authorize]
+        public async Task<IActionResult> UpdateTaskStatus(int id, [FromBody] bool status)
+        {
+            try
+            {
+                var result = await _mediator.Send(new UpdateTaskStatusCommand
+                {
+                    TaskId = id,
+                    Status = status
+                });
+
+                return Ok(new { message = result });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = MessageConstants.MSG.MSG26 });
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { message = MessageConstants.MSG.MSG16 });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
+            }
+        }
+
     }
 }
