@@ -188,6 +188,7 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                   min={1}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                 />
+                {errors.quantity && <p className="text-sm text-red-500 mt-1">{errors.quantity.message}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Đơn giá *</label>
@@ -202,21 +203,23 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Giảm trực tiếp</label>
                 <input
-                  {...register("discountAmount", {min: { value: 1, message: "Phải lớn hơn 0" }, valueAsNumber: true })}
+                  {...register("discountAmount", {min: { value: 0, message: "Phải lớn hơn bằng 0" }, valueAsNumber: true })}
                   type="number"
                   step="0.01"
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                 />
+                {errors.discountAmount && <p className="text-sm text-red-500 mt-1">{errors.discountAmount.message}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Giảm (%)</label>
                 <input
-                  {...register("discountPercentage", {min: { value: 1, message: "Phải lớn hơn 0" }, valueAsNumber: true })}
+                  {...register("discountPercentage", {min: { value: 0, message: "Phải lớn hơn bằng 0" }, valueAsNumber: true })}
                   type="number"
                   step="0.1"
                   max={100}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                 />
+                {errors.discountPercentage && <p className="text-sm text-red-500 mt-1">{errors.discountPercentage.message}</p>}
               </div>
             </div>
 
