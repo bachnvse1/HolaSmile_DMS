@@ -1,19 +1,9 @@
 import { AuthGuard } from '../../components/AuthGuard';
 import { StaffLayout } from '../../layouts/staff/StaffLayout';
 import { DentistScheduleViewer } from '../../components/appointment/DentistScheduleViewer';
-import { useAuth } from '../../hooks/useAuth';
-
+import { useUserInfo } from '@/hooks/useUserInfo';
 export const StaffSchedulePage = () => {
-  const { fullName, role, userId } = useAuth();
-
-  // Create userInfo object for StaffLayout
-  const userInfo = {
-    id: userId || '',
-    name: fullName || 'User',
-    email: '', 
-    role: role || '',
-    avatar: undefined
-  };
+  const userInfo = useUserInfo();
 
   return (
     <AuthGuard requiredRoles={['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']}>
@@ -27,7 +17,7 @@ export const StaffSchedulePage = () => {
               Xem lịch làm việc của tất cả bác sĩ trong phòng khám
             </p>
             <div className="mt-2 text-sm text-blue-600">
-              Đăng nhập với vai trò: {role}
+              Đăng nhập với vai trò: {userInfo.role}
             </div>
           </div>
 

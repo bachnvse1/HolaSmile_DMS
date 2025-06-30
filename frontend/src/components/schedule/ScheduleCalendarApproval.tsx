@@ -46,7 +46,7 @@ export const ScheduleCalendarApproval: React.FC<Props> = ({
 
   const shiftTimes = {
     [ShiftType.Morning]: "8:00 – 11:00",
-    [ShiftType.Afternoon]: "13:00 – 17:00",
+    [ShiftType.Afternoon]: "14:00 – 17:00",
     [ShiftType.Evening]: "17:00 – 20:00"
   };
 

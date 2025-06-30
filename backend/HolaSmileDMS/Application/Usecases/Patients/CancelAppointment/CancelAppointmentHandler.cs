@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Application.Usecases.Patients.CancelAppointment
 {
-    public class CancleAppointmentHandle : IRequestHandler<CancleAppointmentCommand, string>
+    public class CancleAppointmentHandle : IRequestHandler<CancelAppointmentCommand, string>
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IAppointmentRepository _appointmentRepository;
@@ -15,7 +15,7 @@ namespace Application.Usecases.Patients.CancelAppointment
             _httpContextAccessor = httpContextAccessor;
             _appointmentRepository = appointmentRepository;
         }
-        public async Task<string> Handle(CancleAppointmentCommand request, CancellationToken cancellationToken)
+        public async Task<string> Handle(CancelAppointmentCommand request, CancellationToken cancellationToken)
         {
             var user = _httpContextAccessor.HttpContext?.User;
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
@@ -23,12 +23,12 @@ namespace Application.Usecases.Patients.CancelAppointment
 
             if(user == null || currentUserId <= 0)
             {
-                return MessageConstants.MSG.MSG26; // "Bạn không có quyền truy cập chức năng này"
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
             }
 
             if (!string.Equals(currentUserRole, "patient", StringComparison.OrdinalIgnoreCase))
             {
-                return MessageConstants.MSG.MSG26; // "Bạn không có quyền truy cập chức năng này"
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
             }
             var cancleApp = await _appointmentRepository.CancelAppointmentAsync(request.AppointmentId, currentUserId);
             return cancleApp ? MessageConstants.MSG.MSG06 : MessageConstants.MSG.MSG58;
