@@ -26,10 +26,10 @@ const FilterBar: React.FC<FilterBarProps> = ({ register }) => {
           className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
         >
           <option value="all">Tất cả trạng thái</option>
-          <option value="completed">Hoàn tất</option>
-          <option value="in progress">Đang thực hiện</option>
-          <option value="scheduled">Đã lên lịch</option>
-          <option value="cancelled">Đã huỷ</option>
+          <option value="completed">Đã hoàn thành</option>
+          <option value="in-progress">Đang điều trị</option>
+          <option value="pending">Đã lên lịch</option>
+          <option value="canceled">Đã huỷ</option>
         </select>
       </div>
     </div>

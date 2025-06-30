@@ -37,11 +37,10 @@ export function TreatmentProgressList({
 
   const renderStatusBadge = (status?: string) => {
     const statusMap: Record<string, { label: string; className: string }> = {
-      "Đang tiến hành": { label: "Đang tiến hành", className: "bg-blue-100 text-blue-800 border border-blue-200" },
-      "Tạm dừng": { label: "Tạm dừng", className: "bg-yellow-100 text-yellow-800 border border-yellow-200" },
-      "Đã huỷ": { label: "Đã huỷ", className: "bg-red-100 text-red-800 border border-red-200" },
-      "Đã hoàn thành": { label: "Đã hoàn thành", className: "bg-green-100 text-green-800 border border-green-200" },
-      "Chưa bắt đầu": { label: "Chưa bắt đầu", className: "bg-gray-100 text-gray-800 border border-gray-200" },
+      "in-progress": { label: "Đang điều trị", className: "bg-blue-100 text-blue-800 border border-blue-200" },
+      "canceled": { label: "Đã huỷ", className: "bg-red-100 text-red-800 border border-red-200" },
+      "completed": { label: "Đã hoàn thành", className: "bg-green-100 text-green-800 border border-green-200" },
+      "pending": { label: "Đã lên lịch", className: "bg-gray-100 text-gray-800 border border-gray-200" },
     }
     const current = statusMap[status ?? "Chưa bắt đầu"] ?? {
       label: status ?? "Không rõ",
@@ -61,11 +60,10 @@ export function TreatmentProgressList({
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
           >
             <option value="all">Tất cả trạng thái</option>
-            <option value="Chưa bắt đầu">Chưa bắt đầu</option>
-            <option value="Đang tiến hành">Đang tiến hành</option>
-            <option value="Tạm dừng">Tạm dừng</option>
-            <option value="Đã hoàn thành">Đã hoàn thành</option>
-            <option value="Đã huỷ">Đã huỷ</option>
+            <option value="pending">Đã lên lịch</option>
+            <option value="in-progress">Đang điều trị</option>
+            <option value="completed">Đã hoàn thành</option>
+            <option value="canceled">Đã huỷ</option>
           </select>
         </div>
       </div>
