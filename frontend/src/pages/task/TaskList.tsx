@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { AssignTaskModal } from "@/components/task/assignTaskModal"
+import { AssignTaskModal } from "@/components/task/AssignTaskModal" 
 import { TaskCard } from "@/components/task/TaskCard"
 import { TaskFilters } from "@/components/task/TaskFilters"
 import { TaskStats } from "@/components/task/TaskStats"
@@ -75,7 +75,7 @@ const assistants = [
     { assistantId: 4, name: "Phạm Văn Đức" },
 ]
 
-export default function TaskList({ treatmentProgressID }: { treatmentProgressID?: number }) {
+export default function TaskList({ treatmentProgressID }: { treatmentProgressID: number }) {
     const [taskList, setTaskList] = useState<Task[]>(initialTasks)
     const [searchTerm, setSearchTerm] = useState("")
     const [statusFilter, setStatusFilter] = useState("Tất cả")

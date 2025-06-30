@@ -4,7 +4,7 @@ import TaskList from "@/pages/task/TaskList"
 interface TaskListModalProps {
   open: boolean
   onClose: () => void
-  treatmentProgressID?: number
+  treatmentProgressID: number
 }
 
 export default function TaskListModal({ open, onClose, treatmentProgressID }: TaskListModalProps) {
