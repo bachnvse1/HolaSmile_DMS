@@ -8,9 +8,7 @@ import { useDentistSchedule } from '../../hooks/useDentistSchedule';
 import { useBookAppointment } from '../../hooks/useBookAppointment';
 import { useBookFUAppointment } from '../../hooks/useBookFUAppointment';
 import { toast } from 'react-toastify';
-import { TIME_SLOTS } from '../../constants/appointment';
-import { Clock } from 'lucide-react';
-import type { Dentist, TimeSlot } from '../../types/appointment';
+import type { Dentist } from '../../types/appointment';
 
 interface DentistScheduleViewerProps {
   mode: 'view' | 'book'; // view = chỉ xem, book = có thể đặt lịch

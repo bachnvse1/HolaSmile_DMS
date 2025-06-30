@@ -19,11 +19,11 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { fullName, role, logout } = useAuth();
+  const { fullName, logout } = useAuth();
 
   // Use passed userInfo or fallback to auth data
   const displayName = userInfo?.name || fullName || 'User';
-  const displayRole = userInfo?.role || role || 'Patient';
+  const displayRole = 'Bệnh nhân';
 
   const handleLogout = () => {
     logout();
