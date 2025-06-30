@@ -45,7 +45,7 @@ const SummaryStats: React.FC<SummaryStatsProps> = ({ records }) => {
             <Calendar className="h-4 w-4 text-purple-600" />
           </div>
           <div>
-            <p className="text-sm text-gray-600">Đã hoàn tất</p>
+            <p className="text-sm text-gray-600">Đã hoàn thành</p>
             <p className="text-lg font-bold text-gray-900">{completedCount}</p>
           </div>
         </div>
@@ -57,7 +57,7 @@ const SummaryStats: React.FC<SummaryStatsProps> = ({ records }) => {
             <Clock className="h-4 w-4 text-orange-600" />
           </div>
           <div>
-            <p className="text-sm text-gray-600">Chưa hoàn tất</p>
+            <p className="text-sm text-gray-600">Đã lên lịch</p>
             <p className="text-lg font-bold text-gray-900">{pendingCount}</p>
           </div>
         </div>

@@ -21,7 +21,7 @@ import { format, isBefore, startOfToday } from "date-fns"
 import { Calendar } from "@/components/ui/calendar"
 import { createTreatmentProgress } from "@/services/treatmentProgressService"
 
-const statusOptions = ["Đang tiến hành", "Tạm dừng", "Đã huỷ", "Đã hoàn thành", "Chưa bắt đầu"]
+const statusOptions = ["Đang điều trị", "Đã huỷ", "Đã hoàn thành", "Đã lên lịch"]
 
 
 const schema = yup.object({
