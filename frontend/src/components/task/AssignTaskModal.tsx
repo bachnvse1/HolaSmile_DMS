@@ -40,7 +40,7 @@ const formatDateToTimeString = (date?: Date): string => {
 }
 
 const ensureTimeFormat = (time: string): string => {
-  return time.trim().length === 5 ? `${time}:00` : time
+  return time.trim().length === 5 ? `${time}` : time
 }
 
 const isTimeAfter = (timeA: string, timeB: string): boolean => {
