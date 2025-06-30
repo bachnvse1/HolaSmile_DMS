@@ -89,7 +89,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
 
             await _mediator.Send(new SendNotificationCommand(
                 dentist.User.UserID,
-                    "Xóa hồ sơ điều trị",
+                    "Đăng ký khám",
                     $"Bệnh nhân đã đăng ký khám vào ngày {request.AppointmentDate.Date}",
                     "Xoá hồ sơ",
                     null),
