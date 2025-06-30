@@ -36,6 +36,7 @@ namespace Infrastructure.Repositories
                 })
                 .ToListAsync(cancellationToken);
         }
+
         public async Task<Task?> GetTaskByIdAsync(int taskId, CancellationToken cancellationToken)
         {
             return await _context.Tasks
@@ -47,13 +48,18 @@ namespace Infrastructure.Repositories
                         .ThenInclude(tr => tr.Dentist)
                             .ThenInclude(d => d.User)
                 .FirstOrDefaultAsync(t => t.TaskID == taskId, cancellationToken);
-
         }
 
-            public async Task<bool> UpdateTaskAsync(Task task, CancellationToken cancellationToken)
-            {
-                _context.Tasks.Update(task);
-                return await _context.SaveChangesAsync(cancellationToken) > 0;
-            }
+        public async Task<bool> UpdateTaskAsync(Task task, CancellationToken cancellationToken)
+        {
+            _context.Tasks.Update(task);
+            return await _context.SaveChangesAsync(cancellationToken) > 0;
         }
+
+        public async Task<TreatmentProgress?> GetTreatmentProgressByIdAsync(int treatmentProgressId, CancellationToken cancellationToken)
+        {
+            return await _context.TreatmentProgresses
+                .FirstOrDefaultAsync(tp => tp.TreatmentProgressID == treatmentProgressId, cancellationToken);
+        }
+    }
 }

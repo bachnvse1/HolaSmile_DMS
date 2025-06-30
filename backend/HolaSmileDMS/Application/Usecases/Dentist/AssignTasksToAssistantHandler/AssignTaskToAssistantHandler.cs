@@ -46,6 +46,22 @@ public class AssignTaskToAssistantHandler : IRequestHandler<AssignTaskToAssistan
         if (!TimeSpan.TryParse(request.EndTime, out var endTime))
             throw new FormatException(MessageConstants.MSG.MSG91);
 
+        // ✅ Lấy tiến trình điều trị
+        var treatmentProgress = await _taskRepository.GetTreatmentProgressByIdAsync(request.TreatmentProgressId, cancellationToken);
+        if (treatmentProgress == null)
+            throw new KeyNotFoundException(MessageConstants.MSG.MSG16); // Không có dữ liệu phù hợp
+
+        if (treatmentProgress.EndTime == null)
+            throw new InvalidOperationException("Tiến trình chưa có thời gian kết thúc cụ thể.");
+
+        // ✅ So sánh thời gian task phải trước EndTime của tiến trình
+        var treatmentDate = treatmentProgress.EndTime.Value.Date;
+        var taskStartDateTime = treatmentDate.Add(startTime);
+        var taskEndDateTime = treatmentDate.Add(endTime);
+
+        if (taskStartDateTime > treatmentProgress.EndTime || taskEndDateTime > treatmentProgress.EndTime)
+            throw new InvalidOperationException(MessageConstants.MSG.MSG92); // Thời gian vượt quá tiến trình
+
         // ✅ Tạo Task mới
         var task = new Task
         {
@@ -80,9 +96,9 @@ public class AssignTaskToAssistantHandler : IRequestHandler<AssignTaskToAssistan
                 await _mediator.Send(notification, cancellationToken);
             }
 
-            return MessageConstants.MSG.MSG46; // Giao việc cho trợ lý thành công
+            return MessageConstants.MSG.MSG46; // Giao việc thành công
         }
 
-        return MessageConstants.MSG.MSG58; // Cập nhật dữ liệu thất bại
+        return MessageConstants.MSG.MSG58; // Cập nhật thất bại
     }
 }
