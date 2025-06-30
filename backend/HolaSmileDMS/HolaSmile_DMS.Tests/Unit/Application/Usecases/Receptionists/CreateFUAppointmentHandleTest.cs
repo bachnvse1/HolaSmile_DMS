@@ -6,6 +6,7 @@ using Moq;
 using System.Security.Claims;
 using Xunit;
 
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists;
 public class CreateFUAppointmentHandlerTests
 {
     private readonly Mock<IAppointmentRepository> _appointmentRepositoryMock = new();

@@ -28,20 +28,23 @@ namespace Application.Usecases.Receptionist.CreateFollow_UpAppointment
 
             if (!string.Equals(currentUserRole, "receptionist", StringComparison.OrdinalIgnoreCase))
             {
-                return MessageConstants.MSG.MSG26; // "Bạn không có quyền truy cập chức năng này"
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
             }
-
             if (request.AppointmentDate < DateTime.Today)
             {
-                return MessageConstants.MSG.MSG34; // "Ngày hẹn tái khám phải sau ngày hôm nay"
+                throw new Exception(MessageConstants.MSG.MSG34); // "Ngày hẹn tái khám phải sau ngày hôm nay"
             }
-            if(await _dentistRepository.GetDentistByDentistIdAsync(request.DentistId) == null)
+            if (request.AppointmentDate.Date == DateTime.Today.Date && request.AppointmentTime < DateTime.Today.TimeOfDay)
             {
-                return "Bác sĩ không tồn tại"; // "Bác sĩ không tồn tại"
+                throw new Exception(MessageConstants.MSG.MSG34); // "Ngày hẹn tái khám phải sau ngày hôm nay"
+            }
+            if (await _dentistRepository.GetDentistByDentistIdAsync(request.DentistId) == null)
+            {
+                throw new Exception("Bác sĩ không tồn tại");
             }
             if(await _patientRepository.GetPatientByUserIdAsync(request.PatientId) == null)
             {
-                return "Bệnh nhân không tồn tại"; // "Bệnh nhân không tồn tại"
+                throw new Exception("Bệnh nhân không tồn tại"); // "Bệnh nhân không tồn tại"
             }
             var checkValidAppointment = await _appointmentRepository.GetLatestAppointmentByPatientIdAsync(request.PatientId);
             if(checkValidAppointment.Status == "confirmed")
