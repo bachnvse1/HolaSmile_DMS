@@ -39,12 +39,16 @@ public class AssignTaskToAssistantHandler : IRequestHandler<AssignTaskToAssistan
         if (role != "Dentist")
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Không có quyền
 
-        // ✅ Parse StartTime & EndTime từ chuỗi string
-        if (!TimeSpan.TryParse(request.StartTime, out var startTime))
-            throw new FormatException(MessageConstants.MSG.MSG91);
+        // ✅ Parse StartTime & EndTime từ chuỗi string (theo định dạng HH:mm)
+        if (!TimeSpan.TryParseExact(request.StartTime, @"hh\:mm", null, out var startTime))
+            throw new FormatException("Thời gian bắt đầu không đúng định dạng HH:mm.");
 
-        if (!TimeSpan.TryParse(request.EndTime, out var endTime))
-            throw new FormatException(MessageConstants.MSG.MSG91);
+        if (!TimeSpan.TryParseExact(request.EndTime, @"hh\:mm", null, out var endTime))
+            throw new FormatException("Thời gian kết thúc không đúng định dạng HH:mm.");
+
+        // ✅ Kiểm tra endTime phải lớn hơn startTime
+        if (endTime <= startTime)
+            throw new InvalidOperationException("Thời gian kết thúc phải sau thời gian bắt đầu.");
 
         // ✅ Lấy tiến trình điều trị
         var treatmentProgress = await _taskRepository.GetTreatmentProgressByIdAsync(request.TreatmentProgressId, cancellationToken);
