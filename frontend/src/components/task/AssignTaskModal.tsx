@@ -116,6 +116,7 @@ export function AssignTaskModal({ onTaskAssign, trigger, treatmentProgressID }: 
       const payload: TaskAssignment = {
         assistantId: parseInt(formData.assistantId, 10),
         treatmentProgressID,
+        status: false,
         progressName: formData.progressName,
         description: formData.description,
         startTime: ensureTimeFormat(formData.startTime),
