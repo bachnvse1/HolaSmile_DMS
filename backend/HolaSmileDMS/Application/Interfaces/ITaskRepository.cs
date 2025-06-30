@@ -10,5 +10,7 @@ namespace Application.Interfaces
 
         Task<Task?> GetTaskByIdAsync(int taskId, CancellationToken cancellationToken);
 
+        Task<bool> UpdateTaskAsync(Task task, CancellationToken cancellationToken);
+
     }
 }
