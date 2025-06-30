@@ -53,7 +53,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                     }
                     catch (Exception ex)
                     {
-                        throw new Exception(MessageConstants.MSG.MSG78); // => Gợi ý định nghĩa: "Gửi mật khẩu cho khách không thành công."
+                        throw new Exception(MessageConstants.MSG.MSG78);
                     }
                 });
 
@@ -83,23 +83,23 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             await _mediator.Send(new SendNotificationCommand(
                 patient.User.UserID,
                     "Đăng ký khám",
-                    $"Bạn đã đăng ký khám vào ngày {request.AppointmentDate.Date}.",
+                    $"Bạn đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
                     "Tạo lịch khám lần đầu", null),
                 cancellationToken);
 
             await _mediator.Send(new SendNotificationCommand(
                 dentist.User.UserID,
                     "Đăng ký khám",
-                    $"Bệnh nhân đã đăng ký khám vào ngày {request.AppointmentDate.Date}",
+                    $"Bệnh nhân đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
                     "Xoá hồ sơ",
                     null),
                 cancellationToken);
 
-            var notifyReceptionists = receptionists.Select(r =>
-             _mediator.Send(new SendNotificationCommand(
+            var notifyReceptionists = receptionists.Select(async r =>
+             await _mediator.Send(new SendNotificationCommand(
                            r.UserId,
                            "Đăng ký khám",
-                            $"Bệnh nhân mới đã đăng ký khám vào ngày {request.AppointmentDate.Date}.",
+                            $"Bệnh nhân mới đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
                             "Tạo lịch khám lần đầu", null),
                             cancellationToken));
             await System.Threading.Tasks.Task.WhenAll(notifyReceptionists);
