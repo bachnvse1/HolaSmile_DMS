@@ -43,6 +43,13 @@ namespace Application.Usecases.Guests.BookAppointment
             {
                 throw new Exception(MessageConstants.MSG.MSG90); // "Số điện thoại đã được sử dụng"
             }
+            var existEmail = await _userCommonRepository.GetUserByEmailAsync(request.Email);
+            // Check if the email already exists in the system
+            if (existEmail != null)
+            {
+                throw new Exception(MessageConstants.MSG.MSG22); // "Email đã tồn tại"
+            }
+
             return request;
         }
     }
