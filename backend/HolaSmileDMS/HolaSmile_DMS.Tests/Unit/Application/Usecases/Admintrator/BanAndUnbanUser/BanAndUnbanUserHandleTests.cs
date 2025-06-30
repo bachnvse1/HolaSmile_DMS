@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
 using Application.Interfaces;
 using Application.Usecases.administrator.BanAndUnban;
 using Application.Usecases.Administrator.BanAndUnban;
@@ -11,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Admintrator.BanAndUnbanUser
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Administrator.BanAndUnbanUser
 {
     public class BanAndUnbanUserHandleTests
     {

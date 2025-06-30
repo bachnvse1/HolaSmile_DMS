@@ -1,5 +1,5 @@
 ﻿using Application.Interfaces;
-using Application.Usecases.Admintrator.CreateUser;
+using Application.Usecases.Administrator.CreateUser;
 using HDMS_API.Infrastructure.Persistence;
 using HDMS_API.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Http;
@@ -52,7 +52,7 @@ public class CreateUserIntegrationTests
     [Fact(DisplayName = "[Integration - Normal] Admin_Can_Create_User")]
     public async System.Threading.Tasks.Task N_Admin_Can_Create_User()
     {
-        SetupHttpContext("admintrator", 999);
+        SetupHttpContext("administrator", 999);
 
         var cmd = new CreateUserCommand
         {

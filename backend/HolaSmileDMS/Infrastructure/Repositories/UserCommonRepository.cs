@@ -1,6 +1,6 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.Admintrator.ViewListUser;
+using Application.Usecases.Administrator.ViewListUser;
 using Application.Usecases.Patients.ViewListPatient;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Common.Helpers;
@@ -396,6 +396,18 @@ namespace HDMS_API.Infrastructure.Repositories
                     return false;
             }
             return await _context.SaveChangesAsync() > 0;
+        }
+    public async Task<bool> UpdateUserStatusAsync(int userId)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId);
+            if (user == null)
+            {
+                return false;
+            }
+            user.Status = !user.Status; // Đảo ngược trạng thái
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

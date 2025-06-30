@@ -1,12 +1,12 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.Admintrator.ViewListUser;
+using Application.Usecases.Administrator.ViewListUser;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Admintrator.ViewListUser
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Administrator.ViewListUser
 {
     public class ViewListUserHandlerTests
     {
@@ -38,7 +38,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Admintrator.ViewListUser
         [Fact(DisplayName = "[Unit - Normal] Admin_Can_View_User_List")]
         public async System.Threading.Tasks.Task UTCID01_Admin_Can_View_User_List()
         {
-            SetupHttpContext("admintrator", 1);
+            SetupHttpContext("administrator", 1);
             _userCommonRepositoryMock.Setup(r => r.GetAllUserAsync()).ReturnsAsync(new List<ViewListUserDTO>
         {
             new ViewListUserDTO { Email = "t1@gmail.com", FullName = "test 1", PhoneNumber="0123456789",Role = "owner", CreatedAt = DateTime.Now, isActive = true}
@@ -62,7 +62,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Admintrator.ViewListUser
         [Fact(DisplayName = "[Unit - Abnormal] Empty_User_List_Throws")]
         public async System.Threading.Tasks.Task UTCID03_Empty_User_List_Throws()
         {
-            SetupHttpContext("admintrator", 1);
+            SetupHttpContext("administrator", 1);
             _userCommonRepositoryMock.Setup(r => r.GetAllUserAsync()).ReturnsAsync(new List<ViewListUserDTO>());
 
             var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(new ViewListUserCommand(), default));

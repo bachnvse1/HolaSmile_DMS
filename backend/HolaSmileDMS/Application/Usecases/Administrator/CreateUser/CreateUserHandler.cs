@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
 using HDMS_API.Application.Common.Helpers;
 using Humanizer;
 using MediatR;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 
-namespace Application.Usecases.Admintrator.CreateUser
+namespace Application.Usecases.Administrator.CreateUser
 {
     public class CreateUserHandler : IRequestHandler<CreateUserCommand, bool>
     {
@@ -30,7 +24,7 @@ namespace Application.Usecases.Admintrator.CreateUser
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-            if (!string.Equals(currentUserRole, "admintrator", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(currentUserRole, "administrator", StringComparison.OrdinalIgnoreCase))
             {
                 throw new Exception(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
             }
