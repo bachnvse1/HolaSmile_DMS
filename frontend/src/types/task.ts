@@ -13,6 +13,7 @@ export interface TaskAssignment {
     assistantId: number
     treatmentProgressID: number
     progressName: string
+    status: boolean
     description: string
     startTime: string
     endTime: string
