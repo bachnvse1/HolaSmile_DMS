@@ -23,8 +23,17 @@ export const AppointmentStep1: React.FC<AppointmentStep1Props> = ({ form, onSubm
       if (err.response?.data?.errors) {
         setServerErrors(err.response.data.errors);
       } else if (err.response?.data?.message) {
-        // Gán message vào trường phù hợp, ví dụ phoneNumber
-        setServerErrors({ phoneNumber: err.response.data.message });
+        const msg = err.response.data.message;
+        if (msg.includes('điện thoại')) {
+          setServerErrors({ phoneNumber: msg });
+        } else if (msg.toLowerCase().includes('email')) {
+          setServerErrors({ email: msg });
+        } else if (msg.toLowerCase().includes('họ tên')) {
+          setServerErrors({ fullName: msg });
+        } else {
+          // fallback: gán vào một trường chung hoặc hiển thị toast
+          setServerErrors({ general: msg });
+        }
       }
     }
   };
