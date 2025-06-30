@@ -4,7 +4,7 @@ using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
-namespace Application.Usecases.Admintrator
+namespace Application.Usecases.Administrator.ViewListUser
 {
     public class ViewListUserHandler : IRequestHandler<ViewListUserCommand, List<ViewListUserDTO>>
     {
@@ -22,7 +22,7 @@ namespace Application.Usecases.Admintrator
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-            if (!string.Equals(currentUserRole, "admintrator", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(currentUserRole, "administrator", StringComparison.OrdinalIgnoreCase))
             {
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
             }
