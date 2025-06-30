@@ -24,9 +24,16 @@ import { createTreatmentProgress } from "@/services/treatmentProgressService"
 const statusOptions = ["in-progress", "canceled", "completed", "pending"]
 
 function toVietnamISOString(date: Date) {
-  const vietnamOffset = -date.getTimezoneOffset(); 
-  const localTime = new Date(date.getTime() + vietnamOffset * 60000);
-  return localTime.toISOString();
+    const vietnamOffset = -date.getTimezoneOffset();
+    const localTime = new Date(date.getTime() + vietnamOffset * 60000);
+    return localTime.toISOString();
+}
+
+const statusLabels: Record<string, string> = {
+    "in-progress": "Đang thực hiện",
+    "canceled": "Đã hủy",
+    "completed": "Hoàn thành",
+    "pending": "Chờ xử lý",
 }
 
 const schema = yup.object({
@@ -96,7 +103,7 @@ export default function NewTreatmentProgress({
             toast.success(result.message || "Tạo tiến trình thành công")
             setTimeout(() => {
                 window.location.reload()
-            }, 1000) 
+            }, 1000)
 
         } catch (err) {
             console.error(err)
@@ -129,12 +136,12 @@ export default function NewTreatmentProgress({
                                 <Label>Trạng thái *</Label>
                                 <Select value={status} onValueChange={(val) => setValue("status", val)}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Chọn trạng thái" />
+                                       <SelectValue placeholder="Chọn trạng thái" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {statusOptions.map((s) => (
                                             <SelectItem key={s} value={s}>
-                                                {s}
+                                                {statusLabels[s]}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
