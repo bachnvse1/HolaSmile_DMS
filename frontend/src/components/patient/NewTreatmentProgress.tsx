@@ -21,8 +21,13 @@ import { format, isBefore, startOfToday } from "date-fns"
 import { Calendar } from "@/components/ui/calendar"
 import { createTreatmentProgress } from "@/services/treatmentProgressService"
 
-const statusOptions = ["Đang điều trị", "Đã huỷ", "Đã hoàn thành", "Đã lên lịch"]
+const statusOptions = ["in-progress", "canceled", "completed", "pending"]
 
+function toVietnamISOString(date: Date) {
+  const vietnamOffset = -date.getTimezoneOffset(); 
+  const localTime = new Date(date.getTime() + vietnamOffset * 60000);
+  return localTime.toISOString();
+}
 
 const schema = yup.object({
     progressName: yup.string().required("Tên tiến trình không được bỏ trống"),
@@ -82,7 +87,7 @@ export default function NewTreatmentProgress({
             patientID,
             dentistID,
             ...data,
-            endTime: combinedDate.toISOString(),
+            endTime: toVietnamISOString(combinedDate),
             note: "",
         }
 
@@ -145,7 +150,7 @@ export default function NewTreatmentProgress({
                         </div>
 
                         <div>
-                            <Label>Ghi chú *</Label>
+                            <Label>Ghi chú </Label>
                             <Textarea rows={3} {...register("description")} />
                             <p className="text-red-500 text-sm">{errors.description?.message}</p>
                         </div>
