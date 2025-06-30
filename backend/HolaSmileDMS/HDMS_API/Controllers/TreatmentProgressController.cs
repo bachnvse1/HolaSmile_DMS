@@ -1,5 +1,6 @@
 using Application.Constants;
 using Application.Usecases.Dentist.CreateTreatmentProgress;
+using Application.Usecases.Dentist.UpdateTreatmentProgress;
 using Application.Usecases.Patients.ViewTreatmentProgress;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -50,5 +51,19 @@ public class TreatmentProgressController : ControllerBase
     {
         var result = await _mediator.Send(new CreateTreatmentProgressCommand { ProgressDto = dto });
         return Ok(new { message = result });
+    }
+    
+    [HttpPut("{id}")]
+    [Authorize]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateTreatmentProgressCommand command)
+    {
+        if (id != command.TreatmentProgressID)
+            return BadRequest(MessageConstants.MSG.MSG16); // Không có dữ liệu phù hợp
+
+        var result = await _mediator.Send(command);
+        if (!result)
+            return StatusCode(500, MessageConstants.MSG.MSG58); // Cập nhật dữ liệu thất bại
+
+        return Ok(new { message = MessageConstants.MSG.MSG38 });
     }
 }
