@@ -55,30 +55,38 @@ namespace HDMS_API.Controllers
             try
             {
                 var result = await _mediator.Send(command);
-                return Ok(new { message = result }); // ✅ result ở đây là MSG từ handler
+                return Ok(new { message = result }); // ✅ success
             }
             catch (UnauthorizedAccessException)
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new
                 {
-                    message = MessageConstants.MSG.MSG26 // "Bạn không có quyền truy cập chức năng này"
+                    message = MessageConstants.MSG.MSG26
                 });
             }
             catch (FormatException)
             {
                 return BadRequest(new
                 {
-                    message = MessageConstants.MSG.MSG91 // "Định dạng thời gian không hợp lệ..."
+                    message = MessageConstants.MSG.MSG91
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message // sẽ là MSG92
                 });
             }
             catch (Exception)
             {
                 return StatusCode(500, new
                 {
-                    message = MessageConstants.MSG.MSG58 // "Cập nhật dữ liệu thất bại"
+                    message = MessageConstants.MSG.MSG58
                 });
             }
         }
+
 
         [HttpPut("tasks/{id}/status")]
         [Authorize]
