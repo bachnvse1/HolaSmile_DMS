@@ -8,10 +8,10 @@ namespace Application.Usecases.Assistant.ViewAssignedTasks
 {
     public class ViewAssignedTasksHandler : IRequestHandler<ViewAssignedTasksCommand, List<AssignedTaskDto>>
     {
-        private readonly IAssistantRepository _repository;
+        private readonly ITaskRepository _repository;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ViewAssignedTasksHandler(IAssistantRepository repository, IHttpContextAccessor httpContextAccessor)
+        public ViewAssignedTasksHandler(ITaskRepository repository, IHttpContextAccessor httpContextAccessor)
         {
             _repository = repository;
             _httpContextAccessor = httpContextAccessor;
