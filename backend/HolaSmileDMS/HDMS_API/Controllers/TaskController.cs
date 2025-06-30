@@ -18,7 +18,7 @@ namespace HDMS_API.Controllers
             _mediator = mediator;
         }
 
-        [HttpGet("tasks")]
+        [HttpGet]
         [Authorize]
         public async Task<IActionResult> ViewAssignedTasks()
         {
