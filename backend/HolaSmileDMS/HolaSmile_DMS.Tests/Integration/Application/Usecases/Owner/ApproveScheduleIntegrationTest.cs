@@ -18,7 +18,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Owner
     {
         private readonly ApplicationDbContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly AppointmentScheduleHandle _handler;
+        private readonly ApproveScheduleHandle _handler;
 
         public ApproveScheduleIntegrationTest()
         {
@@ -31,7 +31,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Owner
             _httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
 
             SeedData();
-            _handler = new AppointmentScheduleHandle(new ScheduleRepository(_context), _httpContextAccessor);
+            _handler = new ApproveScheduleHandle(new ScheduleRepository(_context), _httpContextAccessor);
         }
 
         private void SeedData()
