@@ -1,4 +1,4 @@
-﻿namespace Application.Usecases.Admintrator
+﻿namespace Application.Usecases.Administrator.ViewListUser
 {
     public class ViewListUserDTO
     {
