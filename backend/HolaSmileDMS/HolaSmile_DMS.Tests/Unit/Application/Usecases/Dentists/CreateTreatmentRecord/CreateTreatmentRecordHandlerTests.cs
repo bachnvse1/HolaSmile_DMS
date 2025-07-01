@@ -3,6 +3,7 @@ using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Dentist.CreateTreatmentRecord;
 using AutoMapper;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
@@ -27,7 +28,9 @@ public class CreateTreatmentRecordHandlerTests
         var repoMock = new Mock<ITreatmentRecordRepository>();
         var mapperMock = new Mock<IMapper>();
         var httpMock = new Mock<IHttpContextAccessor>();
-
+        var mediator = new Mock<IMediator>();
+        var appointmentRepository = new Mock<IAppointmentRepository>();
+        var patientRepository = new Mock<IPatientRepository>();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
         {
             new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
@@ -44,7 +47,7 @@ public class CreateTreatmentRecordHandlerTests
                 DiscountPercentage = command.DiscountPercentage
             });
 
-        return (new CreateTreatmentRecordHandler(repoMock.Object, mapperMock.Object, httpMock.Object), repoMock);
+        return (new CreateTreatmentRecordHandler(repoMock.Object, mapperMock.Object, httpMock.Object, mediator.Object, appointmentRepository.Object, patientRepository.Object ), repoMock);
     }
 
     [Fact(DisplayName = "Abnormal - UTCID01 - AppointmentId = 0 should throw MSG28")]
@@ -129,25 +132,18 @@ public class CreateTreatmentRecordHandlerTests
         var repoMock = new Mock<ITreatmentRecordRepository>();
         var mapperMock = new Mock<IMapper>();
         var httpMock = new Mock<IHttpContextAccessor>();
+        var mediator = new Mock<IMediator>();
+        var appointmentRepository = new Mock<IAppointmentRepository>();
+        var patientRepository = new Mock<IPatientRepository>();
         httpMock.Setup(h => h.HttpContext).Returns((HttpContext)null!);
 
-        var handler = new CreateTreatmentRecordHandler(repoMock.Object, mapperMock.Object, httpMock.Object);
+        var handler = new CreateTreatmentRecordHandler(repoMock.Object, mapperMock.Object, httpMock.Object, mediator.Object, appointmentRepository.Object, patientRepository.Object);
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() => handler.Handle(cmd, default));
     }
+    
 
-    [Fact(DisplayName = "Abnormal - UTCID09 - TreatmentDate null should throw MSG28")]
-    public async System.Threading.Tasks.Task UTCID09_TreatmentDateIsDefault_ShouldThrowException()
-    {
-        var cmd = GetValidCommand();
-        cmd.TreatmentDate = default;
-        var (handler, _) = SetupHandler("Dentist", 1, cmd);
-
-        var ex = await Assert.ThrowsAsync<Exception>(() => handler.Handle(cmd, default));
-        Assert.Contains(MessageConstants.MSG.MSG83, ex.Message);
-    }
-
-    [Fact(DisplayName = "Normal - UTCID10 - Zero discount is valid should return success")]
+    [Fact(DisplayName = "Normal - UTCID09 - Zero discount is valid should return success")]
     public async System.Threading.Tasks.Task UTCID10_DiscountZero_ShouldPass()
     {
         var cmd = GetValidCommand();

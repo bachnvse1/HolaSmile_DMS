@@ -19,9 +19,11 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
         private readonly IMediator _mediator;
         private readonly IHttpContextAccessor _httpContextAccessor;
         public BookAppointmentHandler(IAppointmentRepository appointmentRepository, IMediator mediator, IPatientRepository patientRepository, IUserCommonRepository userCommonRepository,IMapper mapper, IDentistRepository dentistRepository, IHttpContextAccessor httpContextAccessor)
+
         {
             _appointmentRepository = appointmentRepository;
             _patientRepository = patientRepository;
+            _dentistRepository = dentistRepository;
             _userCommonRepository = userCommonRepository;
             _mapper = mapper;
             _mediator = mediator;
@@ -62,7 +64,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                     }
                     catch (Exception ex)
                     {
-                        throw new Exception(MessageConstants.MSG.MSG78); // => Gợi ý định nghĩa: "Gửi mật khẩu cho khách không thành công."
+                        throw new Exception(MessageConstants.MSG.MSG78);
                     }
                 });
 
@@ -102,38 +104,37 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 CreatedBy = currentUserId,
                 IsDeleted = false
             };
-            var isbookappointment = await _appointmentRepository.CreateAppointmentAsync(appointment);
-            var dentist =await _dentistRepository.GetDentistByDentistIdAsync(request.DentistId);
+            var isBookAppointment = await _appointmentRepository.CreateAppointmentAsync(appointment);
+            var dentist = await _dentistRepository.GetDentistByDentistIdAsync(request.DentistId);
             var receptionists = await _userCommonRepository.GetAllReceptionistAsync();
 
             //GỬI THÔNG BÁO CHO PATIENT
             await _mediator.Send(new SendNotificationCommand(
                 patient.User.UserID,
                     "Đăng ký khám",
-                    $"Bạn đã đăng ký khám vào ngày {request.AppointmentDate.Date}.",
+                    $"Bạn đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
                     "Tạo lịch khám lần đầu", null),
                 cancellationToken);
 
             //GỬI THÔNG BÁO CHO DENTIST
             await _mediator.Send(new SendNotificationCommand(
                 dentist.User.UserID,
-                    "Xóa hồ sơ điều trị",
-                    $"Bệnh nhân đã đăng ký khám vào ngày {request.AppointmentDate.Date}",
+                    "Đăng ký khám",
+                    $"Bệnh nhân đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
                     "Xoá hồ sơ",
                     null),
                 cancellationToken);
-
-            // GỬI THÔNG BÁO CHO TẤT CẢ RECEPTIONIST
-            var notifyReceptionists = receptionists.Select(r =>
-             _mediator.Send(new SendNotificationCommand(
+                
+            var notifyReceptionists = receptionists.Select(async r =>
+             await _mediator.Send(new SendNotificationCommand(
                            r.UserId,
                            "Đăng ký khám",
-                            $"Bệnh nhân đã đăng ký khám vào ngày {request.AppointmentDate.Date}.",
+                            $"Bệnh nhân mới đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
                             "Tạo lịch khám lần đầu", null),
                             cancellationToken));
             await System.Threading.Tasks.Task.WhenAll(notifyReceptionists);     
 
-            return isbookappointment ? MessageConstants.MSG.MSG05 : MessageConstants.MSG.MSG58;
+            return isBookAppointment ? MessageConstants.MSG.MSG05 : MessageConstants.MSG.MSG58;
         }
     }
 }

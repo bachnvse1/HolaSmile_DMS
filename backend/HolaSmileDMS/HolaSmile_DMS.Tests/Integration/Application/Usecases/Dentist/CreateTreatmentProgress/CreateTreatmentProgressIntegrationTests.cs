@@ -1,12 +1,19 @@
 using System.Security.Claims;
 using Application.Constants;
+using Application.Interfaces;
 using Application.Usecases.Dentist.CreateTreatmentProgress;
-using AutoMapper;
+using Application.Usecases.SendNotification;
+using HDMS_API.Application.Interfaces;
 using HDMS_API.Infrastructure.Persistence;
+using HDMS_API.Infrastructure.Repositories;
+using Infrastructure.Hubs;
 using Infrastructure.Repositories;
+using MediatR;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentist;
@@ -15,32 +22,56 @@ public class CreateTreatmentProgressIntegrationTests
 {
     private readonly ApplicationDbContext _context;
     private readonly CreateTreatmentProgressHandler _handler;
-    private readonly IMapper _mapper;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     public CreateTreatmentProgressIntegrationTests()
     {
         var services = new ServiceCollection();
 
+        // 1. In-memory DB
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseInMemoryDatabase("CreateTreatmentProgressTestDb"));
 
+        // 2. Hệ thống cơ bản
         services.AddHttpContextAccessor();
         services.AddAutoMapper(typeof(CreateTreatmentProgressHandler).Assembly);
 
+        // 3. Repository
+        services.AddScoped<IPatientRepository, PatientRepository>();
+        services.AddScoped<IDentistRepository, DentistRepository>();
+        services.AddScoped<ITreatmentProgressRepository, TreatmentProgressRepository>();
+        services.AddScoped<INotificationsRepository, NotificationsRepository>();
+        services.AddScoped<INotificationsRepository, FakeNotificationsRepository>();
+
+        // ✅ 4. Thay UserCommonRepo bằng fake
+        services.AddScoped<IUserCommonRepository, FakeUserCommonRepository>();
+
+        // ✅ 5. Mock email
+        var mockEmailService = new Mock<IEmailService>();
+        services.AddSingleton<IEmailService>(mockEmailService.Object);
+
+        // ✅ 6. Mock SignalR
+        var mockHubContext = new Mock<IHubContext<NotifyHub>>();
+        services.AddSingleton<IHubContext<NotifyHub>>(mockHubContext.Object);
+
+        // ✅ 7. MediatR (cho version < 12)
+        services.AddMediatR(typeof(CreateTreatmentProgressHandler).Assembly);
+        services.AddMediatR(typeof(SendNotificationHandler).Assembly);
+
+        // 8. Đăng ký handler nếu cần resolve bằng tay
+        services.AddScoped<CreateTreatmentProgressHandler>();
+
+        // 9. Build
         var provider = services.BuildServiceProvider();
+
         _context = provider.GetRequiredService<ApplicationDbContext>();
         _httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
-        _mapper = provider.GetRequiredService<IMapper>();
-
         SeedData();
 
-        _handler = new CreateTreatmentProgressHandler(
-            new TreatmentProgressRepository(_context),
-            _httpContextAccessor,
-            _mapper,
-            new DentistRepository(_context));
+        // ✅ 10. Resolve handler
+        _handler = provider.GetRequiredService<CreateTreatmentProgressHandler>();
     }
+
 
     private void SeedData()
     {
@@ -81,7 +112,7 @@ public class CreateTreatmentProgressIntegrationTests
     }
 
     // ✅ Test 1: Valid progress input
-    [Fact(DisplayName = "[Integration - ITCID01 -  Normal] Valid_Progress_Should_Return_Success")]
+    [Fact(DisplayName = "[Integration - ITCID01 - Normal] Valid_Progress_Should_Return_Success")]
     [Trait("TestType", "Normal")]
     public async System.Threading.Tasks.Task N_Valid_Progress_Should_Return_Success()
     {
@@ -107,7 +138,6 @@ public class CreateTreatmentProgressIntegrationTests
         Assert.Equal(MessageConstants.MSG.MSG37, result);
     }
 
-    // 🚫 Test 2: Patient không được phép tạo tiến trình
     [Fact(DisplayName = "[Integration - ITCID02 - Abnormal] Patient_Cannot_Create_Treatment_Progress")]
     [Trait("TestType", "Abnormal")]
     public async System.Threading.Tasks.Task A_Patient_Cannot_Create_Treatment_Progress()
@@ -128,7 +158,6 @@ public class CreateTreatmentProgressIntegrationTests
             _handler.Handle(command, default));
     }
 
-    // ⚠️ Test 3: ProgressName null => throw MSG85
     [Fact(DisplayName = "[Integration - ITCID03 - Abnormal] ProgressName_Null_Should_Throw")]
     [Trait("TestType", "Abnormal")]
     public async System.Threading.Tasks.Task A_ProgressName_Null_Should_Throw()
@@ -151,7 +180,6 @@ public class CreateTreatmentProgressIntegrationTests
         Assert.Contains(MessageConstants.MSG.MSG85, ex.Message);
     }
 
-    // ⚠️ Test 4: EndTime < DateTime.Now => throw MSG84
     [Fact(DisplayName = "[Integration - ITCID04 - Abnormal] EndTime_In_Past_Should_Throw")]
     [Trait("TestType", "Abnormal")]
     public async System.Threading.Tasks.Task A_EndTime_In_Past_Should_Throw()

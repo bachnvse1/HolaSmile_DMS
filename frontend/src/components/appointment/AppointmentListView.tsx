@@ -31,6 +31,9 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<number | null>(null);
 
   const treatmentFormMethods = useForm<TreatmentFormData>();
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [treatmentToday, setTreatmentToday] = useState<boolean | null>(null);
+
 
 
   // const getStatusColor = (status: 'confirmed' | 'canceled') => {
@@ -152,6 +155,43 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   const absentedCount = filteredAppointments.filter(a => a.status === 'absented').length;
   return (
     <div className="space-y-6">
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+            <h2 className="text-lg font-semibold mb-4">Tạo lịch điều trị</h2>
+            <p className="mb-6">Bạn có muốn tạo lịch điều trị dựa trên ngày được chọn từ lịch nha sĩ không?</p>
+            <div className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowConfirmModal(false);
+                }}
+              >
+                Hủy
+              </Button>
+              <Button
+                onClick={() => {
+                  setTreatmentToday(false);
+                  setShowConfirmModal(false);
+                  setShowTreatmentModal(true);
+                }}
+              >
+                Không
+              </Button>
+              <Button
+                variant="default"
+                onClick={() => {
+                  setTreatmentToday(true);
+                  setShowConfirmModal(false);
+                  setShowTreatmentModal(true);
+                }}
+              >
+                Có
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Header & Filters */}
       <Card>
         <CardHeader className="pb-4">
@@ -319,7 +359,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                       size="sm"
                       onClick={() => {
                         setSelectedAppointmentId(appointment.appointmentId);
-                        setShowTreatmentModal(true);
+                        setShowConfirmModal(true);
                       }}
                       className="flex items-center gap-2"
                     >
@@ -427,6 +467,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
         onClose={() => setShowTreatmentModal(false)}
         updatedBy={0}
         appointmentId={selectedAppointmentId ?? undefined}
+        treatmentToday={treatmentToday ?? undefined}
         defaultStatus="In Progress"
         onSubmit={() => {
           setShowTreatmentModal(false);

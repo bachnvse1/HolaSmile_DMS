@@ -27,12 +27,13 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
     const today = new Date();
     const startOfWeek = new Date(today);
     startOfWeek.setDate(today.getDate() + (weekOffset * 7));
-    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1); // Start from Monday
+    const day = startOfWeek.getDay();
+    startOfWeek.setDate(startOfWeek.getDate() - (day === 0 ? 6 : day - 1));
 
     const weekDates = [];
     for (let i = 0; i < 7; i++) {
-      const date = new Date(startOfWeek);
-      date.setDate(startOfWeek.getDate() + i);
+      // Luôn tạo ngày mới dựa trên startOfWeek gốc
+      const date = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + i);
       weekDates.push(date);
     }
     return weekDates;

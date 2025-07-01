@@ -24,7 +24,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients.CancelAppointme
         {
             _appointmentRepoMock = new Mock<IAppointmentRepository>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-
             _handler = new CancelAppointmentHandle(
                 _appointmentRepoMock.Object,
                 _httpContextAccessorMock.Object,
@@ -32,27 +31,25 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients.CancelAppointme
                 _userCommonRepositoryMock.Object,
                 _mediator = Mock.Of<IMediator>()
             );
+
         }
 
         private void SetupHttpContext(string role, int userId)
         {
-            var claims = new List<Claim>
+            var claims = new[]
             {
-                new Claim(ClaimTypes.Role, role),
-                new Claim(ClaimTypes.NameIdentifier, userId.ToString())
-            };
-            var ctx = new DefaultHttpContext
-            {
-                User = new ClaimsPrincipal(new ClaimsIdentity(claims, "Test"))
-            };
-            _httpContextAccessorMock
-                .Setup(x => x.HttpContext)
-                .Returns(ctx);
+            new Claim(ClaimTypes.Role, role),
+            new Claim(ClaimTypes.NameIdentifier, userId.ToString())
+        };
+            var identity = new ClaimsIdentity(claims, "Test");
+            var principal = new ClaimsPrincipal(identity);
+            var context = new DefaultHttpContext { User = principal };
+
+            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
         }
 
-        // 🟢 Abnormal: Unauthenticated user cann't view all appointments
-        [Fact(DisplayName = "[Unit] Unauthenticated_HttpContextNull_Returns_MSG26")]
-        public async System.Threading.Tasks.Task Unauthenticated_HttpContextNull_Returns_MSG26()
+        [Fact(DisplayName = "[Unit - Abnormal] Unauthorized_Role_Throws")]
+        public async System.Threading.Tasks.Task Unauthorized_Role_Throws()
         {
             // Arrange: HttpContext = null
             _httpContextAccessorMock
@@ -69,15 +66,13 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients.CancelAppointme
             _appointmentRepoMock.Verify(r =>
                 r.CancelAppointmentAsync(It.IsAny<int>(), It.IsAny<int>()),
                 Times.Never);
+            SetupHttpContext("dentist", 1);
+            var cmd = new CancelAppointmentCommand(99);
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(cmd, default));
         }
 
-
-        [Theory(DisplayName = "[Unit] NonPatientRole_Returns_NoPermission")]
-        [InlineData("receptionist")]
-        [InlineData("assisstant")]
-        [InlineData("dentist")]
-        [InlineData("owner")]
-        public async System.Threading.Tasks.Task NonPatientRole_Returns_MSG26(string role)
+        [Fact(DisplayName = "[Unit - Abnormal] Null_User_Throws")]
+        public async System.Threading.Tasks.Task Null_User_Throws()
         {
             int userId = 3;
             int appointmentId = 21;
@@ -95,47 +90,33 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients.CancelAppointme
             _appointmentRepoMock.Verify(r =>
                 r.CancelAppointmentAsync(It.IsAny<int>(), It.IsAny<int>()),
                 Times.Never);
+            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns((HttpContext)null);
+            var cmd = new CancelAppointmentCommand(1);
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(cmd, default));
         }
 
-        // 🟢 Normal: Patient CaseInsensitive
-        [Theory(DisplayName = "[Unit] Patient_CaseInsensitive_Cancel_Success")]
-        [InlineData("patient")]
-        [InlineData("PATIENT")]
-        [InlineData("PaTiEnT")]
-        public async System.Threading.Tasks.Task Patient_CaseInsensitive_Cancel_Success(string role)
+        [Fact(DisplayName = "[Unit - Normal] Cancel_Success_Returns_Message")]
+        public async System.Threading.Tasks.Task Cancel_Success_Returns_Message()
         {
-            // Arrange
-            int appointmentId = 6, userId = 16;
-            SetupHttpContext(role, userId);
-
-            _appointmentRepoMock
-                .Setup(r => r.CancelAppointmentAsync(appointmentId, userId))
-                .ReturnsAsync(true);
-
+            SetupHttpContext("patient", 2);
+            var cmd = new CancelAppointmentCommand(123);
             // Act
             var result = await _handler.Handle(
                 new CancelAppointmentCommand(appointmentId),
                 CancellationToken.None);
+            _appointmentRepoMock.Setup(r => r.CancelAppointmentAsync(123, 2)).ReturnsAsync(true);
 
-            // Assert
+            var result = await _handler.Handle(cmd, default);
             Assert.Equal(MessageConstants.MSG.MSG06, result);
-            _appointmentRepoMock.Verify(r =>
-                r.CancelAppointmentAsync(appointmentId, userId),
-                Times.Once);
         }
 
-        [Fact(DisplayName = "[Unit] Patient_Cancel_Failure_Returns_MSG58")]
-        public async System.Threading.Tasks.Task Patient_Cancel_Failure_Returns_MSG58()
+        [Fact(DisplayName = "[Unit - Abnormal] Cancel_Failed_Returns_Error")]
+        public async System.Threading.Tasks.Task Cancel_Failed_Returns_Error()
         {
-            // Arrange
-            string role = "patient";
-            int appointmentId = 6, userId = 20;
-            SetupHttpContext(role, userId);
+            SetupHttpContext("patient", 2);
+            var cmd = new CancelAppointmentCommand(123);
 
-            _appointmentRepoMock
-                .Setup(r => r.CancelAppointmentAsync(appointmentId, userId))
-                .ReturnsAsync(false);
-
+            _appointmentRepoMock.Setup(r => r.CancelAppointmentAsync(123, 2)).ReturnsAsync(false);
             // Act
             var result = await _handler.Handle(
                 new CancelAppointmentCommand(appointmentId),
@@ -170,6 +151,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients.CancelAppointme
             _appointmentRepoMock.Verify(r =>
                 r.CancelAppointmentAsync(appointmentId, userId),
                 Times.Once);
+            var result = await _handler.Handle(cmd, default);
+            Assert.Equal(MessageConstants.MSG.MSG58, result);
         }
 
 

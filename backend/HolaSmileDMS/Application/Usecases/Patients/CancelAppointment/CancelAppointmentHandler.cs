@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 namespace Application.Usecases.Patients.CancelAppointment
 {
     public class CancelAppointmentHandle : IRequestHandler<CancelAppointmentCommand, string>
+
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IAppointmentRepository _appointmentRepository;
@@ -30,12 +31,12 @@ namespace Application.Usecases.Patients.CancelAppointment
 
             if(user == null || currentUserId <= 0)
             {
-                return MessageConstants.MSG.MSG26; // "Bạn không có quyền truy cập chức năng này"
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
             }
 
             if (!string.Equals(currentUserRole, "patient", StringComparison.OrdinalIgnoreCase))
             {
-                return MessageConstants.MSG.MSG26; // "Bạn không có quyền truy cập chức năng này"
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
             }
             
             var existAppointment = await _appointmentRepository.GetAppointmentByIdAsync(request.AppointmentId);
