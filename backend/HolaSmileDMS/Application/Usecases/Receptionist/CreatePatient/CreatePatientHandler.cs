@@ -47,7 +47,7 @@ namespace HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount
             {
                 throw new Exception(MessageConstants.MSG.MSG08); // "Định dạng email không hợp lệ"
             }
-            if (await _userCommonRepository.GetUserByPhoneAsync(request.Email) != null)
+            if (await _userCommonRepository.GetUserByEmailAsync(request.Email) != null)
             {
                 throw new Exception(MessageConstants.MSG.MSG22); // "Email đã tồn tại"
             }
