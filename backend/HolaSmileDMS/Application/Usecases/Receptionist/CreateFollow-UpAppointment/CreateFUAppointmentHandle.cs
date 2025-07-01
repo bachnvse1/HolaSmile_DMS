@@ -42,7 +42,7 @@ namespace Application.Usecases.Receptionist.CreateFollow_UpAppointment
             {
                 throw new Exception("Bác sĩ không tồn tại");
             }
-            if(await _patientRepository.GetPatientByUserIdAsync(request.PatientId) == null)
+            if(await _patientRepository.GetPatientByPatientIdAsync(request.PatientId) == null)
             {
                 throw new Exception("Bệnh nhân không tồn tại"); // "Bệnh nhân không tồn tại"
             }

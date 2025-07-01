@@ -18,7 +18,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public BookAppointmentHandler(IAppointmentRepository appointmentRepository, IMediator mediator, IPatientRepository patientRepository, IUserCommonRepository userCommonRepository,IMapper mapper, IDentistRepository dentistRepository, IHttpContextAccessor httpContextAccessor)
+        public BookAppointmentHandler(IAppointmentRepository appointmentRepository, IMediator mediator, IPatientRepository patientRepository, IUserCommonRepository userCommonRepository, IMapper mapper, IDentistRepository dentistRepository, IHttpContextAccessor httpContextAccessor)
 
         {
             _appointmentRepository = appointmentRepository;
@@ -39,12 +39,12 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             Patient patient = new Patient();
             bool isNewPatient = false;
 
-            if (request.AppointmentDate.Date < DateTime.Now.Date ||(request.AppointmentDate.Date == DateTime.Now.Date && request.AppointmentTime < DateTime.Now.TimeOfDay))
+            if (request.AppointmentDate.Date < DateTime.Now.Date || (request.AppointmentDate.Date == DateTime.Now.Date && request.AppointmentTime < DateTime.Now.TimeOfDay))
             {
                 throw new Exception(MessageConstants.MSG.MSG74); // "Không thể đặt lịch hẹn ở thời gian quá khứ."
             }
 
-            if (string.Equals(currentUserRole, "guest ", StringComparison.OrdinalIgnoreCase))
+            if (currentUserRole == null)
             {
 
                 var guest = _mapper.Map<CreatePatientDto>(request);
@@ -131,7 +131,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                     "Xoá hồ sơ",
                     null),
                 cancellationToken);
-                
+
             var notifyReceptionists = receptionists.Select(async r =>
              await _mediator.Send(new SendNotificationCommand(
                            r.UserId,
@@ -139,7 +139,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                             $"Bệnh nhân mới đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
                             "Tạo lịch khám lần đầu", null),
                             cancellationToken));
-            await System.Threading.Tasks.Task.WhenAll(notifyReceptionists);     
+            await System.Threading.Tasks.Task.WhenAll(notifyReceptionists);
 
             return isBookAppointment ? MessageConstants.MSG.MSG05 : MessageConstants.MSG.MSG58;
         }
