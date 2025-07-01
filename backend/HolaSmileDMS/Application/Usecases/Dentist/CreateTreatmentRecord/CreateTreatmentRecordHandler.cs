@@ -153,14 +153,18 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
         private decimal CalculateTotal(TreatmentRecord record)
         {
             var subtotal = record.UnitPrice * record.Quantity;
+            decimal total = subtotal;
 
-            if (record.DiscountAmount.HasValue)
-                return subtotal - record.DiscountAmount.Value;
-
+            // Áp dụng giảm theo phần trăm
             if (record.DiscountPercentage.HasValue)
-                return subtotal * (1 - (decimal)record.DiscountPercentage.Value / 100);
+                total *= (1 - (decimal)record.DiscountPercentage.Value / 100);
 
-            return subtotal;
+            // Trừ thêm phần giảm tiền mặt
+            if (record.DiscountAmount.HasValue)
+                total -= record.DiscountAmount.Value;
+
+            return total;
         }
+
     }
 }
