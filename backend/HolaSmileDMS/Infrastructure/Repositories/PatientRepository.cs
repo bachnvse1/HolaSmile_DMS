@@ -56,7 +56,7 @@ namespace HDMS_API.Infrastructure.Repositories
 
         public async Task<Patient> GetPatientByUserIdAsync(int userId)
         {
-            var patient = await _context.Patients.FirstOrDefaultAsync(p => p.UserID == userId);
+            var patient = await _context.Patients.Include(p => p.User).FirstOrDefaultAsync(p => p.UserID == userId);
             return patient;
         }
 

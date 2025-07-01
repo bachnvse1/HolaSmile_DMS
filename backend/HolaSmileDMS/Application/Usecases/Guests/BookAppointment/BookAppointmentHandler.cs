@@ -84,11 +84,18 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 {
                     throw new Exception(MessageConstants.MSG.MSG27); // "Không tìm thấy hồ sơ bệnh nhân"
                 }
+
+                var checkValidAppointment = await _appointmentRepository.GetLatestAppointmentByPatientIdAsync(patient.PatientID);
+                if (checkValidAppointment.Status == "confirmed")
+                {
+                    throw new Exception(MessageConstants.MSG.MSG89); // "Kế hoạch điều trị đã tồn tại"
+                }
             }
             else
             {
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             }
+
 
             var appointment = new Appointment
             {
