@@ -2,6 +2,7 @@
 using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Patients.CancelAppointment;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
@@ -12,16 +13,24 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients.CancelAppointme
     {
         private readonly Mock<IAppointmentRepository> _appointmentRepoMock;
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
-        private readonly CancleAppointmentHandle _handler;
+        private readonly Mock<IDentistRepository> _dentistRepositoryMock;
+        private readonly Mock<IUserCommonRepository> _userCommonRepositoryMock;
+        private readonly IMediator _mediator;
+
+
+        private readonly CancelAppointmentHandle _handler;
 
         public CancelAppointmentHandlerTest()
         {
             _appointmentRepoMock = new Mock<IAppointmentRepository>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
 
-            _handler = new CancleAppointmentHandle(
+            _handler = new CancelAppointmentHandle(
                 _appointmentRepoMock.Object,
-                _httpContextAccessorMock.Object
+                _httpContextAccessorMock.Object,
+                _dentistRepositoryMock.Object,
+                _userCommonRepositoryMock.Object,
+                _mediator = Mock.Of<IMediator>()
             );
         }
 
@@ -52,7 +61,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients.CancelAppointme
 
             // Act
             var result = await _handler.Handle(
-                new CancleAppointmentCommand(appointmentId: 1),
+                new CancelAppointmentCommand(appointmentId: 1),
                 CancellationToken.None);
 
             // Assert
@@ -78,7 +87,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients.CancelAppointme
 
             // Act
             var result = await _handler.Handle(
-                new CancleAppointmentCommand(appointmentId),
+                new CancelAppointmentCommand(appointmentId),
                 CancellationToken.None);
 
             // Assert
@@ -105,7 +114,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients.CancelAppointme
 
             // Act
             var result = await _handler.Handle(
-                new CancleAppointmentCommand(appointmentId),
+                new CancelAppointmentCommand(appointmentId),
                 CancellationToken.None);
 
             // Assert
@@ -129,7 +138,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients.CancelAppointme
 
             // Act
             var result = await _handler.Handle(
-                new CancleAppointmentCommand(appointmentId),
+                new CancelAppointmentCommand(appointmentId),
                 CancellationToken.None);
 
             // Assert
@@ -153,7 +162,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients.CancelAppointme
 
             // Act
             var result = await _handler.Handle(
-                new CancleAppointmentCommand(appointmentId),
+                new CancelAppointmentCommand(appointmentId),
                 CancellationToken.None);
 
             // Assert
