@@ -280,9 +280,9 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                   type="button"
                   onClick={() => {
                     setShowConfirm(false);
-                    setTreatmentTodayState(false);
+                    setTreatmentTodayState(true);
                     formMethods.handleSubmit((data) =>
-                      handleInternalSubmit({ ...data, treatmentToday: false })
+                      handleInternalSubmit({ ...data, treatmentToday: true })
                     )();
                   }}
                   className="px-4 py-2 border rounded"
@@ -293,9 +293,9 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                   type="button"
                   onClick={() => {
                     setShowConfirm(false);
-                    setTreatmentTodayState(true);
+                    setTreatmentTodayState(false);
                     formMethods.handleSubmit((data) =>
-                      handleInternalSubmit({ ...data, treatmentToday: true })
+                      handleInternalSubmit({ ...data, treatmentToday: false })
                     )();
                   }}
                   className="px-4 py-2 bg-blue-600 text-white rounded"
