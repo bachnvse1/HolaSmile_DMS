@@ -116,7 +116,7 @@ public class ViewPatientTreatmentRecordIntegrationTests
     {
         SetupHttpContext("Patient", 20);
 
-        var result = await _handler.Handle(new ViewTreatmentRecordCommand(20), default);
+        var result = await _handler.Handle(new ViewTreatmentRecordCommand(1), default);
 
         Assert.NotNull(result);
         Assert.Single(result);
@@ -127,7 +127,7 @@ public class ViewPatientTreatmentRecordIntegrationTests
     public async System.Threading.Tasks.Task ITCID02_Dentist_Can_View_Patient_Records()
     {
         SetupHttpContext("Dentist", 10);
-        var result = await _handler.Handle(new ViewTreatmentRecordCommand(20), default);
+        var result = await _handler.Handle(new ViewTreatmentRecordCommand(1), default);
 
         Assert.NotNull(result);
         Assert.Single(result); 
@@ -140,7 +140,7 @@ public class ViewPatientTreatmentRecordIntegrationTests
         SetupHttpContext("Patient", 30);
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            _handler.Handle(new ViewTreatmentRecordCommand(20), default));
+            _handler.Handle(new ViewTreatmentRecordCommand(1), default));
     }
 
     [Fact(DisplayName = "[Integration - Abnormal] No_Records_Should_Throw_MSG16")]
@@ -150,6 +150,6 @@ public class ViewPatientTreatmentRecordIntegrationTests
         SetupHttpContext("Dentist", 10);
         
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _handler.Handle(new ViewTreatmentRecordCommand(999), default));
+            _handler.Handle(new ViewTreatmentRecordCommand(20), default));
     }
 }

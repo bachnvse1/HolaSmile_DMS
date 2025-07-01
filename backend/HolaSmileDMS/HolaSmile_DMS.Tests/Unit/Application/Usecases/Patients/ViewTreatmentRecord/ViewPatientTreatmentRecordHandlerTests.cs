@@ -36,7 +36,6 @@ public class ViewPatientTreatmentRecordHandlerTests
         _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
     }
 
-    // 🟢 Normal - UTCID01 - Patient xem đúng hồ sơ của mình
     [Fact(DisplayName = "Normal - UTCID01 - Patient can view their own treatment records")]
     public async System.Threading.Tasks.Task UTCID01_Patient_Can_View_Own_Records()
     {
@@ -48,6 +47,11 @@ public class ViewPatientTreatmentRecordHandlerTests
             new() { TreatmentRecordID = 1, AppointmentID = 100 }
         };
 
+        // Mock patientRepo
+        _repositoryPatientMock.Setup(r => r.GetPatientByPatientIdAsync(userId))
+            .ReturnsAsync(new Patient { PatientID = userId, UserID = userId });
+
+        // Mock treatment records
         _repositoryMock.Setup(r => r.GetPatientTreatmentRecordsAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(dummyRecords);
 
@@ -57,16 +61,22 @@ public class ViewPatientTreatmentRecordHandlerTests
         Assert.Single(result);
     }
 
+
     // 🔵 Abnormal - UTCID02 - Patient cố gắng xem hồ sơ người khác
     [Fact(DisplayName = "Abnormal - UTCID02 - Patient cannot view other patient's treatment records")]
     public async System.Threading.Tasks.Task UTCID02_Patient_Cannot_View_Others_Records()
     {
-        SetupHttpContext("Patient", 5); // đang login userId = 5
-        var request = new ViewTreatmentRecordCommand(99); // yêu cầu xem của userId = 99
+        int loggedInUserId = 5;
+        int targetPatientId = 99;
+        SetupHttpContext("Patient", loggedInUserId);
+
+        _repositoryPatientMock.Setup(r => r.GetPatientByPatientIdAsync(targetPatientId))
+            .ReturnsAsync(new Patient { PatientID = targetPatientId, UserID = targetPatientId });
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            _handler.Handle(request, default));
+            _handler.Handle(new ViewTreatmentRecordCommand(targetPatientId), default));
     }
+
 
     // 🟢 Normal - UTCID03 - Dentist có thể xem hồ sơ của bất kỳ bệnh nhân nào
     [Fact(DisplayName = "Normal - UTCID03 - Dentist can view any patient treatment records")]
@@ -103,15 +113,28 @@ public class ViewPatientTreatmentRecordHandlerTests
             _handler.Handle(new ViewTreatmentRecordCommand(userId), default));
     }
 
-    // 🔵 Abnormal - UTCID05 - Unauthorized role (Assistant) không có quyền
-    [Fact(DisplayName = "Abnormal - UTCID05 - Unauthorized role (Assistant) cannot access")]
-    public async System.Threading.Tasks.Task UTCID05_Assistant_Cannot_Access()
+    [Fact(DisplayName = "Normal - UTCID05 - Assistant can view any patient treatment records")]
+    public async System.Threading.Tasks.Task UTCID05_Assistant_Can_View_Any_Patient_Records()
     {
-        SetupHttpContext("Assistant", 3);
+        int assistantUserId = 3;
+        int patientId = 5;
 
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            _handler.Handle(new ViewTreatmentRecordCommand(5), default));
+        SetupHttpContext("Assistant", assistantUserId);
+
+        var dummyRecords = new List<ViewTreatmentRecordDto>
+        {
+            new() { TreatmentRecordID = 1, AppointmentID = 100 }
+        };
+
+        _repositoryMock.Setup(r => r.GetPatientTreatmentRecordsAsync(patientId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(dummyRecords);
+
+        var result = await _handler.Handle(new ViewTreatmentRecordCommand(patientId), default);
+
+        Assert.NotNull(result);
+        Assert.Single(result);
     }
+
 
     // 🔵 Abnormal - UTCID06 - Không có User trong HttpContext
     [Fact(DisplayName = "Abnormal - UTCID06 - No user in HttpContext")]
