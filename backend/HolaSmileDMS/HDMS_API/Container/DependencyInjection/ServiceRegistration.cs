@@ -16,7 +16,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 
-namespace HDMS_API.DependencyInjection
+namespace HDMS_API.Container.DependencyInjection
 {
     public static class ServiceRegistration
     {
@@ -43,17 +43,24 @@ namespace HDMS_API.DependencyInjection
             services.AddScoped<ITreatmentProgressRepository, TreatmentProgressRepository>();
             services.AddScoped<ITreatmentProgressRepository, TreatmentProgressRepository>();
             services.AddScoped<INotificationsRepository, NotificationsRepository>();
-            
+            services.AddScoped<IAssistantRepository, AssistantRepository>();
+            services.AddScoped<IProcedureRepository, ProcedureRepository>();
+            services.AddScoped<IReceptionistRepository, ReceptionistRepository>();
+            services.AddScoped<IFileStorageService, FileStorageService>();
+            services.AddScoped<ITaskRepository, TaskRepository>();
+
+
+
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>
             {
-                
+
                 options.AddPolicy(name: MyAllowSpecificOrigins,
                         policy =>
                         {
                             policy.WithOrigins(
                                     "https://6f8f-14-232-61-47.ngrok-free.app",
-                                    "http://localhost:5173"                     
+                                    "http://localhost:5173"
                                 )
                                 .AllowAnyHeader()
                                 .AllowAnyMethod()
@@ -65,7 +72,7 @@ namespace HDMS_API.DependencyInjection
             services.AddMediatR(typeof(CreatePatientCommand).Assembly);
             services.AddMediatR(typeof(LoginCommand).Assembly);
             services.AddMediatR(typeof(SendNotificationHandler).Assembly);
-            
+
             // AutoMapper
             services.AddAutoMapper(typeof(MappingViewTreatmentRecord));
             services.AddAutoMapper(typeof(MappingCreatePatient));

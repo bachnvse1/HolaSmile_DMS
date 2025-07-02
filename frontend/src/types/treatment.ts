@@ -33,6 +33,7 @@ export interface TreatmentRecord {
 
 export interface TreatmentFormData {
   appointmentID: number
+  treatmentToday?: boolean;
   dentistID: number
   procedureID: number
   toothPosition: string

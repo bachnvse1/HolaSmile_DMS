@@ -49,9 +49,9 @@ export const BookAppointmentPage = () => {
                     <Clock className="h-5 w-5 text-blue-600 mt-1 mr-3 flex-shrink-0" />
                     <div>
                       <p className="font-semibold text-gray-900">Giờ làm việc:</p>
-                      <p className="text-gray-600">T2-T6: 8:00 AM - 8:00 PM</p>
-                      <p className="text-gray-600">T7: 8:00 AM - 11:00 AM</p>
-                      <p className="text-gray-600">CN: Nghỉ</p>
+                      <p className="text-gray-600">Sáng: 8:00 - 11:00</p>
+                      <p className="text-gray-600">Chiều: 14:00 - 17:00</p>
+                      <p className="text-gray-600">Tối: 17:00 - 20:00</p>
                     </div>
                   </div>
                 </div>

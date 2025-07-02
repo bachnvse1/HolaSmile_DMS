@@ -13,7 +13,7 @@ import { appointmentFormSchema } from '../../lib/validations/appointment';
 import { TIME_SLOTS } from '../../constants/appointment';
 import type { AppointmentFormData } from '../../lib/validations/appointment';
 import type { TimeSlot, Dentist } from '../../types/appointment';
-import {toast} from 'react-toastify';
+import { toast } from 'react-toastify';
 
 export const BookAppointmentForm = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -33,7 +33,7 @@ export const BookAppointmentForm = () => {
   });
 
   // React Query hooks
-  const { dentists, loading: dentistsLoading, error: dentistsError } = useDentistSchedule();
+  const { dentists, isLoading: dentistsLoading, error: dentistsError } = useDentistSchedule();
   const bookAppointmentMutation = useBookAppointment();
 
   // Tạo time slots với icon cho hiển thị
@@ -96,11 +96,11 @@ export const BookAppointmentForm = () => {
       timeString = '08:00:00';
       appointmentDate.setHours(8, 0, 0, 0);
     } else if (selectedTimeSlot === 'afternoon') {
-      timeString = '13:00:00';
-      appointmentDate.setHours(13, 0, 0, 0);
+      timeString = '14:00:00';
+      appointmentDate.setHours(14, 0, 0, 0);
     } else if (selectedTimeSlot === 'evening') {
-      timeString = '18:00:00';
-      appointmentDate.setHours(18, 0, 0, 0);
+      timeString = '17:00:00';
+      appointmentDate.setHours(17, 0, 0, 0);
     }
 
     // Payload theo format backend - PascalCase field names
@@ -108,8 +108,8 @@ export const BookAppointmentForm = () => {
       FullName: step1Data.fullName.trim(),
       Email: step1Data.email.trim(),
       PhoneNumber: step1Data.phoneNumber.trim(),
-      AppointmentDate: appointmentDate.toISOString().split('T')[0], 
-      AppointmentTime: timeString, 
+      AppointmentDate: `${appointmentDate.getFullYear()}-${(appointmentDate.getMonth() + 1).toString().padStart(2, '0')}-${appointmentDate.getDate().toString().padStart(2, '0')}`,
+      AppointmentTime: timeString,
       MedicalIssue: step1Data.medicalIssue.trim(),
       DentistId: selectedDentist.dentistID
     };
@@ -121,7 +121,8 @@ export const BookAppointmentForm = () => {
         toast.success('Đặt lịch thành công!', {
           position: "top-right",
           autoClose: 5000,
-      })},
+        })
+      },
       onError: (error: Error) => {
         setError(error.message || 'Có lỗi xảy ra khi đặt lịch');
       }
@@ -225,7 +226,6 @@ export const BookAppointmentForm = () => {
             selectedDentist={selectedDentist}
             selectedDate={selectedDate}
             selectedTimeSlot={selectedTimeSlot}
-            timeSlotsWithIcons={timeSlotsWithIcons}
           />
         )}
 

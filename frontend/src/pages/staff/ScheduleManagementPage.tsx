@@ -2,21 +2,14 @@ import React from 'react';
 import { ScheduleManagement } from '../../components/schedule/ScheduleManagement';
 import { AuthGuard } from '../../components/AuthGuard';
 import { StaffLayout } from '@/layouts/staff';
-import { useAuth } from '@/hooks/useAuth';
+import { useUserInfo } from '@/hooks/useUserInfo';
 
 const ScheduleManagementPage: React.FC = () => {
-    const { username, role, userId, fullName } = useAuth();
-    const user = {
-        username: username || '',
-        role: role || '',
-        userId: userId || '',
-        name: fullName || '',
-        email: ''
-    };
+    const userInfo = useUserInfo();
 
     return (
         <AuthGuard requiredRoles={['Owner', 'Receptionist', 'Dentist']}>
-            <StaffLayout userInfo={user}>
+            <StaffLayout userInfo={userInfo}>
                 <ScheduleManagement />
             </StaffLayout>
         </AuthGuard>

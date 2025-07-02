@@ -99,13 +99,20 @@ namespace HDMS_API.Infrastructure.Repositories
                         && a.AppointmentDate.Date == date.Date
                         && a.Status != "cancel");
         }
-
         public async Task<Appointment?> GetLatestAppointmentByPatientIdAsync(int patientId)
         {
             return await _context.Appointments
                 .OrderByDescending(a => a.AppointmentDate)
                 .ThenByDescending(a => a.AppointmentTime)
+                .Where(a => a.PatientId == patientId && !a.IsDeleted)
                 .FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> UpdateAppointmentAsync(Appointment appointment)
+        {
+            _context.Appointments.Update(appointment);
+            await _context.SaveChangesAsync();
+            return true;
         }
 
     }

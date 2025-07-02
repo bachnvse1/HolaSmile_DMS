@@ -1,7 +1,5 @@
 using Application.Usecases.UserCommon.RefreshToken;
 using Application.Constants;
-using System.Security.Claims;
-using Application.Usecases.UserCommon.ViewListPatient;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
 using HDMS_API.Application.Usecases.UserCommon.EditProfile;

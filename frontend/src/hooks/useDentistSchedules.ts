@@ -7,7 +7,7 @@ export const useDentistSchedules = () => {
     queryKey: ['dentistSchedules'],
     queryFn: async () => {
       try {
-        const response = await axiosInstance.get('/schedule/dentist/list');
+        const response = await axiosInstance.get('/schedule/dentist/available');
         return response.data;
       } catch (error) {
         console.error('Error fetching dentist schedules:', error);

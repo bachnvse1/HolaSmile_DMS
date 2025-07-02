@@ -22,17 +22,18 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const { role } = useAuth();
-    // Generate week dates starting from today
+  // Generate week dates starting from today
   const getWeekDates = (weekOffset: number) => {
     const today = new Date();
     const startOfWeek = new Date(today);
     startOfWeek.setDate(today.getDate() + (weekOffset * 7));
-    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1); // Start from Monday
-    
+    const day = startOfWeek.getDay();
+    startOfWeek.setDate(startOfWeek.getDate() - (day === 0 ? 6 : day - 1));
+
     const weekDates = [];
     for (let i = 0; i < 7; i++) {
-      const date = new Date(startOfWeek);
-      date.setDate(startOfWeek.getDate() + i);
+      // Luôn tạo ngày mới dựa trên startOfWeek gốc
+      const date = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + i);
       weekDates.push(date);
     }
     return weekDates;
@@ -43,7 +44,7 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
     // const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const monthDates = [];
-    
+
     for (let day = 1; day <= lastDay.getDate(); day++) {
       monthDates.push(new Date(year, month, day));
     }
@@ -64,26 +65,26 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
     if (viewMode === 'week') {
       return appointments;
     }
-    
+
     // Filter appointments for selected month/year
     return appointments.filter(appointment => {
       const appointmentDate = new Date(appointment.appointmentDate);
-      return appointmentDate.getFullYear() === selectedYear && 
-             appointmentDate.getMonth() === selectedMonth;
+      return appointmentDate.getFullYear() === selectedYear &&
+        appointmentDate.getMonth() === selectedMonth;
     });
   }, [appointments, viewMode, selectedYear, selectedMonth]);
   // Transform appointments to calendar format
   const calendarAppointments = useMemo(() => {
     const appointmentMap: { [key: string]: CalendarAppointment[] } = {};
-    
+
     filteredAppointments.forEach(appointment => {
       const appointmentDate = new Date(appointment.appointmentDate);
       const dateKey = appointmentDate.toISOString().split('T')[0];
-      
+
       if (!appointmentMap[dateKey]) {
         appointmentMap[dateKey] = [];
       }
-      
+
       appointmentMap[dateKey].push({
         id: appointment.appointmentId,
         title: `${appointment.patientName} - ${appointment.dentistName}`,
@@ -104,15 +105,26 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
     return appointmentMap;
   }, [filteredAppointments]);
 
-  const getStatusColor = (status: 'confirmed' | 'canceled') => {
-    return status === 'confirmed' 
-      ? 'bg-green-100 border-green-300 text-green-800'
-      : 'bg-red-100 border-red-300 text-red-800';
+  const getStatusColor = (
+    status: 'confirmed' | 'canceled' | 'attended' | 'absented'
+  ) => {
+    switch (status) {
+      case 'confirmed':
+        return 'bg-green-100 border-green-300 text-green-800';
+      case 'canceled':
+        return 'bg-red-100 border-red-300 text-red-800';
+      case 'attended':
+        return 'bg-blue-100 border-blue-300 text-blue-800';
+      case 'absented':
+        return 'bg-gray-100 border-gray-300 text-gray-800';
+      default:
+        return '';
+    }
   };
 
   const formatDateHeader = (date: Date) => {
-    return date.toLocaleDateString('vi-VN', { 
-      weekday: 'short', 
+    return date.toLocaleDateString('vi-VN', {
+      weekday: 'short',
       day: 'numeric',
       month: 'numeric'
     });
@@ -133,7 +145,7 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
 
   const goToCurrentWeek = () => {
     setCurrentWeek(0);
-  };  return (
+  }; return (
     <Card className="shadow-lg">
       {/* Calendar Header */}
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
@@ -145,7 +157,7 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
             {viewMode === 'week' ? 'Lịch hẹn tuần' : 'Lịch hẹn tháng'}
           </CardTitle>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           {/* View Mode Toggle */}
           <div className="flex items-center bg-gray-100 rounded-lg p-1">
@@ -187,7 +199,7 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              
+
               <Button
                 variant="secondary"
                 size="sm"
@@ -195,7 +207,7 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
               >
                 Hôm nay
               </Button>
-              
+
               <Button
                 variant="outline"
                 size="sm"
@@ -214,13 +226,12 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
         {/* Week/Month Headers */}
         <div className={`grid gap-2 mb-4 ${viewMode === 'month' ? 'grid-cols-7' : 'grid-cols-7'}`}>
           {currentDates.slice(0, viewMode === 'week' ? 7 : Math.min(currentDates.length, 7)).map((date, index) => (
-            <div 
-              key={index} 
-              className={`text-center p-3 rounded-lg ${
-                isToday(date) 
-                  ? 'bg-blue-100 text-blue-900 font-bold' 
-                  : 'text-gray-700'
-              }`}
+            <div
+              key={index}
+              className={`text-center p-3 rounded-lg ${isToday(date)
+                ? 'bg-blue-100 text-blue-900 font-bold'
+                : 'text-gray-700'
+                }`}
             >
               <div className="text-sm font-medium">{formatDateHeader(date)}</div>
             </div>
@@ -232,13 +243,12 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
           {currentDates.map((date, index) => {
             const dateKey = date.toISOString().split('T')[0];
             const dayAppointments = calendarAppointments[dateKey] || [];
-            
+
             return (
-              <div 
-                key={index} 
-                className={`border border-gray-200 p-2 ${viewMode === 'month' ? 'min-h-[100px]' : 'min-h-[120px]'} ${
-                  isToday(date) ? 'bg-blue-50 border-blue-300' : 'bg-gray-50'
-                }`}
+              <div
+                key={index}
+                className={`border border-gray-200 p-2 ${viewMode === 'month' ? 'min-h-[100px]' : 'min-h-[120px]'} ${isToday(date) ? 'bg-blue-50 border-blue-300' : 'bg-gray-50'
+                  }`}
               >
                 {/* Date number for month view */}
                 {viewMode === 'month' && (
@@ -246,7 +256,7 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
                     {date.getDate()}
                   </div>
                 )}
-                
+
                 <div className="space-y-1">
                   {dayAppointments.map((appointment) => (
                     <div
@@ -260,15 +270,15 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
                           {appointment.isNewPatient && (
                             <Badge variant="outline" className="text-xs px-1">Mới</Badge>
                           )}
-                          {role === 'Patient' && appointment.status === 'confirmed' && 
-                           !isAppointmentCancellable(appointment.details.appointmentDate, appointment.details.appointmentTime) && (
-                            <div title="Không thể hủy">
-                              <AlertTriangle className="h-3 w-3 text-yellow-600" />
-                            </div>
-                          )}
+                          {role === 'Patient' && appointment.status === 'confirmed' &&
+                            !isAppointmentCancellable(appointment.details.appointmentDate, appointment.details.appointmentTime) && (
+                              <div title="Không thể hủy">
+                                <AlertTriangle className="h-3 w-3 text-yellow-600" />
+                              </div>
+                            )}
                         </div>
                       </div>
-                      
+
                       <div className="space-y-0.5">
                         <div className="flex items-center">
                           <User className="h-3 w-3 mr-1" />
@@ -276,7 +286,15 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
                         </div>
                         <div className="flex items-center">
                           <FileText className="h-3 w-3 mr-1" />
-                          <span className="truncate">{appointment.type}</span>
+                          <span className="truncate">{appointment.type === 'follow-up'
+                            ? 'Tái khám'
+                            : appointment.type === 'consultation'
+                              ? 'Tư vấn'
+                              : appointment.type === 'treatment'
+                                ? 'Điều trị'
+                                : appointment.type === 'first-time'
+                                  ? 'Khám lần đầu '
+                                  : appointment.type}</span>
                         </div>
                       </div>
                     </div>
@@ -304,6 +322,14 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
         <div className="flex items-center space-x-2">
           <div className="w-3 h-3 bg-red-100 border border-red-300 rounded"></div>
           <span className="text-sm text-gray-600">Đã hủy</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className="w-3 h-3 bg-blue-100 border border-blue-300 rounded"></div>
+          <span className="text-sm text-gray-600">Đã đến</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className="w-3 h-3 bg-gray-100 border border-gray-300 rounded"></div>
+          <span className="text-sm text-gray-600">Vắng</span>
         </div>
         <div className="flex items-center space-x-2">
           <div className="w-3 h-3 bg-white border border-gray-400 rounded"></div>

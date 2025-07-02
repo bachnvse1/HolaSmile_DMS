@@ -115,7 +115,7 @@ export const ScheduleCalendarEnhanced: React.FC<ScheduleCalendarEnhancedProps> =
   const isPastDate = (date: Date) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return date < today;
+    return date <= today;
   };
   
   // Lấy thông tin bác sĩ từ lịch
@@ -137,19 +137,16 @@ export const ScheduleCalendarEnhanced: React.FC<ScheduleCalendarEnhancedProps> =
     const dentistName = showDentistInfo ? getDentistInfo(date, shift) : null;
     
     let className = "flex flex-col items-center justify-center h-14 rounded-md text-sm font-medium transition-colors ";
-    let statusIndicator = null;
+
     
     if (scheduled) {
       // Nếu đã có lịch, hiển thị màu khác nhau dựa trên trạng thái
       if (status === ScheduleStatus.Approved) {
         className += "bg-green-100 text-green-800 ";
-        statusIndicator = <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-1.5"></span>;
       } else if (status === ScheduleStatus.Rejected) {
-        className += "bg-red-100 text-red-800 ";
-        statusIndicator = <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-1.5"></span>;
+        className += "bg-red-100 text-red-800 ";  
       } else {
         className += "bg-yellow-100 text-yellow-800 ";
-        statusIndicator = <span className="inline-block w-2 h-2 bg-yellow-500 rounded-full mr-1.5"></span>;
       }
     } else if (isPast) {
       // Ngày trong quá khứ
@@ -181,9 +178,9 @@ export const ScheduleCalendarEnhanced: React.FC<ScheduleCalendarEnhancedProps> =
     
     // Giờ làm việc của ca
     const shiftTimes = {
-      [ShiftType.Morning]: "8:00 - 12:00",
-      [ShiftType.Afternoon]: "13:00 - 17:00",
-      [ShiftType.Evening]: "18:00 - 21:00",
+      [ShiftType.Morning]: "8:00 - 11:00",
+      [ShiftType.Afternoon]: "14:00 - 17:00",
+      [ShiftType.Evening]: "17:00 - 20:00",
     };
     
     return (
@@ -204,7 +201,6 @@ export const ScheduleCalendarEnhanced: React.FC<ScheduleCalendarEnhancedProps> =
         }}
       >
         <div className="text-center">
-          {statusIndicator}
           <div className="font-medium">{shiftNames[shift]}</div>
           <div className="text-xs mt-0.5">{shiftTimes[shift]}</div>
           {showDentistInfo && dentistName && (

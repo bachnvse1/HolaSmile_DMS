@@ -5,42 +5,34 @@ import { Badge } from '../ui/badge';
 import { CancelAppointmentDialog } from './CancelAppointmentDialog';
 import { useAuth } from '../../hooks/useAuth';
 import { isAppointmentCancellable, getTimeUntilAppointment } from '../../utils/appointmentUtils';
-import type { AppointmentDTO } from '../../types/appointment';
+import type { AppointmentDTO, Dentist } from '../../types/appointment';
+import { Link, useParams } from 'react-router';
+import { EditAppointmentDialog } from './EditAppointmentDialog';
 
 interface AppointmentDetailModalProps {
   appointment: AppointmentDTO | null;
   isOpen: boolean;
   onClose: () => void;
+  dentists: Dentist[];
 }
 
 export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
   appointment,
   isOpen,
-  onClose
+  onClose,
+  dentists
 }) => {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const { role } = useAuth();
+  const { patientId } = useParams<{ patientId: string }>();
   if (!isOpen || !appointment) return null;
-  // Debug logging
-  console.log('AppointmentDetailModal - Appointment data:', {
-    appointmentDate: appointment.appointmentDate,
-    appointmentTime: appointment.appointmentTime,
-    status: appointment.status,
-    now: new Date().toISOString()
-  });
 
   const canCancelAppointment = role === 'Patient' &&
     appointment.status === 'confirmed' &&
     isAppointmentCancellable(appointment.appointmentDate, appointment.appointmentTime);
 
   const timeUntilAppointment = getTimeUntilAppointment(appointment.appointmentDate, appointment.appointmentTime);
-
-  console.log('AppointmentDetailModal - Cancellation check:', {
-    role,
-    status: appointment.status,
-    canCancelAppointment,
-    timeUntilAppointment
-  });
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('vi-VN', {
@@ -55,19 +47,32 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
     return timeString.substring(0, 5); // "HH:MM"
   };
 
-  const getStatusConfig = (status: 'confirmed' | 'canceled') => {
-    if (status === 'confirmed') {
-      return {
-        color: 'bg-green-100 text-green-800 border-green-200',
-        icon: <CheckCircle className="h-4 w-4" />,
-        text: 'Đã xác nhận'
-      };
-    } else {
-      return {
-        color: 'bg-red-100 text-red-800 border-red-200',
-        icon: <XCircle className="h-4 w-4" />,
-        text: 'Đã hủy'
-      };
+  const getStatusConfig = (
+    status: 'confirmed' | 'canceled' | 'attended' | 'absented'
+  ) => {
+    switch (status) {
+      case 'confirmed':
+        return {
+          icon: <CheckCircle className="h-4 w-4" />,
+          text: 'Đã xác nhận'
+        };
+      case 'canceled':
+        return {
+          icon: <XCircle className="h-4 w-4" />,
+          text: 'Đã hủy'
+        };
+      case 'attended':
+        return {
+          icon: <UserCheck className="h-4 w-4" />,
+          text: 'Đã đến'
+        };
+      case 'absented':
+        return {
+          icon: <AlertTriangle className="h-4 w-4" />,
+          text: 'Vắng'
+        };
+      default:
+        return { icon: null, text: status };
     }
   };
 
@@ -99,24 +104,32 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
           </div>
 
           {/* Content */}
-          <div className="p-6 space-y-6">          
+          <div className="p-6 space-y-6">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-600">Trạng thái:</span>
               <Badge
-                variant={appointment.status === 'confirmed' ? 'success' : 'destructive'}
+                variant={
+                  appointment.status === 'confirmed'
+                    ? 'success'
+                    : appointment.status === 'canceled'
+                      ? 'destructive'
+                      : appointment.status === 'attended'
+                        ? 'info'
+                        : 'secondary'
+                }
                 className="flex items-center space-x-2"
               >
                 {statusConfig.icon}
                 <span>{statusConfig.text}</span>
               </Badge>
-            </div>            
+            </div>
             {/* Patient & Dentist Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="flex items-start">
                 <User className="h-5 w-5 text-blue-600 mr-3 mt-0.5" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-600">Bệnh nhân</p>
-                  <p className="font-semibold text-gray-900">{appointment.patientName}</p>
+                  <Link to={`/patient/${patientId}`} className="font-semibold text-gray-900">{appointment.patientName}</Link>
                   {appointment.isNewPatient && (
                     <div className="flex items-center mt-2">
                       <UserCheck className="h-4 w-4 text-green-600 mr-2" />
@@ -133,7 +146,7 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
                   <p className="font-semibold text-gray-900">{appointment.dentistName}</p>
                 </div>
               </div>
-            </div>            
+            </div>
             {/* Date & Time with Cancellation Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="flex items-start">
@@ -164,7 +177,17 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
               <Tag className="h-5 w-5 text-indigo-600 mr-3 mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-gray-600">Loại hẹn</p>
-                <p className="font-semibold text-gray-900">{appointment.appointmentType}</p>
+                <p className="font-semibold text-gray-900">
+                  {appointment.appointmentType === 'follow-up'
+                    ? 'Tái khám'
+                    : appointment.appointmentType === 'consultation'
+                      ? 'Tư vấn'
+                      : appointment.appointmentType === 'treatment'
+                        ? 'Điều trị'
+                        : appointment.appointmentType === 'first-time'
+                          ? 'Khám lần đầu '
+                          : appointment.appointmentType}
+                </p>
               </div>
             </div>
 
@@ -187,14 +210,12 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
                 <span className="text-gray-600">Ngày tạo:</span>
                 <span className="text-gray-900">{formatDate(appointment.createdAt)}</span>
               </div>
-              {appointment.updatedAt && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Cập nhật lần cuối:</span>
-                  <span className="text-gray-900">{formatDate(appointment.updatedAt)}</span>
-                </div>
-              )}
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Cập nhật lần cuối:</span>
+                <span className="text-gray-900">{formatDate(appointment.updatedAt || appointment.createdAt)}</span>
+              </div>
             </div>
-          </div>         
+          </div>
 
           {/* Warning for non-cancellable appointments */}
           {role === 'Patient' && appointment.status === 'confirmed' && !canCancelAppointment && (
@@ -220,14 +241,23 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
               </Button>
             )}
 
-
             <Button
               variant="outline"
               onClick={onClose}
-              className={canCancelAppointment ? 'flex-1' : 'w-full'}
+              className='flex-1'
             >
               Đóng
             </Button>
+
+            {role === 'Receptionist' && appointment.status === 'confirmed' && (
+              <Button
+                variant="default"
+                onClick={() => setShowEditDialog(true)}
+                className="flex-1 ml-3"
+              >
+                Cập nhật lịch hẹn
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -239,6 +269,20 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
           isOpen={showCancelDialog}
           onClose={() => setShowCancelDialog(false)}
           onSuccess={() => {
+            onClose();
+          }}
+        />
+      )}
+
+      {/* Edit Appointment Dialog */}
+      {showEditDialog && (
+        <EditAppointmentDialog
+          appointment={appointment}
+          isOpen={showEditDialog}
+          dentists={dentists}
+          onClose={() => setShowEditDialog(false)}
+          onSuccess={() => {
+            setShowEditDialog(false);
             onClose();
           }}
         />

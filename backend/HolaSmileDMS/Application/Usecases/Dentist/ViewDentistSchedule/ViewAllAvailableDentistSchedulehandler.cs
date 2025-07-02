@@ -33,6 +33,7 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
                                  WorkDate = s.WorkDate,
                                  DentistName = s.Dentist.User.Fullname,
                                  Shift = s.Shift,
+                                 Status = s.Status,
                                  CreatedAt = s.CreatedAt,
                                  UpdatedAt = s.UpdatedAt
                              }).ToList()
