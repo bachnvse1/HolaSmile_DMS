@@ -60,5 +60,19 @@ namespace HDMS_API.Infrastructure.Repositories
             return patient;
         }
 
+        public async Task<bool> UpdatePatientInforAsync(Patient patient)
+        {
+            _context.Patients.Update(patient);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<Patient> CheckEmailPatientAsync(string email)
+        {
+            var patient = await _context.Patients
+                .Include(p => p.User)
+                .FirstOrDefaultAsync(p => p.User.Email == email);
+            return patient;
+        }
+
     }
 }
