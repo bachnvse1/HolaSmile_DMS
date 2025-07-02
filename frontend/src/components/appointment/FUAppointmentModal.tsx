@@ -43,7 +43,6 @@ export const FUAppointmentModal: React.FC<FUAppointmentModalProps> = ({
       toast.error(err?.response?.data?.message || "Có lỗi xảy ra!");
     }
   };
-  console.log('patientId gửi lên:', patientId);
 
   return (
     <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-3xl min-h-[80vh]">

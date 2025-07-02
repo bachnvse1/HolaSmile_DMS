@@ -310,43 +310,6 @@ export const useBulkCreateSchedules = () => {
   });
 };
 
-// Hook để xóa mềm lịch làm việc (chỉ dành cho pending schedules)
-export const useSoftDeleteSchedule = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (scheduleData: {
-      scheduleId: number;
-      workDate: string;
-      shift: string;
-    }) => {
-      // Format data theo yêu cầu API - không cần chuyển đổi workDate
-      const apiData = {
-        scheduleId: scheduleData.scheduleId,
-        workDate: scheduleData.workDate, // Giữ nguyên format từ API
-        shift: scheduleData.shift,
-      };
-
-      console.log("Dữ liệu gửi đến API soft delete:", apiData);
-      const response = await axiosInstance.delete("/schedule/dentist/cancel");
-      console.log("Phản hồi xóa mềm từ server:", response.data);
-      return response.data;
-    },
-    onSuccess: (data) => {
-      console.log("Xóa mềm lịch thành công:", data);
-      queryClient.invalidateQueries({ queryKey: ["schedules"] });
-      queryClient.refetchQueries({ queryKey: ["schedules"] });
-    },
-    onError: (error: unknown) => {
-      console.error("Lỗi khi xóa mềm lịch:", error);
-      console.error(
-        "Chi tiết lỗi:",
-        (error as { response?: { data?: unknown } }).response?.data
-      );
-    },
-  });
-};
-
 // Hook để xóa lịch làm việc bằng DELETE method
 export const useDeleteSchedule = () => {
   const queryClient = useQueryClient();
