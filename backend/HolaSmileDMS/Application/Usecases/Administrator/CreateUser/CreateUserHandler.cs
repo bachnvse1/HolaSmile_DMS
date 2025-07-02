@@ -12,7 +12,7 @@ namespace Application.Usecases.Administrator.CreateUser
     {
         private readonly IUserCommonRepository _userCommonRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public CreateUserHandler(IUserCommonRepository userCommonRepository, IHttpContextAccessor httpContextAccessor)
+        public  CreateUserHandler(IUserCommonRepository userCommonRepository, IHttpContextAccessor httpContextAccessor)
         {
             _userCommonRepository = userCommonRepository;
             _httpContextAccessor = httpContextAccessor;

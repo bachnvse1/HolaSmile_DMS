@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.administrator.BanAndUnban;
 using Application.Usecases.Administrator.BanAndUnban;
@@ -60,8 +61,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Administrator.BanAndUnba
             SetupHttpContext("administrator", 1);
             var cmd = new BanAndUnbanUserCommand { UserId = 0 };
 
-            var ex = await Assert.ThrowsAsync<ArgumentException>(() => _handler.Handle(cmd, default));
-            Assert.Equal("dữ liệu đầu vào không đúng", ex.Message);
+            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(cmd, default));
+            Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
         }
     }
 }

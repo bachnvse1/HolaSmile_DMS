@@ -32,7 +32,7 @@ namespace Application.Usecases.administrator.BanAndUnban
             // Kiểm tra dữ liệu đầu vào
             if (request.UserId <= 0)
             {
-                throw new ArgumentException("dữ liệu đầu vào không đúng");
+                throw new Exception(MessageConstants.MSG.MSG16);
             }
             var isChangeStatus = await _userCommonRepository.UpdateUserStatusAsync(request.UserId);
             return isChangeStatus;
