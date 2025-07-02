@@ -1,9 +1,12 @@
 using System.Security.Claims;
 using Application.Constants;
+using Application.Interfaces;
 using Application.Usecases.Dentist.CreateTreatmentRecord;
 using AutoMapper;
 using HDMS_API.Infrastructure.Persistence;
+using HDMS_API.Infrastructure.Repositories;
 using Infrastructure.Repositories;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +20,9 @@ public class CreateTreatmentRecordIntegrationTests
     private readonly CreateTreatmentRecordHandler _handler;
     private readonly IMapper _mapper;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IMediator _mediator;
+    private readonly IAppointmentRepository _appointmentRepository;
+    private readonly IPatientRepository _patientRepository;
 
     public CreateTreatmentRecordIntegrationTests()
     {
@@ -24,22 +30,35 @@ public class CreateTreatmentRecordIntegrationTests
 
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseInMemoryDatabase("CreateTreatmentRecordTestDb"));
+
         services.AddHttpContextAccessor();
         services.AddAutoMapper(typeof(CreateTreatmentRecordHandler).Assembly);
+
+        services.AddMediatR(typeof(CreateTreatmentRecordHandler).Assembly);
+        
+        services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+        services.AddScoped<IPatientRepository, PatientRepository>();
 
         var provider = services.BuildServiceProvider();
         _context = provider.GetRequiredService<ApplicationDbContext>();
         _httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
         _mapper = provider.GetRequiredService<IMapper>();
+        _mediator = provider.GetRequiredService<IMediator>();
+        _appointmentRepository = provider.GetRequiredService<IAppointmentRepository>();
+        _patientRepository = provider.GetRequiredService<IPatientRepository>();
 
         SeedData();
 
         _handler = new CreateTreatmentRecordHandler(
             new TreatmentRecordRepository(_context, _mapper),
             _mapper,
-            _httpContextAccessor
+            _httpContextAccessor,
+            _mediator,
+            _appointmentRepository,
+            _patientRepository
         );
     }
+
 
     private void SeedData()
     {
