@@ -175,7 +175,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists.UpdateSchedule
             };
 
             var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG51, ex.Message);
+            Assert.Equal(MessageConstants.MSG.MSG89, ex.Message);
         }
 
         [Fact(DisplayName = "UTCID07 - Normal - Trùng rejected => xóa mềm & cập nhật")]

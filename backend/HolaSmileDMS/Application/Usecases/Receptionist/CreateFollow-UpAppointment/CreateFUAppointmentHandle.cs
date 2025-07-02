@@ -30,11 +30,11 @@ namespace Application.Usecases.Receptionist.CreateFollow_UpAppointment
             {
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
             }
-            if (request.AppointmentDate < DateTime.Today)
+            if (request.AppointmentDate < DateTime.Now.Date)
             {
                 throw new Exception(MessageConstants.MSG.MSG34); // "Ngày hẹn tái khám phải sau ngày hôm nay"
             }
-            if (request.AppointmentDate.Date == DateTime.Today.Date && request.AppointmentTime < DateTime.Today.TimeOfDay)
+            if (request.AppointmentDate.Date == DateTime.Today.Date && request.AppointmentTime < DateTime.Now.TimeOfDay)
             {
                 throw new Exception(MessageConstants.MSG.MSG34); // "Ngày hẹn tái khám phải sau ngày hôm nay"
             }

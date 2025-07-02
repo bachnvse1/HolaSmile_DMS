@@ -28,7 +28,7 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
             var currentUserRole = user.FindFirst(ClaimTypes.Role)?.Value;
             var currentUserId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-            if (user == null) throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // "Bạn cần đăng nhập..."
+            if (currentUserRole == null) throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // "Bạn cần đăng nhập..."
 
             var schedule = await _scheduleRepository.GetScheduleByIdAsync(request.ScheduleId);
 

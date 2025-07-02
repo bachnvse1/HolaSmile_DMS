@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Dentist.ViewAllDentistSchedule;
@@ -40,13 +35,16 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists.ViewDentistSche
 
         private void SetupHttpContext(string role, int userId)
         {
-            var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
+            var claims = new List<Claim>
             {
-            new Claim(ClaimTypes.Role, role),
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString())
-        }));
+                new Claim(ClaimTypes.Role, role),
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString())
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuth");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
 
-            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(new DefaultHttpContext { User = user });
+            var context = new DefaultHttpContext { User = claimsPrincipal };
+            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
         }
 
         [Fact(DisplayName = "UTCID01 - Normal - Admin có thể xem chi tiết lịch")]
@@ -85,11 +83,15 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists.ViewDentistSche
         [Fact(DisplayName = "UTCID03 - Abnormal - Không đăng nhập")]
         public async System.Threading.Tasks.Task UTCID03_Unauthorized_No_User()
         {
-            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns((HttpContext)null);
+            var schedule = new Schedule { ScheduleId = 20, DentistId = 3 };
 
+            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(new DefaultHttpContext());
+
+            // Act
             var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
                 _handler.Handle(new ViewDetailScheduleCommand(1), default));
 
+            // Assert
             Assert.Equal(MessageConstants.MSG.MSG53, exception.Message);
         }
 
