@@ -195,7 +195,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists.EditAppoin
             var ex = await Assert.ThrowsAsync<Exception>(() =>
                 _handler.Handle(command, default));
 
-            Assert.Equal("Bác sĩ không tồn tại", ex.Message);
+            Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
         }
 
         [Fact(DisplayName = "UTCID08 - Abnormal - Kế hoạch điều trị đã tồn tại")]
