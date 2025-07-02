@@ -46,23 +46,22 @@ namespace Application.Usecases.Receptionist.EditPatientInformation
             }
 
             if (string.IsNullOrEmpty(request.FullName)){
-                throw new ArgumentException(MessageConstants.MSG.MSG07); // "Vui lòng nhập thông tin bắt buộc"
+                throw new Exception(MessageConstants.MSG.MSG07); // "Vui lòng nhập thông tin bắt buộc"
             }
-
 
             if (!FormatHelper.IsValidEmail(request.Email))
             {
-                throw new ArgumentException(MessageConstants.MSG.MSG08); // "Vui lòng nhập thông tin bắt buộc"
+                throw new Exception(MessageConstants.MSG.MSG08); // "Vui lòng nhập thông tin bắt buộc"
             }
 
             if (await _patientRepository.CheckEmailPatientAsync(request.Email) != null)
             {
-                throw new ArgumentException(MessageConstants.MSG.MSG22); // "Vui lòng nhập thông tin bắt buộc"
+                throw new Exception(MessageConstants.MSG.MSG22); // "Vui lòng nhập thông tin bắt buộc"
             }
 
             if(string.IsNullOrEmpty(request.Address))
             {
-                throw new ArgumentException(MessageConstants.MSG.MSG07); // "Vui lòng nhập thông tin bắt buộc"
+                throw new Exception(MessageConstants.MSG.MSG07); // "Vui lòng nhập thông tin bắt buộc"
             }
             patient.User.Fullname = request.FullName;
             patient.User.Email = request.Email;
