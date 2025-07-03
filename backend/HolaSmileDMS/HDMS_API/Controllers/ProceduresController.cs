@@ -3,6 +3,7 @@ using Application.Usecases.Assistant.Template.ProcedureTemplate.CreateProcedure;
 using Application.Usecases.Assistant.Template.ProcedureTemplate.UpdateProcedure;
 using Application.Usecases.UserCommon.ViewListProcedure;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HDMS_API.Controllers;
@@ -18,13 +19,61 @@ public class ProceduresController : ControllerBase
         _mediator = mediator;
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetProcedures()
+    [Authorize]
+    [HttpGet("list-procedure")]
+    public async Task<IActionResult> GetAllProcedures()
     {
-        var result = await _mediator.Send(new ViewListProcedureCommand());
-        return Ok(result);
+        try
+        {
+            var result = await _mediator.Send(new ViewListProcedureCommand());
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                Message = false,
+                Error = ex.Message // "Bạn không có quyền truy cập chức năng này"
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                Message = false,
+                Error = ex.Message // "Lỗi hệ thống không xác định"
+            });
+        }
     }
 
+    [Authorize]
+    [HttpGet("detail-procedure/{procedureId:int}")]
+    public async Task<IActionResult> GetProcedureById(int procedureId)
+    {
+        try
+        {
+            var result = await _mediator.Send(new ViewDetailProcedureCommand { proceduredId = procedureId });
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                Message = false,
+                Error = ex.Message // "Bạn không có quyền truy cập chức năng này"
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                Message = false,
+                Error = ex.Message // "Lỗi hệ thống không xác định"
+            });
+        }
+    }
+
+    [Authorize]
     [HttpPost("create-procedure")]
     public async Task<IActionResult> CreateProcedure([FromBody] CreateProcedureCommand command)
     {
@@ -52,7 +101,8 @@ public class ProceduresController : ControllerBase
         }
     }
 
-    [HttpPost("update-procedure")]
+    [Authorize]
+    [HttpPut("update-procedure")]
     public async Task<IActionResult> UpdateProcedureAsync([FromBody] UpdateProcedureCommand command)
     {
         try

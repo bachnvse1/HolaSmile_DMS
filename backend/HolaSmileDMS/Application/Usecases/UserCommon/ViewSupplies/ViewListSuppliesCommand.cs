@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Application.Usecases.Assistant.ViewSupplies
+namespace Application.Usecases.UserCommon.ViewSupplies
 {
     public class ViewListSuppliesCommand : IRequest<List<SuppliesDTO>>
     {

@@ -18,14 +18,16 @@ namespace Application.Usecases.Assistant.Template.ProcedureTemplate.CreateProced
         public async Task<bool> Handle(CreateProcedureCommand request, CancellationToken cancellationToken)
         {
             var user = _httpContextAccessor.HttpContext?.User;
-            if (user == null)
-                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // "Bạn cần đăng nhập..."
 
             var currentUserRole = user.FindFirst(ClaimTypes.Role)?.Value;
             var currentUserId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
+            if(currentUserRole == null)
+            {
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // "Bạn cần đăng nhập..."
+            }
 
-            if(!string.Equals(currentUserRole, "assistant", StringComparison.OrdinalIgnoreCase)){
+            if (!string.Equals(currentUserRole, "assistant", StringComparison.OrdinalIgnoreCase)){
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             }
 

@@ -5,7 +5,7 @@ using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
-namespace Application.Usecases.Assistant.ViewSupplies
+namespace Application.Usecases.UserCommon.ViewSupplies
 {
     public class ViewDetailSupplyHandler : IRequestHandler<ViewDetailSupplyCommand, SuppliesDTO>
     {
