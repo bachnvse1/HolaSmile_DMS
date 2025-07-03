@@ -35,5 +35,4 @@ public class ProcedureRepository : IProcedureRepository
         _context.Procedures.Update(procedure);
         return await _context.SaveChangesAsync() > 0;
     }
-    
 }

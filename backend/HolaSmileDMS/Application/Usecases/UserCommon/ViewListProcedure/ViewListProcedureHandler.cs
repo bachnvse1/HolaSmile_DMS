@@ -33,11 +33,16 @@ public class ViewListProcedureHandler : IRequestHandler<ViewListProcedureCommand
         {
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // "Bạn cần đăng nhập..."
         }
+        var procedures = new List<Procedure>();
 
-        var procedures = await _procedureRepository
-            .GetAll()
-            .Where(p => !p.IsDeleted)
-            .ToListAsync(cancellationToken);
+        if (string.Equals(currentUserRole, "assistant", StringComparison.OrdinalIgnoreCase))
+        {
+            procedures = await _procedureRepository.GetAll().ToListAsync(cancellationToken);
+        }
+        else
+        {
+            procedures = await _procedureRepository.GetAll().Where(p => !p.IsDeleted).ToListAsync(cancellationToken);
+        }
         if (!procedures.Any())
         {
             return new List<ViewProcedureDto>();

@@ -36,31 +36,18 @@ namespace Application.Usecases.UserCommon.ViewListProcedure
             }
 
             var existProcedure = await _procedureRepository.GetProcedureByProcedureId(request.proceduredId);
-            if (existProcedure == null)
+            if (existProcedure == null ||
+            (!string.Equals(currentUserRole, "assistant", StringComparison.OrdinalIgnoreCase) && existProcedure.IsDeleted))
             {
-                throw new Exception(MessageConstants.MSG.MSG16); //khong thay thu thuat
+                throw new Exception(MessageConstants.MSG.MSG16); // Không tìm thấy thủ thuật
             }
 
             var createdByUser = await _userCommonRepository.GetByIdAsync(existProcedure.CreatedBy, cancellationToken);
+            var updatedByUser = await _userCommonRepository.GetByIdAsync(existProcedure.UpdatedBy, cancellationToken);
 
-            var result = new ViewProcedureDto
-            {
-                ProcedureId = existProcedure.ProcedureId,
-                ProcedureName = existProcedure.ProcedureName,
-                Price = Math.Round(existProcedure.Price),
-                Description = existProcedure.Description,
-                Discount = existProcedure.Discount,
-                WarrantyPeriod = existProcedure.WarrantyPeriod,
-                OriginalPrice = Math.Round(existProcedure.OriginalPrice ?? 0m, 2),
-                ConsumableCost = Math.Round(existProcedure.ConsumableCost ?? 0m, 2),
-                ReferralCommissionRate = existProcedure.ReferralCommissionRate,
-                DoctorCommissionRate = existProcedure.DoctorCommissionRate,
-                AssistantCommissionRate = existProcedure.AssistantCommissionRate,
-                TechnicianCommissionRate = existProcedure.TechnicianCommissionRate,
-                CreatedAt = existProcedure.CreatedAt,
-                UpdatedAt = existProcedure.UpdatedAt,
-                CreatedBy = createdByUser.Fullname,
-            };
+            var result = _mapper.Map<ViewProcedureDto>(existProcedure);
+            result.CreatedBy = createdByUser?.Fullname ?? "Unknown";
+            result.UpdateBy = updatedByUser?.Fullname ?? "Unknown";
 
             return result;
         }
