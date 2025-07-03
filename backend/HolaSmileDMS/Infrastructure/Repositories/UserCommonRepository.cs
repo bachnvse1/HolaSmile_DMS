@@ -302,7 +302,7 @@ namespace HDMS_API.Infrastructure.Repositories
                 PhoneNumber = u.Phone,
                 Role = "Dentist",
                 CreatedAt = u.CreatedAt,
-                isActive = !u.Status // Status = true là bị khoá
+                Status = u.Status // Status = false là bị khoá
             });
 
             var patientUsers = _context.Users
@@ -317,7 +317,7 @@ namespace HDMS_API.Infrastructure.Repositories
                 PhoneNumber = u.Phone,
                 Role = "Patient",
                 CreatedAt = u.CreatedAt,
-                isActive = !u.Status // Status = true là bị khoá
+                Status = u.Status 
             });
 
             var receptionistUsers = _context.Users
@@ -332,7 +332,7 @@ namespace HDMS_API.Infrastructure.Repositories
                         PhoneNumber = u.Phone,
                         Role = "Receptionist",
                         CreatedAt = u.CreatedAt,
-                        isActive = !u.Status
+                        Status = u.Status
                     });
 
             var assistantUsers = _context.Users
@@ -347,7 +347,7 @@ namespace HDMS_API.Infrastructure.Repositories
                         PhoneNumber = u.Phone,
                         Role = "Assistant",
                         CreatedAt = u.CreatedAt,
-                        isActive = !u.Status
+                        Status = u.Status
                     });
 
             var ownerUsers = _context.Users
@@ -362,7 +362,7 @@ namespace HDMS_API.Infrastructure.Repositories
                         PhoneNumber = u.Phone,
                         Role = "Owner",
                         CreatedAt = u.CreatedAt,
-                        isActive = !u.Status
+                        Status = u.Status
                     });
 
             var allUsers = await dentistUsers
