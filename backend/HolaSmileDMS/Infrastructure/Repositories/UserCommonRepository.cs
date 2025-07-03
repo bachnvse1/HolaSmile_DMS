@@ -296,6 +296,7 @@ namespace HDMS_API.Infrastructure.Repositories
              d => d.UserId,
             (u, d) => new ViewListUserDTO
             {
+                UserId = u.UserID,
                 Email = u.Email,
                 FullName = u.Fullname,
                 PhoneNumber = u.Phone,
@@ -310,6 +311,7 @@ namespace HDMS_API.Infrastructure.Repositories
              p => p.UserID,
             (u, d) => new ViewListUserDTO
             {
+                UserId = u.UserID,
                 Email = u.Email,
                 FullName = u.Fullname,
                 PhoneNumber = u.Phone,
@@ -324,6 +326,7 @@ namespace HDMS_API.Infrastructure.Repositories
                     r => r.UserId,
                     (u, r) => new ViewListUserDTO
                     {
+                        UserId = u.UserID,
                         Email = u.Email,
                         FullName = u.Fullname,
                         PhoneNumber = u.Phone,
@@ -338,6 +341,7 @@ namespace HDMS_API.Infrastructure.Repositories
                     a => a.UserId,
                     (u, a) => new ViewListUserDTO
                     {
+                        UserId = u.UserID,
                         Email = u.Email,
                         FullName = u.Fullname,
                         PhoneNumber = u.Phone,
@@ -352,6 +356,7 @@ namespace HDMS_API.Infrastructure.Repositories
                     o => o.UserId,
                     (u, o) => new ViewListUserDTO
                     {
+                        UserId = u.UserID,
                         Email = u.Email,
                         FullName = u.Fullname,
                         PhoneNumber = u.Phone,
