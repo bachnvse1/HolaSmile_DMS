@@ -76,6 +76,11 @@ export default function PatientTableRow({ patient, index }: Props) {
                         >
                             Tạo Lịch Tái Khám
                         </DropdownMenuItem>
+                        <DropdownMenuItem
+                            onClick={() => navigate(`/patients/${patient.patientId}/orthodontic-treatment-plans`)}
+                        >
+                            Kế Hoạch Điều Trị
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </td>

@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Route, Routes } from 'react-router';
+import { Route, Routes } from 'react-router';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; // Quan trọng!
 
@@ -27,7 +27,14 @@ import ViewTreatmentProgressPage from './pages/patient/ViewTreatmentProgress';
 import PatientList from './pages/patient/PatientList';
 import OrthodonticTreatmentPlansPage from './pages/OrthodonticTreatmentPlans';
 import OrthodonticTreatmentPlanFormPage from './pages/OrthodonticTreatmentPlanFormPage';
+import {OrthodonticTreatmentPlanListPage} from './pages/OrthodonticTreatmentPlanListPage';
+import {OrthodonticTreatmentPlanDetailPage} from './pages/OrthodonticTreatmentPlanDetailPage';
+import { EditOrthodonticTreatmentPlanPage } from './pages/EditOrthodonticTreatmentPlanPage';
 import FUAppointmentPage from './pages/appointment/FUAppointmentPage';
+import { OrthodonticTestPage } from './pages/OrthodonticTestPage';
+import { SimpleOrthodonticList } from './components/orthodontic/SimpleOrthodonticList';
+import { CreateOrthodonticTreatmentPlanBasicPage } from './pages/CreateOrthodonticTreatmentPlanBasicPage';
+import { CreateOrthodonticTreatmentPlanDetailPage } from './pages/CreateOrthodonticTreatmentPlanDetailPage';
 function App() {
   return (
     <>
@@ -58,10 +65,14 @@ function App() {
         <Route path="/patient/view-treatment-records" element={<PatientTreatmentRecords />} />
         <Route path="/patient/view-treatment-progress/:treatmentRecordId" element={<ViewTreatmentProgressPage />} />
         <Route path="/patients" element={<PatientList />} />
-        <Route path="/patients/:patientId/orthodontic-treatment-plans" element={<OrthodonticTreatmentPlansPage />} />
-        <Route path="/patients/:patientId/orthodontic-treatment-plans/new" element={<OrthodonticTreatmentPlanFormPage />} />
-        <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId/edit" element={<OrthodonticTreatmentPlanFormPage />} />
+        <Route path="/patients/:patientId/orthodontic-treatment-plans" element={<OrthodonticTreatmentPlanListPage />} />
+        <Route path="/patients/:patientId/orthodontic-treatment-plans/create" element={<CreateOrthodonticTreatmentPlanBasicPage />} />
+        <Route path="/patients/:patientId/orthodontic-treatment-plans/create/detail" element={<CreateOrthodonticTreatmentPlanDetailPage />} />
+        <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId" element={<OrthodonticTreatmentPlanDetailPage />} />
+        <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId/edit" element={<EditOrthodonticTreatmentPlanPage />} />
         <Route path="/patient/follow-up" element={<FUAppointmentPage />} />
+        <Route path="/test-orthodontic" element={<OrthodonticTestPage />} />
+        <Route path="/simple-orthodontic" element={<SimpleOrthodonticList />} />
       </Routes>
     </>
   );
