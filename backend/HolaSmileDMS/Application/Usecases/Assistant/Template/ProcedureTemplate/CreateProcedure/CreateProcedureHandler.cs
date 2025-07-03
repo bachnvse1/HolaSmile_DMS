@@ -36,22 +36,50 @@ namespace Application.Usecases.Assistant.Template.ProcedureTemplate.CreateProced
 
             if (string.IsNullOrEmpty(request.ProcedureName))
             {
-                throw new ArgumentException(MessageConstants.MSG.MSG07);
+                throw new Exception(MessageConstants.MSG.MSG07);
             }
             if(request.Price <=0)
             {
-                throw new ArgumentException(MessageConstants.MSG.MSG02);
+                throw new Exception(MessageConstants.MSG.MSG95);
+            }
+            if (request.Discount < 0)
+            {
+                throw new Exception(MessageConstants.MSG.MSG95);
+            }
+            if (request.OriginalPrice <= 0)
+            {
+                throw new Exception(MessageConstants.MSG.MSG95);
+            }
+            if (request.ConsumableCost < 0)
+            {
+                throw new Exception(MessageConstants.MSG.MSG95);
+            }
+            if (request.ReferralCommissionRate < 0)
+            {   
+                throw new Exception(MessageConstants.MSG.MSG95);
+            }
+            if (request.DoctorCommissionRate < 0)
+            {
+                throw new Exception(MessageConstants.MSG.MSG95);
+            }
+            if (request.AssistantCommissionRate < 0)
+            {
+                throw new Exception(MessageConstants.MSG.MSG95);
+            }
+            if (request.TechnicianCommissionRate < 0)
+            {
+                throw new Exception(MessageConstants.MSG.MSG95);
             }
 
             var procedure = new Procedure
             {
                 ProcedureName = request.ProcedureName,
-                Price = request.Price,
+                Price = Math.Round(request.Price),
                 Description = request.Description,
                 Discount = request.Discount,
                 WarrantyPeriod = request.WarrantyPeriod,
-                OriginalPrice = request.OriginalPrice,
-                ConsumableCost = request.ConsumableCost,
+                OriginalPrice = Math.Round(request.OriginalPrice),
+                ConsumableCost = Math.Round(request.ConsumableCost),
                 ReferralCommissionRate = request.ReferralCommissionRate,
                 DoctorCommissionRate = request.DoctorCommissionRate,
                 AssistantCommissionRate = request.AssistantCommissionRate,

@@ -1,4 +1,4 @@
-﻿namespace Application.Usecases.Assistants.ViewSupplies
+﻿namespace Application.Usecases.Assistant.ViewSupplies
 {
     public class SuppliesDTO
     {

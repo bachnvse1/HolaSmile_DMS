@@ -34,18 +34,20 @@ public class ProceduresController : ControllerBase
 
             return result ? Ok(MessageConstants.MSG.MSG69) : BadRequest(MessageConstants.MSG.MSG58);
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException ex)
         {
             return StatusCode(StatusCodes.Status403Forbidden, new
             {
-                message = MessageConstants.MSG.MSG26 // "Bạn không có quyền truy cập chức năng này"
+                Message = false,
+                Error = ex.Message // "Bạn không có quyền truy cập chức năng này"
             });
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             return StatusCode(500, new
             {
-                message = MessageConstants.MSG.MSG58 // "Cập nhật dữ liệu thất bại" (hoặc có thể là lỗi hệ thống không xác định)
+                Message = false,
+                Error = ex.Message // "Cập nhật dữ liệu thất bại" (hoặc có thể là lỗi hệ thống không xác định)
             });
         }
     }
