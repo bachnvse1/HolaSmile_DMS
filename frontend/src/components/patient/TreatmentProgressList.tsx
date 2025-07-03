@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react"
-import {
-  Eye, User, UserCheck, Clock, CalendarClock, Search, Filter
-} from "lucide-react"
+import { Eye, User, UserCheck, Clock, CalendarClock, Filter } from "lucide-react"
 import { formatVietnameseDateFull } from "@/utils/date"
 import type { TreatmentProgress } from "@/types/treatmentProgress"
 import { Skeleton } from "../ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { Pagination } from "../ui/Pagination"
-import { Input } from "../ui/input"
+import TaskListModal from "@/components/task/TaskListModal"
 
 export function TreatmentProgressList({
   data,
@@ -19,75 +17,41 @@ export function TreatmentProgressList({
   onViewProgress?: (progress: TreatmentProgress) => void
   highlightId?: number
 }) {
-  const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(3)
+  const [openTaskListModal, setOpenTaskListModal] = useState(false)
+  const [selectedProgressId, setSelectedProgressId] = useState<number>(0)
 
   useEffect(() => {
     setCurrentPage(1)
   }, [data, statusFilter])
 
-  // Lọc và tìm kiếm
   const filtered = data.filter((item) => {
     const matchStatus = statusFilter === "all" || item.status === statusFilter
     return matchStatus
   })
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage)
-  const paginatedData = filtered.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  )
+  const paginatedData = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
   const renderStatusBadge = (status?: string) => {
     const statusMap: Record<string, { label: string; className: string }> = {
-      "Đang tiến hành": {
-        label: "Đang tiến hành",
-        className: "bg-blue-100 text-blue-800 border border-blue-200",
-      },
-      "Tạm dừng": {
-        label: "Tạm dừng",
-        className: "bg-yellow-100 text-yellow-800 border border-yellow-200",
-      },
-      "Đã huỷ": {
-        label: "Đã huỷ",
-        className: "bg-red-100 text-red-800 border border-red-200",
-      },
-      "Đã hoàn thành": {
-        label: "Đã hoàn thành",
-        className: "bg-green-100 text-green-800 border border-green-200",
-      },
-      "Chưa bắt đầu": {
-        label: "Chưa bắt đầu",
-        className: "bg-gray-100 text-gray-800 border border-gray-200",
-      },
+      "in-progress": { label: "Đang điều trị", className: "bg-blue-100 text-blue-800 border border-blue-200" },
+      "canceled": { label: "Đã huỷ", className: "bg-red-100 text-red-800 border border-red-200" },
+      "completed": { label: "Đã hoàn thành", className: "bg-green-100 text-green-800 border border-green-200" },
+      "pending": { label: "Đã lên lịch", className: "bg-gray-100 text-gray-800 border border-gray-200" },
     }
-
     const current = statusMap[status ?? "Chưa bắt đầu"] ?? {
       label: status ?? "Không rõ",
       className: "bg-gray-100 text-gray-800 border border-gray-200",
     }
-
-    return (
-      <span className={`px-3 py-1 text-xs font-semibold rounded ${current.className}`}>
-        {current.label}
-      </span>
-    )
+    return <span className={`px-3 py-1 text-xs font-semibold rounded ${current.className}`}>{current.label}</span>
   }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-4 items-center">
-        <div className="relative w-full sm:max-w-sm">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Tìm theo tiến trình..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-gray-400" />
           <select
@@ -96,11 +60,10 @@ export function TreatmentProgressList({
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
           >
             <option value="all">Tất cả trạng thái</option>
-            <option value="Chưa bắt đầu">Chưa bắt đầu</option>
-            <option value="Đang tiến hành">Đang tiến hành</option>
-            <option value="Tạm dừng">Tạm dừng</option>
-            <option value="Đã hoàn thành">Đã hoàn thành</option>
-            <option value="Đã huỷ">Đã huỷ</option>
+            <option value="pending">Đã lên lịch</option>
+            <option value="in-progress">Đang điều trị</option>
+            <option value="completed">Đã hoàn thành</option>
+            <option value="canceled">Đã huỷ</option>
           </select>
         </div>
       </div>
@@ -131,22 +94,18 @@ export function TreatmentProgressList({
                       <h3 className="font-medium text-base">{item.progressName}</h3>
                       {renderStatusBadge(item.status)}
                     </div>
-
                     <div className="flex items-center text-sm text-gray-600 gap-2">
                       <User className="h-4 w-4 text-blue-600" />
                       <span>{item.patientName}</span>
                     </div>
-
                     <div className="flex items-center text-sm text-gray-600 gap-2">
                       <UserCheck className="h-4 w-4 text-green-600" />
                       <span>{item.dentistName}</span>
                     </div>
-
                     <div className="flex items-center text-sm text-gray-600 gap-2">
                       <Clock className="h-4 w-4 text-yellow-600" />
                       <span>{item.duration ?? "--"} phút</span>
                     </div>
-
                     <div className="flex items-center text-xs text-gray-400 gap-2">
                       <CalendarClock className="h-4 w-4" />
                       <span>
@@ -156,15 +115,21 @@ export function TreatmentProgressList({
                       </span>
                     </div>
                   </div>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-1"
-                    onClick={() => onViewProgress?.(item)}
-                  >
-                    <Eye className="h-4 w-4 mr-1" /> Xem
-                  </Button>
+                  <div className="flex flex-col items-end gap-2 mt-1">
+                    <Button variant="outline" size="sm" onClick={() => onViewProgress?.(item)}>
+                      <Eye className="h-4 w-4 mr-1" /> Xem
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedProgressId(item.treatmentProgressID)
+                        setOpenTaskListModal(true)
+                      }}
+                    >
+                      Việc đã giao
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -181,6 +146,8 @@ export function TreatmentProgressList({
           />
         </>
       )}
+
+      <TaskListModal open={openTaskListModal} onClose={() => setOpenTaskListModal(false)} treatmentProgressID={selectedProgressId ?? undefined} />
     </div>
   )
 }
