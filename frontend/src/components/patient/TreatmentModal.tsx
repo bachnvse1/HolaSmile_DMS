@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { X, Plus, Edit3, Clock } from "lucide-react";
+import { X, Plus, Edit3 } from "lucide-react";
 import { toast } from "react-toastify";
 import type { UseFormReturn } from "react-hook-form";
 import type { TreatmentFormData } from "@/types/treatment";
@@ -38,21 +38,21 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
   recordId,
   appointmentId,
   defaultStatus,
-  treatmentToday,
   onSubmit,
 }) => {
   const {
     register,
-    handleSubmit,
     formState: { errors },
     watch,
     setValue,
   } = formMethods;
 
-  const { dentists, isLoading: isLoadingDentists } = useDentistSchedule();
+  const { dentists } = useDentistSchedule();
   const [showDentistModal, setShowDentistModal] = useState(false);
   const [selectedProcedure, setSelectedProcedure] = useState<Procedure | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [treatmentTodayState, setTreatmentTodayState] = useState<boolean | undefined>(undefined);
 
   const selectedDentistId = watch("dentistID");
   const unitPrice = watch("unitPrice") || 0;
@@ -60,12 +60,6 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
   const discountAmount = watch("discountAmount") || 0;
   const discountPercentage = watch("discountPercentage") || 0;
   const totalAmount = useCalculateTotal(unitPrice, quantity, discountAmount, discountPercentage);
-
-  const timeSlotsWithIcons = [
-    { label: "Ca Sáng", period: "morning", timeRange: "8:00 - 11:00", icon: <Clock className="h-4 w-4" /> },
-    { label: "Ca Chiều", period: "afternoon", timeRange: "14:00 - 17:00", icon: <Clock className="h-4 w-4" /> },
-    { label: "Ca Tối", period: "evening", timeRange: "17:00 - 20:00", icon: <Clock className="h-4 w-4" /> },
-  ] as const;
 
   useEffect(() => {
     if (!isEditing) {
@@ -82,18 +76,17 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
       const result: { message?: string } = isEditing
         ? await updateTreatmentRecord(recordId!, data, totalAmount, updatedBy)
         : await createTreatmentRecord(
-          { ...data, treatmentToday },
+          { ...data, treatmentToday: treatmentTodayState },
           totalAmount,
           updatedBy
         );
 
       toast.success(result.message || (isEditing ? "Cập nhật thành công" : "Tạo mới thành công"));
-
       if (onSubmit) onSubmit(data);
+      formMethods.reset();
       onClose();
     } catch (error: any) {
       toast.error(error.message || "Có lỗi xảy ra");
-      console.error("Lỗi khi gửi dữ liệu:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -112,15 +105,14 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
           </button>
         </div>
 
-        {isLoadingDentists && (
-          <p className="text-sm px-6 py-2 text-gray-500">Đang tải danh sách bác sĩ...</p>
-        )}
-
-        {isLoadingDentists && (
-          <p className="text-sm px-6 py-2 text-gray-500">Đang tải danh sách bác sĩ...</p>
-        )}
-
-        <form onSubmit={handleSubmit(handleInternalSubmit)} className="p-6 space-y-6">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!isEditing) setShowConfirm(true);
+            else formMethods.handleSubmit(handleInternalSubmit)();
+          }}
+          className="p-6 space-y-6"
+        >
           <fieldset disabled={isSubmitting} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -196,6 +188,7 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                   min={1}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                 />
+                {errors.quantity && <p className="text-sm text-red-500 mt-1">{errors.quantity.message}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Đơn giá *</label>
@@ -210,21 +203,23 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Giảm trực tiếp</label>
                 <input
-                  {...register("discountAmount", { valueAsNumber: true })}
+                  {...register("discountAmount", {min: { value: 0, message: "Phải lớn hơn bằng 0" }, valueAsNumber: true })}
                   type="number"
                   step="0.01"
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                 />
+                {errors.discountAmount && <p className="text-sm text-red-500 mt-1">{errors.discountAmount.message}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Giảm (%)</label>
                 <input
-                  {...register("discountPercentage", { valueAsNumber: true })}
+                  {...register("discountPercentage", {min: { value: 0, message: "Phải lớn hơn bằng 0" }, valueAsNumber: true })}
                   type="number"
                   step="0.1"
                   max={100}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                 />
+                {errors.discountPercentage && <p className="text-sm text-red-500 mt-1">{errors.discountPercentage.message}</p>}
               </div>
             </div>
 
@@ -272,6 +267,54 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
           </div>
         </form>
 
+        {/* Confirm Modal */}
+        {showConfirm && (
+          <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+              <h2 className="text-lg font-semibold mb-4">Tạo lịch điều trị</h2>
+              <p className="mb-6">
+                Bạn có muốn tạo lịch điều trị dựa trên ngày được chọn từ lịch nha sĩ không?
+              </p>
+              <div className="flex justify-end space-x-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowConfirm(false);
+                    setTreatmentTodayState(false);
+                    formMethods.handleSubmit((data) =>
+                      handleInternalSubmit({ ...data, treatmentToday: false })
+                    )();
+                  }}
+                  className="px-4 py-2 border rounded"
+                >
+                  Không
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowConfirm(false);
+                    setTreatmentTodayState(true);
+                    formMethods.handleSubmit((data) =>
+                      handleInternalSubmit({ ...data, treatmentToday: true })
+                    )();
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded"
+                >
+                  Có
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(false)}
+                  className="px-4 py-2 text-gray-600"
+                >
+                  Hủy
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Chọn bác sĩ */}
         <SelectDentistModal
           isOpen={showDentistModal}
           onClose={() => setShowDentistModal(false)}
@@ -292,15 +335,10 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                 return;
               }
 
-              const displaySlot = timeSlotsWithIcons.find((s) => s.period === slot);
-              const slotLabel = displaySlot
-                ? `${displaySlot.label} (${displaySlot.timeRange})`
-                : slot;
-
               setValue("dentistID", Number(dentist.id), { shouldValidate: true });
               setValue("treatmentDate", parsed.toISOString(), { shouldValidate: true });
 
-              toast.success(`Đã chọn ${dentist.name} vào ${date} - ${slotLabel}`);
+              toast.success(`Đã chọn ${dentist.name} vào ${date}`);
             } catch (error) {
               console.error("Lỗi xử lý lịch:", error);
               toast.error("Không thể xác định thời gian lịch hẹn.");

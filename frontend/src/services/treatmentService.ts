@@ -2,8 +2,8 @@ import axiosInstance from "@/lib/axios"
 import type { TreatmentRecord } from "@/types/treatment"
 import type { TreatmentFormData } from "@/types/treatment"
 
-export const getTreatmentRecordsByUser = async (userId: number): Promise<TreatmentRecord[]> => {
-  const response = await axiosInstance.get<TreatmentRecord[]>(`/treatment-records?userId=${userId}`)
+export const getTreatmentRecordsByPatientId = async (patientId: number): Promise<TreatmentRecord[]> => {
+  const response = await axiosInstance.get<TreatmentRecord[]>(`/treatment-records?patientId=${patientId}`)
   return response.data
 }
 

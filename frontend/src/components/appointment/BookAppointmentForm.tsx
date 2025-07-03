@@ -96,8 +96,8 @@ export const BookAppointmentForm = () => {
       timeString = '08:00:00';
       appointmentDate.setHours(8, 0, 0, 0);
     } else if (selectedTimeSlot === 'afternoon') {
-      timeString = '13:00:00';
-      appointmentDate.setHours(13, 0, 0, 0);
+      timeString = '14:00:00';
+      appointmentDate.setHours(14, 0, 0, 0);
     } else if (selectedTimeSlot === 'evening') {
       timeString = '17:00:00';
       appointmentDate.setHours(17, 0, 0, 0);
@@ -226,7 +226,6 @@ export const BookAppointmentForm = () => {
             selectedDentist={selectedDentist}
             selectedDate={selectedDate}
             selectedTimeSlot={selectedTimeSlot}
-            timeSlotsWithIcons={timeSlotsWithIcons}
           />
         )}
 

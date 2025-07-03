@@ -55,7 +55,7 @@ export const shiftTypeToText = (shift: ShiftType): string => {
     case ShiftType.Morning:
       return 'Sáng (8:00 - 11:00)';
     case ShiftType.Afternoon:
-      return 'Chiều (13:00 - 17:00)';
+      return 'Chiều (14:00 - 17:00)';
     case ShiftType.Evening:
       return 'Tối (17:00 - 20:00)';
     default:
