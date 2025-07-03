@@ -24,11 +24,11 @@ public class TreatmentRecordsController : ControllerBase
     /// </summary>
     [HttpGet]
     [Authorize]
-    public async Task<IActionResult> GetRecords([FromQuery] int userId, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetRecords([FromQuery] int patientId, CancellationToken cancellationToken)
     {
         try
         {
-            var result = await _mediator.Send(new ViewTreatmentRecordsCommand(userId), cancellationToken);
+            var result = await _mediator.Send(new ViewTreatmentRecordCommand(patientId), cancellationToken);
             return Ok(result);
         }
         catch (KeyNotFoundException)

@@ -22,8 +22,14 @@ export function NotificationButton() {
     axios.get<NotificationDto[]>(`${import.meta.env.VITE_API_BASE_URL}/notifications`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-    .then((res) => setNotifications(res.data))
-    .catch(console.error);
+      .then((res) => {
+        if (Array.isArray(res.data)) {
+          setNotifications(res.data);
+        } else {
+          setNotifications([]);
+        }
+      })
+      .catch(console.error);
 
     connection.on("ReceiveNotification", (notification: NotificationDto) => {
       toast.info(`${notification.title}`);
@@ -54,7 +60,7 @@ export function NotificationButton() {
       {showList && (
         <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded shadow-lg z-50">
           <div className="max-h-96 overflow-y-auto">
-            {notifications.length === 0 ? (
+            {Array.isArray(notifications) && notifications.length === 0 ? (
               <div className="p-4 text-sm text-gray-500">Không có thông báo.</div>
             ) : (
               notifications.map((n) => (

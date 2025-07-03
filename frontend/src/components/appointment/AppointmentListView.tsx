@@ -420,7 +420,9 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                           ? 'Tư vấn'
                           : appointment.appointmentType === 'treatment'
                             ? 'Điều trị'
-                            : appointment.appointmentType}
+                            : appointment.appointmentType === 'first-time'
+                              ? 'Khám lần đầu '
+                              : appointment.appointmentType}
                     </p>
                   </div>
                 </div>

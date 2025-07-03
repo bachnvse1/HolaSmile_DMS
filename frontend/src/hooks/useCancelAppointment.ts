@@ -14,7 +14,7 @@ export const useCancelAppointment = () => {
       console.log('[useCancelAppointment] Cancelling appointment:', payload);
       
       // Use PUT method to update appointment status to 'cancel'
-      const response = await AuthService.makeAuthenticatedRequest(`/appointment/cancelappointment/${payload.appointmentId}`, {
+      const response = await AuthService.makeAuthenticatedRequest(`/appointment/cancelAppointment/${payload.appointmentId}`, {
         method: 'PUT',
         data: {
           appointmentId: payload.appointmentId,
