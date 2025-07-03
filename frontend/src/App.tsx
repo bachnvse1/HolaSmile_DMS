@@ -28,6 +28,10 @@ import PatientList from './pages/patient/PatientList';
 import OrthodonticTreatmentPlansPage from './pages/OrthodonticTreatmentPlans';
 import OrthodonticTreatmentPlanFormPage from './pages/OrthodonticTreatmentPlanFormPage';
 import FUAppointmentPage from './pages/appointment/FUAppointmentPage';
+import { PrescriptionTemplatesPage } from './pages/prescription/PrescriptionTemplatesPage';
+import { CreatePrescriptionTemplatePage } from './pages/prescription/CreatePrescriptionTemplatePage';
+import { EditPrescriptionTemplatePage } from './pages/prescription/EditPrescriptionTemplatePage';
+import { PrescriptionTemplateDetailPage } from './pages/prescription/PrescriptionTemplateDetailPage';
 function App() {
   return (
     <>
@@ -62,6 +66,10 @@ function App() {
         <Route path="/patients/:patientId/orthodontic-treatment-plans/new" element={<OrthodonticTreatmentPlanFormPage />} />
         <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId/edit" element={<OrthodonticTreatmentPlanFormPage />} />
         <Route path="/patient/follow-up" element={<FUAppointmentPage />} />
+        <Route path="/prescription-templates" element={<PrescriptionTemplatesPage />} />
+        <Route path="/prescription-templates/create" element={<CreatePrescriptionTemplatePage />} />
+        <Route path="/prescription-templates/:id" element={<PrescriptionTemplateDetailPage />} />
+        <Route path="/prescription-templates/:id/edit" element={<EditPrescriptionTemplatePage />} />
       </Routes>
     </>
   );

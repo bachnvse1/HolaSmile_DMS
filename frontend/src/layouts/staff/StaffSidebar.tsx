@@ -12,7 +12,8 @@ import {
   Package,
   ChevronDown,
   ChevronRight,
-  Activity
+  Activity,
+  Pill
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 
@@ -93,6 +94,13 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       icon: <Stethoscope className="h-5 w-5" />,
       path: '/treatments',
       roles: ['Administrator', 'Owner', 'Dentist', 'Assistant']
+    },
+    {
+      id: 'prescription-templates',
+      label: 'Mẫu Đơn Thuốc',
+      icon: <Pill className="h-5 w-5" />,
+      path: '/prescription-templates',
+      roles: ['Assistant']
     },
     {
       id: 'finance',
