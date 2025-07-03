@@ -24,10 +24,16 @@ namespace Application.Usecases.Dentist.ManageSchedule
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
 
+            // Check if the user is authenticated
+            if (currentUserId == 0 || string.IsNullOrEmpty(currentUserRole))
+            {
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // "Bạn cần đăng nhập để thực hiện chức năng này"
+            }
+
             // Check if the user is not a dentist return failed message
             if (!string.Equals(currentUserRole, "dentist", StringComparison.OrdinalIgnoreCase))
             {
-                return MessageConstants.MSG.MSG26;
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             }
 
             // Check if the dentist exists
@@ -38,11 +44,11 @@ namespace Application.Usecases.Dentist.ManageSchedule
             {
                 if (item.WorkDate < DateTime.Now)
                 {
-                    return MessageConstants.MSG.MSG34; // "Ngày bắt đầu không được sau ngày kết thúc"
+                    throw new Exception(MessageConstants.MSG.MSG34); // "Ngày bắt đầu không được sau ngày kết thúc"
                 }
-                if (string.IsNullOrEmpty(item.Shift))
+                if (string.IsNullOrEmpty(item.Shift.Trim()))
                 {
-                    return MessageConstants.MSG.MSG07; // "Vui lòng nhập thông tin bắt buộc"
+                    throw new Exception(MessageConstants.MSG.MSG07); // "Vui lòng nhập thông tin bắt buộc"
                 }
                 var weekstart = _scheduleRepository.GetWeekStart(item.WorkDate);
                 var schedule = new Schedule
@@ -66,7 +72,7 @@ namespace Application.Usecases.Dentist.ManageSchedule
                     }
                     else
                     {
-                        throw new Exception(MessageConstants.MSG.MSG51); // lịch trùng và đang pending/approved
+                        throw new Exception(MessageConstants.MSG.MSG89); // lịch trùng và đang pending/approved
                     }
                 }
                 var isRegistered = await _scheduleRepository.RegisterScheduleByDentist(schedule);
