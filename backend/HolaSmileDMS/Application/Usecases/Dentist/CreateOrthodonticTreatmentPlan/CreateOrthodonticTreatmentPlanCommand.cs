@@ -1,7 +1,5 @@
 using MediatR;
-
 namespace Application.Usecases.Dentist.CreateOrthodonticTreatmentPlan;
-
 public class CreateOrthodonticTreatmentPlanCommand : IRequest<string>
 {
     public int PatientId { get; set; }
