@@ -16,4 +16,10 @@ public class ProcedureRepository : IProcedureRepository
     {
         return _context.Procedures.AsQueryable();
     }
+
+    public async Task<bool> CreateProcedure(Procedure procedure)
+    {
+        _context.Procedures.AddAsync(procedure);
+        return await _context.SaveChangesAsync() > 0;
+    }
 }
