@@ -1,9 +1,10 @@
 ﻿using MediatR;
 
-namespace Application.Usecases.Assistant.Template.ProcedureTemplate.CreateProcedure
+namespace Application.Usecases.Assistant.Template.ProcedureTemplate.UpdateProcedure
 {
-    public class CreateProcedureCommand : IRequest<bool>
+    public class UpdateProcedureCommand : IRequest<bool>
     {
+        public int ProcedureId { get; set; }
         public string ProcedureName { get; set; }
         public decimal Price { get; set; }
         public string Description { get; set; }

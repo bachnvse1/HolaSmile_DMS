@@ -4,18 +4,19 @@ using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
-namespace Application.Usecases.Assistant.Template.ProcedureTemplate.CreateProcedure
+namespace Application.Usecases.Assistant.Template.ProcedureTemplate.UpdateProcedure
 {
-    public class CreateProcedureHandler : IRequestHandler<CreateProcedureCommand, bool>
+    public class UpdateProcedureHandler : IRequestHandler<UpdateProcedureCommand, bool>
     {
         private readonly IProcedureRepository _procedureRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public CreateProcedureHandler(IProcedureRepository procedureRepository, IHttpContextAccessor httpContextAccessor)
+        public UpdateProcedureHandler(IProcedureRepository procedureRepository, IHttpContextAccessor httpContextAccessor)
         {
             _procedureRepository = procedureRepository;
             _httpContextAccessor = httpContextAccessor;
         }
-        public async Task<bool> Handle(CreateProcedureCommand request, CancellationToken cancellationToken)
+
+        public async Task<bool> Handle(UpdateProcedureCommand request, CancellationToken cancellationToken)
         {
             var user = _httpContextAccessor.HttpContext?.User;
             if (user == null)
@@ -25,15 +26,21 @@ namespace Application.Usecases.Assistant.Template.ProcedureTemplate.CreateProced
             var currentUserId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
 
-            if(!string.Equals(currentUserRole, "assistant", StringComparison.OrdinalIgnoreCase)){
+            if (!string.Equals(currentUserRole, "assistant", StringComparison.OrdinalIgnoreCase))
+            {
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             }
 
+            var procedure = await _procedureRepository.GetProcedureByProcedureId(request.ProcedureId);
+            if (procedure == null)
+            {
+                throw new Exception(MessageConstants.MSG.MSG16); // "Không tìm thấy thủ thuật"
+            }
             if (string.IsNullOrEmpty(request.ProcedureName))
             {
                 throw new Exception(MessageConstants.MSG.MSG07);
             }
-            if(request.Price <=0)
+            if (request.Price <= 0)
             {
                 throw new Exception(MessageConstants.MSG.MSG95);
             }
@@ -50,7 +57,7 @@ namespace Application.Usecases.Assistant.Template.ProcedureTemplate.CreateProced
                 throw new Exception(MessageConstants.MSG.MSG95);
             }
             if (request.ReferralCommissionRate < 0)
-            {   
+            {
                 throw new Exception(MessageConstants.MSG.MSG95);
             }
             if (request.DoctorCommissionRate < 0)
@@ -66,23 +73,20 @@ namespace Application.Usecases.Assistant.Template.ProcedureTemplate.CreateProced
                 throw new Exception(MessageConstants.MSG.MSG95);
             }
 
-            var procedure = new Procedure
-            {
-                ProcedureName = request.ProcedureName,
-                Price = Math.Round(request.Price),
-                Description = request.Description,
-                Discount = request.Discount,
-                WarrantyPeriod = request.WarrantyPeriod,
-                OriginalPrice = Math.Round(request.OriginalPrice, 2),
-                ConsumableCost = Math.Round(request.ConsumableCost, 2),
-                ReferralCommissionRate = request.ReferralCommissionRate,
-                DoctorCommissionRate = request.DoctorCommissionRate,
-                AssistantCommissionRate = request.AssistantCommissionRate,
-                TechnicianCommissionRate = request.TechnicianCommissionRate,
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = currentUserId,
-            };
-            return await _procedureRepository.CreateProcedure(procedure);
+            procedure.ProcedureName = request.ProcedureName;
+            procedure.Price = Math.Round(request.Price);
+            procedure.Description = request.Description;
+            procedure.Discount = request.Discount;
+            procedure.WarrantyPeriod = request.WarrantyPeriod;
+            procedure.OriginalPrice = Math.Round(request.OriginalPrice,2);
+            procedure.ConsumableCost = Math.Round(request.ConsumableCost,2);
+            procedure.ReferralCommissionRate = request.ReferralCommissionRate;
+            procedure.DoctorCommissionRate = request.DoctorCommissionRate;
+            procedure.AssistantCommissionRate = request.AssistantCommissionRate;
+            procedure.TechnicianCommissionRate = request.TechnicianCommissionRate;
+            procedure.UpdatedAt = DateTime.UtcNow;
+            procedure.UpdatedBy = currentUserId;
+            return await _procedureRepository.UpdateProcedureAsync(procedure);
         }
     }
 }
