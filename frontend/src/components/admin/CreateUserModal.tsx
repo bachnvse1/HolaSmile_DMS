@@ -106,7 +106,6 @@ export function CreateUserModal({ isOpen, onOpenChange, form, onFormChange, onRe
                             <SelectContent>
                                 <SelectItem value="Administrator">Administrator</SelectItem>
                                 <SelectItem value="Receptionist">Receptionist</SelectItem>
-                                <SelectItem value="Patient">Patient</SelectItem>
                                 <SelectItem value="Dentist">Dentist</SelectItem>
                                 <SelectItem value="Assistant">Assistant</SelectItem>
                                 <SelectItem value="Owner">Owner</SelectItem>
