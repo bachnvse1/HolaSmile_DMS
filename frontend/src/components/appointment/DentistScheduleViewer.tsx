@@ -90,8 +90,8 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
         appointmentType: "follow-up"
       };
       bookAppointmentMutation.mutate(payload, {
-        onSuccess: () => {
-          toast.success('Tạo lịch tái khám thành công!');
+        onSuccess: (response) => {
+          toast.success(response.message || 'Đặt lịch tái khám thành công!');
           setShowBookingForm(false);
           setSelectedDate('');
           setSelectedTimeSlot('');
@@ -113,15 +113,15 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
       };
 
       bookAppointmentMutation.mutate(payload, {
-        onSuccess: () => {
-          toast.success('Đặt lịch thành công!');
+        onSuccess: (response) => {
+          toast.success(response.message || 'Đặt lịch hẹn thành công!');
           setShowBookingForm(false);
           setSelectedDate('');
           setSelectedTimeSlot('');
           setBookingData({ medicalIssue: '', email: prefilledData?.email || '' });
         },
         onError: (error: Error) => {
-          toast.error(error.message || 'Có lỗi xảy ra khi đặt lịch');
+         console.error('Error booking appointment:', error);
         }
       });
     };

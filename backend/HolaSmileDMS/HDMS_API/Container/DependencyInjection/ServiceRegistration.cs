@@ -24,9 +24,11 @@ namespace HDMS_API.Container.DependencyInjection
         {
             // DB Context
             var connectionString = configuration.GetConnectionString("DefaultConnection");
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
-
+            services.AddDbContext<ApplicationDbContext>(
+                options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)),
+                ServiceLifetime.Scoped
+            );
+            
             // Repository & Services
             services.AddScoped<IAppointmentRepository, AppointmentRepository>();
             services.AddScoped<IEmailService, EmailService>();

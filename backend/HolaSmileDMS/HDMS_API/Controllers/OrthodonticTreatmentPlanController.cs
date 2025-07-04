@@ -1,3 +1,4 @@
+using Application.Usecases.Dentist.CreateOrthodonticTreatmentPlan;
 using Application.Usecases.Patients.ViewOrthodonticTreatmentPlan;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -25,7 +26,40 @@ public class OrthodonticTreatmentPlanController : ControllerBase
     [HttpGet("{planId}")]
     public async Task<IActionResult> GetPlan([FromRoute] int planId, [FromQuery] int? patientId)
     {
-        var result = await _mediator.Send(new ViewOrthodonticTreatmentPlanCommand(planId, patientId));
-        return Ok(result);
+        try
+        {
+            var result = await _mediator.Send(new ViewOrthodonticTreatmentPlanCommand(planId, patientId));
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Tạo kế hoạch điều trị chỉnh nha mới
+    /// </summary>
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> CreatePlan([FromBody] CreateOrthodonticTreatmentPlanCommand command)
+    {
+        try
+        {
+            var result = await _mediator.Send(command);
+            return Ok(new { message = result });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 }
