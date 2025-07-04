@@ -15,17 +15,17 @@ export function UserTableRow({ user, index, onToggleStatus }: UserTableRowProps)
     const getRoleBadgeVariant = (role: string) => {
         switch (role) {
             case "Administrator":
-                return "default"
+                return "info"
             case "Receptionist":
-                return "secondary"
+                return "info"
             case "Patient":
                 return "outline"
             case "Dentist":
-                return "destructive"
+                return "info"
             case "Assistant":
                 return "info"
             case "Owner":
-                return "success"
+                return "info"
             default:
                 return "outline"
         }
@@ -37,7 +37,7 @@ export function UserTableRow({ user, index, onToggleStatus }: UserTableRowProps)
             <TableCell>{user.email}</TableCell>
             <TableCell>{user.phoneNumber}</TableCell>
             <TableCell>
-                <Badge variant={getRoleBadgeVariant(user.role)} className={user.role === 'Receptionist' ? 'border border-gray-400' : ''}>
+                <Badge variant={getRoleBadgeVariant(user.role)} className={user.role !== 'Patient' ? 'border border-gray-400' : ''}>
                     {user.role}
                 </Badge>
             </TableCell>
