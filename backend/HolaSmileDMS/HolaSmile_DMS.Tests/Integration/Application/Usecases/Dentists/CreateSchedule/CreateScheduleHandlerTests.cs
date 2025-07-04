@@ -88,7 +88,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists.CreateSc
             {
                 RegisSchedules = new List<CreateScheduleDTO>
               {
-                  new CreateScheduleDTO { WorkDate = DateTime.Now.AddDays(-1), Shift = "morning" }
+                  new CreateScheduleDTO { WorkDate = DateTime.Now.AddDays(1), Shift = "" }
               }
             };
 
@@ -110,7 +110,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists.CreateSc
             {
                 RegisSchedules = new List<CreateScheduleDTO>
               {
-                  new CreateScheduleDTO { WorkDate = DateTime.Now.AddDays(-1), Shift = "morning" }
+                  new CreateScheduleDTO { WorkDate = DateTime.Now.AddDays(1), Shift = "morning" }
               }
             };
 
@@ -132,7 +132,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists.CreateSc
             {
                 RegisSchedules = new List<CreateScheduleDTO>
               {
-                  new CreateScheduleDTO { WorkDate = DateTime.Now.AddDays(-1), Shift = "morning" }
+                  new CreateScheduleDTO { WorkDate = DateTime.Now.AddDays(1), Shift = "morning" }
               }
             };
 
@@ -154,7 +154,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists.CreateSc
             {
                 RegisSchedules = new List<CreateScheduleDTO>
               {
-                  new CreateScheduleDTO { WorkDate = DateTime.Now.AddDays(-1), Shift = "morning" }
+                  new CreateScheduleDTO { WorkDate = DateTime.Now.AddDays(1), Shift = "morning" }
               }
             };
 
