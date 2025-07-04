@@ -207,37 +207,36 @@ namespace HDMS_API.Infrastructure.Repositories
                 })
                 .FirstOrDefaultAsync(cancellationToken);
         }
-        public async Task<UserRoleResult?> GetUserRoleAsync(
-            string username,
-            CancellationToken cancellationToken)
+        public async Task<UserRoleResult?> GetUserRoleAsync(string username, CancellationToken cancellationToken)
         {
             var user = await GetByUsernameAsync(username, cancellationToken);
             if (user == null) return null;
 
-            string sql = $@"
-        SELECT AdministratorId AS RoleTableId, 'Administrator' AS Role
-        FROM   Administrators   WHERE UserId = {user.UserID}
-        UNION ALL
-        SELECT AssistantId,     'Assistant'
-        FROM   Assistants       WHERE UserId = {user.UserID}
-        UNION ALL
-        SELECT DentistId,       'Dentist'
-        FROM   Dentists         WHERE UserId = {user.UserID}
-        UNION ALL
-        SELECT OwnerId,         'Owner'
-        FROM   Owners           WHERE UserId = {user.UserID}
-        UNION ALL
-        SELECT PatientID,       'Patient'
-        FROM   Patients         WHERE UserId = {user.UserID}
-        UNION ALL
-        SELECT ReceptionistId,  'Receptionist'
-        FROM   Receptionists    WHERE UserId = {user.UserID}
-        LIMIT 1";
+            var userId = user.UserID;
 
-            return await _context.Set<UserRoleResult>()
-                .FromSqlRaw(sql)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(cancellationToken);
+            var roles = new List<(string Role, Func<Task<bool>> Check)>
+            {
+                ("Administrator", () => _context.Administrators.AnyAsync(x => x.UserId == userId, cancellationToken)),
+                ("Assistant",     () => _context.Assistants.AnyAsync(x => x.UserId == userId, cancellationToken)),
+                ("Dentist",       () => _context.Dentists.AnyAsync(x => x.UserId == userId, cancellationToken)),
+                ("Owner",         () => _context.Owners.AnyAsync(x => x.UserId == userId, cancellationToken)),
+                ("Patient",       () => _context.Patients.AnyAsync(x => x.UserID == userId, cancellationToken)),
+                ("Receptionist",  () => _context.Receptionists.AnyAsync(x => x.UserId == userId, cancellationToken)),
+            };
+
+            foreach (var (role, check) in roles)
+            {
+                if (await check())
+                {
+                    return new UserRoleResult
+                    {
+                        Role = role,
+                        RoleTableId = userId
+                    };
+                }
+            }
+
+            return null;
         }
         
         public async Task<int?> GetUserIdByRoleTableIdAsync(string role, int id)
