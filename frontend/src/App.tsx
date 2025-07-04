@@ -28,6 +28,10 @@ import PatientList from './pages/patient/PatientList';
 import OrthodonticTreatmentPlansPage from './pages/OrthodonticTreatmentPlans';
 import OrthodonticTreatmentPlanFormPage from './pages/OrthodonticTreatmentPlanFormPage';
 import FUAppointmentPage from './pages/appointment/FUAppointmentPage';
+import { InventoryPage } from './pages/supply/InventoryPage';
+import { CreateSupplyPage } from './pages/supply/CreateSupplyPage';
+import { EditSupplyPage } from './pages/supply/EditSupplyPage';
+import { SupplyDetailPage } from './pages/supply/SupplyDetailPage';
 function App() {
   return (
     <>
@@ -62,6 +66,10 @@ function App() {
         <Route path="/patients/:patientId/orthodontic-treatment-plans/new" element={<OrthodonticTreatmentPlanFormPage />} />
         <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId/edit" element={<OrthodonticTreatmentPlanFormPage />} />
         <Route path="/patient/follow-up" element={<FUAppointmentPage />} />
+        <Route path="/inventory" element={<InventoryPage />} />
+        <Route path="/inventory/create" element={<CreateSupplyPage />} />
+        <Route path="/inventory/:id" element={<SupplyDetailPage />} />
+        <Route path="/inventory/:id/edit" element={<EditSupplyPage />} />
       </Routes>
     </>
   );
