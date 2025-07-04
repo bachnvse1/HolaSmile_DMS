@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
+using Application.Constants;
 using Application.Usecases.administrator.BanAndUnban;
 using Application.Usecases.Administrator.BanAndUnban;
 using Application.Usecases.Administrator.ViewListUser;
@@ -19,28 +15,31 @@ using Xunit;
 
 namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Administrator.BanAndUnban
 {
-    public class ViewListUserIntegrationTests
+    public class BanAndUnbanUserIntegrationTests
     {
         private readonly ApplicationDbContext _context;
-        private readonly ViewListUserHandler _handler;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly BanAndUnbanUserHandle _handler;
 
-        public ViewListUserIntegrationTests()
+        public BanAndUnbanUserIntegrationTests()
         {
             var services = new ServiceCollection();
+
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseInMemoryDatabase("TestDb_ViewListUser"));
+                options.UseInMemoryDatabase("TestDb_BanUnbanUser"));
+
             services.AddHttpContextAccessor();
+            services.AddMemoryCache();
 
             var provider = services.BuildServiceProvider();
             _context = provider.GetRequiredService<ApplicationDbContext>();
             _httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
             var memoryCache = provider.GetRequiredService<IMemoryCache>();
-            var emailServiceMock = new Mock<IEmailService>();
 
             SeedData();
-            _handler = new ViewListUserHandler(
-                new UserCommonRepository(_context, emailServiceMock, memoryCache),
+
+            _handler = new BanAndUnbanUserHandle(
+                new UserCommonRepository(_context, new Mock<IEmailService>().Object, memoryCache),
                 _httpContextAccessor
             );
         }
@@ -48,13 +47,17 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Administrator.Ban
         private void SeedData()
         {
             _context.Users.RemoveRange(_context.Users);
+            _context.Administrators.RemoveRange(_context.Administrators);
             _context.SaveChanges();
 
             _context.Users.AddRange(
-                new User { UserID = 1, Username = "admin1", Phone = "0900000000" },
-                new User { UserID = 2, Username = "patient1", Phone = "0911111111" },
-                new User { UserID = 3, Username = "dentist1", Phone = "0922222222" }
+                new User { UserID = 1, Username = "admin1", Phone = "0900000000", Status = true },
+                new User { UserID = 2, Username = "owner1", Phone = "0911111111", Status = true },
+                new User { UserID = 3, Username = "targetuser", Phone = "0922222222", Status = true }
             );
+
+            _context.Administrators.Add(new global::Administrator { AdministratorId = 1, UserId = 1 });
+
             _context.SaveChanges();
         }
 
@@ -66,42 +69,59 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Administrator.Ban
             new Claim(ClaimTypes.Role, role),
             new Claim(ClaimTypes.NameIdentifier, userId.ToString())
         }, "Test"));
+
             _httpContextAccessor.HttpContext = context;
         }
 
-        [Fact(DisplayName = "[Integration - Normal] Admin Can View All Users")]
+        [Fact(DisplayName = "[Integration - Normal] Admin Bans and Unbans User Successfully")]
         [Trait("TestType", "Normal")]
-        public async System.Threading.Tasks.Task N_Admin_Can_View_All_Users()
+        public async System.Threading.Tasks.Task N_Admin_Bans_Unbans_User_Successfully()
         {
-            SetupHttpContext("Administrator", 1);
+            SetupHttpContext("administrator", 1);
 
-            var result = await _handler.Handle(new ViewListUserCommand(), default);
+            var result = await _handler.Handle(new BanAndUnbanUserCommand
+            {
+                UserId = 3
+            }, default);
 
-            Assert.NotNull(result);
-            Assert.Equal(3, result.Count); // vì đã seed 3 user
+            Assert.True(result);
+            Assert.False(_context.Users.Find(3)!.Status); // Bị ban
+
+            var result2 = await _handler.Handle(new BanAndUnbanUserCommand
+            {
+                UserId = 3
+            }, default);
+
+            Assert.True(result2);
+            Assert.True(_context.Users.Find(3)!.Status); // Unban lại
         }
 
-        [Fact(DisplayName = "[Integration - Abnormal] Non-Admin Cannot View Users")]
+        [Fact(DisplayName = "[Integration - Abnormal] Admin Provides Invalid UserId")]
         [Trait("TestType", "Abnormal")]
-        public async System.Threading.Tasks.Task A_Non_Admin_Cannot_View_Users()
+        public async System.Threading.Tasks.Task A_Admin_Invalid_UserId()
         {
-            SetupHttpContext("Patient", 2);
+            SetupHttpContext("administrator", 1);
+
+            var ex = await Assert.ThrowsAsync<Exception>(() =>
+                _handler.Handle(new BanAndUnbanUserCommand
+                {
+                    UserId = -1
+                }, default));
+
+            Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
+        }
+
+        [Fact(DisplayName = "[Integration - Abnormal] Non-Admin Tries To Ban User")]
+        [Trait("TestType", "Abnormal")]
+        public async System.Threading.Tasks.Task A_NonAdmin_Tries_To_Ban()
+        {
+            SetupHttpContext("owner", 2);
 
             await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(new ViewListUserCommand(), default));
-        }
-
-        [Fact(DisplayName = "[Integration - Abnormal] Admin Views Empty List")]
-        [Trait("TestType", "Abnormal")]
-        public async System.Threading.Tasks.Task A_Admin_Views_Empty_List()
-        {
-            _context.Users.RemoveRange(_context.Users);
-            _context.SaveChanges();
-
-            SetupHttpContext("Administrator", 1);
-
-            await Assert.ThrowsAsync<Exception>(() =>
-                _handler.Handle(new ViewListUserCommand(), default));
+                _handler.Handle(new BanAndUnbanUserCommand
+                {
+                    UserId = 3
+                }, default));
         }
     }
 

@@ -41,7 +41,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Administrator.ViewListUs
             SetupHttpContext("administrator", 1);
             _userCommonRepositoryMock.Setup(r => r.GetAllUserAsync()).ReturnsAsync(new List<ViewListUserDTO>
         {
-            new ViewListUserDTO { Email = "t1@gmail.com", FullName = "test 1", PhoneNumber="0123456789",Role = "owner", CreatedAt = DateTime.Now, isActive = true}
+            new ViewListUserDTO { Email = "t1@gmail.com", FullName = "test 1", PhoneNumber="0123456789",Role = "owner", CreatedAt = DateTime.Now, Status = true}
         });
 
             var result = await _handler.Handle(new ViewListUserCommand(), default);
