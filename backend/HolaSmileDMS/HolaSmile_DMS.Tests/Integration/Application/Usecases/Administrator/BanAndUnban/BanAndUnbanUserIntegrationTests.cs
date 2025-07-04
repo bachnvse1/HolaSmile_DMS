@@ -6,99 +6,103 @@ using System.Text;
 using System.Threading.Tasks;
 using Application.Usecases.administrator.BanAndUnban;
 using Application.Usecases.Administrator.BanAndUnban;
+using Application.Usecases.Administrator.ViewListUser;
+using HDMS_API.Application.Interfaces;
 using HDMS_API.Infrastructure.Persistence;
 using HDMS_API.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Administrator.BanAndUnban
 {
-    public class BanAndUnbanUserIntegrationTests
+    public class ViewListUserIntegrationTests
     {
         private readonly ApplicationDbContext _context;
-        private readonly BanAndUnbanUserHandle _handler;
-        private readonly IHttpContextAccessor _httpContext;
+        private readonly ViewListUserHandler _handler;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public BanAndUnbanUserIntegrationTests()
+        public ViewListUserIntegrationTests()
         {
             var services = new ServiceCollection();
-            services.AddDbContext<ApplicationDbContext>(o => o.UseInMemoryDatabase("TestDb"));
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseInMemoryDatabase("TestDb_ViewListUser"));
             services.AddHttpContextAccessor();
 
             var provider = services.BuildServiceProvider();
             _context = provider.GetRequiredService<ApplicationDbContext>();
-            _httpContext = provider.GetRequiredService<IHttpContextAccessor>();
+            _httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
+            var memoryCache = provider.GetRequiredService<IMemoryCache>();
+            var emailServiceMock = new Mock<IEmailService>();
 
-            SeedDb(_context);
-
-            _handler = new BanAndUnbanUserHandle(new UserCommonRepository(_context, null, null), _httpContext);
+            SeedData();
+            _handler = new ViewListUserHandler(
+                new UserCommonRepository(_context, emailServiceMock, memoryCache),
+                _httpContextAccessor
+            );
         }
 
-        private void SeedDb(ApplicationDbContext db)
+        private void SeedData()
         {
-            db.Users.RemoveRange(db.Users);
-            db.SaveChanges();
+            _context.Users.RemoveRange(_context.Users);
+            _context.SaveChanges();
 
-            db.Users.Add(new User
-            {
-                UserID = 1,
-                Fullname = "test",
-                Status = true,
-                Email = "admin@gmail.com"
-            });
-
-            db.SaveChanges();
+            _context.Users.AddRange(
+                new User { UserID = 1, Username = "admin1", Phone = "0900000000" },
+                new User { UserID = 2, Username = "patient1", Phone = "0911111111" },
+                new User { UserID = 3, Username = "dentist1", Phone = "0922222222" }
+            );
+            _context.SaveChanges();
         }
 
         private void SetupHttpContext(string role, int userId)
         {
-            var identity = new ClaimsIdentity(new[]
+            var context = new DefaultHttpContext();
+            context.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
             {
             new Claim(ClaimTypes.Role, role),
             new Claim(ClaimTypes.NameIdentifier, userId.ToString())
-        }, "Test");
-
-            _httpContext.HttpContext = new DefaultHttpContext
-            {
-                User = new ClaimsPrincipal(identity)
-            };
+        }, "Test"));
+            _httpContextAccessor.HttpContext = context;
         }
 
-        [Fact(DisplayName = "[Integration - Normal] Admin_Can_Ban_User")]
-        public async System.Threading.Tasks.Task ITCID01_Admin_Can_Ban_User()
+        [Fact(DisplayName = "[Integration - Normal] Admin Can View All Users")]
+        [Trait("TestType", "Normal")]
+        public async System.Threading.Tasks.Task N_Admin_Can_View_All_Users()
         {
-            SetupHttpContext("administrator", 1);
+            SetupHttpContext("Administrator", 1);
 
-            var result = await _handler.Handle(new BanAndUnbanUserCommand { UserId = 1 }, default);
+            var result = await _handler.Handle(new ViewListUserCommand(), default);
 
-            Assert.True(result);
+            Assert.NotNull(result);
+            Assert.Equal(3, result.Count); // vì đã seed 3 user
         }
 
-        [Fact(DisplayName = "[Integration - Abnormal] Invalid_UserId_Throws")]
-        public async System.Threading.Tasks.Task ITCID02_Invalid_UserId_Throws()
+        [Fact(DisplayName = "[Integration - Abnormal] Non-Admin Cannot View Users")]
+        [Trait("TestType", "Abnormal")]
+        public async System.Threading.Tasks.Task A_Non_Admin_Cannot_View_Users()
         {
-            SetupHttpContext("administrator", 1);
+            SetupHttpContext("Patient", 2);
 
-            var ex = await Assert.ThrowsAsync<ArgumentException>(() => _handler.Handle(new BanAndUnbanUserCommand { UserId = 0 }, default));
-            Assert.Equal("dữ liệu đầu vào không đúng", ex.Message);
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                _handler.Handle(new ViewListUserCommand(), default));
         }
 
-        [Fact(DisplayName = "[Integration - Abnormal] User_NotFound_ReturnsFalse")]
-        public async System.Threading.Tasks.Task ITCID03_User_NotFound_ReturnsFalse()
+        [Fact(DisplayName = "[Integration - Abnormal] Admin Views Empty List")]
+        [Trait("TestType", "Abnormal")]
+        public async System.Threading.Tasks.Task A_Admin_Views_Empty_List()
         {
-            // Arrange
-            SetupHttpContext("administrator", 1);
+            _context.Users.RemoveRange(_context.Users);
+            _context.SaveChanges();
 
-            var command = new BanAndUnbanUserCommand { UserId = 999 }; // UserId không tồn tại
+            SetupHttpContext("Administrator", 1);
 
-            // Act
-            var result = await _handler.Handle(command, default);
-
-            // Assert
-            Assert.False(result); // Giả sử repository trả về false nếu không update được
+            await Assert.ThrowsAsync<Exception>(() =>
+                _handler.Handle(new ViewListUserCommand(), default));
         }
-
     }
+
 }
