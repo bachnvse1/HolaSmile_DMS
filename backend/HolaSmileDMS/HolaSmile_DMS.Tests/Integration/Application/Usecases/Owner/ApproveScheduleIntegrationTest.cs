@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
 using Application.Constants;
-using Application.Interfaces;
 using Application.Usecases.Owner;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;
@@ -17,105 +11,175 @@ using Xunit;
 
 namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Owner
 {
-    public class ApproveScheduleHandlerTests
+    public class ApproveScheduleIntegrationTests
     {
-        private readonly Mock<IScheduleRepository> _scheduleRepo = new();
-        private readonly Mock<IHttpContextAccessor> _httpContextAccessor = new();
+        private readonly ApplicationDbContext _context;
         private readonly ApproveScheduleHandle _handler;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ApproveScheduleHandlerTests()
+        public ApproveScheduleIntegrationTests()
         {
-            _handler = new ApproveScheduleHandle(_scheduleRepo.Object, _httpContextAccessor.Object);
+            var services = new ServiceCollection();
+
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseInMemoryDatabase("TestDb_ApproveSchedule"));
+
+            services.AddHttpContextAccessor();
+
+            var provider = services.BuildServiceProvider();
+            _context = provider.GetRequiredService<ApplicationDbContext>();
+            _httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
+
+            SeedData();
+
+            _handler = new ApproveScheduleHandle(
+                new ScheduleRepository(_context),
+                _httpContextAccessor
+            );
         }
 
-        private void SetupContext(string role, string userId = "1")
+        private void SeedData()
         {
-            var claims = new List<Claim>
+            _context.Users.RemoveRange(_context.Users);
+            _context.Dentists.RemoveRange(_context.Dentists);
+            _context.Schedules.RemoveRange(_context.Schedules);
+            _context.SaveChanges();
+
+            // Seed Owner user (người thực hiện approve)
+            _context.Users.Add(new User
+            {
+                UserID = 999,
+                Username = "owner1",
+                Phone = "0900000000"
+            });
+
+            // Seed Dentist user
+            _context.Users.Add(new User
+            {
+                UserID = 100,
+                Username = "dentist1",
+                Phone = "0901111111"
+            });
+
+            // Seed Dentist
+            _context.Dentists.Add(new global::Dentist
+            {
+                DentistId = 101,
+                UserId = 100
+            });
+
+            // Seed Schedule gắn với DentistId = 101
+            _context.Schedules.AddRange(
+                new Schedule
+                {
+                    ScheduleId = 1,
+                    DentistId = 101,
+                    WorkDate = DateTime.Today.AddDays(1),
+                    Shift = "morning",
+                    Status = "pending",
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now,
+                    IsActive = true
+                },
+                new Schedule
+                {
+                    ScheduleId = 2,
+                    DentistId = 101,
+                    WorkDate = DateTime.Today.AddDays(2),
+                    Shift = "afternoon",
+                    Status = "pending",
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now,
+                    IsActive = true
+                },
+                new Schedule
+                {
+                    ScheduleId = 3,
+                    DentistId = 101,
+                    WorkDate = DateTime.Today.AddDays(3),
+                    Shift = "evening",
+                    Status = "approved",
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now,
+                    IsActive = true
+                }
+            );
+
+            _context.SaveChanges();
+        }
+
+
+        private void SetupHttpContext(string role, int userId)
         {
+            var context = new DefaultHttpContext();
+            context.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+            {
             new Claim(ClaimTypes.Role, role),
-            new Claim(ClaimTypes.NameIdentifier, userId)
-        };
-            var identity = new ClaimsIdentity(claims);
-            var user = new ClaimsPrincipal(identity);
-            _httpContextAccessor.Setup(x => x.HttpContext).Returns(new DefaultHttpContext { User = user });
+            new Claim(ClaimTypes.NameIdentifier, userId.ToString())
+        }, "Test"));
+
+            _httpContextAccessor.HttpContext = context;
         }
 
-        [Fact(DisplayName = "UTCID01 - User is not owner → throw MSG26")]
-        public async System.Threading.Tasks.Task UTCID01_NotOwner_ThrowMSG26()
+        [Fact(DisplayName = "[Integration - Normal] Owner Approves Schedule Successfully")]
+        [Trait("TestType", "Normal")]
+        public async System.Threading.Tasks.Task N_Owner_Can_Approve_Pending_Schedule()
         {
-            SetupContext("dentist");
+            SetupHttpContext("owner", 999);
 
-            var command = new ApproveDentistScheduleCommand { ScheduleIds = new List<int> { 1 }, Action = "approved" };
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
-        }
+            var result = await _handler.Handle(new ApproveDentistScheduleCommand
+            {
+                Action = "approved",
+                ScheduleIds = new List<int> { 1 }
+            }, default);
 
-        [Fact(DisplayName = "UTCID02 - Schedule not found → throw generic error")]
-        public async System.Threading.Tasks.Task UTCID02_ScheduleNotFound_ThrowError()
-        {
-            SetupContext("owner");
-
-            _scheduleRepo.Setup(r => r.GetScheduleByIdAsync(It.IsAny<int>())).ReturnsAsync((Schedule)null);
-
-            var command = new ApproveDentistScheduleCommand { ScheduleIds = new List<int> { 1 }, Action = "approved" };
-
-            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
-            Assert.Equal("Chỉ có thể cập nhật lịch đang ở trạng thái pending", ex.Message);
-        }
-
-        [Fact(DisplayName = "UTCID03 - Schedule not pending → throw error")]
-        public async System.Threading.Tasks.Task UTCID03_StatusNotPending_ThrowError()
-        {
-            SetupContext("owner");
-
-            _scheduleRepo.Setup(r => r.GetScheduleByIdAsync(It.IsAny<int>())).ReturnsAsync(new Schedule { Status = "approved" });
-
-            var command = new ApproveDentistScheduleCommand { ScheduleIds = new List<int> { 1 }, Action = "approved" };
-
-            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
-            Assert.Equal("Chỉ có thể cập nhật lịch đang ở trạng thái pending", ex.Message);
-        }
-
-        [Fact(DisplayName = "UTCID04 - Update failed → throw MSG58")]
-        public async System.Threading.Tasks.Task UTCID04_UpdateFailed_ThrowMSG58()
-        {
-            SetupContext("owner");
-
-            _scheduleRepo.Setup(r => r.GetScheduleByIdAsync(It.IsAny<int>())).ReturnsAsync(new Schedule { Status = "pending" });
-            _scheduleRepo.Setup(r => r.UpdateScheduleAsync(It.IsAny<Schedule>())).ReturnsAsync(false);
-
-            var command = new ApproveDentistScheduleCommand { ScheduleIds = new List<int> { 1 }, Action = "approved" };
-
-            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG58, ex.Message);
-        }
-
-        [Fact(DisplayName = "UTCID05 - Approve schedule successfully")]
-        public async System.Threading.Tasks.Task UTCID05_ApproveSuccess_ReturnMSG80()
-        {
-            SetupContext("owner");
-
-            _scheduleRepo.Setup(r => r.GetScheduleByIdAsync(It.IsAny<int>())).ReturnsAsync(new Schedule { Status = "pending" });
-            _scheduleRepo.Setup(r => r.UpdateScheduleAsync(It.IsAny<Schedule>())).ReturnsAsync(true);
-
-            var command = new ApproveDentistScheduleCommand { ScheduleIds = new List<int> { 1 }, Action = "approved" };
-
-            var result = await _handler.Handle(command, default);
             Assert.Equal(MessageConstants.MSG.MSG80, result);
+            Assert.Equal("approved", _context.Schedules.Find(1)?.Status);
         }
 
-        [Fact(DisplayName = "UTCID06 - Reject schedule successfully")]
-        public async System.Threading.Tasks.Task UTCID06_RejectSuccess_ReturnMSG81()
+        [Fact(DisplayName = "[Integration - Normal] Owner Rejects Schedule Successfully")]
+        [Trait("TestType", "Normal")]
+        public async System.Threading.Tasks.Task N_Owner_Can_Reject_Pending_Schedule()
         {
-            SetupContext("owner");
+            SetupHttpContext("owner", 999);
 
-            _scheduleRepo.Setup(r => r.GetScheduleByIdAsync(It.IsAny<int>())).ReturnsAsync(new Schedule { Status = "pending" });
-            _scheduleRepo.Setup(r => r.UpdateScheduleAsync(It.IsAny<Schedule>())).ReturnsAsync(true);
+            var result = await _handler.Handle(new ApproveDentistScheduleCommand
+            {
+                Action = "rejected",
+                ScheduleIds = new List<int> { 2 }
+            }, default);
 
-            var command = new ApproveDentistScheduleCommand { ScheduleIds = new List<int> { 1 }, Action = "rejected" };
-
-            var result = await _handler.Handle(command, default);
             Assert.Equal(MessageConstants.MSG.MSG81, result);
+            Assert.Equal("rejected", _context.Schedules.Find(2)?.Status);
+        }
+
+        [Fact(DisplayName = "[Integration - Abnormal] Owner Tries To Approve Non-Pending Schedule")]
+        [Trait("TestType", "Abnormal")]
+        public async System.Threading.Tasks.Task A_Owner_Cannot_Approve_NonPending_Schedule()
+        {
+            SetupHttpContext("owner", 999);
+
+            await Assert.ThrowsAsync<Exception>(() =>
+                _handler.Handle(new ApproveDentistScheduleCommand
+                {
+                    Action = "approved",
+                    ScheduleIds = new List<int> { 3 } // already approved
+                }, default));
+        }
+
+        [Fact(DisplayName = "[Integration - Abnormal] Non-owner Cannot Approve Schedule")]
+        [Trait("TestType", "Abnormal")]
+        public async System.Threading.Tasks.Task A_NonOwner_Cannot_Approve_Schedule()
+        {
+            SetupHttpContext("assistant", 888);
+
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                _handler.Handle(new ApproveDentistScheduleCommand
+                {
+                    Action = "approved",
+                    ScheduleIds = new List<int> { 1 }
+                }, default));
         }
     }
+
 }

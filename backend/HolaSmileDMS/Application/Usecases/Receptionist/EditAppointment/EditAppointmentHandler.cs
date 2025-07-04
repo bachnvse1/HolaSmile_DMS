@@ -61,11 +61,6 @@ namespace Application.Usecases.Receptionist.EditAppointment
                 throw new Exception(MessageConstants.MSG.MSG16); // "Bác sĩ không tồn tại"
             }
 
-            var checkValidAppointment = await _appointmentRepository.GetLatestAppointmentByPatientIdAsync(existApp.PatientId);
-            if (checkValidAppointment.Status == "confirmed")
-            {
-                throw new Exception(MessageConstants.MSG.MSG89); // "Kế hoạch điều trị đã tồn tại"
-            }
 
             var newDentist = await _dentistRepository.GetDentistByDentistIdAsync(request.DentistId);
             var currentDentist = await _dentistRepository.GetDentistByDentistIdAsync(existApp.DentistId);
