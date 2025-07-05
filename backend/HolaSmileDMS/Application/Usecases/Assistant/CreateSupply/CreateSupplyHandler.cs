@@ -4,7 +4,7 @@ using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
-namespace Application.Usecases.Assistants.CreateSupply
+namespace Application.Usecases.Assistant.CreateSupply
 {
     public class CreateSupplyHandler : IRequestHandler<CreateSupplyCommand, bool>
     {

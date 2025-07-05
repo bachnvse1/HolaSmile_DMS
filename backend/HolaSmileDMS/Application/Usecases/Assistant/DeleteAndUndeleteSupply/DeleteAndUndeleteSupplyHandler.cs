@@ -4,7 +4,7 @@ using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
-namespace Application.Usecases.Assistants.DeleteAndUndeleteSupply
+namespace Application.Usecases.Assistant.DeleteAndUndeleteSupply
 {
     public class DeleteAndUndeleteSupplyHandler : IRequestHandler<DeleteAndUndeleteSupplyCommand, bool>
     {

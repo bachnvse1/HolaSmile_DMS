@@ -4,7 +4,7 @@ using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
-namespace Application.Usecases.Assistants.EditSupply
+namespace Application.Usecases.Assistant.EditSupply
 {
     public class EditSupplyHandler : IRequestHandler<EditSupplyCommand, bool>
     {

@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Application.Usecases.Assistants.DeleteAndUndeleteSupply
+namespace Application.Usecases.Assistant.DeleteAndUndeleteSupply
 {
     public class DeleteAndUndeleteSupplyCommand : IRequest<bool>
     {

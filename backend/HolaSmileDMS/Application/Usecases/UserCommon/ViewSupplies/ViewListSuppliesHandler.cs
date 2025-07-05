@@ -4,8 +4,9 @@ using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using AutoMapper;
+using Application.Usecases.UserCommon.ViewListProcedure;
 
-namespace Application.Usecases.Assistants.ViewSupplies
+namespace Application.Usecases.UserCommon.ViewSupplies
 {
     public class ViewListSuppliesHandler : IRequestHandler<ViewListSuppliesCommand, List<SuppliesDTO>>
     {
@@ -29,7 +30,19 @@ namespace Application.Usecases.Assistants.ViewSupplies
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // Bạn không có quyền truy cập chức năng này
             }
 
-            var listSupplies = await _supplyRepository.GetAllSuppliesAsync();
+            var listSupplies = new List<Supplies>();
+
+            var allProcedures = await _supplyRepository.GetAllSuppliesAsync();
+
+            if (string.Equals(currentUserRole, "assistant", StringComparison.OrdinalIgnoreCase))
+            {
+                listSupplies = allProcedures;
+            }
+            else
+            {
+                listSupplies = allProcedures.Where(s => !s.IsDeleted).ToList();
+            }
+
             if (listSupplies == null || !listSupplies.Any())
             {
                 return new List<SuppliesDTO>();

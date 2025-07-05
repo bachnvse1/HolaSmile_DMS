@@ -1,8 +1,8 @@
 ﻿using Application.Constants;
-using Application.Usecases.Assistants.CreateSupply;
-using Application.Usecases.Assistants.DeleteAndUndeleteSupply;
-using Application.Usecases.Assistants.EditSupply;
-using Application.Usecases.Assistants.ViewSupplies;
+using Application.Usecases.Assistant.CreateSupply;
+using Application.Usecases.Assistant.DeleteAndUndeleteSupply;
+using Application.Usecases.Assistant.EditSupply;
+using Application.Usecases.UserCommon.ViewSupplies;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
