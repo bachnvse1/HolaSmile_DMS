@@ -29,31 +29,6 @@ namespace HDMS_API.Infrastructure.Repositories
         }
         public async Task<User> CreatePatientAccountAsync(CreatePatientDto dto, string password)
         {
-            if (await _context.Users.AnyAsync(u => u.Phone == dto.PhoneNumber))
-            {
-                throw new Exception(MessageConstants.MSG.MSG23); // "Số điện thoại đã được sử dụng"
-            }
-
-            if (dto.FullName.IsNullOrEmpty())
-            {
-                throw new Exception(MessageConstants.MSG.MSG07); // "Vui lòng nhập thông tin bắt buộc"
-            }
-            if (!FormatHelper.FormatPhoneNumber(dto.PhoneNumber))
-            {
-                throw new Exception(MessageConstants.MSG.MSG56); // "Số điện thoại không đúng định dạng"
-            }
-            if (await _context.Users.AnyAsync(u => u.Phone == dto.PhoneNumber))
-            {
-                throw new Exception(MessageConstants.MSG.MSG23); // "Sdt đã tồn tại"
-            }
-            if (!FormatHelper.IsValidEmail(dto.Email))
-            {
-                throw new Exception(MessageConstants.MSG.MSG08); // "Định dạng email không hợp lệ"
-            }
-            if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
-            {
-                throw new Exception(MessageConstants.MSG.MSG22); // "Email đã tồn tại"
-            }
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
 
             var user = new User
