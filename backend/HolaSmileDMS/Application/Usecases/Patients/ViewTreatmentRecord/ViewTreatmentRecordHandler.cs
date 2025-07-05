@@ -6,34 +6,59 @@ using Microsoft.AspNetCore.Http;
 
 namespace Application.Usecases.Patients.ViewTreatmentRecord;
 
-public class ViewPatientTreatmentRecordHandler : IRequestHandler<ViewTreatmentRecordsCommand, List<ViewTreatmentRecordDto>>
+public sealed class ViewPatientTreatmentRecordHandler
+    : IRequestHandler<ViewTreatmentRecordCommand, List<ViewTreatmentRecordDto>>
 {
-    private readonly ITreatmentRecordRepository _repository;
+    private readonly ITreatmentRecordRepository _treatmentRecordRepo;
+    private readonly IPatientRepository _patientRepo;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public ViewPatientTreatmentRecordHandler(ITreatmentRecordRepository repository, IHttpContextAccessor httpContextAccessor)
+    public ViewPatientTreatmentRecordHandler(
+        ITreatmentRecordRepository treatmentRecordRepo,
+        IPatientRepository patientRepo,
+        IHttpContextAccessor httpContextAccessor)
     {
-        _repository = repository;
+        _treatmentRecordRepo = treatmentRecordRepo;
+        _patientRepo = patientRepo;
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<List<ViewTreatmentRecordDto>> Handle(ViewTreatmentRecordsCommand request, CancellationToken cancellationToken)
+    public async Task<List<ViewTreatmentRecordDto>> Handle(
+        ViewTreatmentRecordCommand request,
+        CancellationToken cancellationToken)
     {
-        var user = _httpContextAccessor.HttpContext?.User;
-        var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-        var currentRole = user?.FindFirst(ClaimTypes.Role)?.Value;
+        // 1. Lấy thông tin người đang đăng nhập
+        var user = _httpContextAccessor.HttpContext?.User
+                   ?? throw new UnauthorizedAccessException(MessageConstants.MSG.MSG17); // Phiên làm việc hết hạn
+
+        var currentUserId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var currentRole = user.FindFirst(ClaimTypes.Role)?.Value;
 
         var isDentist = currentRole == "Dentist";
         var isReceptionist = currentRole == "Receptionist";
-        var isSelfPatient = currentRole == "Patient" && currentUserId == request.UserId;
+        var isAssistant = currentRole == "Assistant";
+        var isPatient = currentRole == "Patient";
 
-        if (!isDentist && !isSelfPatient && !isReceptionist)
-            throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Bạn không có quyền truy cập chức năng này
+        // 2. Kiểm tra quyền truy cập
+        if (!isDentist && !isReceptionist && !isAssistant)
+        {
+            // Nếu là Patient thì chỉ được xem hồ sơ của chính mình
+            if (!isPatient)
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
-        var records = await _repository.GetPatientTreatmentRecordsAsync(request.UserId, cancellationToken);
+            var patient = await _patientRepo.GetPatientByPatientIdAsync(request.PatientId)
+                          ?? throw new KeyNotFoundException(MessageConstants.MSG.MSG16);
+
+            if (patient.UserID != currentUserId)
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
+        }
+
+        // 3. Lấy dữ liệu hồ sơ điều trị
+        var records = await _treatmentRecordRepo
+            .GetPatientTreatmentRecordsAsync(request.PatientId, cancellationToken);
 
         if (records == null || records.Count == 0)
-            throw new KeyNotFoundException(MessageConstants.MSG.MSG16); // Không có dữ liệu phù hợp
+            throw new KeyNotFoundException(MessageConstants.MSG.MSG16);
 
         return records;
     }
