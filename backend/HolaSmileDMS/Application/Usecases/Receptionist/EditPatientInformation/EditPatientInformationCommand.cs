@@ -7,7 +7,7 @@ using MediatR;
 
 namespace Application.Usecases.Receptionist.EditPatientInformation
 {
-    public class EditPatientInformationCommand :IRequest<Patient>
+    public class EditPatientInformationCommand :IRequest<bool>
     {
         public int PatientID { get; set; }
         public string FullName { get; set; }
