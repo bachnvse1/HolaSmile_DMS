@@ -1,239 +1,123 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supplyApi } from '@/services/supplyApi';
 import type { 
   Supply, 
   CreateSupplyRequest, 
   UpdateSupplyRequest 
 } from '@/types/supply';
-import { 
-  getMockSupplies, 
-  getMockSupplyById,
-  searchMockSupplies,
-  getLowStockSupplies,
-  getExpiringSoonSupplies,
-  mockSupplies 
-} from '@/data/mockSupplies';
 
-// Simulate API delay
-const simulateDelay = (ms: number = 500) => new Promise(resolve => setTimeout(resolve, ms));
+// Query keys
+const SUPPLY_KEYS = {
+  all: ['supplies'] as const,
+  lists: () => [...SUPPLY_KEYS.all, 'list'] as const,
+  list: (searchQuery?: string) => [...SUPPLY_KEYS.lists(), { searchQuery }] as const,
+  details: () => [...SUPPLY_KEYS.all, 'detail'] as const,
+  detail: (id: number) => [...SUPPLY_KEYS.details(), id] as const,
+  stats: () => [...SUPPLY_KEYS.all, 'stats'] as const,
+};
 
 // Hook for getting all supplies
 export const useSupplies = (searchQuery?: string) => {
-  const [data, setData] = useState<Supply[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        await simulateDelay(300);
-        
-        const supplies = searchQuery 
-          ? searchMockSupplies(searchQuery)
-          : getMockSupplies();
-          
-        setData(supplies);
-        setError(null);
-      } catch (err) {
-        setError(err as Error);
-      } finally {
-        setIsLoading(false);
+  return useQuery({
+    queryKey: SUPPLY_KEYS.list(searchQuery),
+    queryFn: async () => {
+      const supplies = await supplyApi.getSupplies();
+      
+      // Filter by search query if provided
+      if (searchQuery) {
+        return supplies.filter(supply => 
+          supply.Name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
       }
-    };
-
-    fetchData();
-  }, [searchQuery]);
-
-  return { data, isLoading, error, refetch: () => setIsLoading(true) };
+      
+      return supplies;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 };
 
 // Hook for getting single supply
 export const useSupply = (id: number) => {
-  const [data, setData] = useState<Supply | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        await simulateDelay(300);
-        
-        const supply = getMockSupplyById(id);
-        setData(supply || null);
-        setError(null);
-      } catch (err) {
-        setError(err as Error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (id) {
-      fetchData();
-    }
-  }, [id]);
-
-  return { data, isLoading, error };
+  return useQuery({
+    queryKey: SUPPLY_KEYS.detail(id),
+    queryFn: () => supplyApi.getSupplyById(id),
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 };
 
 // Hook for creating supply
 export const useCreateSupply = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const queryClient = useQueryClient();
 
-  const mutate = async (supplyData: CreateSupplyRequest): Promise<Supply> => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      await simulateDelay(800);
-      
-      const newSupply: Supply = {
-        SupplyId: Math.max(...mockSupplies.map(s => s.SupplyId)) + 1,
-        Name: supplyData.Name,
-        Unit: supplyData.Unit,
-        QuantityInStock: supplyData.QuantityInStock,
-        ExpiryDate: supplyData.ExpiryDate,
-        Price: supplyData.Price,
-        CreatedAt: new Date().toISOString(),
-        UpdatedAt: new Date().toISOString(),
-        CreatedBy: 1, // Mock user ID
-        UpdatedBy: 1,
-        IsDeleted: false
-      };
-      
-      // Add to mock data
-      mockSupplies.push(newSupply);
-      
-      return newSupply;
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return { mutate, isLoading, error };
+  return useMutation({
+    mutationFn: (data: CreateSupplyRequest) => supplyApi.createSupply(data),
+    onSuccess: () => {
+      // Invalidate and refetch supplies list
+      queryClient.invalidateQueries({ queryKey: SUPPLY_KEYS.lists() });
+      queryClient.invalidateQueries({ queryKey: SUPPLY_KEYS.stats() });
+    },
+  });
 };
 
 // Hook for updating supply
 export const useUpdateSupply = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const queryClient = useQueryClient();
 
-  const mutate = async (supplyData: UpdateSupplyRequest): Promise<Supply> => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      await simulateDelay(800);
-      
-      const supplyIndex = mockSupplies.findIndex(
-        s => s.SupplyId === supplyData.SupplyId
+  return useMutation({
+    mutationFn: (data: UpdateSupplyRequest) => supplyApi.updateSupply(data),
+    onSuccess: (updatedSupply) => {
+      // Update the specific supply in cache
+      queryClient.setQueryData(
+        SUPPLY_KEYS.detail(updatedSupply.SupplyId),
+        updatedSupply
       );
       
-      if (supplyIndex === -1) {
-        throw new Error('Vật tư không tồn tại');
-      }
-      
-      // Update the supply
-      mockSupplies[supplyIndex] = {
-        ...mockSupplies[supplyIndex],
-        Name: supplyData.Name,
-        Unit: supplyData.Unit,
-        QuantityInStock: supplyData.QuantityInStock,
-        ExpiryDate: supplyData.ExpiryDate,
-        Price: supplyData.Price,
-        UpdatedAt: new Date().toISOString(),
-        UpdatedBy: 1 // Mock user ID
-      };
-      
-      return mockSupplies[supplyIndex];
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return { mutate, isLoading, error };
+      // Invalidate and refetch supplies list
+      queryClient.invalidateQueries({ queryKey: SUPPLY_KEYS.lists() });
+      queryClient.invalidateQueries({ queryKey: SUPPLY_KEYS.stats() });
+    },
+  });
 };
 
 // Hook for deactivating supply
 export const useDeactivateSupply = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const queryClient = useQueryClient();
 
-  const mutate = async (id: number): Promise<void> => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      await simulateDelay(500);
-      
-      const supplyIndex = mockSupplies.findIndex(
-        s => s.SupplyId === id
-      );
-      
-      if (supplyIndex === -1) {
-        throw new Error('Vật tư không tồn tại');
-      }
-      
-      // Mark as deleted
-      mockSupplies[supplyIndex].IsDeleted = true;
-      mockSupplies[supplyIndex].UpdatedAt = new Date().toISOString();
-      mockSupplies[supplyIndex].UpdatedBy = 1;
-      
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return { mutate, isLoading, error };
+  return useMutation({
+    mutationFn: (id: number) => supplyApi.toggleSupplyActivation(id),
+    onSuccess: () => {
+      // Invalidate and refetch all supply data
+      queryClient.invalidateQueries({ queryKey: SUPPLY_KEYS.all });
+    },
+  });
 };
 
 // Hook for supply statistics
 export const useSupplyStats = () => {
-  const [data, setData] = useState({
-    totalSupplies: 0,
-    lowStockCount: 0,
-    expiringSoonCount: 0,
-    totalValue: 0
+  return useQuery({
+    queryKey: SUPPLY_KEYS.stats(),
+    queryFn: async () => {
+      const supplies = await supplyApi.getSupplies();
+      
+      // Calculate statistics
+      const lowStockSupplies = supplies.filter(supply => supply.QuantityInStock <= 50);
+      const expiringSoonSupplies = supplies.filter(supply => {
+        const futureDate = new Date();
+        futureDate.setDate(futureDate.getDate() + 30);
+        return new Date(supply.ExpiryDate) <= futureDate;
+      });
+      const totalValue = supplies.reduce((sum, supply) => 
+        sum + (supply.Price * supply.QuantityInStock), 0
+      );
+
+      return {
+        totalSupplies: supplies.length,
+        lowStockCount: lowStockSupplies.length,
+        expiringSoonCount: expiringSoonSupplies.length,
+        totalValue
+      };
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        setIsLoading(true);
-        await simulateDelay(200);
-        
-        const supplies = getMockSupplies();
-        const lowStock = getLowStockSupplies();
-        const expiringSoon = getExpiringSoonSupplies();
-        const totalValue = supplies.reduce((sum, supply) => 
-          sum + (supply.Price * supply.QuantityInStock), 0
-        );
-        
-        setData({
-          totalSupplies: supplies.length,
-          lowStockCount: lowStock.length,
-          expiringSoonCount: expiringSoon.length,
-          totalValue
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchStats();
-  }, []);
-
-  return { data, isLoading };
 };

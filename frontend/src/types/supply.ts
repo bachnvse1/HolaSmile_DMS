@@ -13,15 +13,20 @@ export interface Supply {
 }
 
 export interface CreateSupplyRequest {
-  Name: string;
-  Unit: string;
-  QuantityInStock: number;
-  ExpiryDate: string;
-  Price: number;
+  supplyName: string;
+  unit: string;
+  quantityInStock: number;
+  price: number;
+  expiryDate: string;
 }
 
-export interface UpdateSupplyRequest extends CreateSupplyRequest {
-  SupplyId: number;
+export interface UpdateSupplyRequest {
+  supplyId: number;
+  supplyName: string;
+  unit: string;
+  quantityInStock: number;
+  price: number;
+  expiryDate: string;
 }
 
 export enum SupplyUnit {

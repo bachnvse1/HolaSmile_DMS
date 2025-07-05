@@ -17,41 +17,39 @@ import {
 import { SupplyUnit } from '@/types/supply';
 
 const supplySchema = z.object({
-  Name: z.string().min(1, 'Tên vật tư là bắt buộc'),
-  Unit: z.string().min(1, 'Đơn vị là bắt buộc'),
-  QuantityInStock: z.coerce.number().min(0, 'Số lượng phải lớn hơn hoặc bằng 0'),
-  ExpiryDate: z.string().min(1, 'Hạn sử dụng là bắt buộc'),
-  Price: z.coerce.number().min(0, 'Giá phải lớn hơn hoặc bằng 0'),
+  supplyName: z.string().min(1, 'Tên vật tư là bắt buộc'),
+  unit: z.string().min(1, 'Đơn vị là bắt buộc'),
+  quantityInStock: z.coerce.number().min(0, 'Số lượng phải lớn hơn hoặc bằng 0'),
+  expiryDate: z.string().min(1, 'Hạn sử dụng là bắt buộc'),
+  price: z.coerce.number().min(0, 'Giá phải lớn hơn hoặc bằng 0'),
 });
 
 type SupplyFormData = z.infer<typeof supplySchema>;
 
 interface SupplyFormProps {
   mode: 'create' | 'edit';
+  supplyId?: number;
 }
 
-export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
+export const SupplyForm: React.FC<SupplyFormProps> = ({ mode, supplyId }) => {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  
-  const supplyId = id ? parseInt(id) : 0;
   const { data: supply, isLoading: isLoadingSupply } = useSupply(
-    mode === 'edit' ? supplyId : 0
+    mode === 'edit' ? Number(supplyId) || 0 : 0
   );
   
-  const { mutate: createSupply, isLoading: isCreating } = useCreateSupply();
-  const { mutate: updateSupply, isLoading: isUpdating } = useUpdateSupply();
+  const { mutate: createSupply, isPending: isCreating } = useCreateSupply();
+  const { mutate: updateSupply, isPending: isUpdating } = useUpdateSupply();
   
   const isLoading = isCreating || isUpdating;
 
   const form = useForm<SupplyFormData>({
     resolver: zodResolver(supplySchema),
     defaultValues: {
-      Name: '',
-      Unit: '',
-      QuantityInStock: 0,
-      ExpiryDate: '',
-      Price: 0,
+      supplyName: '',
+      unit: '',
+      quantityInStock: 0,
+      expiryDate: '',
+      price: 0,
     },
   });
 
@@ -59,11 +57,11 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
   useEffect(() => {
     if (mode === 'edit' && supply) {
       form.reset({
-        Name: supply.Name,
-        Unit: supply.Unit,
-        QuantityInStock: supply.QuantityInStock,
-        ExpiryDate: supply.ExpiryDate.split('T')[0], // Format for date input
-        Price: supply.Price,
+        supplyName: supply.Name,
+        unit: supply.Unit,
+        quantityInStock: supply.QuantityInStock,
+        expiryDate: supply.ExpiryDate.split('T')[0], // Format for date input
+        price: supply.Price,
       });
     }
   }, [supply, mode, form]);
@@ -71,20 +69,33 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
   const onSubmit = async (data: SupplyFormData) => {
     try {
       if (mode === 'create') {
-        await createSupply({
+        createSupply({
           ...data,
-          ExpiryDate: new Date(data.ExpiryDate).toISOString(),
+          expiryDate: new Date(data.expiryDate).toISOString(),
+        }, {
+          onSuccess: () => {
+            toast.success('Tạo vật tư thành công');
+            navigate('/inventory');
+          },
+          onError: () => {
+            toast.error('Có lỗi xảy ra khi tạo vật tư');
+          }
         });
-        toast.success('Tạo vật tư thành công');
       } else {
-        await updateSupply({
-          SupplyId: supplyId,
+        updateSupply({
+          supplyId: Number(supplyId) || 0,
           ...data,
-          ExpiryDate: new Date(data.ExpiryDate).toISOString(),
+          expiryDate: new Date(data.expiryDate).toISOString(),
+        }, {
+          onSuccess: () => {
+            toast.success('Cập nhật vật tư thành công');
+            navigate('/inventory');
+          },
+          onError: () => {
+            toast.error('Có lỗi xảy ra khi cập nhật vật tư');
+          }
         });
-        toast.success('Cập nhật vật tư thành công');
       }
-      navigate('/inventory');
     } catch {
       toast.error(`Có lỗi xảy ra khi ${mode === 'create' ? 'tạo' : 'cập nhật'} vật tư`);
     }
@@ -106,7 +117,7 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
     e.target.value = formattedValue;
     // Update form with numeric value
     const numericValue = parseInt(formattedValue.replace(/,/g, '')) || 0;
-    form.setValue('Price', numericValue);
+    form.setValue('price', numericValue);
   };
 
   if (mode === 'edit' && isLoadingSupply) {
@@ -173,11 +184,11 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
                 </label>
                 <Input
                   placeholder="VD: Khẩu trang y tế 3 lớp"
-                  {...form.register('Name')}
+                  {...form.register('supplyName')}
                 />
-                {form.formState.errors.Name && (
+                {form.formState.errors.supplyName && (
                   <p className="text-sm text-red-600">
-                    {form.formState.errors.Name.message}
+                    {form.formState.errors.supplyName.message}
                   </p>
                 )}
               </div>
@@ -186,7 +197,7 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
                 <label className="text-sm font-medium text-gray-700">
                   Đơn Vị *
                 </label>
-                <Select onValueChange={(value) => form.setValue('Unit', value)}>
+                <Select onValueChange={(value) => form.setValue('unit', value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn đơn vị" />
                   </SelectTrigger>
@@ -198,9 +209,9 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
                     ))}
                   </SelectContent>
                 </Select>
-                {form.formState.errors.Unit && (
+                {form.formState.errors.unit && (
                   <p className="text-sm text-red-600">
-                    {form.formState.errors.Unit.message}
+                    {form.formState.errors.unit.message}
                   </p>
                 )}
               </div>
@@ -215,11 +226,11 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
                   type="number"
                   min="0"
                   placeholder="0"
-                  {...form.register('QuantityInStock')}
+                  {...form.register('quantityInStock')}
                 />
-                {form.formState.errors.QuantityInStock && (
+                {form.formState.errors.quantityInStock && (
                   <p className="text-sm text-red-600">
-                    {form.formState.errors.QuantityInStock.message}
+                    {form.formState.errors.quantityInStock.message}
                   </p>
                 )}
               </div>
@@ -230,11 +241,11 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
                 </label>
                 <Input
                   type="date"
-                  {...form.register('ExpiryDate')}
+                  {...form.register('expiryDate')}
                 />
-                {form.formState.errors.ExpiryDate && (
+                {form.formState.errors.expiryDate && (
                   <p className="text-sm text-red-600">
-                    {form.formState.errors.ExpiryDate.message}
+                    {form.formState.errors.expiryDate.message}
                   </p>
                 )}
               </div>
@@ -249,9 +260,9 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
                 onChange={handlePriceChange}
                 defaultValue={mode === 'edit' && supply ? formatPrice(supply.Price.toString()) : ''}
               />
-              {form.formState.errors.Price && (
+              {form.formState.errors.price && (
                 <p className="text-sm text-red-600">
-                  {form.formState.errors.Price.message}
+                  {form.formState.errors.price.message}
                 </p>
               )}
               <p className="text-sm text-gray-500">

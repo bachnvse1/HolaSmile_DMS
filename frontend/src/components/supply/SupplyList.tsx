@@ -15,7 +15,7 @@ import {
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useSupplies, useDeactivateSupply, useSupplyStats } from '@/hooks/useSupplies';
 import type { Supply } from '@/types/supply';
 
@@ -26,7 +26,7 @@ export const SupplyList: React.FC = () => {
   
   const { data: supplies = [], isLoading, error, refetch } = useSupplies(searchQuery);
   const { data: stats, isLoading: isLoadingStats } = useSupplyStats();
-  const { mutate: deactivateSupply, isLoading: isDeactivating } = useDeactivateSupply();
+  const { mutate: deactivateSupply, isPending: isDeactivating } = useDeactivateSupply();
 
   // Filter supplies based on selected filter
   const filteredSupplies = supplies.filter(supply => {
@@ -55,13 +55,15 @@ export const SupplyList: React.FC = () => {
 
   const handleDeactivate = async (supply: Supply) => {
     if (window.confirm(`Bạn có chắc chắn muốn xóa vật tư "${supply.Name}"?`)) {
-      try {
-        await deactivateSupply(supply.SupplyId);
-        toast.success('Đã xóa vật tư thành công');
-        refetch();
-      } catch {
-        toast.error('Có lỗi xảy ra khi xóa vật tư');
-      }
+      deactivateSupply(supply.SupplyId, {
+        onSuccess: () => {
+          toast.success('Đã xóa vật tư thành công');
+          refetch();
+        },
+        onError: () => {
+          toast.error('Có lỗi xảy ra khi xóa vật tư');
+        }
+      });
     }
   };
 
@@ -144,7 +146,7 @@ export const SupplyList: React.FC = () => {
       </div>
 
       {/* Statistics Cards */}
-      {!isLoadingStats && (
+      {!isLoadingStats && stats && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <Card>
             <CardContent className="p-4">

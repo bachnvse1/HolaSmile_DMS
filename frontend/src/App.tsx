@@ -21,7 +21,6 @@ import { PatientBookingPage } from './pages/patient/PatientBookingPage';
 import { PatientAppointmentsPage } from './pages/patient/PatientAppointmentsPage';
 import { StaffAppointmentsPage } from './pages/staff/StaffAppointmentsPage';
 import ScheduleManagementPage from './pages/staff/ScheduleManagementPage';
-import { DentistScheduleViewer } from './components/appointment/DentistScheduleViewer';
 import PatientTreatmentRecords from './pages/patient/PatientViewTreatmentRecord';
 import ViewTreatmentProgressPage from './pages/patient/ViewTreatmentProgress';
 import PatientList from './pages/patient/PatientList';
@@ -68,8 +67,8 @@ function App() {
         <Route path="/patient/follow-up" element={<FUAppointmentPage />} />
         <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/inventory/create" element={<CreateSupplyPage />} />
-        <Route path="/inventory/:id" element={<SupplyDetailPage />} />
-        <Route path="/inventory/:id/edit" element={<EditSupplyPage />} />
+        <Route path="/inventory/:supplyId" element={<SupplyDetailPage />} />
+        <Route path="/inventory/:supplyId/edit" element={<EditSupplyPage />} />
       </Routes>
     </>
   );

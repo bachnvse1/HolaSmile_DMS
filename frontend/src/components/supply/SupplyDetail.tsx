@@ -8,11 +8,10 @@ import { useSupply, useDeactivateSupply } from '@/hooks/useSupplies';
 
 export const SupplyDetail: React.FC = () => {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  
-  const supplyId = id ? parseInt(id) : 0;
-  const { data: supply, isLoading } = useSupply(supplyId);
-  const { mutate: deactivateSupply, isLoading: isDeactivating } = useDeactivateSupply();
+  const { supplyId } = useParams();
+
+  const { data: supply, isLoading } = useSupply(Number(supplyId) || 0);
+  const { mutate: deactivateSupply, isPending: isDeactivating } = useDeactivateSupply();
 
   const handleEdit = () => {
     navigate(`/inventory/${supplyId}/edit`);
@@ -20,15 +19,17 @@ export const SupplyDetail: React.FC = () => {
 
   const handleDeactivate = async () => {
     if (!supply) return;
-    
+
     if (window.confirm(`Bạn có chắc chắn muốn xóa vật tư "${supply.Name}"?`)) {
-      try {
-        await deactivateSupply(supply.SupplyId);
-        toast.success('Đã xóa vật tư thành công');
-        navigate('/inventory');
-      } catch {
-        toast.error('Có lỗi xảy ra khi xóa vật tư');
-      }
+      deactivateSupply(supply.SupplyId, {
+        onSuccess: () => {
+          toast.success('Đã xóa vật tư thành công');
+          navigate('/inventory');
+        },
+        onError: () => {
+          toast.error('Có lỗi xảy ra khi xóa vật tư');
+        }
+      });
     }
   };
 
@@ -63,7 +64,7 @@ export const SupplyDetail: React.FC = () => {
     const expiry = new Date(expiryDate);
     const now = new Date();
     const daysDiff = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 3600 * 24));
-    
+
     if (daysDiff < 0) return { text: 'Hết hạn', color: 'text-red-600 bg-red-50', days: daysDiff };
     if (daysDiff <= 30) return { text: 'Sắp hết hạn', color: 'text-orange-600 bg-orange-50', days: daysDiff };
     return { text: 'Còn hạn', color: 'text-green-600 bg-green-50', days: daysDiff };
@@ -114,15 +115,15 @@ export const SupplyDetail: React.FC = () => {
             <p className="text-gray-600 mt-1 text-sm sm:text-base">Thông tin chi tiết về vật tư</p>
           </div>
         </div>
-        
+
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleEdit} className="flex-1 sm:flex-none">
             <Edit className="h-4 w-4 mr-2" />
             <span className="hidden sm:inline">Chỉnh Sửa</span>
             <span className="sm:hidden">Sửa</span>
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={handleDeactivate}
             disabled={isDeactivating}
             className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-1 sm:flex-none"
@@ -151,7 +152,7 @@ export const SupplyDetail: React.FC = () => {
                   {supply.Name}
                 </p>
               </div>
-              
+
               <div>
                 <label className="text-sm font-medium text-gray-600">Đơn Vị</label>
                 <p className="text-base sm:text-lg font-semibold text-gray-900 mt-1">
@@ -198,15 +199,15 @@ export const SupplyDetail: React.FC = () => {
                     {new Date(supply.ExpiryDate).toLocaleDateString('vi-VN')}
                   </p>
                 </div>
-                
+
                 <div className="flex items-center">
                   <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${expiryStatus.color}`}>
                     {expiryStatus.text}
                   </span>
                 </div>
-                
+
                 <div className="text-sm text-gray-600">
-                  {expiryStatus.days > 0 
+                  {expiryStatus.days > 0
                     ? `Còn ${expiryStatus.days} ngày`
                     : `Đã hết hạn ${Math.abs(expiryStatus.days)} ngày`
                   }
@@ -229,7 +230,7 @@ export const SupplyDetail: React.FC = () => {
                     {formatPrice(totalValue)}
                   </p>
                 </div>
-                
+
                 <div className="text-sm text-gray-600 space-y-1">
                   <div className="break-all">Giá đơn vị: {formatPrice(supply.Price)}</div>
                   <div>Số lượng: {supply.QuantityInStock} {supply.Unit}</div>
