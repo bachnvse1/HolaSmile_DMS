@@ -5,12 +5,11 @@ using Application.Usecases.SendNotification;
 using AutoMapper;
 using HDMS_API.Application.Common.Helpers;
 using MediatR;
-using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http;
 
 namespace Application.Usecases.Receptionist.EditPatientInformation
 {
-    public class EditPatientInformationHandler : IRequestHandler<EditPatientInformationCommand, Patient>
+    public class EditPatientInformationHandler : IRequestHandler<EditPatientInformationCommand, bool>
     {
         private readonly IUserCommonRepository _userCommonRepository;
         private readonly IPatientRepository _patientRepository;
@@ -29,7 +28,7 @@ namespace Application.Usecases.Receptionist.EditPatientInformation
 
         }
 
-        public async Task<Patient> Handle(EditPatientInformationCommand request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(EditPatientInformationCommand request, CancellationToken cancellationToken)
         {
             var user = _httpContextAccessor.HttpContext?.User;
             var userId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
@@ -54,7 +53,7 @@ namespace Application.Usecases.Receptionist.EditPatientInformation
                 throw new Exception(MessageConstants.MSG.MSG08); // "Vui lòng nhập thông tin bắt buộc"
             }
 
-            if (await _patientRepository.CheckEmailPatientAsync(request.Email) != null)
+            if (await _patientRepository.CheckEmailPatientAsync(request.Email) != null && patient.User.Email != request.Email)
             {
                 throw new Exception(MessageConstants.MSG.MSG22); // "Vui lòng nhập thông tin bắt buộc"
             }
@@ -86,7 +85,7 @@ namespace Application.Usecases.Receptionist.EditPatientInformation
                     request.PatientID),
                 cancellationToken);
 
-            return patient;
+            return IsUpdated;
         }
     }
 }

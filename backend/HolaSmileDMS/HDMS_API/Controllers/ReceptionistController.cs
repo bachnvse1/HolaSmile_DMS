@@ -49,7 +49,7 @@ namespace HDMS_API.Controllers
             try
             {
                 var result = await _mediator.Send(command);
-                return Ok(new { message = MessageConstants.MSG.MSG09, data = result });
+                return result ? Ok(MessageConstants.MSG.MSG09) : Conflict(MessageConstants.MSG.MSG58);
             }
             catch (Exception ex)
             {
