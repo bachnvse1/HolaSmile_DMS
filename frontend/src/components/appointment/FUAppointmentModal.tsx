@@ -25,7 +25,7 @@ export const FUAppointmentModal: React.FC<FUAppointmentModalProps> = ({
   const handleBookFUAppointment = async () => {
     try {
       let timeString = "08:00:00";
-      if (selectedTimeSlot === "afternoon") timeString = "13:00:00";
+      if (selectedTimeSlot === "afternoon") timeString = "14:00:00";
       if (selectedTimeSlot === "evening") timeString = "17:00:00";
 
       await axiosInstance.post("/appointment/FUappointment", {

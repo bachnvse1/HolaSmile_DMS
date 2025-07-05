@@ -180,7 +180,7 @@ namespace HDMS_API.Infrastructure.Repositories
         }
         public Task<User?> GetUserByEmailAsync(string email)
         {
-            var user = _context.Users.FirstOrDefaultAsync(u => u.Phone == email);
+            var user = _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             return user;
         }
 

@@ -33,7 +33,7 @@ export const CancelAppointmentDialog: React.FC<CancelAppointmentDialogProps> = (
         appointmentId: appointment.appointmentId,
         reason: reason.trim() || undefined
       });
-      
+
       onSuccess?.();
       onClose();
     } catch (error) {
@@ -58,11 +58,11 @@ export const CancelAppointmentDialog: React.FC<CancelAppointmentDialogProps> = (
   return (
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-gray-500 bg-opacity-75 backdrop-blur-sm"
         onClick={onClose}
       />
-      
+
       {/* Modal */}
       <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
         <Card className="w-full max-w-md mx-4">
@@ -86,16 +86,24 @@ export const CancelAppointmentDialog: React.FC<CancelAppointmentDialogProps> = (
             {/* Appointment Info */}
             <div className="bg-gray-50 rounded-lg p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-600">Lịch hẹn #{appointment.appointmentId}</span>
+                <span className="text-sm font-medium text-gray-600">Lịch hẹn</span>
                 <Badge variant="info">
                   {appointment.isNewPatient ? 'Bệnh nhân mới' : 'Tái khám'}
                 </Badge>
               </div>
-                <div className="space-y-1 text-sm">
+              <div className="space-y-1 text-sm">
                 <p><span className="font-medium">Bác sĩ:</span> {appointment.dentistName}</p>
                 <p><span className="font-medium">Ngày:</span> {formatDate(appointment.appointmentDate)}</p>
                 <p><span className="font-medium">Giờ:</span> {formatTime(appointment.appointmentTime)}</p>
-                <p><span className="font-medium">Loại hẹn:</span> {appointment.appointmentType}</p>
+                <p><span className="font-medium">Loại hẹn: </span>{appointment.appointmentType === 'follow-up'
+                  ? 'Tái khám'
+                  : appointment.appointmentType === 'consultation'
+                    ? 'Tư vấn'
+                    : appointment.appointmentType === 'treatment'
+                      ? 'Điều trị'
+                      : appointment.appointmentType === 'first-time'
+                        ? 'Khám lần đầu '
+                        : appointment.appointmentType}</p>
                 <div className="flex items-center mt-2">
                   <Clock className="h-4 w-4 text-green-600 mr-1" />
                   <span className="text-green-600 font-medium">{timeUntilAppointment}</span>
