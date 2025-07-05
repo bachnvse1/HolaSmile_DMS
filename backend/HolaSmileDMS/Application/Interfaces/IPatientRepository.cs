@@ -9,6 +9,8 @@ namespace Application.Interfaces
         Task<Patient> CreatePatientAsync(CreatePatientDto createPatientDto, int userID);
         Task<Patient> GetPatientByPatientIdAsync(int? patientId);
         Task<Patient> GetPatientByUserIdAsync(int userId);
+        Task<bool> UpdatePatientInforAsync(Patient patient);
+        Task<Patient> CheckEmailPatientAsync(string email);
         Task<List<ViewListPatientDto>> GetAllPatientsAsync(CancellationToken cancellationToken);
     }
 }
