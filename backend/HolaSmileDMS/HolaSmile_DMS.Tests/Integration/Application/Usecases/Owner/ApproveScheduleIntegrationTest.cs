@@ -38,8 +38,8 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Owner
         {
             _context.Schedules.RemoveRange(_context.Schedules);
             _context.Schedules.AddRange(
-                new Schedule { ScheduleId = 1, Status = "pending" },
-                new Schedule { ScheduleId = 2, Status = "pending" }
+                new Schedule { ScheduleId = 1, Status = "pending", DentistId = 1, WorkDate = DateTime.Now, Shift = "morning", IsActive = true },
+                new Schedule { ScheduleId = 2, Status = "pending", DentistId = 2, WorkDate = DateTime.Now, Shift = "morning", IsActive = true }
             );
             _context.SaveChanges();
         }
