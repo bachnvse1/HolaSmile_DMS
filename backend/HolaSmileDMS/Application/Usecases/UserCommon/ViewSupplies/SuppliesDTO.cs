@@ -2,6 +2,8 @@
 {
     public class SuppliesDTO
     {
+
+        public int SupplyID { get; set; }
         public string? Name { get; set; }
         public string? Unit { get; set; }
         public int QuantityInStock { get; set; }
