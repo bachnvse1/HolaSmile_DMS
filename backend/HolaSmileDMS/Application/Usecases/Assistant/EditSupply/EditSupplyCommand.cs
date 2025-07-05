@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MediatR;
 
-namespace Application.Usecases.Assistants.EditSupply
+namespace Application.Usecases.Assistant.EditSupply
 {
     public class EditSupplyCommand : IRequest<bool>
     {

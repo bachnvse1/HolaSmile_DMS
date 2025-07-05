@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Application.Usecases.Assistants.CreateSupply
+namespace Application.Usecases.Assistant.CreateSupply
 {
     public class CreateSupplyCommand : IRequest<bool>
     {
