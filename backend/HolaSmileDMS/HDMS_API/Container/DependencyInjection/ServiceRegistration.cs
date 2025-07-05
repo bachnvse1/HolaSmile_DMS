@@ -1,6 +1,7 @@
 ﻿using Application.Common.Mappings;
 using Application.Interfaces;
 using Application.Services;
+using Application.Usecases.Receptionist.SMS;
 using Application.Usecases.SendNotification;
 using HDMS_API.Application.Common.Mappings;
 using HDMS_API.Application.Interfaces;
@@ -51,6 +52,8 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IFileStorageService, FileStorageService>();
             services.AddScoped<IOrthodonticTreatmentPlanRepository, OrthodonticTreatmentPlanRepository>();
             services.AddScoped<ITaskRepository, TaskRepository>();
+            services.AddHttpClient<IEsmsService, SmsService>();
+
 
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>
@@ -80,6 +83,8 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddAutoMapper(typeof(MappingAppointment));
             services.AddAutoMapper(typeof(MappingTreatmentProgress).Assembly);
             services.AddAutoMapper(typeof(OrthodonticTreatmentPlanProfile).Assembly);
+
+            services.AddMediatR((typeof(SendReminderSmsHandler).Assembly));
 
 
             // Caching
