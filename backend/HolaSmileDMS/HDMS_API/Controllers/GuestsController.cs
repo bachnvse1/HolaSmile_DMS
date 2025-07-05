@@ -1,4 +1,5 @@
-﻿using HDMS_API.Application.Usecases.Guests.BookAppointment;
+﻿using Application.Usecases.Guests.BookAppointment;
+using HDMS_API.Application.Usecases.Guests.BookAppointment;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,5 +37,29 @@ namespace HDMS_API.Controllers
                 });
             }
         }
+
+        [HttpPost("ValidateBookAppointment")]
+        public async Task<IActionResult> ValidateBookAppointment([FromBody] ValidateBookAppointmentCommand request)
+        {
+            if (request == null)
+            {
+                return BadRequest("Dữ liệu đầu vào không hợp lệ.");
+            }
+            try
+            {
+                var result = await _mediator.Send(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ex.Message,
+                    Inner = ex.InnerException?.Message,
+                    Stack = ex.StackTrace
+                });
+            }
+        }
+
     }
 }

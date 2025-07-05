@@ -9,6 +9,7 @@ import { TokenUtils } from "@/utils/tokenUtils"
 import { getDateString } from "@/utils/date"
 import { Skeleton } from "@/components/ui/skeleton"
 import "react-toastify/dist/ReactToastify.css"
+import PatientTreatmentRecordsSection from "@/components/patient/PatientTreatmentRecordsSection"
 
 type FormValues = {
   username: string
@@ -65,6 +66,11 @@ export default function ViewProfile() {
       setIsValidToken(false)
     }
   }, [token])
+
+  const decoded = TokenUtils.decodeToken(token)
+  const userId = decoded?.userId
+  const role = decoded?.role
+
 
   const {
     register,
@@ -304,6 +310,11 @@ export default function ViewProfile() {
             {isEditing && <p className="text-sm text-gray-500">Nhấp vào biểu tượng camera để thay đổi ảnh</p>}
           </div>
         </form>
+        {role === "Patient" && userId && (
+          <div className="mt-12">
+            <PatientTreatmentRecordsSection userId={Number(userId)} />
+          </div>
+        )}
       </div>
     </div>
   )

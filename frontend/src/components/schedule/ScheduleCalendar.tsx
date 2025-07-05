@@ -32,7 +32,6 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
   onPreviousWeek,
   onNextWeek,
   canAddSchedule = false,
-  disablePastDates = true
 }) => {
   // State để theo dõi tuần hiện tại
   const [weekOffset, setWeekOffset] = useState(currentWeek);
@@ -109,88 +108,108 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
   const isPastDate = (date: Date) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return date < today;
+    return date <= today;
   };
     // Render giao diện ca làm việc
   const renderShift = (date: Date, shift: ShiftType) => {
+    const formattedDate = formatDateForCompare(date);
     const scheduled = isShiftScheduled(date, shift);
     const status = getShiftStatus(date, shift);
     const selected = isSelected(date, shift);
-    const isMultiSelected = isInSelectedSlots(date, shift);
-    const isPast = disablePastDates && isPastDate(date);
+    const inSelectedSlots = isInSelectedSlots(date, shift);
+    const isPast = isPastDate(date);
     
-    let className = "flex items-center justify-center h-12 rounded-md text-sm font-medium transition-colors ";
-    let statusIndicator = null;
+    // Tìm schedule để kiểm tra isActive
+    const schedule = schedules.find(
+      (s) => s.date === formattedDate && s.shift === shift
+    );
     
-    if (scheduled) {
-      // Nếu đã có lịch, hiển thị màu khác nhau dựa trên trạng thái
-      if (status === ScheduleStatus.Approved) {
-        className += "bg-green-100 text-green-800 ";
-        statusIndicator = <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-1.5"></span>;
-      } else if (status === ScheduleStatus.Rejected) {
-        className += "bg-red-100 text-red-800 ";
-        statusIndicator = <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-1.5"></span>;
-      } else {
-        className += "bg-yellow-100 text-yellow-800 ";
-        statusIndicator = <span className="inline-block w-2 h-2 bg-yellow-500 rounded-full mr-1.5"></span>;
+    // Chỉ hiển thị màu nếu schedule tồn tại và isActive = true
+    const shouldShowStatus = scheduled && schedule;
+
+    // Xác định màu nền dựa trên trạng thái
+    let bgColor = '';
+    let textColor = 'text-gray-600';
+    let borderColor = 'border-gray-200';
+    
+    if (shouldShowStatus && status) {
+      switch (status) {
+        case ScheduleStatus.Approved:
+          bgColor = 'bg-green-100';
+          textColor = 'text-green-800';
+          borderColor = 'border-green-300';
+          break;
+        case ScheduleStatus.Pending:
+          bgColor = 'bg-yellow-100';
+          textColor = 'text-yellow-800';
+          borderColor = 'border-yellow-300';
+          break;
+        case ScheduleStatus.Rejected:
+          bgColor = 'bg-red-100';
+          textColor = 'text-red-800';
+          borderColor = 'border-red-300';
+          break;
       }
-    } else if (isPast) {
-      // Ngày trong quá khứ
-      className += "bg-gray-100 text-gray-400 opacity-50 ";
-    } else if (canAddSchedule) {
-      // Nếu có thể đặt lịch và chưa có lịch
-      className += "bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-700 cursor-pointer ";
-    } else {
-      // Slot trống không thể đặt
-      className += "bg-gray-100 text-gray-400 ";
     }
-    
-    // Nếu được chọn
+
+    // Nếu được chọn trong multi-select mode
+    if (inSelectedSlots) {
+      bgColor = 'bg-purple-100';
+      textColor = 'text-purple-800';
+      borderColor = 'border-purple-300';
+    }
+
+    // Nếu được chọn (single select)
     if (selected) {
-      className += "ring-2 ring-blue-500 ";
+      borderColor = 'border-blue-500';
     }
-    
-    // Nếu được chọn trong nhiều ca
-    if (isMultiSelected) {
-      className += "ring-2 ring-purple-500 bg-purple-50 text-purple-800 ";
-    }
-    
-    // Tên hiển thị của ca
+
+    // Tên ca làm việc
     const shiftNames = {
-      [ShiftType.Morning]: "Sáng",
-      [ShiftType.Afternoon]: "Chiều",
-      [ShiftType.Evening]: "Tối",
+      morning: 'Sáng',
+      afternoon: 'Chiều', 
+      evening: 'Tối'
     };
-    
-    // Giờ làm việc của ca
+
+    // Thời gian ca làm việc
     const shiftTimes = {
-      [ShiftType.Morning]: "8:00 - 12:00",
-      [ShiftType.Afternoon]: "13:00 - 17:00",
-      [ShiftType.Evening]: "18:00 - 21:00",
+      morning: '8:00 - 11:00',
+      afternoon: '13:00 - 17:00',
+      evening: '17:00 - 20:00'
     };
-    
+
     return (
-      <div 
-        className={className}
+      <div
+        key={shift}
+        className={`
+          relative p-3 border-2 rounded-lg cursor-pointer transition-all duration-200 min-h-[70px] flex flex-col justify-center
+          ${bgColor || 'bg-gray-50'}
+          ${borderColor}
+          ${textColor}
+          ${isPast && !shouldShowStatus ? 'opacity-50 cursor-not-allowed' : ''}
+          ${canAddSchedule && !isPast ? 'hover:border-blue-400 hover:shadow-sm' : ''}
+        `}
         onClick={() => {
-          if (isPast) {
-            return; // Không cho phép chọn ngày trong quá khứ
-          }
+          if (isPast && !shouldShowStatus) return;
           
-          if (onSlotSelect && canAddSchedule) {
-            onSlotSelect(formatDateForCompare(date), shift);
-          } else if ((canAddSchedule && !scheduled) || scheduled) {
-            if (onDateSelect) {
-              onDateSelect(formatDateForCompare(date), shift);
+          if (canAddSchedule) {
+            if (onSlotSelect) {
+              onSlotSelect(formattedDate, shift);
+            } else if (onDateSelect) {
+              onDateSelect(formattedDate, shift);
             }
           }
         }}
       >
         <div className="text-center">
-          {statusIndicator}
-          <div className="font-medium">{shiftNames[shift]}</div>
-          <div className="text-xs mt-0.5">{shiftTimes[shift]}</div>
+          <div className="font-medium text-sm">
+            {shiftNames[shift]}
+          </div>
+          <div className="text-xs mt-1">
+            {shiftTimes[shift]}
+          </div>
         </div>
+
       </div>
     );
   };

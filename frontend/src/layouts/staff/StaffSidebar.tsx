@@ -147,9 +147,9 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
     },
     {
       id: 'staff-management',
-      label: 'Quản Lý Nhân Viên',
+      label: 'Quản Lý Người Dùng',
       icon: <UserCheck className="h-5 w-5" />,
-      path: '/staff-management',
+      path: '/administrator/user-list',
       roles: ['Administrator', 'Owner']
     },
     {
@@ -244,7 +244,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
     }`}>
       <div className="p-4 border-b">
         {!isCollapsed && (
-          <h2 className="text-xl font-bold text-blue-600">HolaSmile</h2>
+          <h2 className="text-xl font-bold text-blue-600 h-8">HolaSmile</h2>
         )}
         {isCollapsed && (
           <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">

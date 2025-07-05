@@ -26,6 +26,9 @@ public class Procedure
     public float? AssistantCommissionRate { get; set; }
     public float? TechnicianCommissionRate { get; set; }
 
+    public WarrantyCard? WarrantyCard { get; set; }
+    public int? WarrantyCardId { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public int? CreatedBy { get; set; }
@@ -34,7 +37,6 @@ public class Procedure
     public bool IsDeleted { get; set; }
 
     public ICollection<SuppliesUsed> SuppliesUsed { get; set; }
-    public ICollection<WarrantyCard> WarrantyCards { get; set; }
 
 
 }

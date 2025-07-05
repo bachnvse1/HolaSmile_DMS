@@ -88,7 +88,7 @@ export interface AppointmentDTO {
   content: string;
   appointmentType: string;
   isNewPatient: boolean;
-  status: 'confirmed' | 'canceled'; // Only 2 statuses as per backend
+  status: 'confirmed' | 'canceled' | 'attended' | 'absented'; // Only 2 statuses as per backend
   createdAt: string;
   updatedAt?: string;
   createdBy?: number;
@@ -108,7 +108,7 @@ export interface CalendarAppointment {
   title: string;
   date: string;
   time: string;
-  status: 'confirmed' | 'canceled';
+  status: 'confirmed' | 'canceled' | 'attended' | 'absented' ;
   type: string;
   isNewPatient: boolean;
   details: AppointmentDTO;

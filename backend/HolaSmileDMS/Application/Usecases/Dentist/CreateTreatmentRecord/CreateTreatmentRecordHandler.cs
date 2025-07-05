@@ -4,6 +4,7 @@ using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
+using Application.Usecases.SendNotification;
 
 namespace Application.Usecases.Dentist.CreateTreatmentRecord
 {
@@ -12,15 +13,21 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
         private readonly ITreatmentRecordRepository _repository;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IMediator _mediator;
+        private readonly IAppointmentRepository _appointmentRepository;
+        private readonly IPatientRepository _patientRepository;
 
         public CreateTreatmentRecordHandler(
             ITreatmentRecordRepository repository,
             IMapper mapper,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor, IMediator mediator, IAppointmentRepository appointmentRepository, IPatientRepository patientRepository)
         {
             _repository = repository;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
+            _mediator = mediator;
+            _appointmentRepository = appointmentRepository;
+            _patientRepository = patientRepository;
         }
 
         public async Task<string> Handle(CreateTreatmentRecordCommand request, CancellationToken cancellationToken)
@@ -31,7 +38,7 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
 
             var currentUserId = int.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
             var role = user.FindFirstValue(ClaimTypes.Role);
-
+            var fullName = user?.FindFirst(ClaimTypes.GivenName)?.Value;
             if (role != "Dentist")
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Không có quyền truy cập
 
@@ -73,6 +80,27 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
             record.TotalAmount = CalculateTotal(record);
 
             await _repository.AddAsync(record, cancellationToken);
+            
+            var appointment = await _appointmentRepository.GetAppointmentByIdAsync(record.AppointmentID);
+            if (appointment != null)
+            {
+                var patient = await _patientRepository.GetPatientByPatientIdAsync(appointment.PatientId ?? 0);
+                if (patient != null)
+                {
+                    int userIdNotification = patient.UserID ?? 0;
+                    if (userIdNotification > 0)
+                    {
+                        await _mediator.Send(new SendNotificationCommand(
+                            userIdNotification,
+                            "Tạo thủ thuật điều trị",
+                            $"Thủ thuật mới của bạn đã được nha sĩ {fullName} tạo.",
+                            "Xem hồ sơ",
+                            0
+                        ), cancellationToken);
+                    }
+                }
+            }
+
 
             return MessageConstants.MSG.MSG31; // Lưu dữ liệu thành công
         }
