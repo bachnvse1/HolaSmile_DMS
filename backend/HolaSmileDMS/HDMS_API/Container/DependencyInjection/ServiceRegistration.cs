@@ -50,7 +50,7 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IReceptionistRepository, ReceptionistRepository>();
             services.AddScoped<IFileStorageService, FileStorageService>();
             services.AddScoped<ITaskRepository, TaskRepository>();
-
+            services.AddScoped<IWarrantyRepository, WarrantyCardRepository>();
 
 
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
