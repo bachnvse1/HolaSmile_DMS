@@ -233,9 +233,7 @@ namespace HDMS_API.Infrastructure.Repositories
                 })
                 .FirstOrDefaultAsync(cancellationToken);
         }
-        public async Task<UserRoleResult?> GetUserRoleAsync(
-            string username,
-            CancellationToken cancellationToken)
+        public async Task<UserRoleResult?> GetUserRoleAsync(string username, CancellationToken cancellationToken)
         {
             var user = await GetByUsernameAsync(username, cancellationToken);
             if (user == null) return null;
