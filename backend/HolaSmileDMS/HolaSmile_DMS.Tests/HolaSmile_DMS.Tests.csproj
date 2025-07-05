@@ -36,4 +36,11 @@
     <ProjectReference Include="..\Application\Application.csproj" />
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Unit\Application\Usecases\Assistant\CreateSupply\" />
+    <Folder Include="Unit\Application\Usecases\Assistant\EditSupply\" />
+    <Folder Include="Unit\Application\Usecases\Assistant\DeleteAndUndeleteSupply\" />
+    <Folder Include="Unit\Application\Usecases\UserCommon\ViewSupplies\" />
+  </ItemGroup>
 </Project>
