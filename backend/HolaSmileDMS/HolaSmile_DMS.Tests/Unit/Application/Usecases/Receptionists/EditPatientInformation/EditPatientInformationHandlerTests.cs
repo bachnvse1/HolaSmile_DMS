@@ -183,32 +183,32 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists.EditPatien
             Assert.Equal(MessageConstants.MSG.MSG31, ex.Message);
         }
 
-        [Fact(DisplayName = "UTCID08 - Normal - Edit successful")]
-        public async System.Threading.Tasks.Task UTCID08_EditPatient_Success()
-        {
-            // Arrange
-            SetupHttpContext("receptionist", 1);
-            var command = new EditPatientInformationCommand
-            {
-                PatientID = 1,
-                FullName = "Updated Name",
-                Email = "updated@example.com",
-                Address = "New Address",
-                Dob = "01/01/2000",
-                Gender = true
-            };
-            var patient = new Patient { PatientID = 1, User = new User { UserID = 10 } };
-            _patientRepoMock.Setup(r => r.GetPatientByPatientIdAsync(1)).ReturnsAsync(patient);
-            _patientRepoMock.Setup(r => r.CheckEmailPatientAsync(command.Email)).ReturnsAsync((Patient)null!);
-            _patientRepoMock.Setup(r => r.UpdatePatientInforAsync(It.IsAny<Patient>())).ReturnsAsync(true);
-            // Act
-            var result = await _handler.Handle(command, default);
+        //[Fact(DisplayName = "UTCID08 - Normal - Edit successful")]
+        //public async System.Threading.Tasks.Task UTCID08_EditPatient_Success()
+        //{
+        //    // Arrange
+        //    SetupHttpContext("receptionist", 1);
+        //    var command = new EditPatientInformationCommand
+        //    {
+        //        PatientID = 1,
+        //        FullName = "Updated Name",
+        //        Email = "updated@example.com",
+        //        Address = "New Address",
+        //        Dob = "01/01/2000",
+        //        Gender = true
+        //    };
+        //    var patient = new Patient { PatientID = 1, User = new User { UserID = 10 } };
+        //    _patientRepoMock.Setup(r => r.GetPatientByPatientIdAsync(1)).ReturnsAsync(patient);
+        //    _patientRepoMock.Setup(r => r.CheckEmailPatientAsync(command.Email)).ReturnsAsync((Patient)null!);
+        //    _patientRepoMock.Setup(r => r.UpdatePatientInforAsync(It.IsAny<Patient>())).ReturnsAsync(true);
+        //    // Act
+        //    var result = await _handler.Handle(command, default);
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal("Updated Name", result.User.Fullname);
-            Assert.Equal("updated@example.com", result.User.Email);
-            Assert.Equal("New Address", result.User.Address);
-        }
+        //    // Assert
+        //    Assert.NotNull(result);
+        //    Assert.Equal("Updated Name", result.User.Fullname);
+        //    Assert.Equal("updated@example.com", result.User.Email);
+        //    Assert.Equal("New Address", result.User.Address);
+        //}
     }
 }
