@@ -31,6 +31,8 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<number | null>(null);
 
   const treatmentFormMethods = useForm<TreatmentFormData>();
+  const [treatmentToday, setTreatmentToday] = useState<boolean | null>(null);
+
 
 
   // const getStatusColor = (status: 'confirmed' | 'canceled') => {
@@ -319,7 +321,8 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                       size="sm"
                       onClick={() => {
                         setSelectedAppointmentId(appointment.appointmentId);
-                        setShowTreatmentModal(true);
+                        setShowTreatmentModal(true); 
+                        setTreatmentToday(false); 
                       }}
                       className="flex items-center gap-2"
                     >
@@ -380,7 +383,9 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                           ? 'Tư vấn'
                           : appointment.appointmentType === 'treatment'
                             ? 'Điều trị'
-                            : appointment.appointmentType}
+                            : appointment.appointmentType === 'first-time'
+                              ? 'Khám lần đầu '
+                              : appointment.appointmentType}
                     </p>
                   </div>
                 </div>
@@ -425,7 +430,8 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
         onClose={() => setShowTreatmentModal(false)}
         updatedBy={0}
         appointmentId={selectedAppointmentId ?? undefined}
-        defaultStatus="In Progress"
+        treatmentToday={treatmentToday ?? undefined}
+        defaultStatus="in-progress"
         onSubmit={() => {
           setShowTreatmentModal(false);
         }}

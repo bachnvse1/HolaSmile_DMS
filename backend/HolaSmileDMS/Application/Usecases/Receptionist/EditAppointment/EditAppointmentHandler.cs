@@ -51,19 +51,25 @@ namespace Application.Usecases.Receptionist.EditAppointment
                 throw new Exception(MessageConstants.MSG.MSG34); // "Ngày hẹn phải sau ngày hôm nay"
             }
 
-            if (request.AppointmentDate.Date == DateTime.Today.Date && request.AppointmentTime < DateTime.Today.TimeOfDay)
+            if (request.AppointmentDate.Date == DateTime.Today.Date && request.AppointmentTime < DateTime.Now.TimeOfDay)
             {
                 throw new Exception(MessageConstants.MSG.MSG34); // "Ngày hẹn phải sau ngày hôm nay"
             }
 
             if (await _dentistRepository.GetDentistByDentistIdAsync(request.DentistId) == null)
             {
-                throw new Exception("Bác sĩ không tồn tại"); // "Bác sĩ không tồn tại"
+                throw new Exception(MessageConstants.MSG.MSG16); // "Bác sĩ không tồn tại"
             }
 
-            var newDentist = _dentistRepository.GetDentistByDentistIdAsync(request.DentistId);
-            var currentDentist = _dentistRepository.GetDentistByDentistIdAsync(existApp.DentistId);
-            var currentPatient = _patientRepository.GetPatientByPatientIdAsync(existApp.PatientId);
+            var checkValidAppointment = await _appointmentRepository.GetLatestAppointmentByPatientIdAsync(existApp.PatientId);
+            if (checkValidAppointment.Status == "confirmed")
+            {
+                throw new Exception(MessageConstants.MSG.MSG89); // "Kế hoạch điều trị đã tồn tại"
+            }
+
+            var newDentist = await _dentistRepository.GetDentistByDentistIdAsync(request.DentistId);
+            var currentDentist = await _dentistRepository.GetDentistByDentistIdAsync(existApp.DentistId);
+            var currentPatient = await _patientRepository.GetPatientByPatientIdAsync(existApp.PatientId);
 
             existApp.DentistId = request.DentistId;
             existApp.AppointmentDate = request.AppointmentDate;
@@ -76,21 +82,21 @@ namespace Application.Usecases.Receptionist.EditAppointment
 
 
             await _mediator.Send(new SendNotificationCommand(
-                    currentPatient.Result.PatientID,
+                    currentPatient.User.UserID,
                    "Thay đổi thông tin lịch khám",
                    $"Lịch khám của bạn đã được thay đổi vào ngày {request.AppointmentDate.Date}.",
                    "Tạo lịch khám lần đầu", null),
              cancellationToken);
 
             await _mediator.Send(new SendNotificationCommand(
-                    currentDentist.Result.DentistId,
+                    currentDentist.User.UserID,
                     "Thay đổi thông tin lịch khám",
                     $"Lịch khám của bạn đã được thay đổi vào ngày {request.AppointmentDate.Date}.",
                     "Tạo lịch khám lần đầu", null),
              cancellationToken);
 
             await _mediator.Send(new SendNotificationCommand(
-                    newDentist.Result.DentistId,
+                    newDentist.User.UserID,
                     "Thay đổi thông tin lịch khám",
                     $"Lịch khám của bạn đã được thay đổi vào ngày {request.AppointmentDate.Date}.",
                     "Tạo lịch khám lần đầu", null),

@@ -19,11 +19,11 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { fullName, role, logout } = useAuth();
+  const { fullName, logout } = useAuth();
 
   // Use passed userInfo or fallback to auth data
   const displayName = userInfo?.name || fullName || 'User';
-  const displayRole = userInfo?.role || role || 'Patient';
+  const displayRole = 'Bệnh nhân';
 
   const handleLogout = () => {
     logout();
@@ -79,12 +79,12 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
           {/* Right side - Desktop */}
           <div className="hidden md:flex items-center space-x-4">
             {/* Notifications */}
-            <button 
+            <div 
               className="p-2 text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-full"
               title="Thông báo"
             >
               <NotificationButton />
-            </button>
+            </div>
 
             {/* Book Appointment Button */}
             <button

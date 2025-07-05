@@ -8,9 +8,7 @@ import { useDentistSchedule } from '../../hooks/useDentistSchedule';
 import { useBookAppointment } from '../../hooks/useBookAppointment';
 import { useBookFUAppointment } from '../../hooks/useBookFUAppointment';
 import { toast } from 'react-toastify';
-import { TIME_SLOTS } from '../../constants/appointment';
-import { Clock } from 'lucide-react';
-import type { Dentist, TimeSlot } from '../../types/appointment';
+import type { Dentist } from '../../types/appointment';
 
 interface DentistScheduleViewerProps {
   mode: 'view' | 'book'; // view = chỉ xem, book = có thể đặt lịch
@@ -48,12 +46,6 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
       ? bookFUAppointment
       : bookAppointment;
 
-  // Tạo time slots với icon cho SelectedAppointmentInfo
-  const timeSlotsWithIcons: TimeSlot[] = TIME_SLOTS.map(slot => ({
-    ...slot,
-    icon: <Clock className="h-4 w-4" />
-  }));
-
   // Kiểm tra quyền đặt lịch
   const canBookAppointment = mode === 'book' && (!isAuthenticated || role === 'Patient' || role === 'Receptionist');
 
@@ -80,8 +72,8 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
       timeString = '08:00:00';
       appointmentDate.setHours(8, 0, 0, 0);
     } else if (selectedTimeSlot === 'afternoon') {
-      timeString = '13:00:00';
-      appointmentDate.setHours(13, 0, 0, 0);
+      timeString = '14:00:00';
+      appointmentDate.setHours(14, 0, 0, 0);
     } else if (selectedTimeSlot === 'evening') {
       timeString = '17:00:00';
       appointmentDate.setHours(17, 0, 0, 0);
@@ -98,8 +90,8 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
         appointmentType: "follow-up"
       };
       bookAppointmentMutation.mutate(payload, {
-        onSuccess: () => {
-          toast.success('Tạo lịch tái khám thành công!');
+        onSuccess: (response) => {
+          toast.success(response.message || 'Đặt lịch tái khám thành công!');
           setShowBookingForm(false);
           setSelectedDate('');
           setSelectedTimeSlot('');
@@ -121,15 +113,15 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
       };
 
       bookAppointmentMutation.mutate(payload, {
-        onSuccess: () => {
-          toast.success('Đặt lịch thành công!');
+        onSuccess: (response) => {
+          toast.success(response.message || 'Đặt lịch hẹn thành công!');
           setShowBookingForm(false);
           setSelectedDate('');
           setSelectedTimeSlot('');
           setBookingData({ medicalIssue: '', email: prefilledData?.email || '' });
         },
         onError: (error: Error) => {
-          toast.error(error.message || 'Có lỗi xảy ra khi đặt lịch');
+         console.error('Error booking appointment:', error);
         }
       });
     };
@@ -199,7 +191,6 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
             selectedDentist={selectedDentist}
             selectedDate={selectedDate}
             selectedTimeSlot={selectedTimeSlot}
-            timeSlotsWithIcons={timeSlotsWithIcons}
           />
 
           {/* Action Buttons */}

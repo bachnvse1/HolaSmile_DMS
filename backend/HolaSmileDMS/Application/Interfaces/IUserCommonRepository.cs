@@ -29,5 +29,7 @@ namespace Application.Interfaces
         Task<List<ViewListUserDTO>> GetAllUserAsync();
         Task<bool> CreateUserAsync(User user, string role);
         Task<bool> UpdateUserStatusAsync(int userId);
+        Task<int?> GetUserIdByRoleTableIdAsync(string role, int id);
+
     }
 }

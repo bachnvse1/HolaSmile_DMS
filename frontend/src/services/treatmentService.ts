@@ -2,15 +2,15 @@ import axiosInstance from "@/lib/axios"
 import type { TreatmentRecord } from "@/types/treatment"
 import type { TreatmentFormData } from "@/types/treatment"
 
-export const getTreatmentRecordsByUser = async (userId: number): Promise<TreatmentRecord[]> => {
-  const response = await axiosInstance.get<TreatmentRecord[]>(`/treatment-records?userId=${userId}`)
+export const getTreatmentRecordsByPatientId = async (patientId: number): Promise<TreatmentRecord[]> => {
+  const response = await axiosInstance.get<TreatmentRecord[]>(`/treatment-records?patientId=${patientId}`)
   return response.data
 }
 
 export const deleteTreatmentRecord = async (id: number) => {
   try {
     const response = await axiosInstance.delete(`/treatment-records/${id}`)
-    return response.data 
+    return response.data
   } catch (error: any) {
     throw new Error(error.response?.data?.message || "Lỗi hệ thống không xác định")
   }
@@ -29,13 +29,14 @@ export const createTreatmentRecord = async (
     toothPosition: data.toothPosition,
     quantity: data.quantity,
     unitPrice: data.unitPrice,
+    treatmentToday: data.treatmentToday ?? false,
     discountAmount: data.discountAmount ?? 0,
     discountPercentage: data.discountPercentage ?? 0,
     totalAmount,
     treatmentStatus: data.treatmentStatus,
     symptoms: data.symptoms,
     diagnosis: data.diagnosis,
-    treatmentDate: new Date(data.treatmentDate + "T12:00:00").toISOString(),
+    treatmentDate: new Date(data.treatmentDate).toISOString(),
     updatedBy,
   }
 

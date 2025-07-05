@@ -6,9 +6,7 @@ export const isTimeSlotAvailable = (
   date: string,
   period: 'morning' | 'afternoon' | 'evening'
 ): boolean => {
-  if (!schedule[date]) {
-    return false;
-  }
+  if (!schedule || !schedule[date]) return false;
   return schedule[date][period];
 };
 
@@ -51,4 +49,10 @@ export const mapBackendScheduleToFrontend = (backendData: DentistScheduleData[])
       backendSchedules: dentist.schedules
     };
   });
+};
+
+export const SHIFT_TIME_MAP: Record<'morning' | 'afternoon' | 'evening', string> = {
+  morning: '08:00',
+  afternoon: '14:00',
+  evening: '17:00',
 };
