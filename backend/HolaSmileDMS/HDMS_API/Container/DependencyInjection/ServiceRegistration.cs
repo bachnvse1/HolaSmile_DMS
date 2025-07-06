@@ -24,9 +24,11 @@ namespace HDMS_API.Container.DependencyInjection
         {
             // DB Context
             var connectionString = configuration.GetConnectionString("DefaultConnection");
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
-
+            services.AddDbContext<ApplicationDbContext>(
+                options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)),
+                ServiceLifetime.Scoped
+            );
+            
             // Repository & Services
             services.AddScoped<IAppointmentRepository, AppointmentRepository>();
             services.AddScoped<IEmailService, EmailService>();
@@ -43,21 +45,24 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<ITreatmentProgressRepository, TreatmentProgressRepository>();
             services.AddScoped<ITreatmentProgressRepository, TreatmentProgressRepository>();
             services.AddScoped<INotificationsRepository, NotificationsRepository>();
+            services.AddScoped<IAssistantRepository, AssistantRepository>();
             services.AddScoped<IProcedureRepository, ProcedureRepository>();
             services.AddScoped<IReceptionistRepository, ReceptionistRepository>();
             services.AddScoped<IFileStorageService, FileStorageService>();
+            services.AddScoped<ITaskRepository, TaskRepository>();
 
-            
+
+
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>
             {
-                
+
                 options.AddPolicy(name: MyAllowSpecificOrigins,
                         policy =>
                         {
                             policy.WithOrigins(
                                     "https://6f8f-14-232-61-47.ngrok-free.app",
-                                    "http://localhost:5173"                     
+                                    "http://localhost:5173"
                                 )
                                 .AllowAnyHeader()
                                 .AllowAnyMethod()
@@ -69,7 +74,7 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddMediatR(typeof(CreatePatientCommand).Assembly);
             services.AddMediatR(typeof(LoginCommand).Assembly);
             services.AddMediatR(typeof(SendNotificationHandler).Assembly);
-            
+
             // AutoMapper
             services.AddAutoMapper(typeof(MappingViewTreatmentRecord));
             services.AddAutoMapper(typeof(MappingCreatePatient));

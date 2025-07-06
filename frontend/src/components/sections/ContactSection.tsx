@@ -88,9 +88,9 @@ export const ContactSection = () => {
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-1">Giờ Làm Việc</h4>
                   <div className="text-gray-600 space-y-1">
-                    <p>Thứ hai - Thứ sáu: 8:00 AM - 6:00 PM</p>
-                    <p>Thứ bảy: 9:00 AM - 4:00 PM</p>
-                    <p>Chủ nhật: Đóng cửa</p>
+                    <p>Sáng: 8:00 - 11:00</p>
+                    <p>Chiều: 14:00 - 17:00</p>
+                    <p>Tối: 17:00 - 20:00</p>
                   </div>
                 </div>
               </div>

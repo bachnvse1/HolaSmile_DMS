@@ -90,7 +90,7 @@ namespace HDMS_API.Controllers
         {
             try
             {
-                var result = await _mediator.Send(new CancleAppointmentCommand(appointmentId), cancellationToken);
+                var result = await _mediator.Send(new CancelAppointmentCommand(appointmentId), cancellationToken);
                 return Ok(result);
             }
             catch (Exception ex)
