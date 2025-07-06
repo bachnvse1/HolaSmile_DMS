@@ -22,14 +22,14 @@ public class ViewListWarrantyCardsHandler : IRequestHandler<ViewListWarrantyCard
         if (user == null)
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53);
 
-        if (role != "Assistant" && role != "Patient")
+        if (role != "Assistant")
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
         var cards = await _repository.GetAllWarrantyCardsWithProceduresAsync(cancellationToken);
 
         return cards.Select(card =>
         {
-            var procedure = card.Procedures.FirstOrDefault(); // giả định mỗi card chỉ có 1 thủ thuật
+            var procedure = card.Procedures.FirstOrDefault();
 
             return new ViewWarrantyCardDto
             {
