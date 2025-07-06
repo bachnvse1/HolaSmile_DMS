@@ -5,6 +5,7 @@ using Application.Usecases.Assistant.ViewListWarrantyCards;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Application.Usecases.Assistant.EditWarrantyCard;
 
 namespace HDMS_API.Controllers
 {
@@ -100,6 +101,34 @@ namespace HDMS_API.Controllers
                 return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
             }
         }
+
+        [HttpPut("edit")]
+        [Authorize]
+        public async Task<IActionResult> EditWarrantyCard([FromBody] EditWarrantyCardCommand command)
+        {
+            try
+            {
+                var result = await _mediator.Send(command);
+                return Ok(new { message = result });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = MessageConstants.MSG.MSG26 });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (FormatException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
+            }
+        }
+
     }
 
 }

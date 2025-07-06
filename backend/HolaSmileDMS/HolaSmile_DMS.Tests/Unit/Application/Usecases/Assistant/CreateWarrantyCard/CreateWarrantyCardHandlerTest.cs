@@ -191,7 +191,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
             var ex = await Assert.ThrowsAsync<FormatException>(() =>
                 _handler.Handle(new CreateWarrantyCardCommand { ProcedureId = 1, Term = "abc" }, default));
 
-            Assert.Equal(MessageConstants.MSG.MSG97, ex.Message);
+            Assert.Equal(MessageConstants.MSG.MSG98, ex.Message);
         }
 
     }

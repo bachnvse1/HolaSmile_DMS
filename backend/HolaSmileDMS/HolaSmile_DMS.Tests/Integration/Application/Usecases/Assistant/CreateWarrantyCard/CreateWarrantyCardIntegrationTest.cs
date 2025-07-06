@@ -265,7 +265,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
             var ex = await Assert.ThrowsAsync<FormatException>(() =>
                 _handler.Handle(command, default));
 
-            Assert.Equal(MessageConstants.MSG.MSG97, ex.Message);
+            Assert.Equal(MessageConstants.MSG.MSG98, ex.Message);
         }
     }
 }

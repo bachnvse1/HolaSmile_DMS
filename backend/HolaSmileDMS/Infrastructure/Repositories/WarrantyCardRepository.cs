@@ -46,6 +46,12 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync(cancellationToken);
             return card;
         }
+        public async Task<bool> UpdateWarrantyCardAsync(WarrantyCard card, CancellationToken cancellationToken)
+        {
+            _context.WarrantyCards.Update(card);
+            var result = await _context.SaveChangesAsync(cancellationToken);
+            return result > 0;
+        }
 
     }
 }

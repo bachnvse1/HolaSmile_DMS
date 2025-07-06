@@ -66,7 +66,7 @@ namespace Application.Usecases.Assistant.CreateWarrantyCard
             }
             catch
             {
-                throw new FormatException(MessageConstants.MSG.MSG97);
+                throw new FormatException(MessageConstants.MSG.MSG98);
             }
 
             var card = new WarrantyCard
