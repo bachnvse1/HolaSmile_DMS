@@ -18,6 +18,27 @@ namespace Infrastructure.Repositories
                 .Include(w => w.Procedures)
                 .ToListAsync(cancellationToken);
         }
+        public async Task<WarrantyCard?> GetByIdAsync(int id, CancellationToken ct)
+        {
+            return await _context.WarrantyCards
+                .Include(w => w.Procedures)
+                .FirstOrDefaultAsync(w => w.WarrantyCardID == id, ct);
+        }
+
+        public async Task<bool> DeactiveWarrantyCardAsync(WarrantyCard card, CancellationToken ct)
+        {
+            _context.WarrantyCards.Update(card);
+            var result = await _context.SaveChangesAsync(ct);
+            return result > 0;
+        }
+
+        public async Task<List<WarrantyCard>> GetAllAsync(CancellationToken ct)
+        {
+            return await _context.WarrantyCards
+                .Include(w => w.Procedures)
+                .OrderByDescending(w => w.StartDate)
+                .ToListAsync(ct);
+        }
 
     }
 }

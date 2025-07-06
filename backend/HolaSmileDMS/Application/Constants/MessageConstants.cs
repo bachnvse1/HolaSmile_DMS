@@ -96,7 +96,9 @@ public static class MessageConstants
         public const string MSG90 = "Số điện thoại đã được đăng ký tài khoản";
         public const string MSG91 = "Định dạng thời gian không hợp lệ. Vui lòng sử dụng hh:mm:ss.";
         public const string MSG92 = "Thời gian bắt đầu và kết thúc của nhiệm vụ phải nằm trong thời gian tiến trình điều trị.";
-
+        public const string MSG102 = "Thẻ bảo hành không tồn tại.";
+        public const string MSG103 = "Thẻ bảo hành đã bị vô hiệu hóa.";
+        public const string MSG104 = "Vô hiệu hóa thẻ bảo hành thành công.";
 
     }
 }

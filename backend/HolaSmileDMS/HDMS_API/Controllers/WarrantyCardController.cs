@@ -1,4 +1,5 @@
 ﻿using Application.Constants;
+using Application.Usecases.Assistant.DeactiveWarrantyCard;
 using Application.Usecases.Assistant.ViewListWarrantyCards;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -39,6 +40,35 @@ namespace HDMS_API.Controllers
                 return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
             }
         }
+
+        [HttpPut("deactivate")]
+        [Authorize]
+        public async Task<IActionResult> DeactivateWarrantyCard([FromBody] DeactiveWarrantyCardCommand command)
+        {
+            try
+            {
+                var result = await _mediator.Send(command);
+                return Ok(new { message = result });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
+            }
+        }
+
+
     }
 
 }
