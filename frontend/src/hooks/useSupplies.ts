@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supplyApi } from '@/services/supplyApi';
 import type { 
-  Supply, 
   CreateSupplyRequest, 
   UpdateSupplyRequest 
 } from '@/types/supply';
@@ -32,7 +31,7 @@ export const useSupplies = (searchQuery?: string) => {
       
       return supplies;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 };
 
@@ -42,7 +41,7 @@ export const useSupply = (id: number) => {
     queryKey: SUPPLY_KEYS.detail(id),
     queryFn: () => supplyApi.getSupplyById(id),
     enabled: !!id,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 };
 
@@ -53,7 +52,6 @@ export const useCreateSupply = () => {
   return useMutation({
     mutationFn: (data: CreateSupplyRequest) => supplyApi.createSupply(data),
     onSuccess: () => {
-      // Invalidate and refetch supplies list
       queryClient.invalidateQueries({ queryKey: SUPPLY_KEYS.lists() });
       queryClient.invalidateQueries({ queryKey: SUPPLY_KEYS.stats() });
     },
@@ -69,11 +67,10 @@ export const useUpdateSupply = () => {
     onSuccess: (updatedSupply) => {
       // Update the specific supply in cache
       queryClient.setQueryData(
-        SUPPLY_KEYS.detail(updatedSupply.SupplyId),
+        SUPPLY_KEYS.detail(updatedSupply.SupplyID),
         updatedSupply
       );
       
-      // Invalidate and refetch supplies list
       queryClient.invalidateQueries({ queryKey: SUPPLY_KEYS.lists() });
       queryClient.invalidateQueries({ queryKey: SUPPLY_KEYS.stats() });
     },
@@ -87,7 +84,6 @@ export const useDeactivateSupply = () => {
   return useMutation({
     mutationFn: (id: number) => supplyApi.toggleSupplyActivation(id),
     onSuccess: () => {
-      // Invalidate and refetch all supply data
       queryClient.invalidateQueries({ queryKey: SUPPLY_KEYS.all });
     },
   });
@@ -118,6 +114,6 @@ export const useSupplyStats = () => {
         totalValue
       };
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 };

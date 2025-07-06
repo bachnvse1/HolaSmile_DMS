@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSupply, useDeactivateSupply } from '@/hooks/useSupplies';
+import { useUserInfo } from '@/hooks/useUserInfo';
 
 export const SupplyDetail: React.FC = () => {
   const navigate = useNavigate();
@@ -12,6 +13,12 @@ export const SupplyDetail: React.FC = () => {
 
   const { data: supply, isLoading } = useSupply(Number(supplyId) || 0);
   const { mutate: deactivateSupply, isPending: isDeactivating } = useDeactivateSupply();
+  
+  const userInfo  = useUserInfo();
+  const userRole = userInfo?.role || '';
+  
+  // Chỉ Administrator, Owner, Assistant có quyền edit/delete
+  const canModify = ['Assistant'].includes(userRole);
 
   const handleEdit = () => {
     navigate(`/inventory/${supplyId}/edit`);
@@ -21,7 +28,7 @@ export const SupplyDetail: React.FC = () => {
     if (!supply) return;
 
     if (window.confirm(`Bạn có chắc chắn muốn xóa vật tư "${supply.Name}"?`)) {
-      deactivateSupply(supply.SupplyId, {
+      deactivateSupply(supply.SupplyID, {
         onSuccess: () => {
           toast.success('Đã xóa vật tư thành công');
           navigate('/inventory');
@@ -115,24 +122,26 @@ export const SupplyDetail: React.FC = () => {
             <p className="text-gray-600 mt-1 text-sm sm:text-base">Thông tin chi tiết về vật tư</p>
           </div>
         </div>
-
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleEdit} className="flex-1 sm:flex-none">
-            <Edit className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Chỉnh Sửa</span>
-            <span className="sm:hidden">Sửa</span>
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleDeactivate}
-            disabled={isDeactivating}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-1 sm:flex-none"
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">{isDeactivating ? 'Đang xóa...' : 'Xóa'}</span>
-            <span className="sm:hidden">{isDeactivating ? '...' : 'Xóa'}</span>
-          </Button>
-        </div>
+        
+        {canModify && (
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleEdit} className="flex-1 sm:flex-none">
+              <Edit className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Chỉnh Sửa</span>
+              <span className="sm:hidden">Sửa</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleDeactivate}
+              disabled={isDeactivating}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-1 sm:flex-none"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">{isDeactivating ? 'Đang xóa...' : 'Xóa'}</span>
+              <span className="sm:hidden">{isDeactivating ? '...' : 'Xóa'}</span>
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="space-y-6">

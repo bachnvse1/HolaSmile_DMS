@@ -121,7 +121,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       label: 'Kho Vật Tư',
       icon: <Package className="h-5 w-5" />,
       path: '/inventory',
-      roles: ['Administrator', 'Owner', 'Assistant']
+      roles: ['Administrator', 'Owner', 'Assistant', "Receptionist", 'Dentist'],
     },
     {
       id: 'reports',

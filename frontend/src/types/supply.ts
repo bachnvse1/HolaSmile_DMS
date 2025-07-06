@@ -1,5 +1,5 @@
 export interface Supply {
-  SupplyId: number;
+  SupplyID: number;
   Name: string;
   Unit: string;
   QuantityInStock: number;
@@ -10,6 +10,7 @@ export interface Supply {
   CreatedBy: number;
   UpdatedBy: number;
   IsDeleted: boolean;
+  isDeleted?: number; // 0 = active, 1 = deleted
 }
 
 export interface CreateSupplyRequest {

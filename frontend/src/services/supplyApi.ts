@@ -7,7 +7,7 @@ import type {
 
 function mapSupplyFromApi(apiSupply: any): Supply {
   return {
-    SupplyId: apiSupply.supplyId ?? apiSupply.SupplyId ?? 0,
+    SupplyID: apiSupply.supplyID ?? apiSupply.SupplyID ?? 0,
     Name: apiSupply.name ?? apiSupply.Name ?? "",
     Unit: apiSupply.unit ?? apiSupply.Unit ?? "",
     QuantityInStock: apiSupply.quantityInStock ?? apiSupply.QuantityInStock ?? 0,
@@ -15,9 +15,10 @@ function mapSupplyFromApi(apiSupply: any): Supply {
     Price: apiSupply.price ?? apiSupply.Price ?? 0,
     CreatedAt: apiSupply.createdAt ?? apiSupply.CreatedAt ?? "",
     UpdatedAt: apiSupply.updatedAt ?? apiSupply.UpdatedAt ?? "",
-    CreatedBy: apiSupply.createdBy ?? apiSupply.CreatedBy ?? 0,
-    UpdatedBy: apiSupply.updatedBy ?? apiSupply.UpdatedBy ?? 0,
+    CreatedBy: Number(apiSupply.createdBy ?? apiSupply.CreatedBy ?? 0),
+    UpdatedBy: Number(apiSupply.updateBy ?? apiSupply.UpdatedBy ?? 0),
     IsDeleted: apiSupply.isDeleted ?? apiSupply.IsDeleted ?? false,
+    isDeleted: apiSupply.isDeleted ?? apiSupply.IsDeleted ?? 0, // 0 = active, 1 = deleted
   };
 }
 
@@ -48,6 +49,6 @@ export const supplyApi = {
 
   // Delete/Undelete supply (toggle activation)
   toggleSupplyActivation: async (supplyId: number): Promise<void> => {
-    await axiosInstance.delete(`/supplies/DeleteandUndeleteSupply/${supplyId}`);
+    await axiosInstance.put(`/supplies/DeleteandUndeleteSupply/${supplyId}`);
   },
 };

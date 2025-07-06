@@ -9,43 +9,44 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  useSupply, 
-  useCreateSupply, 
-  useUpdateSupply 
+import {
+  useSupply,
+  useCreateSupply,
+  useUpdateSupply
 } from '@/hooks/useSupplies';
 import { SupplyUnit } from '@/types/supply';
+import { useQueryClient } from '@tanstack/react-query';
 
 const supplySchema = z.object({
-  supplyName: z.string().min(1, 'Tên vật tư là bắt buộc'),
+  name: z.string().min(1, 'Tên vật tư là bắt buộc'),
   unit: z.string().min(1, 'Đơn vị là bắt buộc'),
   quantityInStock: z.coerce.number().min(0, 'Số lượng phải lớn hơn hoặc bằng 0'),
   expiryDate: z.string().min(1, 'Hạn sử dụng là bắt buộc'),
   price: z.coerce.number().min(0, 'Giá phải lớn hơn hoặc bằng 0'),
 });
-
 type SupplyFormData = z.infer<typeof supplySchema>;
 
 interface SupplyFormProps {
   mode: 'create' | 'edit';
-  supplyId?: number;
 }
 
-export const SupplyForm: React.FC<SupplyFormProps> = ({ mode, supplyId }) => {
+export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
   const navigate = useNavigate();
+  const { supplyId } = useParams<{ supplyId: string }>();
+
   const { data: supply, isLoading: isLoadingSupply } = useSupply(
     mode === 'edit' ? Number(supplyId) || 0 : 0
   );
-  
+
   const { mutate: createSupply, isPending: isCreating } = useCreateSupply();
   const { mutate: updateSupply, isPending: isUpdating } = useUpdateSupply();
-  
-  const isLoading = isCreating || isUpdating;
 
+  const isLoading = isCreating || isUpdating;
+  const queryClient = useQueryClient();
   const form = useForm<SupplyFormData>({
     resolver: zodResolver(supplySchema),
     defaultValues: {
-      supplyName: '',
+      name: '',
       unit: '',
       quantityInStock: 0,
       expiryDate: '',
@@ -57,42 +58,54 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode, supplyId }) => {
   useEffect(() => {
     if (mode === 'edit' && supply) {
       form.reset({
-        supplyName: supply.Name,
+        name: supply.Name,
         unit: supply.Unit,
         quantityInStock: supply.QuantityInStock,
-        expiryDate: supply.ExpiryDate.split('T')[0], // Format for date input
+        expiryDate: supply.ExpiryDate.split('T')[0],
         price: supply.Price,
       });
     }
   }, [supply, mode, form]);
 
+
   const onSubmit = async (data: SupplyFormData) => {
     try {
       if (mode === 'create') {
         createSupply({
-          ...data,
+          supplyName: data.name,
+          unit: data.unit,
+          quantityInStock: data.quantityInStock,
+          price: data.price,
           expiryDate: new Date(data.expiryDate).toISOString(),
         }, {
-          onSuccess: () => {
-            toast.success('Tạo vật tư thành công');
+          onSuccess: (data) => {
+            const response = data as any;
+            toast.success(response.message ||'Tạo vật tư thành công');
             navigate('/inventory');
           },
-          onError: () => {
-            toast.error('Có lỗi xảy ra khi tạo vật tư');
+          onError: (data) => {
+            const response = data as any;
+            toast.error(response.response.data.error);
           }
         });
       } else {
         updateSupply({
           supplyId: Number(supplyId) || 0,
-          ...data,
+          supplyName: data.name,
+          unit: data.unit,
+          quantityInStock: data.quantityInStock,
+          price: data.price,
           expiryDate: new Date(data.expiryDate).toISOString(),
         }, {
-          onSuccess: () => {
-            toast.success('Cập nhật vật tư thành công');
+          onSuccess: (data) => {
+            const response = data as any;
+            queryClient.invalidateQueries({ queryKey: ['supplies'] });
+            toast.success(response.message || 'Cập nhật vật tư thành công');
             navigate('/inventory');
           },
-          onError: () => {
-            toast.error('Có lỗi xảy ra khi cập nhật vật tư');
+          onError: (data) => {
+            const response = data as any;
+            toast.error(response.response.data.error || 'Có lỗi xảy ra khi cập nhật vật tư');
           }
         });
       }
@@ -147,7 +160,6 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode, supplyId }) => {
       </div>
     );
   }
-
   return (
     <div className="container mx-auto p-4 sm:p-6 max-w-4xl">
       {/* Header */}
@@ -161,7 +173,7 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode, supplyId }) => {
               {mode === 'create' ? 'Thêm Vật Tư Mới' : 'Chỉnh Sửa Vật Tư'}
             </h1>
             <p className="text-gray-600 mt-1 text-sm sm:text-base">
-              {mode === 'create' 
+              {mode === 'create'
                 ? 'Thêm vật tư mới vào kho'
                 : 'Cập nhật thông tin vật tư'
               }
@@ -184,11 +196,11 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode, supplyId }) => {
                 </label>
                 <Input
                   placeholder="VD: Khẩu trang y tế 3 lớp"
-                  {...form.register('supplyName')}
+                  {...form.register('name')}
                 />
-                {form.formState.errors.supplyName && (
+                {form.formState.errors.name && (
                   <p className="text-sm text-red-600">
-                    {form.formState.errors.supplyName.message}
+                    {form.formState.errors.name.message}
                   </p>
                 )}
               </div>
@@ -197,13 +209,19 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode, supplyId }) => {
                 <label className="text-sm font-medium text-gray-700">
                   Đơn Vị *
                 </label>
-                <Select onValueChange={(value) => form.setValue('unit', value)}>
+                <Select
+                  key={form.watch('unit')}
+                  value={form.watch('unit')}
+                  onValueChange={(value) => form.setValue('unit', value)}
+                  disabled={isLoadingSupply}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="Chọn đơn vị" />
+                    <SelectValue placeholder="Chọn đơn vị">
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(SupplyUnit).map(([key, value]) => (
-                      <SelectItem key={key} value={value}>
+                    {Object.values(SupplyUnit).map((value) => (
+                      <SelectItem key={value} value={value}>
                         {value}
                       </SelectItem>
                     ))}
@@ -280,8 +298,8 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode, supplyId }) => {
           </Button>
           <Button type="submit" disabled={isLoading} className="order-1 sm:order-2">
             <Save className="h-4 w-4 mr-2" />
-            {isLoading 
-              ? (mode === 'create' ? 'Đang tạo...' : 'Đang cập nhật...') 
+            {isLoading
+              ? (mode === 'create' ? 'Đang tạo...' : 'Đang cập nhật...')
               : (mode === 'create' ? 'Tạo Vật Tư' : 'Cập Nhật')
             }
           </Button>

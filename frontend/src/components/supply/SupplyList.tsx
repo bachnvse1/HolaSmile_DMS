@@ -8,21 +8,39 @@ import {
   Eye,
   Package,
   AlertTriangle,
-  Calendar,
+  DollarSign,
   TrendingDown,
-  Filter
+  Filter,
+  RotateCcw
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useSupplies, useDeactivateSupply, useSupplyStats } from '@/hooks/useSupplies';
+import { useUserInfo } from '@/hooks/useUserInfo';
 import type { Supply } from '@/types/supply';
 
 export const SupplyList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'low-stock' | 'expiring'>('all');
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    supply: Supply | null;
+    action: 'delete' | 'restore';
+  }>({
+    isOpen: false,
+    supply: null,
+    action: 'delete'
+  });
   const navigate = useNavigate();
+  
+  const userInfo  = useUserInfo();
+  const userRole = userInfo?.role || '';
+  
+  // Chỉ Administrator, Owner, Assistant có quyền edit/delete
+  const canModify = ['Assistant'].includes(userRole);
   
   const { data: supplies = [], isLoading, error, refetch } = useSupplies(searchQuery);
   const { data: stats, isLoading: isLoadingStats } = useSupplyStats();
@@ -46,25 +64,38 @@ export const SupplyList: React.FC = () => {
   };
 
   const handleView = (supply: Supply) => {
-    navigate(`/inventory/${supply.SupplyId}`);
+    navigate(`/inventory/${supply.SupplyID}`);
   };
 
   const handleEdit = (supply: Supply) => {
-    navigate(`/inventory/${supply.SupplyId}/edit`);
+    navigate(`/inventory/${supply.SupplyID}/edit`);
   };
 
   const handleDeactivate = async (supply: Supply) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa vật tư "${supply.Name}"?`)) {
-      deactivateSupply(supply.SupplyId, {
-        onSuccess: () => {
-          toast.success('Đã xóa vật tư thành công');
-          refetch();
-        },
-        onError: () => {
-          toast.error('Có lỗi xảy ra khi xóa vật tư');
-        }
-      });
-    }
+    const isDeleted = supply.isDeleted === 1;
+    setConfirmModal({
+      isOpen: true,
+      supply: supply,
+      action: isDeleted ? 'restore' : 'delete'
+    });
+  };
+
+  const handleConfirmAction = () => {
+    const { supply, action } = confirmModal;
+    if (!supply) return;
+
+    const actionText = action === 'delete' ? 'xóa' : 'khôi phục';
+    deactivateSupply(supply.SupplyID, {
+      onSuccess: () => {
+        toast.success(`Đã ${actionText} vật tư thành công`);
+        refetch();
+        setConfirmModal({ isOpen: false, supply: null, action: 'delete' });
+      },
+      onError: () => {
+        toast.error(`Có lỗi xảy ra khi ${actionText} vật tư`);
+        setConfirmModal({ isOpen: false, supply: null, action: 'delete' });
+      }
+    });
   };
 
   const formatPrice = (price: number) => {
@@ -136,13 +167,15 @@ export const SupplyList: React.FC = () => {
             Tổng cộng {filteredSupplies.length} vật tư
           </p>
         </div>
-        <Button 
-          onClick={() => navigate('/inventory/create')}
-          className="mt-4 sm:mt-0"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Thêm Vật Tư Mới
-        </Button>
+        {canModify && (
+          <Button 
+            onClick={() => navigate('/inventory/create')}
+            className="mt-4 sm:mt-0"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Thêm Vật Tư Mới
+          </Button>
+        )}
       </div>
 
       {/* Statistics Cards */}
@@ -193,7 +226,7 @@ export const SupplyList: React.FC = () => {
                     {formatPrice(stats.totalValue)}
                   </p>
                 </div>
-                <Calendar className="h-8 w-8 text-green-600" />
+                <DollarSign className="h-8 w-8 text-green-600" />
               </div>
             </CardContent>
           </Card>
@@ -257,7 +290,7 @@ export const SupplyList: React.FC = () => {
                 : 'Bắt đầu thêm vật tư đầu tiên vào kho'
               }
             </p>
-            {!searchQuery && (
+            {!searchQuery && canModify && (
               <Button onClick={() => navigate('/inventory/create')}>
                 <Plus className="h-4 w-4 mr-2" />
                 Thêm Vật Tư Mới
@@ -303,7 +336,7 @@ export const SupplyList: React.FC = () => {
                       const expiryStatus = getExpiryStatus(supply.ExpiryDate);
                       
                       return (
-                        <tr key={supply.SupplyId} className="hover:bg-gray-50">
+                        <tr key={supply.SupplyID} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="font-medium text-gray-900">{supply.Name}</div>
                           </td>
@@ -352,22 +385,40 @@ export const SupplyList: React.FC = () => {
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleEdit(supply)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleDeactivate(supply)}
-                                disabled={isDeactivating}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              {canModify && (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleEdit(supply)}
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  {supply.isDeleted === 1 ? (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleDeactivate(supply)}
+                                      disabled={isDeactivating}
+                                      className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                      title="Khôi phục vật tư"
+                                    >
+                                      <RotateCcw className="h-4 w-4" />
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleDeactivate(supply)}
+                                      disabled={isDeactivating}
+                                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                      title="Xóa vật tư"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                                </>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -386,7 +437,7 @@ export const SupplyList: React.FC = () => {
               const expiryStatus = getExpiryStatus(supply.ExpiryDate);
               
               return (
-                <Card key={supply.SupplyId} className="hover:shadow-lg transition-shadow">
+                <Card key={supply.SupplyID} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-4">
                     <div className="space-y-3">
                       {/* Header */}
@@ -407,22 +458,40 @@ export const SupplyList: React.FC = () => {
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleEdit(supply)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleDeactivate(supply)}
-                            disabled={isDeactivating}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {canModify && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleEdit(supply)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              {supply.isDeleted === 1 ? (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleDeactivate(supply)}
+                                  disabled={isDeactivating}
+                                  className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                  title="Khôi phục vật tư"
+                                >
+                                  <RotateCcw className="h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleDeactivate(supply)}
+                                  disabled={isDeactivating}
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  title="Xóa vật tư"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </>
+                          )}
                         </div>
                       </div>
 
@@ -468,6 +537,24 @@ export const SupplyList: React.FC = () => {
           </div>
         </>
       )}
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, supply: null, action: 'delete' })}
+        onConfirm={handleConfirmAction}
+        title={confirmModal.action === 'delete' ? 'Xóa vật tư' : 'Khôi phục vật tư'}
+        message={
+          confirmModal.supply
+            ? `Bạn có chắc chắn muốn ${
+                confirmModal.action === 'delete' ? 'xóa' : 'khôi phục'
+              } vật tư "${confirmModal.supply.Name}"?`
+            : ''
+        }
+        confirmText={confirmModal.action === 'delete' ? 'Xóa' : 'Khôi phục'}
+        confirmVariant={confirmModal.action === 'delete' ? 'destructive' : 'default'}
+        isLoading={isDeactivating}
+      />
     </div>
   );
 };
