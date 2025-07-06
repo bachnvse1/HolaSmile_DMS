@@ -1,5 +1,6 @@
 using Application.Interfaces;
 using HDMS_API.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;
 
@@ -12,9 +13,9 @@ public class ProcedureRepository : IProcedureRepository
         _context = context;
     }
 
-    public IQueryable<Procedure> GetAll()
+    public async Task<List<Procedure>> GetAll()
     {
-        return _context.Procedures.AsQueryable();
+        return await _context.Procedures.ToListAsync();
     }
 
     public async Task<Procedure> GetProcedureByProcedureId(int procedureId)
