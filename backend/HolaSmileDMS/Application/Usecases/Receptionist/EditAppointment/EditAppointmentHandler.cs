@@ -41,7 +41,7 @@ namespace Application.Usecases.Receptionist.EditAppointment
                 throw new Exception(MessageConstants.MSG.MSG28); // "Không tìm thấy lịch hẹn"
             }
 
-            if(existApp.Status != "confirmed")
+            if(existApp.Status.ToLower() != "confirmed")
             {
                 throw new Exception("Lịch hẹn đang ở trạng thái không thể thay đổi");
             }

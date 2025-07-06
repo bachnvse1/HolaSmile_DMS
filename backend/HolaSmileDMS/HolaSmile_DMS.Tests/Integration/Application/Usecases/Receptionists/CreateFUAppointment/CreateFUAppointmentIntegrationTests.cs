@@ -1,13 +1,12 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
-using Application.Usecases.Receptionist.CreateFollow_UpAppointment;
+using Application.Usecases.Receptionist.CreateFUAppointment;
 using HDMS_API.Infrastructure.Persistence;
 using HDMS_API.Infrastructure.Repositories;
 using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using Xunit;
 
 namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists.CreateFUAppointment

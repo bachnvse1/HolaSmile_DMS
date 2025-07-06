@@ -1,7 +1,7 @@
 ﻿using Application.Constants;
 using Application.Usecases.Assistant.ProcedureTemplate.CreateProcedure;
 using Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure;
-using Application.Usecases.Assistant.Template.ProcedureTemplate.ActiveAndDeactiveProcedure;
+using Application.Usecases.Assistant.ProcedureTemplate.ActiveAndDeactiveProcedure;
 using Application.Usecases.UserCommon.ViewProcedures;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Guests.BookAppointment
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Guests
 {
     public class BookAppointmentHandlerTests
     {

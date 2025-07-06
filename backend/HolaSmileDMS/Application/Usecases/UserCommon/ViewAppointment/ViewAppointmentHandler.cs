@@ -46,7 +46,7 @@ namespace Application.Usecases.UserCommon.ViewAppointment
             {
                 listApp = await _appointmentRepository.GetAllAppointmentAsync();
             }
-            if(listApp.Count == 0)
+            if(listApp == null)
             {
                 throw new Exception(MessageConstants.MSG.MSG28);
             }

@@ -19,9 +19,8 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure
         public async Task<bool> Handle(UpdateProcedureCommand request, CancellationToken cancellationToken)
         {
             var user = _httpContextAccessor.HttpContext?.User;
-
-            var currentUserRole = user.FindFirst(ClaimTypes.Role)?.Value;
-            var currentUserId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
+            var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
             if (currentUserRole == null || currentUserId <= 0)
             {

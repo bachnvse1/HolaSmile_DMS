@@ -44,7 +44,7 @@ namespace Application.Usecases.Patients.CancelAppointment
             {
                 throw new Exception(MessageConstants.MSG.MSG28); // "Không tìm thấy lịch hẹn"
             }
-            if(existAppointment.Status != "confirmed")
+            if(existAppointment.Status.ToLower() != "confirmed")
             {
                 throw new Exception("Bạn chỉ có thể hủy lịch ở trạng thái xác nhận");
             }

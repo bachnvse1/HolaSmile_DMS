@@ -4,7 +4,7 @@ using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
-namespace Application.Usecases.Receptionist.CreateFollow_UpAppointment
+namespace Application.Usecases.Receptionist.CreateFUAppointment
 {
     public class CreateFUAppointmentHandle : IRequestHandler<CreateFUAppointmentCommand, string>
     {

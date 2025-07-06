@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MediatR;
 
-namespace Application.Usecases.Receptionist.CreateFollow_UpAppointment
+namespace Application.Usecases.Receptionist.CreateFUAppointment
 {
     public class CreateFUAppointmentCommand : IRequest<string>
     {
