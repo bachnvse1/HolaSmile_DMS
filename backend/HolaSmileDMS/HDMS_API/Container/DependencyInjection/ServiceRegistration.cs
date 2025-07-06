@@ -51,6 +51,10 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IFileStorageService, FileStorageService>();
             services.AddScoped<IOrthodonticTreatmentPlanRepository, OrthodonticTreatmentPlanRepository>();
             services.AddScoped<ITaskRepository, TaskRepository>();
+            services.AddScoped<IWarrantyCardRepository, WarrantyCardRepository>();
+            services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+            services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
+            services.AddScoped<IInstructionRepository, InstructionRepository>();
 
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>

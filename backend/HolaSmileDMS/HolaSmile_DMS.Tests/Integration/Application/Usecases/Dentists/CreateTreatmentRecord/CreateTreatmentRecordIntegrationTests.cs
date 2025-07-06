@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentist;
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists;
 
 public class CreateTreatmentRecordIntegrationTests
 {

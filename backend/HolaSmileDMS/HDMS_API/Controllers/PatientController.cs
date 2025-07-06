@@ -1,7 +1,9 @@
 ﻿using Application.Constants;
+using Application.Usecases.Patients.ViewDentalRecord;
 using Application.Usecases.Patients.ViewListPatient;
 using Application.Usecases.UserCommon.ViewListPatient;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HDMS_API.Controllers
@@ -67,6 +69,13 @@ namespace HDMS_API.Controllers
                 return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
             }
         }
-
+        
+        [HttpGet("DentalRecord/{AppointmentId}")]
+        [Authorize]
+        public async Task<IActionResult> ViewDentalRecord(int AppointmentId)
+        {
+            var result = await _mediator.Send(new ViewDentalExamSheetCommand(AppointmentId));
+            return Ok(result);
+        }
     }
 }
