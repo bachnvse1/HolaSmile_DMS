@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.UserCommon.ViewDentistSchedule
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.UserCommon
 {
     public class ViewDentistScheduleIntegrationTests
     {

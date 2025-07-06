@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Owners.ApproveSchedule
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Owners
 {
     public class ApproveScheduleIntegrationTests
     {

@@ -10,7 +10,7 @@ using Xunit;
 using Application.Usecases.Administrator.ViewListUser;
 using Moq;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Admintrator.ViewListUser
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Administrators
 {
     public class ViewListUserIntegrationTests
     {
@@ -57,13 +57,13 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Admintrator.ViewL
 
             // Thêm Administrator
             _context.Administrators.Add(
-                new global::Administrator { AdministratorId = 1, UserId = 1 }
+                new Administrator { AdministratorId = 1, UserId = 1 }
             );
 
             // Thêm Owner
             _context.Owners.AddRange(
-                new global::Owner { OwnerId = 1, UserId = 2 },
-                new global::Owner { OwnerId = 2, UserId = 3 }
+                new Owner { OwnerId = 1, UserId = 2 },
+                new Owner { OwnerId = 2, UserId = 3 }
             );
 
             _context.SaveChanges();

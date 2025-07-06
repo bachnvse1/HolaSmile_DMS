@@ -10,7 +10,7 @@ using Moq;
 using System.Security.Claims;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Administrator.CreateUser;
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Administrators;
 public class CreateUserIntegrationTests
 {
     private readonly ApplicationDbContext _context;

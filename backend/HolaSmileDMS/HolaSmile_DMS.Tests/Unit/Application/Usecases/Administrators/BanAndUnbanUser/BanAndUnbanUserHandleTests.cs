@@ -1,13 +1,12 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.administrator.BanAndUnban;
 using Application.Usecases.Administrator.BanAndUnban;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Administrator.BanAndUnbanUser
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Administrators
 {
     public class BanAndUnbanUserHandleTests
     {

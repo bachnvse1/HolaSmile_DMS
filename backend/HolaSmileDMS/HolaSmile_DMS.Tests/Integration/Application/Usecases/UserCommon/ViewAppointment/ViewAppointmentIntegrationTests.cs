@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.UserCommon.ViewAppointment
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.UserCommon
 {
     public class ViewAppointmentIntegrationTests
     {

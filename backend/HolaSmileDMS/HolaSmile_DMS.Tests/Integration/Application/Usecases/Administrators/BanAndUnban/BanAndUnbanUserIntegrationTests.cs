@@ -1,8 +1,6 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
-using Application.Usecases.administrator.BanAndUnban;
 using Application.Usecases.Administrator.BanAndUnban;
-using Application.Usecases.Administrator.ViewListUser;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Infrastructure.Persistence;
 using HDMS_API.Infrastructure.Repositories;
@@ -13,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Administrator.BanAndUnban
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Administrators
 {
     public class BanAndUnbanUserIntegrationTests
     {

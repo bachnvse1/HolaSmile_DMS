@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists.EditAppointment
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
 {
     public class EditAppointmentIntegrationTests
     {

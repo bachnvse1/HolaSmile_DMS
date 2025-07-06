@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists.CreateFUAppointment
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
 {
     public class CreateFUAppointmentIntegrationTests
     {

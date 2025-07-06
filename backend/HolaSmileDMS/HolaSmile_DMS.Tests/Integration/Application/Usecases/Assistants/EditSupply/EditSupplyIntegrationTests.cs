@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant;
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants;
 
 public class EditSupplyIntegrationTests
 {

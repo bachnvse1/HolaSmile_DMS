@@ -1,13 +1,12 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Administrator.CreateUser;
-using HDMS_API.Application.Common.Helpers;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using System.Security.Claims;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Administrator.CreateUser;
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Administrators;
 public class CreateUserHandlerTests
 {
     private readonly Mock<IUserCommonRepository> _userCommonRepoMock = new();
