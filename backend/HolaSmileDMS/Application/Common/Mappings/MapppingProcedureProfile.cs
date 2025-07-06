@@ -1,4 +1,4 @@
-using Application.Usecases.UserCommon.ViewListProcedure;
+using Application.Usecases.UserCommon.ViewProcedures;
 using AutoMapper;
 
 namespace Application.Common.Mappings;

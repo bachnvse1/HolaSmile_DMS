@@ -1,4 +1,4 @@
-namespace Application.Usecases.UserCommon.ViewListProcedure;
+namespace Application.Usecases.UserCommon.ViewProcedures;
 
 public class ViewProcedureDto
 {
@@ -14,4 +14,9 @@ public class ViewProcedureDto
     public float? DoctorCommissionRate { get; set; }
     public float? AssistantCommissionRate { get; set; }
     public float? TechnicianCommissionRate { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public string CreatedBy { get; set; }
+    public string UpdateBy { get; set; }
+   // public string? UpdatedBy { get; set; }
 }

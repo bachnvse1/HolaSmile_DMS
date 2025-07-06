@@ -164,17 +164,13 @@ namespace HDMS_API.Infrastructure.Repositories
             return user;
         }
 
-        public Task<User?> GetByEmailAsync(string email)
-        {
-            throw new NotImplementedException();
-        }
         public async Task<bool> EditProfileAsync(User user, CancellationToken cancellationToken)
         {
             _context.Users.Update(user);
             await _context.SaveChangesAsync(cancellationToken);
             return true;
         }
-        public async Task<User?> GetByIdAsync(int userId, CancellationToken cancellationToken)
+        public async Task<User?> GetByIdAsync(int? userId, CancellationToken cancellationToken)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId, cancellationToken);
         }
