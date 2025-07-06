@@ -72,7 +72,7 @@ export const SupplyList: React.FC = () => {
   };
 
   const handleDeactivate = async (supply: Supply) => {
-    const isDeleted = supply.isDeleted === 1;
+    const isDeleted = supply.isDeleted === true;
     setConfirmModal({
       isOpen: true,
       supply: supply,
@@ -394,7 +394,7 @@ export const SupplyList: React.FC = () => {
                                   >
                                     <Edit className="h-4 w-4" />
                                   </Button>
-                                  {supply.isDeleted === 1 ? (
+                                  {supply.isDeleted === true ? (
                                     <Button
                                       size="sm"
                                       variant="ghost"
@@ -467,7 +467,7 @@ export const SupplyList: React.FC = () => {
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              {supply.isDeleted === 1 ? (
+                              {supply.isDeleted === true ? (
                                 <Button
                                   size="sm"
                                   variant="ghost"

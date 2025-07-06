@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { ArrowLeft, Edit, Trash2, Calendar, Package, DollarSign, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Calendar, Package, DollarSign, AlertTriangle, RotateCcw } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useSupply, useDeactivateSupply } from '@/hooks/useSupplies';
 import { useUserInfo } from '@/hooks/useUserInfo';
 
@@ -13,12 +14,20 @@ export const SupplyDetail: React.FC = () => {
 
   const { data: supply, isLoading } = useSupply(Number(supplyId) || 0);
   const { mutate: deactivateSupply, isPending: isDeactivating } = useDeactivateSupply();
-  
-  const userInfo  = useUserInfo();
+
+  const userInfo = useUserInfo();
   const userRole = userInfo?.role || '';
-  
+
   // Chỉ Administrator, Owner, Assistant có quyền edit/delete
   const canModify = ['Assistant'].includes(userRole);
+
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    action: 'delete' | 'restore';
+  }>({
+    isOpen: false,
+    action: 'delete'
+  });
 
   const handleEdit = () => {
     navigate(`/inventory/${supplyId}/edit`);
@@ -27,17 +36,30 @@ export const SupplyDetail: React.FC = () => {
   const handleDeactivate = async () => {
     if (!supply) return;
 
-    if (window.confirm(`Bạn có chắc chắn muốn xóa vật tư "${supply.Name}"?`)) {
-      deactivateSupply(supply.SupplyID, {
-        onSuccess: () => {
-          toast.success('Đã xóa vật tư thành công');
-          navigate('/inventory');
-        },
-        onError: () => {
-          toast.error('Có lỗi xảy ra khi xóa vật tư');
-        }
-      });
-    }
+    const isDeleted = supply.isDeleted === true;
+    setConfirmModal({
+      isOpen: true,
+      action: isDeleted ? 'restore' : 'delete'
+    });
+  };
+
+  const handleConfirmAction = () => {
+    if (!supply) return;
+
+    const action = confirmModal.action;
+    const actionText = action === 'delete' ? 'xóa' : 'khôi phục';
+
+    deactivateSupply(supply.SupplyID, {
+      onSuccess: () => {
+        toast.success(`Đã ${actionText} vật tư thành công`);
+        setConfirmModal({ isOpen: false, action: 'delete' });
+        navigate('/inventory');
+      },
+      onError: () => {
+        toast.error(`Có lỗi xảy ra khi ${actionText} vật tư`);
+        setConfirmModal({ isOpen: false, action: 'delete' });
+      }
+    });
   };
 
   const handleGoBack = () => {
@@ -122,7 +144,7 @@ export const SupplyDetail: React.FC = () => {
             <p className="text-gray-600 mt-1 text-sm sm:text-base">Thông tin chi tiết về vật tư</p>
           </div>
         </div>
-        
+
         {canModify && (
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleEdit} className="flex-1 sm:flex-none">
@@ -130,16 +152,29 @@ export const SupplyDetail: React.FC = () => {
               <span className="hidden sm:inline">Chỉnh Sửa</span>
               <span className="sm:hidden">Sửa</span>
             </Button>
-            <Button
-              variant="outline"
-              onClick={handleDeactivate}
-              disabled={isDeactivating}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-1 sm:flex-none"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">{isDeactivating ? 'Đang xóa...' : 'Xóa'}</span>
-              <span className="sm:hidden">{isDeactivating ? '...' : 'Xóa'}</span>
-            </Button>
+            {supply.isDeleted === true ? (
+              <Button
+                variant="outline"
+                onClick={handleDeactivate}
+                disabled={isDeactivating}
+                className="text-green-600 hover:text-green-700 hover:bg-green-50 flex-1 sm:flex-none"
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">{isDeactivating ? 'Đang khôi phục...' : 'Khôi phục'}</span>
+                <span className="sm:hidden">{isDeactivating ? '...' : 'Khôi phục'}</span>
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={handleDeactivate}
+                disabled={isDeactivating}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-1 sm:flex-none"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">{isDeactivating ? 'Đang xóa...' : 'Xóa'}</span>
+                <span className="sm:hidden">{isDeactivating ? '...' : 'Xóa'}</span>
+              </Button>
+            )}
           </div>
         )}
       </div>
@@ -299,6 +334,23 @@ export const SupplyDetail: React.FC = () => {
           </Card>
         )}
       </div>
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, action: 'delete' })}
+        onConfirm={handleConfirmAction}
+        title={confirmModal.action === 'delete' ? 'Xóa vật tư' : 'Khôi phục vật tư'}
+        message={
+          supply
+            ? `Bạn có chắc chắn muốn ${confirmModal.action === 'delete' ? 'xóa' : 'khôi phục'
+            } vật tư "${supply.Name}"?`
+            : ''
+        }
+        confirmText={confirmModal.action === 'delete' ? 'Xóa' : 'Khôi phục'}
+        confirmVariant={confirmModal.action === 'delete' ? 'destructive' : 'default'}
+        isLoading={isDeactivating}
+      />
     </div>
   );
 };

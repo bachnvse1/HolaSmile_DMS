@@ -10,7 +10,7 @@ export interface Supply {
   CreatedBy: number;
   UpdatedBy: number;
   IsDeleted: boolean;
-  isDeleted?: number; // 0 = active, 1 = deleted
+  isDeleted?: boolean; // 0 = active, 1 = deleted
 }
 
 export interface CreateSupplyRequest {
