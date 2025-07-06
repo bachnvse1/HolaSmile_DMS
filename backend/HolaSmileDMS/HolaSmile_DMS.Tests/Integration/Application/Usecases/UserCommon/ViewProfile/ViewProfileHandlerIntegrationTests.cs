@@ -36,15 +36,11 @@ public class ViewProfileHandlerIntegrationTests
         _httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
         var memoryCache = provider.GetRequiredService<IMemoryCache>();
 
-        // 👇 Mock email service
-        var emailServiceMock = new Mock<IEmailService>();
-
-        // 👇 Seed dữ liệu
         SeedData();
 
         // 👇 Khởi tạo handler
         _handler = new ViewProfileHandler(
-            new UserCommonRepository(_context, emailServiceMock.Object, memoryCache),
+            new UserCommonRepository(_context, new Mock<IEmailService>().Object, memoryCache),
             _httpContextAccessor
         );
     }
