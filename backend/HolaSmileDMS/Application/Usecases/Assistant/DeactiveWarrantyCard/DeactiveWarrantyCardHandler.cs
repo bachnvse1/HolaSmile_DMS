@@ -33,10 +33,10 @@ namespace Application.Usecases.Assistant.DeactiveWarrantyCard
 
             var warrantyCard = await _warrantyRepository.GetByIdAsync(request.WarrantyCardId, cancellationToken);
             if (warrantyCard == null)
-                throw new KeyNotFoundException(MessageConstants.MSG.MSG102); // Thẻ bảo hành không tồn tại
+                throw new KeyNotFoundException(MessageConstants.MSG.MSG103); // Thẻ bảo hành không tồn tại
 
             if (warrantyCard.Status == false)
-                throw new InvalidOperationException(MessageConstants.MSG.MSG103); // Thẻ bảo hành đã bị vô hiệu hóa
+                throw new InvalidOperationException(MessageConstants.MSG.MSG104); // Thẻ bảo hành đã bị vô hiệu hóa
 
             warrantyCard.Status = false;
             warrantyCard.UpdatedAt = DateTime.Now;
@@ -44,7 +44,7 @@ namespace Application.Usecases.Assistant.DeactiveWarrantyCard
 
             await _warrantyRepository.DeactiveWarrantyCardAsync(warrantyCard, cancellationToken);
 
-            return MessageConstants.MSG.MSG104; // Vô hiệu hóa thẻ bảo hành thành công
+            return MessageConstants.MSG.MSG105; // Vô hiệu hóa thẻ bảo hành thành công
         }
     }
 }
