@@ -1,6 +1,7 @@
 ﻿using Application.Common.Mappings;
 using Application.Interfaces;
 using Application.Services;
+using Application.Usecases.Assistant.CreateWarrantyCard;
 using Application.Usecases.SendNotification;
 using HDMS_API.Application.Common.Mappings;
 using HDMS_API.Application.Interfaces;
@@ -74,6 +75,7 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddMediatR(typeof(CreatePatientCommand).Assembly);
             services.AddMediatR(typeof(LoginCommand).Assembly);
             services.AddMediatR(typeof(SendNotificationHandler).Assembly);
+            services.AddMediatR(typeof(CreateWarrantyCardHandler).Assembly);
 
             // AutoMapper
             services.AddAutoMapper(typeof(MappingViewTreatmentRecord));

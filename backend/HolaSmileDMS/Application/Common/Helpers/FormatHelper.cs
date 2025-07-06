@@ -1,5 +1,5 @@
 ﻿using System.Text.RegularExpressions;
-
+using Application.Constants;
 namespace HDMS_API.Application.Common.Helpers
 {
     public static class FormatHelper
@@ -10,10 +10,7 @@ namespace HDMS_API.Application.Common.Helpers
 
             var digits = new string(input.Where(char.IsDigit).ToArray());
 
-            if (digits.Length == 10 && digits.StartsWith("0"))
-                return true;
-
-            return false;
+            return digits.Length == 10 && digits.StartsWith("0");
         }
 
         public static bool IsValidEmail(string? email)
@@ -35,7 +32,6 @@ namespace HDMS_API.Application.Common.Helpers
                     System.Globalization.DateTimeStyles.None,
                     out var date))
             {
-                // Trả về theo định dạng dd/MM/yyyy
                 return date.ToString("dd/MM/yyyy");
             }
 
@@ -51,5 +47,18 @@ namespace HDMS_API.Application.Common.Helpers
             return Regex.IsMatch(password, pattern);
         }
 
+        // ✅ Mới thêm: Tính ngày kết thúc từ thời hạn (term)
+        public static DateTime ParseEndDateFromTerm(DateTime start, string term)
+        {
+            var lower = term.ToLower().Trim();
+            var number = int.Parse(new string(term.Where(char.IsDigit).ToArray()));
+
+            if (lower.Contains("tháng"))
+                return start.AddMonths(number);
+            if (lower.Contains("năm"))
+                return start.AddYears(number);
+
+            throw new FormatException(MessageConstants.MSG.MSG97);
+        }
     }
 }
