@@ -1,14 +1,10 @@
-﻿using MediatR;
+﻿using Application.Usecases.Assistant.ViewListWarrantyCards;
+using MediatR;
 
-namespace Application.Usecases.Assistant.ViewWarrantyCard
+namespace Application.Usecases.Assistant.ViewListWarrantyCards
 {
-    public class ViewWarrantyCardCommand : IRequest<ViewWarrantyCardDto>
+    public class ViewListWarrantyCardsCommand : IRequest<List<ViewWarrantyCardDto>>
     {
-        public int PatientId { get; set; }
-
-        public ViewWarrantyCardCommand(int patientId)
-        {
-            PatientId = patientId;
-        }
     }
 }
+    

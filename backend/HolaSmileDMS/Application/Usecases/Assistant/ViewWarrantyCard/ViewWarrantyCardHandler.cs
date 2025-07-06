@@ -1,53 +1,47 @@
 ﻿using Application.Constants;
-using Application.Interfaces;
-using Application.Usecases.Assistant.ViewWarrantyCard;
+using Application.Usecases.Assistant.ViewListWarrantyCards;
 using MediatR;
 using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
 
-public class ViewWarrantyCardHandler : IRequestHandler<ViewWarrantyCardCommand, ViewWarrantyCardDto>
+public class ViewListWarrantyCardsHandler : IRequestHandler<ViewListWarrantyCardsCommand, List<ViewWarrantyCardDto>>
 {
-    private readonly IWarrantyRepository _warrantyRepository;
+    private readonly IWarrantyRepository _repository;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public ViewWarrantyCardHandler(IWarrantyRepository warrantyRepository, IHttpContextAccessor httpContextAccessor)
+    public ViewListWarrantyCardsHandler(IWarrantyRepository repository, IHttpContextAccessor httpContextAccessor)
     {
-        _warrantyRepository = warrantyRepository;
+        _repository = repository;
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<ViewWarrantyCardDto> Handle(ViewWarrantyCardCommand request, CancellationToken cancellationToken)
+    public async Task<List<ViewWarrantyCardDto>> Handle(ViewListWarrantyCardsCommand request, CancellationToken cancellationToken)
     {
         var user = _httpContextAccessor.HttpContext?.User;
-        var role = user?.FindFirst(ClaimTypes.Role)?.Value;
+        var role = user?.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
 
         if (user == null)
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53);
 
-        if (role != "Assistant")
+        if (role != "Assistant" && role != "Patient")
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
-        var warrantyCard = await _warrantyRepository.GetWarrantyCardByPatientIdAsync(request.PatientId, cancellationToken);
+        var cards = await _repository.GetAllWarrantyCardsWithProceduresAsync(cancellationToken);
 
-        if (warrantyCard == null || warrantyCard.TreatmentRecord == null)
-            throw new KeyNotFoundException(MessageConstants.MSG.MSG16);
-
-        var treatmentRecord = warrantyCard.TreatmentRecord;
-        var dentistName = treatmentRecord.Dentist?.User?.Fullname ?? "Không xác định";
-
-        return new ViewWarrantyCardDto
+        return cards.Select(card =>
         {
-            WarrantyCardId = warrantyCard.WarrantyCardID,
-            ProcedureName = warrantyCard.Procedure?.ProcedureName ?? "Không xác định",
-            StartDate = warrantyCard.StartDate,
-            EndDate = warrantyCard.EndDate,
-            Term = warrantyCard.Term,
-            Status = warrantyCard.Status,
-            TreatmentRecordId = treatmentRecord.TreatmentRecordID,
-            TreatmentDate = treatmentRecord.TreatmentDate,
-            Symptoms = treatmentRecord.Symptoms,
-            Diagnosis = treatmentRecord.Diagnosis,
-            DentistName = dentistName
-        };
+            var procedure = card.Procedures.FirstOrDefault(); // giả định mỗi card chỉ có 1 thủ thuật
+
+            return new ViewWarrantyCardDto
+            {
+                WarrantyCardId = card.WarrantyCardID,
+                StartDate = card.StartDate,
+                EndDate = card.EndDate,
+                Term = card.Term,
+                Status = card.Status,
+                ProcedureId = procedure?.ProcedureId,
+                ProcedureName = procedure?.ProcedureName ?? "Không xác định"
+            };
+        }).ToList();
     }
+
 }

@@ -1,8 +1,4 @@
-﻿namespace Application.Interfaces
+﻿public interface IWarrantyRepository
 {
-    public interface IWarrantyRepository
-    {
-        Task<WarrantyCard?> GetWarrantyCardByPatientIdAsync(int patientId, CancellationToken cancellationToken);
-    }
-
+    Task<List<WarrantyCard>> GetAllWarrantyCardsWithProceduresAsync(CancellationToken cancellationToken);
 }
