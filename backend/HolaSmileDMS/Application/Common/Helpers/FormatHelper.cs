@@ -58,7 +58,7 @@ namespace HDMS_API.Application.Common.Helpers
             if (lower.Contains("năm"))
                 return start.AddYears(number);
 
-            throw new FormatException(MessageConstants.MSG.MSG97);
+            throw new FormatException(MessageConstants.MSG.MSG98);
         }
     }
 }

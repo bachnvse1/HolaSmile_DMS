@@ -5,4 +5,6 @@
     Task<bool> DeactiveWarrantyCardAsync(WarrantyCard card, CancellationToken ct);
     Task<List<WarrantyCard>> GetAllAsync(CancellationToken ct);
     Task<WarrantyCard> CreateWarrantyCardAsync(WarrantyCard card, CancellationToken cancellationToken);
+    Task<bool> UpdateWarrantyCardAsync(WarrantyCard card, CancellationToken cancellationToken);
+
 }

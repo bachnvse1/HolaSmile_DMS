@@ -42,7 +42,9 @@ namespace Application.Usecases.Assistant.DeactiveWarrantyCard
             warrantyCard.UpdatedAt = DateTime.Now;
             warrantyCard.UpdatedBy = int.TryParse(userId, out var uid) ? uid : null;
 
-            await _warrantyRepository.DeactiveWarrantyCardAsync(warrantyCard, cancellationToken);
+            var result = await _warrantyRepository.DeactiveWarrantyCardAsync(warrantyCard, cancellationToken);
+            if (!result)
+                throw new Exception(MessageConstants.MSG.MSG58); // Cập nhật thất bại
 
             return MessageConstants.MSG.MSG105; // Vô hiệu hóa thẻ bảo hành thành công
         }
