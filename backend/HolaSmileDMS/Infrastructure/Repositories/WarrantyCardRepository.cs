@@ -18,6 +18,13 @@ namespace Infrastructure.Repositories
                 .Include(w => w.Procedures)
                 .ToListAsync(cancellationToken);
         }
+        public async Task<WarrantyCard> CreateWarrantyCardAsync(WarrantyCard card, CancellationToken cancellationToken)
+        {
+            _context.WarrantyCards.Add(card);
+            await _context.SaveChangesAsync(cancellationToken);
+            return card;
+        }
+
 
     }
 }
