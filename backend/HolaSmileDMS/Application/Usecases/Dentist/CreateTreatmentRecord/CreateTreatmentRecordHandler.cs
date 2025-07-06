@@ -94,13 +94,20 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
                         int userIdNotification = patient.UserID ?? 0;
                         if (userIdNotification > 0)
                         {
-                            await _mediator.Send(new SendNotificationCommand(
-                                userIdNotification,
-                                "Tạo lịch hẹn điều trị",
-                                $"Lịch hẹn điều trị mới của bạn là ngày {request.TreatmentDate} đã được nha sĩ {fullName} tạo.",
-                                "Lịch điều trị",
-                                0
-                            ), cancellationToken);
+                            try
+                            {
+                                await _mediator.Send(new SendNotificationCommand(
+                                    userIdNotification,
+                                    "Tạo lịch hẹn điều trị",
+                                    $"Lịch hẹn điều trị mới của bạn là ngày {request.TreatmentDate} đã được nha sĩ {fullName} tạo.",
+                                    "Lịch điều trị",
+                                    0
+                                ), cancellationToken);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                            }
                         }
                     }
                 }
@@ -131,15 +138,22 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
                     int userIdNotification = patient.UserID ?? 0;
                     if (userIdNotification > 0)
                     {
-                        var message =
-                            $"Mã hồ sơ điều trị: #{record.TreatmentRecordID} của bạn được nha sĩ {fullName} tạo và thực hiện trong hôm nay!";
-                        await _mediator.Send(new SendNotificationCommand(
-                            userIdNotification,
-                            "Tạo thủ thuật điều trị",
-                            message,
-                            "Xem hồ sơ",
-                            0
-                        ), cancellationToken);
+                        try
+                        {
+                            var message =
+                                $"Mã hồ sơ điều trị: #{record.TreatmentRecordID} của bạn được nha sĩ {fullName} tạo và thực hiện trong hôm nay!";
+                            await _mediator.Send(new SendNotificationCommand(
+                                userIdNotification,
+                                "Tạo thủ thuật điều trị",
+                                message,
+                                "Xem hồ sơ",
+                                0
+                            ), cancellationToken);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
                     }
                 }
             }

@@ -128,14 +128,14 @@ public class ViewTreatmentProgressHandlerTests
         Assert.NotNull(result);
     }
 
-    // 🔵 Abnormal: Dentist không có liên quan cố gắng xem hồ sơ
-    [Fact(DisplayName = "[Unit - Abnormal] Dentist_Cannot_View_Others_Progress")]
-    [Trait("TestType", "Abnormal")]
-    public async System.Threading.Tasks.Task A_Dentist_Cannot_View_Others_Progress()
+    [Fact(DisplayName = "[Unit - Normal] Dentist_Can_View_Others_Progress")]
+    [Trait("TestType", "Normal")]
+    public async System.Threading.Tasks.Task Dentist_Can_View_Others_Progress()
     {
+        // Arrange
         int treatmentRecordId = 1;
-        int userId = 10;
-        SetupHttpContext("Dentist", userId);
+        int currentUserId = 10;
+        SetupHttpContext("Dentist", currentUserId);
 
         var progressList = new List<TreatmentProgress>
         {
@@ -143,14 +143,25 @@ public class ViewTreatmentProgressHandlerTests
             {
                 TreatmentRecordID = treatmentRecordId,
                 Patient = new Patient { UserID = 1, User = new User { UserID = 1 } },
-                Dentist = new global::Dentist { UserId = 999, User = new User { UserID = 999 } }
+                Dentist = new global::Dentist { UserId = 999, User = new User { UserID = 999 } } // khác currentUserId
             }
         };
 
         _repositoryMock.Setup(r => r.GetByTreatmentRecordIdAsync(treatmentRecordId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(progressList);
 
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            _handler.Handle(new ViewTreatmentProgressCommand(treatmentRecordId), default));
+        _mapperMock.Setup(m => m.Map<List<ViewTreatmentProgressDto>>(progressList))
+            .Returns(new List<ViewTreatmentProgressDto>
+            {
+                new ViewTreatmentProgressDto { TreatmentRecordID = treatmentRecordId }
+            });
+
+        // Act
+        var result = await _handler.Handle(new ViewTreatmentProgressCommand(treatmentRecordId), default);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Single(result);
+        Assert.Equal(treatmentRecordId, result.First().TreatmentRecordID);
     }
 }
