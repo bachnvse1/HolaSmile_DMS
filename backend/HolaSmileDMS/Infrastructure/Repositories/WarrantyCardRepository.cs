@@ -1,4 +1,4 @@
-/*using Application.Interfaces;
+using Application.Interfaces;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,14 +17,14 @@ namespace Infrastructure.Repositories
             CancellationToken cancellationToken)
         {
             return await _context.WarrantyCards
-                .Include(w => w.Procedures)
+                .Include(w => w.TreatmentRecord)
                 .ToListAsync(cancellationToken);
         }
 
         public async Task<WarrantyCard?> GetByIdAsync(int id, CancellationToken ct)
         {
             return await _context.WarrantyCards
-                .Include(w => w.Procedures)
+                .Include(w => w.TreatmentRecord)
                 .FirstOrDefaultAsync(w => w.WarrantyCardID == id, ct);
         }
 
@@ -38,7 +38,7 @@ namespace Infrastructure.Repositories
         public async Task<List<WarrantyCard>> GetAllAsync(CancellationToken ct)
         {
             return await _context.WarrantyCards
-                .Include(w => w.Procedures)
+                .Include(w => w.TreatmentRecord)
                 .OrderByDescending(w => w.StartDate)
                 .ToListAsync(ct);
         }
@@ -57,4 +57,4 @@ namespace Infrastructure.Repositories
             return result > 0;
         }
     }
-}*/
+}
