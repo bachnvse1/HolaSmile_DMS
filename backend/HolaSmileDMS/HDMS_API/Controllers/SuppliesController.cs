@@ -152,7 +152,7 @@ namespace HDMS_API.Controllers
             try
             {
                 var count = await _mediator.Send(command);
-                return count > 0 ? Ok(new { Message = $"Imported {count} supplies successfully."}) : Conflict(MessageConstants.MSG.MSG58);
+                return count > 0 ? Ok(new { Message = $"thêm mới  {count} vật tư thành công."}) : Conflict(MessageConstants.MSG.MSG58);
             }
             catch (UnauthorizedAccessException ex)
             {
