@@ -6,9 +6,9 @@ public class Instruction
     [Key]
     public int InstructionID { get; set; }
 
-    [ForeignKey("TreatmentRecord")]
-    public int? TreatmentRecord_Id { get; set; }
-    public TreatmentRecord? TreatmentRecord { get; set; }
+    [ForeignKey("AppointmentId")]
+    public int? AppointmentId { get; set; }
+    public Appointment? Appointment { get; set; }
 
     [ForeignKey("InstructionTemplate")]
     public int? Instruc_TemplateID { get; set; }

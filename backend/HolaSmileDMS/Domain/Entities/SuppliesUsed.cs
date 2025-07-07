@@ -10,4 +10,5 @@ public class SuppliesUsed
     [ForeignKey("Supplies")]
     public int SupplyId { get; set; }
     public Supplies Supplies { get; set; }
+    public int Quantity { get; set; }
 }
