@@ -1,23 +1,29 @@
 using Application.Interfaces;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Application.Usecases.SendNotification;
 
 public class SendNotificationHandler : IRequestHandler<SendNotificationCommand, Unit>
 {
-    private readonly INotificationsRepository _repo;
-    private readonly IUserCommonRepository _userRepo;
-    
-    public SendNotificationHandler(INotificationsRepository repo, IUserCommonRepository userRepo) {
-        _repo = repo;
-        _userRepo = userRepo;
+    private readonly IServiceScopeFactory _scopeFactory;
+
+    public SendNotificationHandler(IServiceScopeFactory scopeFactory)
+    {
+        _scopeFactory = scopeFactory;
     }
 
     public async Task<Unit> Handle(SendNotificationCommand c, CancellationToken ct)
     {
-        var userExists = await _userRepo.GetByIdAsync(c.UserId, ct);
+        using var scope = _scopeFactory.CreateScope();
+
+        var userRepo = scope.ServiceProvider.GetRequiredService<IUserCommonRepository>();
+        var notificationRepo = scope.ServiceProvider.GetRequiredService<INotificationsRepository>();
+
+        var userExists = await userRepo.GetByIdAsync(c.UserId, ct);
         if (userExists == null)
             throw new KeyNotFoundException($"UserId {c.UserId} không tồn tại.");
+
         var entity = new Notification
         {
             UserId          = c.UserId,
@@ -29,7 +35,7 @@ public class SendNotificationHandler : IRequestHandler<SendNotificationCommand, 
             RelatedObjectId = c.RelatedObjectId
         };
 
-        await _repo.SendNotificationAsync(entity, ct);
+        await notificationRepo.SendNotificationAsync(entity, ct);
         return Unit.Value;
     }
 }

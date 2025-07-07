@@ -6,12 +6,12 @@ using Microsoft.AspNetCore.Http;
 
 namespace Application.Usecases.Owner
 {
-    public class AppointmentScheduleHandle : IRequestHandler<ApproveDentistScheduleCommand, string>
+    public class ApproveScheduleHandle : IRequestHandler<ApproveDentistScheduleCommand, string>
     {
         private readonly IScheduleRepository _scheduleRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AppointmentScheduleHandle(IScheduleRepository scheduleRepository, IHttpContextAccessor httpContextAccessor)
+        public ApproveScheduleHandle(IScheduleRepository scheduleRepository, IHttpContextAccessor httpContextAccessor)
         {
             _scheduleRepository = scheduleRepository;
             _httpContextAccessor = httpContextAccessor;
@@ -27,6 +27,8 @@ namespace Application.Usecases.Owner
 
             int currentUserId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
+            var schedules = await _scheduleRepository.GetAllDentistSchedulesAsync();
+
             foreach (var id in request.ScheduleIds)
             {
                 var schedule = await _scheduleRepository.GetScheduleByIdAsync(id);
@@ -41,7 +43,7 @@ namespace Application.Usecases.Owner
 
                 var updated = await _scheduleRepository.UpdateScheduleAsync(schedule);
                 if (!updated)
-                    throw new Exception("Cập nhật lịch làm việc không thành công");
+                    throw new Exception(MessageConstants.MSG.MSG58);
             }
             return request.Action == "approved"
                                      ? MessageConstants.MSG.MSG80 // approve thành công

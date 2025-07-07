@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Owner;
@@ -17,12 +12,12 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Owners
     {
         private readonly Mock<IScheduleRepository> _scheduleRepositoryMock;
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
-        private readonly AppointmentScheduleHandle _handler;
+        private readonly ApproveScheduleHandle _handler;
         public ApproveScheduleHandleTest()
         {
             _scheduleRepositoryMock = new Mock<IScheduleRepository>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            _handler = new AppointmentScheduleHandle(_scheduleRepositoryMock.Object, _httpContextAccessorMock.Object);
+            _handler = new ApproveScheduleHandle(_scheduleRepositoryMock.Object, _httpContextAccessorMock.Object);
         }
 
         private void SetupHttpContext(string role, int userId)
@@ -88,7 +83,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Owners
             _scheduleRepositoryMock.Setup(r => r.UpdateScheduleAsync(It.IsAny<Schedule>())).ReturnsAsync(false);
 
             var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(cmd, CancellationToken.None));
-            Assert.Equal("Cập nhật lịch làm việc không thành công", ex.Message);
+            Assert.Equal(MessageConstants.MSG.MSG58, ex.Message);
         }
 
         [Fact(DisplayName = "[Unit - Normal] Approve_Single_Schedule_Success")]

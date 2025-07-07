@@ -3,21 +3,11 @@ import { useSearchParams } from "react-router";
 import { AuthGuard } from "../../components/AuthGuard";
 import { StaffLayout } from "../../layouts/staff/StaffLayout";
 import { FUAppointmentModal } from "../../components/appointment/FUAppointmentModal";
-import { useAuth } from "../../hooks/useAuth";
-
+import { useUserInfo } from "@/hooks/useUserInfo";
 const FUAppointmentPage: React.FC = () => {
     const [searchParams] = useSearchParams();
     const patientId = Number(searchParams.get("patientId"));
-    const { fullName, role, userId } = useAuth();
-
-    // Create userInfo object for StaffLayout
-    const userInfo = {
-        id: userId || '',
-        name: fullName || 'User',
-        email: '',
-        role: role || '',
-        avatar: undefined
-    };
+    const userInfo = useUserInfo();
 
     // Nếu không có patientId, báo lỗi
     if (!patientId) {

@@ -95,6 +95,9 @@ public static class MessageConstants
         public const string MSG89 = "Bạn đã đăng ký lịch khám trước đó rồi.";
         public const string MSG90 = "Số điện thoại đã được đăng ký tài khoản";
         public const string MSG91 = "Định dạng thời gian không hợp lệ. Vui lòng sử dụng hh:mm:ss.";
-
+        public const string MSG92 = "Thời gian bắt đầu và kết thúc của nhiệm vụ phải nằm trong thời gian tiến trình điều trị.";
+        public const string MSG94 = "Số lượng trong kho không thể nhỏ hơn 0";
+        public const string MSG95 = "Giá không thể nhỏ hơn 0";
+        public const string MSG96 = "Hạn vật tư không thể nhỏ hơn hiện tại";
     }
 }

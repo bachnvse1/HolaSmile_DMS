@@ -3,9 +3,8 @@ using Application.Usecases.Patients.CancelAppointment;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Application.Usecases.Receptionist.CreateFollow_UpAppointment;
+using Application.Usecases.Receptionist.CreateFUAppointment;
 using Application.Usecases.Receptionist.EditAppointment;
-using System.Reflection.Metadata;
 using Application.Constants;
 
 namespace HDMS_API.Controllers
@@ -90,7 +89,7 @@ namespace HDMS_API.Controllers
         {
             try
             {
-                var result = await _mediator.Send(new CancleAppointmentCommand(appointmentId), cancellationToken);
+                var result = await _mediator.Send(new CancelAppointmentCommand(appointmentId), cancellationToken);
                 return Ok(result);
             }
             catch (Exception ex)

@@ -3,14 +3,14 @@ import { useForm } from "react-hook-form"
 import FilterBar from "./FilterBar"
 import SummaryStats from "./SummaryStats"
 import TreatmentTable from "./TreatmentTable"
-import { getTreatmentRecordsByUser } from "@/services/treatmentService"
+import { getTreatmentRecordsByPatientId } from "@/services/treatmentService"
 import type { FilterFormData, TreatmentRecord } from "@/types/treatment"
 
 interface Props {
-  userId: number
+  patientId: number
 }
 
-export default function PatientTreatmentRecordsSection({ userId }: Props) {
+export default function PatientTreatmentRecordsSection({ patientId }: Props) {
   const { register, watch } = useForm<FilterFormData>({
     defaultValues: {
       searchTerm: "",
@@ -28,7 +28,7 @@ export default function PatientTreatmentRecordsSection({ userId }: Props) {
   useEffect(() => {
     const fetchRecords = async () => {
       try {
-        const data = await getTreatmentRecordsByUser(userId)
+        const data = await getTreatmentRecordsByPatientId(patientId)
         setRecords(data)
       } catch (error) {
         console.error("Error fetching treatment records:", error)
@@ -36,7 +36,7 @@ export default function PatientTreatmentRecordsSection({ userId }: Props) {
     }
 
     fetchRecords()
-  }, [userId])
+  }, [patientId])
 
   const filteredRecords = records.filter((record) => {
     const matchesSearch =
@@ -61,7 +61,7 @@ export default function PatientTreatmentRecordsSection({ userId }: Props) {
       <FilterBar register={register} />
       <TreatmentTable
         records={filteredRecords}
-        patientId={userId}
+        patientId={patientId}
         readonly 
         onEdit={() => {}} 
         onToggleDelete={() => Promise.resolve()} 
