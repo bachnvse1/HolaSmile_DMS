@@ -3,9 +3,8 @@ using System.Security.Claims;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
-using Application.Usecases.Administrator.BanAndUnban;
 
-namespace Application.Usecases.administrator.BanAndUnban
+namespace Application.Usecases.Administrator.BanAndUnban
 {
     public class BanAndUnbanUserHandle : IRequestHandler<BanAndUnbanUserCommand, bool>
     {

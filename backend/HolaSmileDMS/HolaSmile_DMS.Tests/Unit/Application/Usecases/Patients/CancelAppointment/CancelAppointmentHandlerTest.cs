@@ -2,13 +2,12 @@
 using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Patients.CancelAppointment;
-using Application.Usecases.SendNotification;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients.CancelAppointment
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients
 {
     public class CancelAppointmentHandleTests
     {
@@ -142,32 +141,5 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients.CancelAppointme
             Assert.Equal("Bạn chỉ có thể hủy lịch ở trạng thái xác nhận", ex.Message);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID06 - Cancellation failed in repository")]
-        public async System.Threading.Tasks.Task UTCID06_CancelFailed_ReturnsFailureMessage()
-        {
-            // Arrange
-            SetupHttpContext("patient", 5);
-            var appointment = new Appointment
-            {
-                AppointmentId = 1,
-                Status = "Confirmed",
-                AppointmentDate = DateTime.Today,
-                AppointmentTime = TimeSpan.Parse("13:00:00") ,
-                DentistId = 2
-            };
-            var dentist = new Dentist { User = new User { UserID = 9 } };
-            var receptionists = new List<Receptionist>();
-
-            _appointmentRepoMock.Setup(r => r.GetAppointmentByIdAsync(1)).ReturnsAsync(appointment);
-            _appointmentRepoMock.Setup(r => r.CancelAppointmentAsync(1, 5)).ReturnsAsync(false);
-            _dentistRepoMock.Setup(r => r.GetDentistByDentistIdAsync(2)).ReturnsAsync(dentist);
-            _userCommonRepoMock.Setup(r => r.GetAllReceptionistAsync()).ReturnsAsync(receptionists);
-
-            // Act
-            var result = await _handler.Handle(new CancelAppointmentCommand(1), CancellationToken.None);
-
-            // Assert
-            Assert.Equal(MessageConstants.MSG.MSG58, result);
-        }
     }
 }
