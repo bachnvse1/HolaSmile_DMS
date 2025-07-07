@@ -10,26 +10,31 @@ interface TaskDetailsModalProps {
     isOpen: boolean
     onOpenChange: (open: boolean) => void
     onStatusChange: (taskId: number, status: Task["status"]) => void
+    isLoading?: boolean
 }
 
-export function TaskDetailsModal({ task, isOpen, onOpenChange, onStatusChange }: TaskDetailsModalProps) {
-    if (!task) return null
-
+export function TaskDetailsModal({
+    task,
+    isOpen,
+    onOpenChange,
+    onStatusChange,
+    isLoading = false
+}: TaskDetailsModalProps) {
     const getStatusColor = (status: Task["status"]) =>
         status === "Completed" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
 
     const getStatusText = (status: Task["status"]) =>
         status === "Completed" ? "Hoàn thành" : "Đang chờ"
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString("vi-VN", {
+    const formatDate = (dateString: string) =>
+        new Date(dateString).toLocaleDateString("vi-VN", {
             day: "2-digit",
             month: "2-digit",
             year: "numeric",
         })
-    }
 
     const calculateDuration = () => {
+        if (!task) return ""
         const [startHour, startMin] = task.startTime.split(":").map(Number)
         const [endHour, endMin] = task.endTime.split(":").map(Number)
         const diffMins = (endHour * 60 + endMin) - (startHour * 60 + startMin)
@@ -48,81 +53,92 @@ export function TaskDetailsModal({ task, isOpen, onOpenChange, onStatusChange }:
                     </DialogTitle>
                 </DialogHeader>
 
-                <div className="space-y-6">
-                    <div className="space-y-3">
-                        <h2 className="text-xl font-semibold">{task.progressName}</h2>
-                        <div className="flex flex-wrap gap-2">
-                            <Badge className={getStatusColor(task.status)}>{getStatusText(task.status)}</Badge>
-                            <Badge variant="outline">{task.procedureName}</Badge>
-                        </div>
-                    </div>
-
-                    <Separator />
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                            <h3 className="font-semibold text-lg flex items-center gap-2">
-                                <Activity className="w-5 h-5" />
-                                Thông Tin Điều Trị
-                            </h3>
-                            <div className="space-y-3">
-                                <InfoItem icon={<Calendar />} label="Ngày điều trị" value={formatDate(task.treatmentDate)} />
-                                <InfoItem icon={<Clock />} label="Thời gian" value={`${task.startTime} - ${task.endTime} (${calculateDuration()})`} />
-                                <InfoItem icon={<User />} label="Nha sĩ điều trị" value={task.dentistName} />
-                                <InfoItem icon={<Stethoscope />} label="Thủ thuật" value={task.procedureName} />
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <h3 className="font-semibold text-lg flex items-center gap-2">
-                                <AlertCircle className="w-5 h-5" />
-                                Thông Tin Y Khoa
-                            </h3>
-                            <InfoBox title="Triệu chứng" content={task.symptoms} />
-                            <InfoBox title="Chẩn đoán" content={task.diagnosis} />
-                            <div>
-                                <p className="text-sm font-medium mb-1">Trạng thái hiện tại</p>
+                {isLoading ? (
+                    <div className="p-6 text-muted-foreground text-center">Đang tải chi tiết nhiệm vụ...</div>
+                ) : !task ? (
+                    <div className="p-6 text-red-600 text-center">Không tìm thấy nhiệm vụ</div>
+                ) : (
+                    <div className="space-y-6">
+                        <div className="space-y-3">
+                            <h2 className="text-xl font-semibold">{task.progressName}</h2>
+                            <div className="flex flex-wrap gap-2">
                                 <Badge className={getStatusColor(task.status)}>{getStatusText(task.status)}</Badge>
+                                <Badge variant="outline">{task.procedureName}</Badge>
                             </div>
                         </div>
-                    </div>
 
-                    <Separator />
+                        <Separator />
 
-                    <div className="space-y-2">
-                        <h3 className="font-medium">Mô Tả Chi Tiết</h3>
-                        <div className="bg-muted/50 p-4 rounded-md">
-                            <p className="text-muted-foreground">{task.description}</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                                <Section title="Thông Tin Điều Trị" icon={<Activity className="w-5 h-5" />}>
+                                    <InfoItem icon={<Calendar />} label="Ngày điều trị" value={formatDate(task.treatmentDate)} />
+                                    <InfoItem icon={<Clock />} label="Thời gian" value={`${task.startTime} - ${task.endTime} (${calculateDuration()})`} />
+                                    <InfoItem icon={<User />} label="Nha sĩ điều trị" value={task.dentistName} />
+                                    <InfoItem icon={<Stethoscope />} label="Thủ thuật" value={task.procedureName} />
+                                </Section>
+                            </div>
+
+                            <div className="space-y-4">
+                                <Section title="Thông Tin Y Khoa" icon={<AlertCircle className="w-5 h-5" />}>
+                                    <InfoBox title="Triệu chứng" content={task.symptoms} />
+                                    <InfoBox title="Chẩn đoán" content={task.diagnosis} />
+                                    <div>
+                                        <p className="text-sm font-medium mb-1">Trạng thái hiện tại</p>
+                                        <Badge className={getStatusColor(task.status)}>{getStatusText(task.status)}</Badge>
+                                    </div>
+                                </Section>
+                            </div>
+                        </div>
+
+                        <Separator />
+
+                        <div className="space-y-2">
+                            <h3 className="font-medium">Mô Tả Chi Tiết</h3>
+                            <div className="bg-muted/50 p-4 rounded-md">
+                                <p className="text-muted-foreground">{task.description}</p>
+                            </div>
+                        </div>
+
+                        <Separator />
+
+                        <div className="flex gap-2">
+                            {task.status === "Pending" && (
+                                <Button onClick={() => onStatusChange(task.taskId, "Completed")}>
+                                    <CheckCircle className="w-4 h-4 mr-2" />
+                                    Đánh dấu hoàn thành
+                                </Button>
+                            )}
+                            {task.status === "Completed" && (
+                                <Button variant="outline" onClick={() => onStatusChange(task.taskId, "Pending")}>
+                                    <AlertCircle className="w-4 h-4 mr-2" />
+                                    Đánh dấu chưa hoàn thành
+                                </Button>
+                            )}
+                            <Button variant="outline" onClick={() => onOpenChange(false)}>
+                                Đóng
+                            </Button>
                         </div>
                     </div>
-
-                    <Separator />
-
-                    <div className="flex gap-2">
-                        {task.status === "Pending" && (
-                            <Button onClick={() => onStatusChange(task.taskId, "Completed")}>
-                                <CheckCircle className="w-4 h-4 mr-2" />
-                                Đánh dấu hoàn thành
-                            </Button>
-                        )}
-
-                        {task.status === "Completed" && (
-                            <Button variant="outline" onClick={() => onStatusChange(task.taskId, "Pending")}>
-                                <AlertCircle className="w-4 h-4 mr-2" />
-                                Đánh dấu chưa hoàn thành
-                            </Button>
-                        )}
-                        <Button variant="outline" onClick={() => onOpenChange(false)}>
-                            Đóng
-                        </Button>
-                    </div>
-                </div>
+                )}
             </DialogContent>
         </Dialog>
     )
 }
 
-function InfoItem({ icon, label, value }: { icon: React.ReactNode, label: string, value: string }) {
+function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+    return (
+        <div className="space-y-4">
+            <h3 className="font-semibold text-lg flex items-center gap-2">
+                {icon}
+                {title}
+            </h3>
+            <div className="space-y-3">{children}</div>
+        </div>
+    )
+}
+
+function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
     return (
         <div className="flex items-center gap-2">
             <span className="text-muted-foreground">{icon}</span>
@@ -134,7 +150,7 @@ function InfoItem({ icon, label, value }: { icon: React.ReactNode, label: string
     )
 }
 
-function InfoBox({ title, content }: { title: string, content: string }) {
+function InfoBox({ title, content }: { title: string; content: string }) {
     return (
         <div>
             <p className="text-sm font-medium mb-1">{title}</p>

@@ -8,6 +8,7 @@ import { StaffLayout } from "@/layouts/staff"
 import { useAuth } from "@/hooks/useAuth"
 import type { Task, TaskFilter } from "@/types/task"
 import { taskService } from "@/services/taskService"
+import { toast } from "react-toastify"
 
 export default function AssignedTasks() {
     const [tasks, setTasks] = useState<Task[]>([])
@@ -45,6 +46,7 @@ export default function AssignedTasks() {
     const [searchTerm, setSearchTerm] = useState("")
     const [selectedTask, setSelectedTask] = useState<Task | null>(null)
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
+    const [isLoadingTask, setIsLoadingTask] = useState(false)
 
     const handleStatusChange = (taskId: number, status: "Pending" | "Completed") => {
         setTasks((prev) =>
@@ -52,9 +54,18 @@ export default function AssignedTasks() {
         )
     }
 
-    const handleViewDetails = (task: Task) => {
-        setSelectedTask(task)
+    const handleViewDetails = async (task: Task) => {
+        setIsLoadingTask(true)
         setIsDetailsModalOpen(true)
+        try {
+            const data = await taskService.getTaskById(task.taskId)
+            setSelectedTask(data)
+        } catch (error) {
+            toast.error("Không thể tải chi tiết nhiệm vụ")
+            setIsDetailsModalOpen(false)
+        } finally {
+            setIsLoadingTask(false)
+        }
     }
 
     const filteredTasks = tasks.filter((task) => {
@@ -136,6 +147,7 @@ export default function AssignedTasks() {
                         isOpen={isDetailsModalOpen}
                         onOpenChange={setIsDetailsModalOpen}
                         onStatusChange={handleStatusChange}
+                        isLoading={isLoadingTask}
                     />
                 </div>
             </StaffLayout>
