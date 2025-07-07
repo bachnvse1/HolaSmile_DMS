@@ -100,16 +100,16 @@ public sealed class ViewDentalExamSheetHandler :
             });
 
             // prescriptions
-            //var pres = await _prescriptionRepo.GetByTreatmentRecordIdAsync(rec.TreatmentRecordID, ct);
-            //foreach (var p in pres.Where(x => !string.IsNullOrWhiteSpace(x.Content)))
-            //    prescriptionSet.Add(p.Content);
+            var pres = await _prescriptionRepo.GetByTreatmentRecordIdAsync(rec.AppointmentID, ct);
+            foreach (var p in pres.Where(x => !string.IsNullOrWhiteSpace(x.Content)))
+                prescriptionSet.Add(p.Content);
 
-            //var instr = await _instructionRepo.GetByTreatmentRecordIdAsync(rec.TreatmentRecordID, ct);
-            //foreach (var i in instr)
-            //{
-            //    if (!string.IsNullOrWhiteSpace(i.Content))
-            //        instructionSet.Add(i.Content);
-            //}
+            var instr = await _instructionRepo.GetByTreatmentRecordIdAsync(rec.AppointmentID, ct);
+            foreach (var i in instr)
+            {
+                if (!string.IsNullOrWhiteSpace(i.Content))
+                    instructionSet.Add(i.Content);
+            }
 
             // payments
             var invs = await _invoiceRepo.GetByTreatmentRecordIdAsync(rec.TreatmentRecordID, ct);
@@ -136,4 +136,3 @@ public sealed class ViewDentalExamSheetHandler :
         return sheet;
     }
 }
-

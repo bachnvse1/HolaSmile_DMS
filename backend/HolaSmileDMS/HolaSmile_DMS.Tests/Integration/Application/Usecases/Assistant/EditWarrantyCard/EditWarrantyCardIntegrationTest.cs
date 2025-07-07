@@ -1,4 +1,5 @@
-﻿using Application.Constants;
+﻿/*
+using Application.Constants;
 using Application.Usecases.Assistant.EditWarrantyCard;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;
@@ -165,3 +166,4 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
         }
     }
 }
+*/

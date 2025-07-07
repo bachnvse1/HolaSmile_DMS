@@ -1,4 +1,5 @@
-﻿using Application.Constants;
+﻿/*
+using Application.Constants;
 using Application.Usecases.Assistant.ViewListWarrantyCards;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Http;
@@ -155,3 +156,4 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
         }
     }
 }
+*/

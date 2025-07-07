@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿/*
+using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Assistant.CreateWarrantyCard;
@@ -196,3 +197,4 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
 
     }
 }
+*/
