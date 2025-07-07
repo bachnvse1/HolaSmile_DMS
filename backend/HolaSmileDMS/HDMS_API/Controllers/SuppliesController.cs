@@ -2,11 +2,11 @@
 using Application.Usecases.Assistant.CreateSupply;
 using Application.Usecases.Assistant.DeleteAndUndeleteSupply;
 using Application.Usecases.Assistant.EditSupply;
+using Application.Usecases.Assistant.ExcelSupply;
 using Application.Usecases.UserCommon.ViewSupplies;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace HDMS_API.Controllers
 {
@@ -112,6 +112,8 @@ namespace HDMS_API.Controllers
                 });
             }
         }
+
+        [Authorize]
         [HttpPost("excel-template")]
         public async Task<IActionResult> DownloadTemplate()
         {
@@ -146,6 +148,7 @@ namespace HDMS_API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("import-excel")]
         public async Task<IActionResult> ImportSupply([FromForm] ImportSupplyFromExcelCommand command)
         {
@@ -153,6 +156,41 @@ namespace HDMS_API.Controllers
             {
                 var count = await _mediator.Send(command);
                 return count > 0 ? Ok(new { Message = $"thêm mới  {count} vật tư thành công."}) : Conflict(MessageConstants.MSG.MSG58);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    Message = false,
+                    Error = ex.Message
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    Message = false,
+                    Error = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    Message = false,
+                    Error = "An unexpected error occurred: " + ex.Message
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPost("export-excel")]
+        public async Task<IActionResult> ExportSupply()
+        {
+            try
+            {
+                var bytes = await _mediator.Send(new ExportSupplyToExcelCommand());
+                return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Supplies.xlsx");
             }
             catch (UnauthorizedAccessException ex)
             {

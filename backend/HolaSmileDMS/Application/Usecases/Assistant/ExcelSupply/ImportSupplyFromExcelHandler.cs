@@ -6,14 +6,12 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using OfficeOpenXml;
 
-namespace Application.Usecases.Assistant.CreateSupply
+namespace Application.Usecases.Assistant.ExcelSupply
 {
     public class ImportSupplyFromExcelHandler : IRequestHandler<ImportSupplyFromExcelCommand, int>
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ISupplyRepository _supplyRepository;
-
-        private const string AssistantRole = "assistant";
 
         public ImportSupplyFromExcelHandler(IHttpContextAccessor httpContextAccessor, ISupplyRepository supplyRepository)
         {
@@ -34,7 +32,7 @@ namespace Application.Usecases.Assistant.CreateSupply
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-            if (currentUserId == 0 || !string.Equals(currentUserRole, AssistantRole, StringComparison.OrdinalIgnoreCase))
+            if (currentUserId == 0 || !string.Equals(currentUserRole, "assistant", StringComparison.OrdinalIgnoreCase))
             {
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Bạn không có quyền truy cập chức năng này
             }
