@@ -243,18 +243,17 @@ export const SupplyList: React.FC = () => {
   return (
     <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
       {/* Header */}
-      <div className="flex flex-col gap-4 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Quản Lý Kho Vật Tư</h1>
-            <p className="text-gray-600 mt-1 text-sm sm:text-base">
-              Tổng cộng {filteredSupplies.length} vật tư
-            </p>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        {/* Title section */}
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Quản Lý Kho Vật Tư</h1>
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">
+            Tổng cộng {filteredSupplies.length} vật tư
+          </p>
         </div>
         
         {/* Action buttons */}
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:ml-auto">
           <Button
             variant="outline"
             onClick={handleDownloadTemplate}
@@ -356,8 +355,8 @@ export const SupplyList: React.FC = () => {
       {/* Search and Filter */}
       <Card className="mb-6">
         <CardContent className="p-4">
-          <div className="flex flex-col gap-4">
-            <div className="relative">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 placeholder="Tìm kiếm theo tên vật tư..."
@@ -367,32 +366,33 @@ export const SupplyList: React.FC = () => {
               />
             </div>
             
-            <div className="flex flex-wrap gap-2">
+            {/* Filter buttons - cùng hàng trên desktop, xuống dòng trên mobile */}
+            <div className="grid grid-cols-3 gap-2 sm:flex sm:gap-2">
               <Button
                 variant={filter === 'all' ? 'default' : 'outline'}
                 onClick={() => handleFilterChange('all')}
                 size="sm"
-                className="flex-1 sm:flex-none"
+                className="text-xs sm:text-sm"
               >
-                <Filter className="h-4 w-4 mr-2" />
+                <Filter className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 Tất cả
               </Button>
               <Button
                 variant={filter === 'low-stock' ? 'default' : 'outline'}
                 onClick={() => handleFilterChange('low-stock')}
                 size="sm"
-                className="flex-1 sm:flex-none"
+                className="text-xs sm:text-sm"
               >
-                <TrendingDown className="h-4 w-4 mr-2" />
+                <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 Sắp hết
               </Button>
               <Button
                 variant={filter === 'expiring' ? 'default' : 'outline'}
                 onClick={() => handleFilterChange('expiring')}
                 size="sm"
-                className="flex-1 sm:flex-none"
+                className="text-xs sm:text-sm"
               >
-                <AlertTriangle className="h-4 w-4 mr-2" />
+                <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 Hết hạn
               </Button>
             </div>
