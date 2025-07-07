@@ -194,12 +194,12 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
                 </div>
                 <div>
                   <p className="text-sm font-medium">{displayName}</p>
-                  <p className="text-xs text-gray-500">{userInfo?.email || 'No email'}</p>
+                  <p className="text-xs text-gray-500">{displayRole}</p>
                 </div>
               </div>
               
               <button
-                onClick={() => navigate('/patient/profile')}
+                onClick={() => navigate('/view-profile')}
                 className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
               >
                 Thông Tin Cá Nhân

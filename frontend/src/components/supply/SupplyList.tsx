@@ -1,10 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router';
-import { 
-  Plus, 
-  Search, 
-  Edit, 
-  Trash2, 
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
   Eye,
   Package,
   AlertTriangle,
@@ -21,13 +21,13 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Pagination } from '@/components/ui/Pagination';
-import { 
-  useSupplies, 
-  useDeactivateSupply, 
-  useSupplyStats, 
-  useDownloadExcelSupplies, 
+import {
+  useSupplies,
+  useDeactivateSupply,
+  useSupplyStats,
+  useDownloadExcelSupplies,
   useExportSupplies,
-  useImportSupplies 
+  useImportSupplies
 } from '@/hooks/useSupplies';
 import { useUserInfo } from '@/hooks/useUserInfo';
 import type { Supply } from '@/types/supply';
@@ -48,13 +48,13 @@ export const SupplyList: React.FC = () => {
   });
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  const userInfo  = useUserInfo();
+
+  const userInfo = useUserInfo();
   const userRole = userInfo?.role || '';
-  
+
   // Chỉ Administrator, Owner, Assistant có quyền edit/delete
   const canModify = ['Assistant'].includes(userRole);
-  
+
   const { data: supplies = [], isLoading, error, refetch } = useSupplies(searchQuery);
   const { data: stats, isLoading: isLoadingStats } = useSupplyStats();
   const { mutate: deactivateSupply, isPending: isDeactivating } = useDeactivateSupply();
@@ -147,8 +147,8 @@ export const SupplyList: React.FC = () => {
         }
       },
       onError: (error: unknown) => {
-        const errorMessage = error && typeof error === 'object' && 'response' in error 
-          ? (error as { response?: { data?: { message?: string } } })?.response?.data?.message 
+        const errorMessage = error && typeof error === 'object' && 'response' in error
+          ? (error as { response?: { data?: { message?: string } } })?.response?.data?.message
           : 'Có lỗi xảy ra khi import file Excel';
         toast.error(errorMessage);
         // Reset file input
@@ -201,13 +201,16 @@ export const SupplyList: React.FC = () => {
     }).format(price);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN');
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleDateString('vi-VN');
   };
 
   const getStockStatus = (quantity: number) => {
-    if (quantity <= 10) return { text: 'Hết hàng', color: 'text-red-600 bg-red-50' };
-    if (quantity <= 50) return { text: 'Sắp hết', color: 'text-orange-600 bg-orange-50' };
+    if (quantity == 0) return { text: 'Hết hàng', color: 'text-red-600 bg-red-50' };
+    if (quantity <= 10) return { text: 'Sắp hết', color: 'text-orange-600 bg-orange-50' };
     return { text: 'Còn hàng', color: 'text-green-600 bg-green-50' };
   };
 
@@ -215,7 +218,7 @@ export const SupplyList: React.FC = () => {
     const expiry = new Date(expiryDate);
     const now = new Date();
     const daysDiff = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 3600 * 24));
-    
+
     if (daysDiff < 0) return { text: 'Hết hạn', color: 'text-red-600 bg-red-50' };
     if (daysDiff <= 30) return { text: 'Sắp hết hạn', color: 'text-orange-600 bg-orange-50' };
     return { text: 'Còn hạn', color: 'text-green-600 bg-green-50' };
@@ -240,8 +243,8 @@ export const SupplyList: React.FC = () => {
         <div className="flex justify-center items-center min-h-[400px]">
           <div className="text-center">
             <p className="text-red-600">Có lỗi xảy ra khi tải dữ liệu: {error.message}</p>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => window.location.reload()}
               className="mt-2"
             >
@@ -264,7 +267,7 @@ export const SupplyList: React.FC = () => {
             Tổng cộng {filteredSupplies.length} vật tư
           </p>
         </div>
-        
+
         {/* Action buttons */}
         <div className="flex flex-col gap-2 sm:gap-3 sm:ml-auto">
           {/* Mobile layout: 2 rows */}
@@ -278,7 +281,7 @@ export const SupplyList: React.FC = () => {
               <Download className="h-3 w-3 mr-1" />
               <span>Mẫu Excel</span>
             </Button>
-            
+
             <Button
               variant="outline"
               onClick={handleExportExcel}
@@ -289,7 +292,7 @@ export const SupplyList: React.FC = () => {
               <span>Xuất Excel</span>
             </Button>
           </div>
-          
+
           {canModify && (
             <div className="grid grid-cols-2 gap-2 sm:hidden">
               <Button
@@ -301,8 +304,8 @@ export const SupplyList: React.FC = () => {
                 <Upload className="h-3 w-3 mr-1" />
                 <span>Nhập Excel</span>
               </Button>
-              
-              <Button 
+
+              <Button
                 onClick={() => navigate('/inventory/create')}
                 className="text-xs"
               >
@@ -323,7 +326,7 @@ export const SupplyList: React.FC = () => {
               <Download className="h-4 w-4 mr-2" />
               {isDownloadExcel ? 'Đang tải...' : 'Tải Mẫu Excel'}
             </Button>
-            
+
             <Button
               variant="outline"
               onClick={handleExportExcel}
@@ -345,8 +348,8 @@ export const SupplyList: React.FC = () => {
                   <Upload className="h-4 w-4 mr-2" />
                   {isImporting ? 'Đang nhập...' : 'Nhập Excel'}
                 </Button>
-                
-                <Button 
+
+                <Button
                   onClick={() => navigate('/inventory/create')}
                   className="text-sm"
                 >
@@ -382,7 +385,7 @@ export const SupplyList: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
@@ -394,7 +397,7 @@ export const SupplyList: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
@@ -406,7 +409,7 @@ export const SupplyList: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
@@ -436,7 +439,7 @@ export const SupplyList: React.FC = () => {
                 className="pl-10"
               />
             </div>
-            
+
             {/* Filter buttons - cùng hàng trên desktop, xuống dòng trên mobile */}
             <div className="grid grid-cols-3 gap-2 sm:flex sm:gap-2">
               <Button
@@ -480,7 +483,7 @@ export const SupplyList: React.FC = () => {
               {searchQuery ? 'Không tìm thấy vật tư' : 'Chưa có vật tư nào'}
             </h3>
             <p className="text-gray-600 mb-4">
-              {searchQuery 
+              {searchQuery
                 ? 'Thử thay đổi từ khóa tìm kiếm của bạn'
                 : 'Bắt đầu thêm vật tư đầu tiên vào kho'
               }
@@ -529,7 +532,7 @@ export const SupplyList: React.FC = () => {
                     {paginatedSupplies.map((supply) => {
                       const stockStatus = getStockStatus(supply.QuantityInStock);
                       const expiryStatus = getExpiryStatus(supply.ExpiryDate);
-                      
+
                       return (
                         <tr key={supply.SupplyID} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -551,11 +554,13 @@ export const SupplyList: React.FC = () => {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <span className="text-sm text-gray-900 mr-2">
-                                {formatDate(supply.ExpiryDate)}
+                                {supply.ExpiryDate ? formatDate(supply.ExpiryDate) : ''}
                               </span>
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${expiryStatus.color}`}>
-                                {expiryStatus.text}
-                              </span>
+                              {supply.ExpiryDate && (
+                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${expiryStatus.color}`}>
+                                  {expiryStatus.text}
+                                </span>
+                              )}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -630,7 +635,7 @@ export const SupplyList: React.FC = () => {
             {paginatedSupplies.map((supply) => {
               const stockStatus = getStockStatus(supply.QuantityInStock);
               const expiryStatus = getExpiryStatus(supply.ExpiryDate);
-              
+
               return (
                 <Card key={supply.SupplyID} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-3 sm:p-4">
@@ -705,7 +710,7 @@ export const SupplyList: React.FC = () => {
                             </span>
                           </div>
                         </div>
-                        
+
                         <div>
                           <span className="text-gray-600">Giá:</span>
                           <div className="font-medium text-gray-900 mt-1 truncate">
@@ -719,11 +724,13 @@ export const SupplyList: React.FC = () => {
                         <span className="text-gray-600 text-sm">Hạn sử dụng:</span>
                         <div className="flex items-center mt-1 gap-2">
                           <span className="text-sm text-gray-900">
-                            {formatDate(supply.ExpiryDate)}
+                            {supply.ExpiryDate ? formatDate(supply.ExpiryDate) : ''}
                           </span>
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${expiryStatus.color}`}>
-                            {expiryStatus.text}
-                          </span>
+                          {supply.ExpiryDate && (
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${expiryStatus.color}`}>
+                              {expiryStatus.text}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -756,9 +763,8 @@ export const SupplyList: React.FC = () => {
         title={confirmModal.action === 'delete' ? 'Xóa vật tư' : 'Khôi phục vật tư'}
         message={
           confirmModal.supply
-            ? `Bạn có chắc chắn muốn ${
-                confirmModal.action === 'delete' ? 'xóa' : 'khôi phục'
-              } vật tư "${confirmModal.supply.Name}"?`
+            ? `Bạn có chắc chắn muốn ${confirmModal.action === 'delete' ? 'xóa' : 'khôi phục'
+            } vật tư "${confirmModal.supply.Name}"?`
             : ''
         }
         confirmText={confirmModal.action === 'delete' ? 'Xóa' : 'Khôi phục'}
