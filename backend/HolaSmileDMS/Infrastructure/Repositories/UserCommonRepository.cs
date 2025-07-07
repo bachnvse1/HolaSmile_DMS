@@ -286,7 +286,7 @@ namespace HDMS_API.Infrastructure.Repositories
                 PhoneNumber = u.Phone,
                 Role = "Patient",
                 CreatedAt = u.CreatedAt,
-                Status = u.Status 
+                Status = u.Status
             });
 
             var receptionistUsers = _context.Users
@@ -371,7 +371,7 @@ namespace HDMS_API.Infrastructure.Repositories
             }
             return await _context.SaveChangesAsync() > 0;
         }
-    public async Task<bool> UpdateUserStatusAsync(int userId)
+        public async Task<bool> UpdateUserStatusAsync(int userId)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId);
             if (user == null)

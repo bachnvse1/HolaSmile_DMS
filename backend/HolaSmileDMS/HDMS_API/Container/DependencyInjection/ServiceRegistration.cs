@@ -56,6 +56,8 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IInvoiceRepository, InvoiceRepository>();
             services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
             services.AddScoped<IInstructionRepository, InstructionRepository>();
+            services.AddScoped<IPrescriptionTemplateRepository, PrescriptionTemplateRepository>();
+
 
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>
@@ -84,8 +86,6 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddAutoMapper(typeof(MappingCreatePatient));
             services.AddAutoMapper(typeof(MappingAppointment));
             services.AddAutoMapper(typeof(MappingTreatmentProgress).Assembly);
-            services.AddAutoMapper(typeof(OrthodonticTreatmentPlanProfile).Assembly);
-
 
             // Caching
             services.AddMemoryCache();
