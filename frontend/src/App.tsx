@@ -31,6 +31,7 @@ import { InventoryPage } from './pages/supply/InventoryPage';
 import { CreateSupplyPage } from './pages/supply/CreateSupplyPage';
 import { EditSupplyPage } from './pages/supply/EditSupplyPage';
 import { SupplyDetailPage } from './pages/supply/SupplyDetailPage';
+import UserManagement from './pages/auth/UserManagement';
 function App() {
   return (
     <>
@@ -69,6 +70,7 @@ function App() {
         <Route path="/inventory/create" element={<CreateSupplyPage />} />
         <Route path="/inventory/:supplyId" element={<SupplyDetailPage />} />
         <Route path="/inventory/:supplyId/edit" element={<EditSupplyPage />} />
+        <Route path="/administrator/user-list" element={<UserManagement/>}/>
       </Routes>
     </>
   );

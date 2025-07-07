@@ -22,7 +22,7 @@ namespace Application.Usecases.Assistant.DeleteAndUndeleteSupply
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
             if (!string.Equals(currentUserRole, "assistant", StringComparison.OrdinalIgnoreCase))
             {
-                throw new UnauthorizedAccessException("Bạn không có quyền truy cập chức năng này");
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             }
             var existingSupply = await _supplyRepository.GetSupplyBySupplyIdAsync(request.SupplyId);
             if (existingSupply == null)
