@@ -96,20 +96,17 @@ public sealed class ViewDentalExamSheetHandler :
                 UnitPrice     = rec.UnitPrice,
                 Discount      = rec.DiscountAmount ?? 0,
                 TotalAmount   = rec.TotalAmount,
-                WarrantyTerm  = warranty?.Term
+                WarrantyTerm  = warranty?.Duration
             });
 
             // prescriptions
-            var pres = await _prescriptionRepo.GetByTreatmentRecordIdAsync(rec.TreatmentRecordID, ct);
+            var pres = await _prescriptionRepo.GetByTreatmentRecordIdAsync(appt.AppointmentId, ct) ?? new List<Prescription>();
             foreach (var p in pres.Where(x => !string.IsNullOrWhiteSpace(x.Content)))
                 prescriptionSet.Add(p.Content);
 
-            var instr = await _instructionRepo.GetByTreatmentRecordIdAsync(rec.TreatmentRecordID, ct);
-            foreach (var i in instr)
-            {
-                if (!string.IsNullOrWhiteSpace(i.Content))
-                    instructionSet.Add(i.Content);
-            }
+            var instr = await _instructionRepo.GetByTreatmentRecordIdAsync(appt.AppointmentId, ct) ?? new List<Instruction>();
+            foreach (var i in instr.Where(x => !string.IsNullOrWhiteSpace(x.Content)))
+                instructionSet.Add(i.Content);
 
             // payments
             var invs = await _invoiceRepo.GetByTreatmentRecordIdAsync(rec.TreatmentRecordID, ct);
@@ -136,4 +133,3 @@ public sealed class ViewDentalExamSheetHandler :
         return sheet;
     }
 }
-

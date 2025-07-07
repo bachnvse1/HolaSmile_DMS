@@ -2,6 +2,8 @@
 using Application.Interfaces;
 using Application.Services;
 using Application.Usecases.SendNotification;
+using DinkToPdf;
+using DinkToPdf.Contracts;
 using HDMS_API.Application.Common.Mappings;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
@@ -56,6 +58,9 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IInvoiceRepository, InvoiceRepository>();
             services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
             services.AddScoped<IInstructionRepository, InstructionRepository>();
+            services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
+            services.AddScoped<IPdfGenerator, PdfGenerator>();
+            services.AddScoped<IDentalExamSheetPrinter, DentalExamSheetPrinter>();
             services.AddScoped<IPrescriptionTemplateRepository, PrescriptionTemplateRepository>();
 
 
@@ -86,6 +91,8 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddAutoMapper(typeof(MappingCreatePatient));
             services.AddAutoMapper(typeof(MappingAppointment));
             services.AddAutoMapper(typeof(MappingTreatmentProgress).Assembly);
+            services.AddAutoMapper(typeof(OrthodonticTreatmentPlanProfile).Assembly);
+
 
             // Caching
             services.AddMemoryCache();

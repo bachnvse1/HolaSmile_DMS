@@ -165,7 +165,7 @@ public class ViewDentalExamSheetHandlerTests
 
         _recordRepo.Setup(x => x.GetTreatmentRecordsByAppointmentIdAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<TreatmentRecord> {
-                new() { TreatmentRecordID = 100, ProcedureID = 2, DentistID = 5, Quantity = 1, UnitPrice = 500, DiscountAmount = 50, TotalAmount = 500, TreatmentDate = DateTime.Today }
+                new() { TreatmentRecordID = 100, AppointmentID = appt.AppointmentId, ProcedureID = 2, DentistID = 5, Quantity = 1, UnitPrice = 500, DiscountAmount = 50, TotalAmount = 500, TreatmentDate = DateTime.Today }
             });
 
         _procedureRepo.Setup(x => x.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(new Procedure { ProcedureName = "Tẩy trắng" });
@@ -177,12 +177,12 @@ public class ViewDentalExamSheetHandlerTests
                 new() { PaidAmount = 450, PaymentDate = DateTime.Today }
             });
 
-        _prescriptionRepo.Setup(x => x.GetByTreatmentRecordIdAsync(100, It.IsAny<CancellationToken>()))
+        _prescriptionRepo.Setup(x => x.GetByTreatmentRecordIdAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Prescription> {
                 new() { Content = "Paracetamol" }
             });
 
-        _instructionRepo.Setup(x => x.GetByTreatmentRecordIdAsync(100, It.IsAny<CancellationToken>()))
+        _instructionRepo.Setup(x => x.GetByTreatmentRecordIdAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Instruction> {
                 new() { Content = "Uống nước nhiều" }
             });
@@ -243,12 +243,12 @@ public async System.Threading.Tasks.Task Should_Return_Correct_Followup_Informat
             new() { PaidAmount = 500, PaymentDate = DateTime.Today }
         });
 
-    _prescriptionRepo.Setup(x => x.GetByTreatmentRecordIdAsync(100, It.IsAny<CancellationToken>()))
+    _prescriptionRepo.Setup(x => x.GetByTreatmentRecordIdAsync(appointmentId, It.IsAny<CancellationToken>()))
         .ReturnsAsync(new List<Prescription> {
             new() { Content = "Thuốc A" }
         });
 
-    _instructionRepo.Setup(x => x.GetByTreatmentRecordIdAsync(100, It.IsAny<CancellationToken>()))
+    _instructionRepo.Setup(x => x.GetByTreatmentRecordIdAsync(appointmentId, It.IsAny<CancellationToken>()))
         .ReturnsAsync(new List<Instruction> {
             new() { Content = "Hướng dẫn A" }
         });

@@ -1,4 +1,5 @@
-﻿using Application.Constants;
+﻿/*
+using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Assistant.CreateWarrantyCard;
 using Application.Usecases.SendNotification;
@@ -127,3 +128,4 @@ namespace Application.Usecases.Assistant.CreateWarrantyCard
         }
     }
 }
+*/

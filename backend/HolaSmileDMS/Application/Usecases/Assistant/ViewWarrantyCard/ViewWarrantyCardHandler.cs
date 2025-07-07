@@ -1,4 +1,5 @@
-﻿using Application.Constants;
+﻿/*
+using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Assistant.ViewListWarrantyCards;
 using MediatR;
@@ -46,3 +47,4 @@ public class ViewListWarrantyCardsHandler : IRequestHandler<ViewListWarrantyCard
     }
 
 }
+*/
