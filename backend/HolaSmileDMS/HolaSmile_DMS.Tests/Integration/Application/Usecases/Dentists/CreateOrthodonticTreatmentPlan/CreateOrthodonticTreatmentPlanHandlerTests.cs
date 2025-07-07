@@ -10,7 +10,7 @@ using AutoMapper;
 using FluentAssertions;
 using MediatR;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentist;
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists;
 
 public class CreateOrthodonticTreatmentPlanHandlerTests
 {
