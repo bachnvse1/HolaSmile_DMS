@@ -25,4 +25,15 @@ public class TreatmentProgressRepository : ITreatmentProgressRepository
         _context.TreatmentProgresses.Add(progress);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<TreatmentProgress?> GetByIdAsync(int id, CancellationToken cancellationToken)
+    {
+        return await _context.TreatmentProgresses.FindAsync(new object[] { id }, cancellationToken);
+    }
+
+    public async Task<bool> UpdateAsync(TreatmentProgress progress, CancellationToken cancellationToken)
+    {
+        _context.TreatmentProgresses.Update(progress);
+        return await _context.SaveChangesAsync(cancellationToken) > 0;
+    }
 }

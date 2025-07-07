@@ -1,20 +1,24 @@
 import React from 'react';
-import { CheckCircle } from 'lucide-react';
-import type { Dentist, TimeSlot } from '../../types/appointment';
+import { CheckCircle, Clock } from 'lucide-react';
+import type { Dentist } from '../../types/appointment';
 
 interface SelectedAppointmentInfoProps {
   selectedDentist: Dentist;
   selectedDate: string;
   selectedTimeSlot: string;
-  timeSlotsWithIcons: TimeSlot[];
 }
+const timeSlotsWithIcons = [
+  { label: 'Ca Sáng', period: 'morning', timeRange: '8:00 - 11:00', icon: <Clock className="h-4 w-4" /> },
+  { label: 'Ca Chiều', period: 'afternoon', timeRange: '14:00 - 17:00', icon: <Clock className="h-4 w-4" /> },
+  { label: 'Ca Tối', period: 'evening', timeRange: '17:00 - 20:00', icon: <Clock className="h-4 w-4" /> },
+] as const;
 
 export const SelectedAppointmentInfo: React.FC<SelectedAppointmentInfoProps> = ({
   selectedDentist,
   selectedDate,
   selectedTimeSlot,
-  timeSlotsWithIcons,
 }) => {
+  const slot = timeSlotsWithIcons.find(slot => slot.period === selectedTimeSlot);
   return (
     <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-200">
       <h4 className="font-bold text-blue-900 mb-4 flex items-center">
@@ -33,8 +37,7 @@ export const SelectedAppointmentInfo: React.FC<SelectedAppointmentInfoProps> = (
         <div className="bg-white rounded-xl p-4 border border-blue-100">
           <span className="text-sm font-medium text-gray-600">Ca làm việc:</span>
           <p className="font-semibold text-gray-900">
-            {timeSlotsWithIcons.find(slot => slot.period === selectedTimeSlot)?.label}
-            ({timeSlotsWithIcons.find(slot => slot.period === selectedTimeSlot)?.timeRange})
+            {slot ? `${slot.label} (${slot.timeRange})` : <span className="text-gray-400">Chưa chọn</span>}
           </p>
         </div>
       </div>

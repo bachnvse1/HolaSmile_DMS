@@ -29,31 +29,6 @@ namespace HDMS_API.Infrastructure.Repositories
         }
         public async Task<User> CreatePatientAccountAsync(CreatePatientDto dto, string password)
         {
-            if (await _context.Users.AnyAsync(u => u.Phone == dto.PhoneNumber))
-            {
-                throw new Exception(MessageConstants.MSG.MSG23); // "Số điện thoại đã được sử dụng"
-            }
-
-            if (dto.FullName.IsNullOrEmpty())
-            {
-                throw new Exception(MessageConstants.MSG.MSG07); // "Vui lòng nhập thông tin bắt buộc"
-            }
-            if (!FormatHelper.FormatPhoneNumber(dto.PhoneNumber))
-            {
-                throw new Exception(MessageConstants.MSG.MSG56); // "Số điện thoại không đúng định dạng"
-            }
-            if (await _context.Users.AnyAsync(u => u.Phone == dto.PhoneNumber))
-            {
-                throw new Exception(MessageConstants.MSG.MSG23); // "Sdt đã tồn tại"
-            }
-            if (!FormatHelper.IsValidEmail(dto.Email))
-            {
-                throw new Exception(MessageConstants.MSG.MSG08); // "Định dạng email không hợp lệ"
-            }
-            if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
-            {
-                throw new Exception(MessageConstants.MSG.MSG22); // "Email đã tồn tại"
-            }
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
 
             var user = new User
@@ -190,17 +165,13 @@ namespace HDMS_API.Infrastructure.Repositories
             return user;
         }
 
-        public Task<User?> GetByEmailAsync(string email)
-        {
-            throw new NotImplementedException();
-        }
         public async Task<bool> EditProfileAsync(User user, CancellationToken cancellationToken)
         {
             _context.Users.Update(user);
             await _context.SaveChangesAsync(cancellationToken);
             return true;
         }
-        public async Task<User?> GetByIdAsync(int userId, CancellationToken cancellationToken)
+        public async Task<User?> GetByIdAsync(int? userId, CancellationToken cancellationToken)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId, cancellationToken);
         }
@@ -233,9 +204,7 @@ namespace HDMS_API.Infrastructure.Repositories
                 })
                 .FirstOrDefaultAsync(cancellationToken);
         }
-        public async Task<UserRoleResult?> GetUserRoleAsync(
-            string username,
-            CancellationToken cancellationToken)
+        public async Task<UserRoleResult?> GetUserRoleAsync(string username, CancellationToken cancellationToken)
         {
             var user = await GetByUsernameAsync(username, cancellationToken);
             if (user == null) return null;
@@ -414,5 +383,44 @@ namespace HDMS_API.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return true;
         }
+        
+        public async Task<int?> GetUserIdByRoleTableIdAsync(string role, int id)
+        {
+            return role.ToLower() switch
+            {
+                "patient" => await _context.Patients
+                    .Where(p => p.PatientID == id)
+                    .Select(p => (int?)p.UserID)
+                    .FirstOrDefaultAsync(),
+
+                "dentist" => await _context.Dentists
+                    .Where(d => d.DentistId == id)
+                    .Select(d => (int?)d.UserId)
+                    .FirstOrDefaultAsync(),
+
+                "assistant" => await _context.Assistants
+                    .Where(a => a.AssistantId == id)
+                    .Select(a => (int?)a.UserId)
+                    .FirstOrDefaultAsync(),
+
+                "receptionist" => await _context.Receptionists
+                    .Where(r => r.ReceptionistId == id)
+                    .Select(r => (int?)r.UserId)
+                    .FirstOrDefaultAsync(),
+
+                "owner" => await _context.Owners
+                    .Where(o => o.OwnerId == id)
+                    .Select(o => (int?)o.UserId)
+                    .FirstOrDefaultAsync(),
+
+                "administrator" => await _context.Administrators
+                    .Where(ad => ad.AdministratorId == id)
+                    .Select(ad => (int?)ad.UserId)
+                    .FirstOrDefaultAsync(),
+
+                _ => null
+            };
+        }
+
     }
 }
