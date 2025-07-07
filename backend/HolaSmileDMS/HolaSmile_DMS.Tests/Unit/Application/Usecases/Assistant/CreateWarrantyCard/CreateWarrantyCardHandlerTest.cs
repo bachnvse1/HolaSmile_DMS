@@ -12,7 +12,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
 {
     public class CreateWarrantyCardHandlerTests
     {
-        private readonly Mock<IWarrantyRepository> _warrantyRepoMock = new();
+        private readonly Mock<IWarrantyCardRepository> _warrantyRepoMock = new();
         private readonly Mock<IProcedureRepository> _procedureRepoMock = new();
         private readonly Mock<ITreatmentRecordRepository> _treatmentRecordRepoMock = new();
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new();

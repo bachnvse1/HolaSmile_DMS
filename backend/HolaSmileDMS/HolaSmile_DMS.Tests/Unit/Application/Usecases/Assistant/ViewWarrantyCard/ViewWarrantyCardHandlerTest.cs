@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
+using Application.Interfaces;
 using Application.Usecases.Assistant.ViewListWarrantyCards;
 using Microsoft.AspNetCore.Http;
 using Moq;
@@ -9,13 +10,13 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
 {
     public class ViewWarrantyCardHandlerTests
     {
-        private readonly Mock<IWarrantyRepository> _repositoryMock;
+        private readonly Mock<IWarrantyCardRepository> _repositoryMock;
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private readonly ViewListWarrantyCardsHandler _handler;
 
         public ViewWarrantyCardHandlerTests()
         {
-            _repositoryMock = new Mock<IWarrantyRepository>();
+            _repositoryMock = new Mock<IWarrantyCardRepository>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
 
             _handler = new ViewListWarrantyCardsHandler(

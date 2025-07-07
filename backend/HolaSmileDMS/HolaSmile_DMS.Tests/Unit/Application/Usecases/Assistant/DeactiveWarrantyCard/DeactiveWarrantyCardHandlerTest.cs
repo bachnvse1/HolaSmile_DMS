@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
+using Application.Interfaces;
 using Application.Usecases.Assistant.DeactiveWarrantyCard;
 using Microsoft.AspNetCore.Http;
 using Moq;
@@ -9,7 +10,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
 {
     public class DeactiveWarrantyCardHandlerTests
     {
-        private readonly Mock<IWarrantyRepository> _warrantyRepoMock = new();
+        private readonly Mock<IWarrantyCardRepository> _warrantyRepoMock = new();
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new();
         private readonly DeactiveWarrantyCardHandler _handler;
 

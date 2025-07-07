@@ -11,7 +11,7 @@ namespace Application.Usecases.Assistant.CreateWarrantyCard
 {
     public class CreateWarrantyCardHandler : IRequestHandler<CreateWarrantyCardCommand, CreateWarrantyCardDto>
     {
-        private readonly IWarrantyRepository _warrantyRepository;
+        private readonly IWarrantyCardRepository _warrantyRepository;
         private readonly IProcedureRepository _procedureRepository;
         private readonly ITreatmentRecordRepository _treatmentRecordRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -19,7 +19,7 @@ namespace Application.Usecases.Assistant.CreateWarrantyCard
         private readonly IMediator _mediator;
 
         public CreateWarrantyCardHandler(
-            IWarrantyRepository warrantyRepository,
+            IWarrantyCardRepository warrantyRepository,
             IProcedureRepository procedureRepository,
             ITreatmentRecordRepository treatmentRecordRepository,
             IHttpContextAccessor httpContextAccessor,

@@ -1,14 +1,15 @@
 ﻿using Application.Constants;
+using Application.Interfaces;
 using Application.Usecases.Assistant.ViewListWarrantyCards;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
 public class ViewListWarrantyCardsHandler : IRequestHandler<ViewListWarrantyCardsCommand, List<ViewWarrantyCardDto>>
 {
-    private readonly IWarrantyRepository _repository;
+    private readonly IWarrantyCardRepository _repository;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public ViewListWarrantyCardsHandler(IWarrantyRepository repository, IHttpContextAccessor httpContextAccessor)
+    public ViewListWarrantyCardsHandler(IWarrantyCardRepository repository, IHttpContextAccessor httpContextAccessor)
     {
         _repository = repository;
         _httpContextAccessor = httpContextAccessor;

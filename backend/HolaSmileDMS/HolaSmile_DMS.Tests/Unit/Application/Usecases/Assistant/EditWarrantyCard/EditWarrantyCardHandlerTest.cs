@@ -11,7 +11,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
 {
     public class EditWarrantyCardHandlerTests
     {
-        private readonly Mock<IWarrantyRepository> _warrantyRepoMock = new();
+        private readonly Mock<IWarrantyCardRepository> _warrantyRepoMock = new();
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new();
         private readonly EditWarrantyCardHandler _handler;
 

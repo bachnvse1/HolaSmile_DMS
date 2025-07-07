@@ -9,11 +9,11 @@ namespace Application.Usecases.Assistant.EditWarrantyCard
 {
     public class EditWarrantyCardHandler : IRequestHandler<EditWarrantyCardCommand, string>
     {
-        private readonly IWarrantyRepository _warrantyRepository;
+        private readonly IWarrantyCardRepository _warrantyRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public EditWarrantyCardHandler(
-            IWarrantyRepository warrantyRepository,
+            IWarrantyCardRepository warrantyRepository,
             IHttpContextAccessor httpContextAccessor)
         {
             _warrantyRepository = warrantyRepository;

@@ -8,11 +8,11 @@ namespace Application.Usecases.Assistant.DeactiveWarrantyCard
 {
     public class DeactiveWarrantyCardHandler : IRequestHandler<DeactiveWarrantyCardCommand, string>
     {
-        private readonly IWarrantyRepository _warrantyRepository;
+        private readonly IWarrantyCardRepository _warrantyRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public DeactiveWarrantyCardHandler(
-            IWarrantyRepository warrantyRepository,
+            IWarrantyCardRepository warrantyRepository,
             IHttpContextAccessor httpContextAccessor)
         {
             _warrantyRepository = warrantyRepository;
