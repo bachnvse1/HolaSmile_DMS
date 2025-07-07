@@ -36,4 +36,9 @@ public class ProcedureRepository : IProcedureRepository
         _context.Procedures.Update(procedure);
         return await _context.SaveChangesAsync() > 0;
     }
+
+    public Task<Procedure?> GetByIdAsync(int id, CancellationToken ct = default)
+    {
+        return _context.Procedures.FirstOrDefaultAsync(x=> x.ProcedureId == id, ct);
+    }
 }
