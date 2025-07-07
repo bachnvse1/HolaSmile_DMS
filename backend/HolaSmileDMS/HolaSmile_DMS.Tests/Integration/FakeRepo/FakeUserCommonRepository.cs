@@ -116,4 +116,24 @@ public class FakeUserCommonRepository : IUserCommonRepository
     {
         throw new NotImplementedException();
     }
+
+    public Task<User?> GetByIdAsync(int? userId, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<List<ViewListUserDTO>> GetAllUserAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> CreateUserAsync(User user, string role)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> UpdateUserStatusAsync(int userId)
+    {
+        throw new NotImplementedException();
+    }
 }
