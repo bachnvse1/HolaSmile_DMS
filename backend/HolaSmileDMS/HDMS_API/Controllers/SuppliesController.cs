@@ -113,6 +113,7 @@ namespace HDMS_API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("excel-template")]
         public async Task<IActionResult> DownloadTemplate()
         {
@@ -147,6 +148,7 @@ namespace HDMS_API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("import-excel")]
         public async Task<IActionResult> ImportSupply([FromForm] ImportSupplyFromExcelCommand command)
         {
@@ -181,6 +183,7 @@ namespace HDMS_API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("export-excel")]
         public async Task<IActionResult> ExportSupply()
         {

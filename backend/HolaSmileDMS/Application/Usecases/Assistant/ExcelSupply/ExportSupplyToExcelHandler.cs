@@ -21,14 +21,14 @@ namespace Application.Usecases.Assistant.ExcelSupply
 
         public async Task<byte[]> Handle(ExportSupplyToExcelCommand request, CancellationToken cancellationToken)
         {
-            //var user = _httpContextAccessor.HttpContext?.User;
-            //var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            //var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
+            var user = _httpContextAccessor.HttpContext?.User;
+            var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-            //if (currentUserId == 0 || !string.Equals(currentUserRole, "assistant", StringComparison.OrdinalIgnoreCase))
-            //{
-            //    throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Bạn không có quyền truy cập chức năng này
-            //}
+            if (currentUserId == 0 || !string.Equals(currentUserRole, "assistant", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Bạn không có quyền truy cập chức năng này
+            }
 
             // Load data
             var supplies = await _supplyRepository.GetAllSuppliesAsync(); // giả sử có hàm này
