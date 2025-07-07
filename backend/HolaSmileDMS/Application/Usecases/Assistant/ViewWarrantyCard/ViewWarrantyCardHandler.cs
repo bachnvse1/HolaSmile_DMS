@@ -1,5 +1,4 @@
-﻿/*
-using Application.Constants;
+﻿using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Assistant.ViewListWarrantyCards;
 using MediatR;
@@ -31,20 +30,18 @@ public class ViewListWarrantyCardsHandler : IRequestHandler<ViewListWarrantyCard
 
         return cards.Select(card =>
         {
-            var procedure = card.Procedures.FirstOrDefault();
+            var procedure = card.TreatmentRecord?.Procedure;
 
             return new ViewWarrantyCardDto
             {
                 WarrantyCardId = card.WarrantyCardID,
                 StartDate = card.StartDate,
                 EndDate = card.EndDate,
-                Term = card.Term,
+                Duration = card.Duration, // <-- gán trực tiếp
                 Status = card.Status,
                 ProcedureId = procedure?.ProcedureId,
                 ProcedureName = procedure?.ProcedureName ?? "Không xác định"
             };
         }).ToList();
     }
-
 }
-*/

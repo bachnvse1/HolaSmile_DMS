@@ -1,7 +1,5 @@
-﻿/*
-using Application.Constants;
+﻿using Application.Constants;
 using Application.Interfaces;
-using HDMS_API.Application.Common.Helpers;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
@@ -37,18 +35,12 @@ namespace Application.Usecases.Assistant.EditWarrantyCard
             if (card == null)
                 throw new KeyNotFoundException(MessageConstants.MSG.MSG102);
 
-            DateTime newEndDate;
-            try
-            {
-                newEndDate = FormatHelper.ParseEndDateFromTerm(card.StartDate, request.Term);
-            }
-            catch
-            {
-                throw new FormatException(MessageConstants.MSG.MSG98);
-            }
+            // Validate Duration (thay vì Term)
+            if (!request.Duration.HasValue || request.Duration <= 0)
+                throw new FormatException(MessageConstants.MSG.MSG98); // "Định dạng kỳ hạn không hợp lệ"
 
-            card.Term = request.Term;
-            card.EndDate = newEndDate;
+            card.Duration = request.Duration;
+            card.EndDate = card.StartDate.AddMonths(request.Duration.Value); // Tính lại ngày kết thúc
             card.Status = request.Status;
             card.UpdatedAt = DateTime.Now;
             card.UpdatedBy = int.TryParse(userId, out var uid) ? uid : null;
@@ -59,4 +51,3 @@ namespace Application.Usecases.Assistant.EditWarrantyCard
         }
     }
 }
-*/
