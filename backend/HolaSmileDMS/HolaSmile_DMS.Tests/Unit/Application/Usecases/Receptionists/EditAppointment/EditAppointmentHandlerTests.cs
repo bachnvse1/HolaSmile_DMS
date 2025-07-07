@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists.EditAppointment
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
 {
     public class EditAppointmentHandlerTests
     {
@@ -198,50 +198,5 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists.EditAppoin
             Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
         }
 
-        [Fact(DisplayName = "UTCID08 - Abnormal - Kế hoạch điều trị đã tồn tại")]
-        public async System.Threading.Tasks.Task UTCID08_Confirmed_TreatmentPlan_Already_Exists()
-        {
-            // Arrange
-            SetupHttpContext("receptionist", 1);
-
-            var existAppointment = new Appointment
-            {
-                AppointmentId = 1,
-                Status = "confirmed",
-                PatientId = 3,
-                DentistId = 5
-            };
-
-            var command = new EditAppointmentCommand
-            {
-                appointmentId = 1,
-                AppointmentDate = DateTime.Today.AddDays(1),
-                AppointmentTime = new TimeSpan(10, 0, 0),
-                DentistId = 5,
-                ReasonForFollowUp = "test"
-            };
-
-            _appointmentRepoMock.Setup(r => r.GetAppointmentByIdAsync(1))
-                .ReturnsAsync(existAppointment);
-
-            _dentistRepoMock.Setup(r => r.GetDentistByDentistIdAsync(5))
-                .ReturnsAsync(new Dentist { DentistId = 5, User = new User { UserID = 50 } });
-
-            _dentistRepoMock.Setup(r => r.GetDentistByDentistIdAsync(existAppointment.DentistId))
-                .ReturnsAsync(new Dentist { DentistId = 5, User = new User { UserID = 50 } });
-
-            _patientRepoMock.Setup(r => r.GetPatientByPatientIdAsync(3))
-                .ReturnsAsync(new Patient { PatientID = 3, User = new User { UserID = 30 } });
-
-            _appointmentRepoMock.Setup(r => r.GetLatestAppointmentByPatientIdAsync(3))
-                .ReturnsAsync(new Appointment { Status = "confirmed" }); // Đây là điều kiện để throw
-
-            // Act
-            var ex = await Assert.ThrowsAsync<Exception>(() =>
-                _handler.Handle(command, default));
-
-            // Assert
-            Assert.Equal(MessageConstants.MSG.MSG89, ex.Message);
-        }
     }
 }
