@@ -127,7 +127,25 @@ export const useDownloadExcelSupplies = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `supplies_${new Date().toISOString().split('T')[0]}.xlsx`;
+      link.download = `supplies_template_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    },
+  });
+};
+
+// Hook for exporting current supplies to Excel
+export const useExportSupplies = () => {
+  return useMutation({
+    mutationFn: () => supplyApi.exportExcel(),
+    onSuccess: (blob: Blob) => {
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `supplies_export_${new Date().toISOString().split('T')[0]}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

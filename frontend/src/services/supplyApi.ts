@@ -53,11 +53,23 @@ export const supplyApi = {
     await axiosInstance.put(`/supplies/DeleteandUndeleteSupply/${supplyId}`);
   },
 
-  // Export supplies to Excel
+  // Export Excel - POST method
+  exportExcel: async (): Promise<Blob> => {
+    const response = await axiosInstance.post(
+      "/supplies/export-excel",
+      {},
+      {
+        responseType: "blob",
+      }
+    );
+    return response.data;
+  },
+
+  // Download Excel template
   downloadExcelTemplate: async (): Promise<Blob> => {
     const response = await axiosInstance.post(
       "/supplies/excel-template",
-      {}, 
+      {},
       { responseType: "blob" }
     );
     return response.data;

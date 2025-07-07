@@ -26,6 +26,7 @@ import {
   useDeactivateSupply, 
   useSupplyStats, 
   useDownloadExcelSupplies, 
+  useExportSupplies,
   useImportSupplies 
 } from '@/hooks/useSupplies';
 import { useUserInfo } from '@/hooks/useUserInfo';
@@ -58,6 +59,7 @@ export const SupplyList: React.FC = () => {
   const { data: stats, isLoading: isLoadingStats } = useSupplyStats();
   const { mutate: deactivateSupply, isPending: isDeactivating } = useDeactivateSupply();
   const { mutate: downloadExcel, isPending: isDownloadExcel } = useDownloadExcelSupplies();
+  const { mutate: exportExcel, isPending: isExportExcel } = useExportSupplies();
   const { mutate: importExcel, isPending: isImporting } = useImportSupplies();
 
   // Filter supplies based on selected filter
@@ -103,6 +105,17 @@ export const SupplyList: React.FC = () => {
     downloadExcel(undefined, {
       onSuccess: () => {
         toast.success('Đã tải mẫu excel thành công');
+      },
+      onError: () => {
+        toast.error('Có lỗi xảy ra khi xuất file Excel');
+      }
+    });
+  };
+
+  const handleExportExcel = () => {
+    exportExcel(undefined, {
+      onSuccess: () => {
+        toast.success('Đã xuất Excel thành công');
       },
       onError: () => {
         toast.error('Có lỗi xảy ra khi xuất file Excel');
@@ -253,47 +266,105 @@ export const SupplyList: React.FC = () => {
         </div>
         
         {/* Action buttons */}
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:ml-auto">
-          <Button
-            variant="outline"
-            onClick={handleDownloadTemplate}
-            disabled={isDownloadExcel}
-            className="w-full sm:w-auto"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            {isDownloadExcel ? 'Đang tải...' : 'Tải Mẫu Excel'}
-          </Button>
+        <div className="flex flex-col gap-2 sm:gap-3 sm:ml-auto">
+          {/* Mobile layout: 2 rows */}
+          <div className="grid grid-cols-2 gap-2 sm:hidden">
+            <Button
+              variant="outline"
+              onClick={handleDownloadTemplate}
+              disabled={isDownloadExcel}
+              className="text-xs"
+            >
+              <Download className="h-3 w-3 mr-1" />
+              <span>Mẫu Excel</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={handleExportExcel}
+              disabled={isExportExcel}
+              className="text-xs"
+            >
+              <Download className="h-3 w-3 mr-1" />
+              <span>Xuất Excel</span>
+            </Button>
+          </div>
           
           {canModify && (
-            <>
+            <div className="grid grid-cols-2 gap-2 sm:hidden">
               <Button
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isImporting}
-                className="w-full sm:w-auto"
+                className="text-xs"
               >
-                <Upload className="h-4 w-4 mr-2" />
-                {isImporting ? 'Đang nhập...' : 'Nhập Excel'}
+                <Upload className="h-3 w-3 mr-1" />
+                <span>Nhập Excel</span>
               </Button>
-              
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".xlsx,.xls"
-                onChange={handleImportExcel}
-                className="hidden"
-                title="Import Excel file"
-              />
               
               <Button 
                 onClick={() => navigate('/inventory/create')}
-                className="w-full sm:w-auto"
+                className="text-xs"
               >
-                <Plus className="h-4 w-4 mr-2" />
-                Thêm Vật Tư Mới
+                <Plus className="h-3 w-3 mr-1" />
+                <span>Thêm Mới</span>
               </Button>
-            </>
+            </div>
           )}
+
+          {/* Desktop layout: Single row */}
+          <div className="hidden sm:flex sm:gap-3">
+            <Button
+              variant="outline"
+              onClick={handleDownloadTemplate}
+              disabled={isDownloadExcel}
+              className="text-sm"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              {isDownloadExcel ? 'Đang tải...' : 'Tải Mẫu Excel'}
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={handleExportExcel}
+              disabled={isExportExcel}
+              className="text-sm"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              {isExportExcel ? 'Đang xuất...' : 'Xuất Excel'}
+            </Button>
+
+            {canModify && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isImporting}
+                  className="text-sm"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  {isImporting ? 'Đang nhập...' : 'Nhập Excel'}
+                </Button>
+                
+                <Button 
+                  onClick={() => navigate('/inventory/create')}
+                  className="text-sm"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Thêm Vật Tư Mới
+                </Button>
+              </>
+            )}
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.xls"
+            onChange={handleImportExcel}
+            className="hidden"
+            title="Import Excel file"
+          />
         </div>
       </div>
 
