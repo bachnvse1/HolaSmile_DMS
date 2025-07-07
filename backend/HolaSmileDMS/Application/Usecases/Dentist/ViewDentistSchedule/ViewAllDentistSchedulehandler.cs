@@ -24,8 +24,13 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
             var currentUserRole = user.FindFirst(ClaimTypes.Role)?.Value;
             var currentUserId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
+            if (string.IsNullOrEmpty(currentUserRole) || currentUserId <= 0)
+            {
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53);
+            }
+
             var schedules = new List<Schedule>();
-            if (string.Equals(currentUserRole, "dentist", StringComparison.OrdinalIgnoreCase) || string.Equals(currentUserRole, "owner", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(currentUserRole, "owner", StringComparison.OrdinalIgnoreCase))
             {
                 schedules = await _scheduleRepository.GetAllDentistSchedulesAsync();
             }
@@ -33,6 +38,12 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
             {
                 schedules = await _scheduleRepository.GetAllAvailableDentistSchedulesAsync(3);
             }
+
+            if(schedules == null || !schedules.Any())
+            {
+                throw new Exception(MessageConstants.MSG.MSG28);
+            }
+
             var result = schedules
                          .GroupBy(s => s.DentistId)
                          .Select(g => new DentistScheduleDTO
