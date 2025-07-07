@@ -61,4 +61,11 @@ public class TreatmentRecordRepository : ITreatmentRecordRepository
         await _context.TreatmentRecords.AddAsync(record, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<List<TreatmentRecord>> GetTreatmentRecordsByAppointmentIdAsync(int appointmentId, CancellationToken cancellationToken = default)
+    {
+        return await _context.TreatmentRecords
+            .Where(tr => tr.AppointmentID == appointmentId && !tr.IsDeleted)
+            .ToListAsync(cancellationToken);
+    }
 }

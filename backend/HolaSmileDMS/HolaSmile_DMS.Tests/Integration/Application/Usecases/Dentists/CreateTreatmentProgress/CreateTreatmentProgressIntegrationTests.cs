@@ -16,7 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentist;
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists;
 
 public class CreateTreatmentProgressIntegrationTests
 {
