@@ -2,6 +2,7 @@
 using Application.Usecases.Patients.ViewListPatient;
 using HDMS_API.Infrastructure.Persistence;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HDMS_API.Controllers
@@ -41,6 +42,5 @@ namespace HDMS_API.Controllers
                 return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
             }
         }
-
     }
 }

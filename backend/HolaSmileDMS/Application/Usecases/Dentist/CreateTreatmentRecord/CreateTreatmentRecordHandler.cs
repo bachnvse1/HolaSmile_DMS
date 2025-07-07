@@ -43,28 +43,6 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Không có quyền truy cập
             
             var appointment = await _appointmentRepository.GetAppointmentByIdAsync(request.AppointmentId);
-            // Validate IDs
-            if (request.AppointmentId <= 0)
-                throw new Exception(MessageConstants.MSG.MSG28); // Không tìm thấy lịch hẹn
-            
-            if (request.TreatmentDate == null || request.TreatmentDate == default)
-                throw new Exception(MessageConstants.MSG.MSG83);
-            
-            if (request.TreatmentDate < DateTime.Today || request.TreatmentDate < appointment.AppointmentDate)
-                throw new Exception(MessageConstants.MSG.MSG84); 
-            
-            if (request.DentistId <= 0)
-                throw new Exception(MessageConstants.MSG.MSG42); // Vui lòng chọn bác sĩ trước khi đặt lịch
-
-            if (request.ProcedureId <= 0)
-                throw new Exception(MessageConstants.MSG.MSG16); // Không có dữ liệu phù hợp
-
-            // Validate Quantity and UnitPrice
-            if (request.Quantity <= 0)
-                throw new Exception(MessageConstants.MSG.MSG88); // Số lượng không hợp lệ
-
-            if (request.UnitPrice < 0)
-                throw new Exception(MessageConstants.MSG.MSG82); // Đơn giá không hợp lệ
             if (request.treatmentToday == false)
             {
                 var appointmentTreatment = new Appointment
@@ -105,6 +83,29 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
                     }
                 }
             } else request.TreatmentDate = DateTime.Now; //nếu làm ngay hôm đó thì ngày điều trị chính là tại thời điểm đó
+            
+            // Validate IDs
+            if (request.AppointmentId <= 0)
+                throw new Exception(MessageConstants.MSG.MSG28); // Không tìm thấy lịch hẹn
+            
+            if (request.TreatmentDate == null || request.TreatmentDate == default)
+                throw new Exception(MessageConstants.MSG.MSG83);
+            
+            if (request.TreatmentDate < DateTime.Today)
+                throw new Exception(MessageConstants.MSG.MSG84); 
+            
+            if (request.DentistId <= 0)
+                throw new Exception(MessageConstants.MSG.MSG42); // Vui lòng chọn bác sĩ trước khi đặt lịch
+
+            if (request.ProcedureId <= 0)
+                throw new Exception(MessageConstants.MSG.MSG16); // Không có dữ liệu phù hợp
+
+            // Validate Quantity and UnitPrice
+            if (request.Quantity <= 0)
+                throw new Exception(MessageConstants.MSG.MSG88); // Số lượng không hợp lệ
+
+            if (request.UnitPrice < 0)
+                throw new Exception(MessageConstants.MSG.MSG82); // Đơn giá không hợp lệ
 
             var record = _mapper.Map<TreatmentRecord>(request);
             record.CreatedAt = DateTime.Now;
@@ -131,8 +132,9 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
                     int userIdNotification = patient.UserID ?? 0;
                     if (userIdNotification > 0)
                     {
-                        var message =
-                            $"Mã hồ sơ điều trị: #{record.TreatmentRecordID} của bạn được nha sĩ {fullName} tạo và thực hiện trong hôm nay!";
+                        var message = 
+                            $"Lịch hẹn điều trị mới của bạn là ngày {request.TreatmentDate:dd/MM/yyyy} đã được nha sĩ {fullName} tạo.\n" +
+                            $"Mã hồ sơ điều trị: #{record.TreatmentRecordID}";
                         await _mediator.Send(new SendNotificationCommand(
                             userIdNotification,
                             "Tạo thủ thuật điều trị",

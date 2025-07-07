@@ -1,7 +1,6 @@
 ﻿using Application.Common.Mappings;
 using Application.Interfaces;
 using Application.Services;
-using Application.Usecases.Assistant.CreateWarrantyCard;
 using Application.Usecases.SendNotification;
 using HDMS_API.Application.Common.Mappings;
 using HDMS_API.Application.Interfaces;
@@ -25,10 +24,8 @@ namespace HDMS_API.Container.DependencyInjection
         {
             // DB Context
             var connectionString = configuration.GetConnectionString("DefaultConnection");
-            services.AddDbContext<ApplicationDbContext>(
-                options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)),
-                ServiceLifetime.Scoped
-            );
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
             // Repository & Services
             services.AddScoped<IAppointmentRepository, AppointmentRepository>();
@@ -52,8 +49,7 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IReceptionistRepository, ReceptionistRepository>();
             services.AddScoped<IFileStorageService, FileStorageService>();
             services.AddScoped<ITaskRepository, TaskRepository>();
-            services.AddScoped<IPrescriptionTemplateRepository, PrescriptionTemplateRepository>();
-            services.AddScoped<IWarrantyRepository, WarrantyCardRepository>();
+
 
 
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -77,7 +73,6 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddMediatR(typeof(CreatePatientCommand).Assembly);
             services.AddMediatR(typeof(LoginCommand).Assembly);
             services.AddMediatR(typeof(SendNotificationHandler).Assembly);
-            services.AddMediatR(typeof(CreateWarrantyCardHandler).Assembly);
 
             // AutoMapper
             services.AddAutoMapper(typeof(MappingViewTreatmentRecord));

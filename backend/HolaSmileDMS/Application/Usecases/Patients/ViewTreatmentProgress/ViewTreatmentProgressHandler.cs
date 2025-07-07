@@ -47,6 +47,11 @@ public class ViewTreatmentProgressHandler : IRequestHandler<ViewTreatmentProgres
                 break;
 
             case "Dentist":
+                // Bác sĩ chỉ được xem tiến trình do mình thực hiện
+                if (!progresses.All(p => p.Dentist.UserId == userId))
+                    throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
+                break;
+
             case "Assistant":
             case "Receptionist":
             case "Owner":

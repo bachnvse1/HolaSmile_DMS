@@ -163,14 +163,11 @@ namespace HDMS_API.Migrations
                     b.ToTable("EquipmentMaintenances");
                 });
 
-            modelBuilder.Entity("HDMS_API.Application.Usecases.UserCommon.Login.UserRoleResult", b =>
+            modelBuilder.Entity("HDMS_API.Infrastructure.Repositories.UserRoleResult", b =>
                 {
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("longtext");
-
-                    b.Property<int>("RoleTableId")
-                        .HasColumnType("int");
 
                     b.ToTable("UserRoleResult");
                 });
@@ -628,13 +625,13 @@ namespace HDMS_API.Migrations
                     b.Property<float?>("TechnicianCommissionRate")
                         .HasColumnType("float");
 
+                    b.Property<int?>("TreatmentRecordID")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<int?>("UpdatedBy")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("WarrantyCardId")
                         .HasColumnType("int");
 
                     b.Property<string>("WarrantyPeriod")
@@ -643,7 +640,7 @@ namespace HDMS_API.Migrations
 
                     b.HasKey("ProcedureId");
 
-                    b.HasIndex("WarrantyCardId");
+                    b.HasIndex("TreatmentRecordID");
 
                     b.ToTable("Procedures");
                 });
@@ -1153,6 +1150,9 @@ namespace HDMS_API.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int?>("ProcedureID")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime(6)");
 
@@ -1162,6 +1162,9 @@ namespace HDMS_API.Migrations
                     b.Property<string>("Term")
                         .HasColumnType("longtext");
 
+                    b.Property<int?>("TreatmentRecordID")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -1169,6 +1172,10 @@ namespace HDMS_API.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("WarrantyCardID");
+
+                    b.HasIndex("ProcedureID");
+
+                    b.HasIndex("TreatmentRecordID");
 
                     b.ToTable("WarrantyCards");
                 });
@@ -1358,11 +1365,9 @@ namespace HDMS_API.Migrations
 
             modelBuilder.Entity("Procedure", b =>
                 {
-                    b.HasOne("WarrantyCard", "WarrantyCard")
+                    b.HasOne("TreatmentRecord", null)
                         .WithMany("Procedures")
-                        .HasForeignKey("WarrantyCardId");
-
-                    b.Navigation("WarrantyCard");
+                        .HasForeignKey("TreatmentRecordID");
                 });
 
             modelBuilder.Entity("Receptionist", b =>
@@ -1506,6 +1511,21 @@ namespace HDMS_API.Migrations
                     b.Navigation("Procedure");
                 });
 
+            modelBuilder.Entity("WarrantyCard", b =>
+                {
+                    b.HasOne("Procedure", "Procedure")
+                        .WithMany("WarrantyCards")
+                        .HasForeignKey("ProcedureID");
+
+                    b.HasOne("TreatmentRecord", "TreatmentRecord")
+                        .WithMany()
+                        .HasForeignKey("TreatmentRecordID");
+
+                    b.Navigation("Procedure");
+
+                    b.Navigation("TreatmentRecord");
+                });
+
             modelBuilder.Entity("Appointment", b =>
                 {
                     b.Navigation("TreatmentRecords");
@@ -1562,6 +1582,8 @@ namespace HDMS_API.Migrations
             modelBuilder.Entity("Procedure", b =>
                 {
                     b.Navigation("SuppliesUsed");
+
+                    b.Navigation("WarrantyCards");
                 });
 
             modelBuilder.Entity("Salary", b =>
@@ -1584,12 +1606,9 @@ namespace HDMS_API.Migrations
 
                     b.Navigation("Prescriptions");
 
-                    b.Navigation("TreatmentProgresses");
-                });
-
-            modelBuilder.Entity("WarrantyCard", b =>
-                {
                     b.Navigation("Procedures");
+
+                    b.Navigation("TreatmentProgresses");
                 });
 #pragma warning restore 612, 618
         }

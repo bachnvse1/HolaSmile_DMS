@@ -24,11 +24,11 @@ public class TreatmentRecordsController : ControllerBase
     /// </summary>
     [HttpGet]
     [Authorize]
-    public async Task<IActionResult> GetRecords([FromQuery] int patientId, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetRecords([FromQuery] int userId, CancellationToken cancellationToken)
     {
         try
         {
-            var result = await _mediator.Send(new ViewTreatmentRecordCommand(patientId), cancellationToken);
+            var result = await _mediator.Send(new ViewTreatmentRecordsCommand(userId), cancellationToken);
             return Ok(result);
         }
         catch (KeyNotFoundException)
@@ -116,37 +116,9 @@ public class TreatmentRecordsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> CreateTreatmentRecord([FromBody] CreateTreatmentRecordCommand command)
     {
-        try
-        {
-            var result = await _mediator.Send(command);
-            return Ok(new { success = true, message = result });
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            // Nếu không có quyền
-            return StatusCode(StatusCodes.Status403Forbidden, new
-            {
-                success = false,
-                message = ex.Message
-            });
-        }
-        catch (ArgumentException ex)
-        {
-            // Nếu logic ném ra ArgumentException cho validate
-            return BadRequest(new
-            {
-                success = false,
-                message = ex.Message
-            });
-        }
-        catch (Exception ex)
-        {
-            // Các lỗi còn lại: vẫn trả message cụ thể thay vì để FE hiển thị mặc định
-            return BadRequest(new
-            {
-                success = false,
-                message = ex.Message ?? "Lỗi hệ thống không xác định"
-            });
-        }
+        var result = await _mediator.Send(command);
+        return Ok(new { success = true, message = result });
     }
+
+
 }

@@ -52,7 +52,7 @@ export default function PatientTableRow({ patient, index }: Props) {
             </td>
             <td className="p-4">
                 <Button asChild variant="outline" size="sm">
-                    <Link to={`/patient/view-treatment-records?patientId=${patient.patientId}`}>
+                    <Link to={`/patient/view-treatment-records?userId=${patient.userId}&patientId=${patient.patientId}`}>
                         Xem Hồ Sơ Điều Trị
                     </Link>
                 </Button>

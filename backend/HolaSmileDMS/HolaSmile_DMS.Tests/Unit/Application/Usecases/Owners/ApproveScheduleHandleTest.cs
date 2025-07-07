@@ -83,7 +83,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Owners
             _scheduleRepositoryMock.Setup(r => r.UpdateScheduleAsync(It.IsAny<Schedule>())).ReturnsAsync(false);
 
             var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(cmd, CancellationToken.None));
-            Assert.Equal(MessageConstants.MSG.MSG58, ex.Message);
+            Assert.Equal("Cập nhật lịch làm việc không thành công", ex.Message);
         }
 
         [Fact(DisplayName = "[Unit - Normal] Approve_Single_Schedule_Success")]

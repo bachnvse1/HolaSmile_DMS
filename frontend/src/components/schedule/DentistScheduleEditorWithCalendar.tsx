@@ -62,11 +62,26 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
     setIsDialogOpen(true);
   };
 
-  // Xử lý xóa mềm lịch (set isActive = 0)
-  const handleSoftDeleteSchedule = (schedule: Schedule) => {
-    if (!schedule.scheduleId) return;
+  const handleDeleteSchedule = (schedule: Schedule) => {
     setScheduleToDelete(schedule);
     setDeleteDialogOpen(true);
+  };
+
+  // Xử lý xóa mềm lịch (set isActive = 0)
+  const handleSoftDeleteSchedule = async (schedule: Schedule) => {
+    if (!schedule.scheduleId) return;
+
+    try {
+      // Thử DELETE method thay vì PUT
+      await deleteMutation.mutateAsync(schedule.scheduleId);
+
+      toast.success('Đã hủy lịch làm việc thành công!');
+
+      // Cập nhật lại dữ liệu
+      await refetch();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi hủy lịch!');
+    }
   };
 
   const handleCalendarDateSelect = (date: string, shift: ShiftType) => {
@@ -144,10 +159,8 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
 
     try {
       await deleteMutation.mutateAsync(scheduleToDelete.scheduleId);
-
-      toast.success('Đã hủy lịch làm việc thành công!');
+      toast.success('Đã xóa lịch làm việc thành công!');
       setDeleteDialogOpen(false);
-      setScheduleToDelete(null);
       await refetch();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi xóa lịch!');
@@ -348,11 +361,11 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleSoftDeleteSchedule(schedule)}
+                          onClick={() => handleDeleteSchedule(schedule)}
                           className="text-red-600 hover:text-red-800"
                         >
                           <Trash className="h-4 w-4 mr-1" />
-                          Hủy
+                          Xóa
                         </Button>
                       </>
                     )}
@@ -510,9 +523,9 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Xác nhận hủy lịch làm việc</DialogTitle>
+            <DialogTitle>Xác nhận xóa lịch làm việc</DialogTitle>
             <DialogDescription>
-              Bạn có chắc chắn muốn hủy lịch làm việc này không? Hành động này không thể hoàn tác.
+              Bạn có chắc chắn muốn xóa lịch làm việc này không? Hành động này không thể hoàn tác.
             </DialogDescription>
           </DialogHeader>
 
@@ -539,7 +552,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
 
           <div className="flex items-center gap-2 rounded-md bg-amber-50 p-3 text-amber-700 mt-2">
             <AlertCircle className="h-4 w-4" />
-            <span className="text-sm">Lịch đã được duyệt không thể hủy.</span>
+            <span className="text-sm">Lịch đã được duyệt không thể xóa.</span>
           </div>
 
           <DialogFooter>
@@ -550,7 +563,6 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
               variant="destructive"
               onClick={confirmDeleteSchedule}
               disabled={deleteMutation.isPending}
-              className='text-white'
             >
               {deleteMutation.isPending ? (
                 <>
@@ -560,7 +572,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
               ) : (
                 <>
                   <Trash className="h-4 w-4 mr-2" />
-                  Xác nhận hủy
+                  Xác nhận xóa
                 </>
               )}
             </Button>

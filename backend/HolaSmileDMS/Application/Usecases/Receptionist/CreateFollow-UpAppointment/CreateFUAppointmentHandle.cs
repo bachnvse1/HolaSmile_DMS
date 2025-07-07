@@ -30,11 +30,11 @@ namespace Application.Usecases.Receptionist.CreateFollow_UpAppointment
             {
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
             }
-            if (request.AppointmentDate < DateTime.Now.Date)
+            if (request.AppointmentDate < DateTime.Today)
             {
                 throw new Exception(MessageConstants.MSG.MSG34); // "Ngày hẹn tái khám phải sau ngày hôm nay"
             }
-            if (request.AppointmentDate.Date == DateTime.Today.Date && request.AppointmentTime < DateTime.Now.TimeOfDay)
+            if (request.AppointmentDate.Date == DateTime.Today.Date && request.AppointmentTime < DateTime.Today.TimeOfDay)
             {
                 throw new Exception(MessageConstants.MSG.MSG34); // "Ngày hẹn tái khám phải sau ngày hôm nay"
             }
@@ -42,7 +42,7 @@ namespace Application.Usecases.Receptionist.CreateFollow_UpAppointment
             {
                 throw new Exception("Bác sĩ không tồn tại");
             }
-            if(await _patientRepository.GetPatientByPatientIdAsync(request.PatientId) == null)
+            if(await _patientRepository.GetPatientByUserIdAsync(request.PatientId) == null)
             {
                 throw new Exception("Bệnh nhân không tồn tại"); // "Bệnh nhân không tồn tại"
             }

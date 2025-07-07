@@ -141,7 +141,7 @@ namespace HDMS_API.Controllers
 
         [Authorize]
         [HttpDelete("dentist/cancel")]
-        public async Task<IActionResult> CancelDentistSchedule([FromBody] CancelScheduleCommand command, CancellationToken cancellationToken)
+        public async Task<IActionResult> ApproveDentistSchedule([FromBody] CancelScheduleCommand command, CancellationToken cancellationToken)
         {
             try
             {

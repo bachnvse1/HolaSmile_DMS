@@ -52,6 +52,7 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
   const [selectedProcedure, setSelectedProcedure] = useState<Procedure | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [treatmentTodayState, setTreatmentTodayState] = useState<boolean | undefined>(undefined);
 
   const selectedDentistId = watch("dentistID");
   const unitPrice = watch("unitPrice") || 0;
@@ -75,7 +76,7 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
       const result: { message?: string } = isEditing
         ? await updateTreatmentRecord(recordId!, data, totalAmount, updatedBy)
         : await createTreatmentRecord(
-          { ...data},
+          { ...data, treatmentToday: treatmentTodayState },
           totalAmount,
           updatedBy
         );
@@ -279,8 +280,9 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                   type="button"
                   onClick={() => {
                     setShowConfirm(false);
+                    setTreatmentTodayState(false);
                     formMethods.handleSubmit((data) =>
-                      handleInternalSubmit({ ...data, treatmentToday: true })
+                      handleInternalSubmit({ ...data, treatmentToday: false })
                     )();
                   }}
                   className="px-4 py-2 border rounded"
@@ -291,8 +293,9 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                   type="button"
                   onClick={() => {
                     setShowConfirm(false);
+                    setTreatmentTodayState(true);
                     formMethods.handleSubmit((data) =>
-                      handleInternalSubmit({ ...data, treatmentToday: false })
+                      handleInternalSubmit({ ...data, treatmentToday: true })
                     )();
                   }}
                   className="px-4 py-2 bg-blue-600 text-white rounded"

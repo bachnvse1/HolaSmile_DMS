@@ -70,12 +70,11 @@ namespace HDMS_API.Controllers
                     message = MessageConstants.MSG.MSG16 // Không có dữ liệu phù hợp
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
-                    message = MessageConstants.MSG.MSG58, // Cập nhật dữ liệu thất bại
-                    detail = ex.Message
+                    message = MessageConstants.MSG.MSG58 // Cập nhật dữ liệu thất bại
                 });
             }
         }

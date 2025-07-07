@@ -75,7 +75,7 @@ namespace HDMS_API.Infrastructure.Repositories
             {
                 return false;
             }
-            appointment.Status = "canceled";
+            appointment.Status = "cancel";
             appointment.UpdatedAt = DateTime.Now;
             appointment.UpdatedBy = CancleBy;
             _context.Appointments.Update(appointment);
@@ -97,9 +97,9 @@ namespace HDMS_API.Infrastructure.Repositories
             return await _context.Appointments
             .AnyAsync(a => a.PatientId == patientId
                         && a.AppointmentDate.Date == date.Date
-                        && a.Status != "canceled");
+                        && a.Status != "cancel");
         }
-        public async Task<Appointment?> GetLatestAppointmentByPatientIdAsync(int? patientId)
+        public async Task<Appointment?> GetLatestAppointmentByPatientIdAsync(int patientId)
         {
             return await _context.Appointments
                 .OrderByDescending(a => a.AppointmentDate)

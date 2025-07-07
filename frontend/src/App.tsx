@@ -28,7 +28,6 @@ import PatientList from './pages/patient/PatientList';
 import OrthodonticTreatmentPlansPage from './pages/OrthodonticTreatmentPlans';
 import OrthodonticTreatmentPlanFormPage from './pages/OrthodonticTreatmentPlanFormPage';
 import FUAppointmentPage from './pages/appointment/FUAppointmentPage';
-import UserManagement from './pages/auth/UserManagement';
 function App() {
   return (
     <>
@@ -63,7 +62,6 @@ function App() {
         <Route path="/patients/:patientId/orthodontic-treatment-plans/new" element={<OrthodonticTreatmentPlanFormPage />} />
         <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId/edit" element={<OrthodonticTreatmentPlanFormPage />} />
         <Route path="/patient/follow-up" element={<FUAppointmentPage />} />
-        <Route path="/administrator/user-list" element={<UserManagement/>}/>
       </Routes>
     </>
   );

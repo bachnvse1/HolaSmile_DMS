@@ -18,13 +18,16 @@ public class TreatmentRecordRepository : ITreatmentRecordRepository
         _mapper = mapper;
     }
 
-    public async Task<List<ViewTreatmentRecordDto>> GetPatientTreatmentRecordsAsync(int patientId, CancellationToken cancellationToken)
+    public async Task<List<ViewTreatmentRecordDto>> GetPatientTreatmentRecordsAsync(int userId, CancellationToken cancellationToken)
     {
+        var patient = _context.Patients.FirstOrDefault(x => x.UserID == userId);
+        if (patient == null)
+            return new List<ViewTreatmentRecordDto>();
         return await _context.TreatmentRecords
             .Include(tr => tr.Appointment)
             .Include(tr => tr.Dentist).ThenInclude(d => d.User)
             .Include(tr => tr.Procedure)
-            .Where(tr => tr.Appointment.PatientId == patientId && !tr.IsDeleted)
+            .Where(tr => tr.Appointment.PatientId == patient.PatientID && !tr.IsDeleted)
             .Select(tr => _mapper.Map<ViewTreatmentRecordDto>(tr))
             .ToListAsync(cancellationToken);
     }
@@ -61,20 +64,4 @@ public class TreatmentRecordRepository : ITreatmentRecordRepository
         await _context.TreatmentRecords.AddAsync(record, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
     }
-
-    public async Task<TreatmentRecord?> GetByProcedureIdAsync(int procedureId, CancellationToken cancellationToken)
-    {
-        return await _context.TreatmentRecords
-            .Include(tr => tr.Appointment)
-            .FirstOrDefaultAsync(tr => tr.ProcedureID == procedureId && !tr.IsDeleted, cancellationToken);
-    }
-
-    public async Task<Patient?> GetPatientByPatientIdAsync(int patientId)
-    {
-        return await _context.Patients
-            .Include(p => p.User)
-            .FirstOrDefaultAsync(p => p.PatientID == patientId);
-    }
-
-
 }

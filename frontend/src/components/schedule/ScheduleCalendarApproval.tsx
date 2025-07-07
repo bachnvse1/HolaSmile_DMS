@@ -8,16 +8,15 @@ import { Badge } from "@/components/ui/badge";
 import { ShiftType } from "@/types/schedule";
 import type { Schedule } from "@/types/schedule";
 import { cn } from "@/lib/utils";
-import { startOfDay } from "date-fns";
 
 interface Props {
   /** Danh sách lịch (đã lọc Pending ở trên) */
   schedules: Schedule[];
   /** Callback khi click 1 lịch (để chọn phê duyệt / từ chối) */
-  onScheduleSelect?: (scheduleId: number | number[]) => void;
+  onScheduleSelect?: (scheduleId: number) => void;
   /** Mảng id lịch đang được chọn (highlight) */
   selectedScheduleIds?: number[];
-  viewOnly?: boolean;
+  viewOnly?: boolean; 
 }
 
 export const ScheduleCalendarApproval: React.FC<Props> = ({
@@ -56,60 +55,6 @@ export const ScheduleCalendarApproval: React.FC<Props> = ({
     ShiftType.Afternoon,
     ShiftType.Evening
   ];
-  const getPendingSchedules = () => {
-    return schedules.filter(schedule => schedule.status === 'pending');
-  };
-
-  const getCurrentWeekPendingSchedules = () => {
-    const now = new Date();
-    const startOfWeek = new Date(now);
-    const day = startOfWeek.getDay();
-    startOfWeek.setDate(startOfWeek.getDate() - (day === 0 ? 6 : day - 1)); // Thứ hai
-
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6); // Chủ nhật
-
-    return schedules.filter(schedule => {
-      if (schedule.status !== 'pending') return false;
-      const scheduleDate = startOfDay(new Date(schedule.workDate || schedule.date));
-      return scheduleDate >= startOfWeek && scheduleDate <= endOfWeek;
-    });
-  };
-
-  const getCurrentAndNextWeekPendingSchedules = () => {
-    const now = new Date();
-    const startOfWeek = new Date(now);
-    const day = startOfWeek.getDay();
-    startOfWeek.setDate(startOfWeek.getDate() - (day === 0 ? 6 : day - 1)); // Thứ hai tuần hiện tại
-
-    const endOfNextWeek = new Date(startOfWeek);
-    endOfNextWeek.setDate(startOfWeek.getDate() + 13); // Chủ nhật tuần sau
-
-    return schedules.filter(schedule => {
-      if (schedule.status !== 'pending') return false;
-      const scheduleDate = startOfDay(new Date(schedule.workDate || schedule.date));
-      return scheduleDate >= startOfWeek && scheduleDate <= endOfNextWeek;
-    });
-  };
-
-  // Handlers cho các nút chọn nhanh
-  const handleSelectAllPending = () => {
-    const pendingSchedules = getPendingSchedules();
-    const scheduleIds = pendingSchedules.map(schedule => schedule.scheduleId).filter((id): id is number => id !== undefined);
-    onScheduleSelect?.(scheduleIds);
-  };
-
-  const handleSelectCurrentWeekPending = () => {
-    const currentWeekPending = getCurrentWeekPendingSchedules();
-    const scheduleIds = currentWeekPending.map(schedule => schedule.scheduleId).filter((id): id is number => id !== undefined);
-    onScheduleSelect?.(scheduleIds);
-  };
-
-  const handleSelectCurrentAndNextWeekPending = () => {
-    const currentAndNextWeekPending = getCurrentAndNextWeekPendingSchedules();
-    const scheduleIds = currentAndNextWeekPending.map(schedule => schedule.scheduleId).filter((id): id is number => id !== undefined);
-    onScheduleSelect?.(scheduleIds);
-  };
 
   /* ====== render 1 ô ====== */
   const getDateString = (dateStr: string) => dateStr.split('T')[0];
@@ -162,41 +107,6 @@ export const ScheduleCalendarApproval: React.FC<Props> = ({
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-      {!viewOnly && (
-        <div className="flex flex-wrap gap-2 p-4 bg-gray-50 rounded-lg">
-          <h3 className="w-full text-sm font-medium text-gray-700 mb-2">Chọn nhanh:</h3>
-
-          <button
-            onClick={handleSelectAllPending}
-            className="px-3 py-2 text-xs bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
-          >
-            Tất cả lịch pending ({getPendingSchedules().length})
-          </button>
-
-          <button
-            onClick={handleSelectCurrentWeekPending}
-            className="px-3 py-2 text-xs bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
-          >
-            Tuần hiện tại ({getCurrentWeekPendingSchedules().length})
-          </button>
-
-          <button
-            onClick={handleSelectCurrentAndNextWeekPending}
-            className="px-3 py-2 text-xs bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200 transition-colors"
-          >
-            Tuần hiện tại + tuần sau ({getCurrentAndNextWeekPendingSchedules().length})
-          </button>
-
-          {selectedScheduleIds.length > 0 && (
-            <button
-              onClick={() => onScheduleSelect?.([])}
-              className="px-3 py-2 text-xs bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
-            >
-              Bỏ chọn tất cả
-            </button>
-          )}
-        </div>
-      )}
       {/* Header tuần */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <Button

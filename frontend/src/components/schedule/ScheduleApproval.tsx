@@ -100,15 +100,13 @@ export const ScheduleApproval: React.FC<{ viewOnlyApproved?: boolean }> = ({ vie
       });
   }, [allSchedules, searchTerm]);
 
-  const handleSelectSchedule = (ids: number | number[]) => {
-    if (Array.isArray(ids)) {
-      setSelectedSchedules(ids); // Chọn nhanh: set toàn bộ
+  const handleSelectSchedule = (scheduleId: number) => {
+    if (selectedSchedules.includes(scheduleId)) {
+      // Bỏ chọn
+      setSelectedSchedules(prev => prev.filter(id => id !== scheduleId));
     } else {
-      setSelectedSchedules(prev =>
-        prev.includes(ids)
-          ? prev.filter(id => id !== ids) // Nếu đã chọn thì bỏ chọn
-          : [...prev, ids]                // Nếu chưa chọn thì thêm vào
-      );
+      // Chọn
+      setSelectedSchedules(prev => [...prev, scheduleId]);
     }
   };
 

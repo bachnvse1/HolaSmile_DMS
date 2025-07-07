@@ -25,10 +25,11 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
         public async Task<ScheduleDTO> Handle(ViewDetailScheduleCommand request, CancellationToken cancellationToken)
         {
             var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null)
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // "Bạn cần đăng nhập..."
+
             var currentUserRole = user.FindFirst(ClaimTypes.Role)?.Value;
             var currentUserId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-
-            if (currentUserRole == null) throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // "Bạn cần đăng nhập..."
 
             var schedule = await _scheduleRepository.GetScheduleByIdAsync(request.ScheduleId);
 

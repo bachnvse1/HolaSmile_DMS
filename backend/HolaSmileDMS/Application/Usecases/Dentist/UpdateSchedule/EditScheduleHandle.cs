@@ -25,16 +25,13 @@ namespace Application.Usecases.Dentist.UpdateSchedule
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-            if (currentUserRole == null) {
-                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // "Bạn cần đăng nhập để thực hiện chức năng này"
-            }
-
             // Giải mã ScheduleId và lấy lịch làm việc
             var schedule = await _scheduleRepository.GetScheduleByIdAsync(request.ScheduleId);
             if (schedule == null)
             {
                 throw new Exception(MessageConstants.MSG.MSG28);
             }
+
 
             // Kiểm tra quyền của người dùng (chỉ Dentist được sửa)
             if (!string.Equals(currentUserRole, "dentist", StringComparison.OrdinalIgnoreCase))
@@ -72,7 +69,7 @@ namespace Application.Usecases.Dentist.UpdateSchedule
                     }
                     else
                     {
-                        throw new Exception(MessageConstants.MSG.MSG89); // lịch trùng và đang pending/approved
+                        throw new Exception(MessageConstants.MSG.MSG51); // lịch trùng và đang pending/approved
                     }
                 }
 
