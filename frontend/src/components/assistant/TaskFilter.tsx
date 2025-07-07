@@ -58,7 +58,7 @@ export function TaskFilters({
               <SelectContent>
                 <SelectItem value="all">Tất cả</SelectItem>
                 <SelectItem value="Completed">Hoàn thành</SelectItem>
-                <SelectItem value="Chưa hoàn thành">Chưa hoàn thành</SelectItem>
+                <SelectItem value="Pending">Chưa hoàn thành</SelectItem>
               </SelectContent>
             </Select>
           </div>
