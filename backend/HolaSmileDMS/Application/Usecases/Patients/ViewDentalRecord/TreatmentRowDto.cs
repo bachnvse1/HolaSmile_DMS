@@ -13,5 +13,5 @@ public class TreatmentRowDto
     public decimal Discount { get; set; }
     public decimal TotalAmount { get; set; }          // = UnitPrice * Quantity
     public decimal Cost => TotalAmount - Discount;    // Thành tiền thực trả
-    public string? WarrantyTerm { get; set; }
+    public int? WarrantyTerm { get; set; }
 }

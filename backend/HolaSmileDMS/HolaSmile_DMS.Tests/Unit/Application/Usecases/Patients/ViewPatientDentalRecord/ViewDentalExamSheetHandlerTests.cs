@@ -177,15 +177,15 @@ public class ViewDentalExamSheetHandlerTests
                 new() { PaidAmount = 450, PaymentDate = DateTime.Today }
             });
 
-        _prescriptionRepo.Setup(x => x.GetByTreatmentRecordIdAsync(100, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<Prescription> {
-                new() { Content = "Paracetamol" }
-            });
+        //_prescriptionRepo.Setup(x => x.GetByTreatmentRecordIdAsync(100, It.IsAny<CancellationToken>()))
+        //    .ReturnsAsync(new List<Prescription> {
+        //        new() { Content = "Paracetamol" }
+        //    });
 
-        _instructionRepo.Setup(x => x.GetByTreatmentRecordIdAsync(100, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<Instruction> {
-                new() { Content = "Uống nước nhiều" }
-            });
+        //_instructionRepo.Setup(x => x.GetByTreatmentRecordIdAsync(100, It.IsAny<CancellationToken>()))
+        //    .ReturnsAsync(new List<Instruction> {
+        //        new() { Content = "Uống nước nhiều" }
+        //    });
 
         var handler = CreateHandler();
 
@@ -243,15 +243,15 @@ public async System.Threading.Tasks.Task Should_Return_Correct_Followup_Informat
             new() { PaidAmount = 500, PaymentDate = DateTime.Today }
         });
 
-    _prescriptionRepo.Setup(x => x.GetByTreatmentRecordIdAsync(100, It.IsAny<CancellationToken>()))
-        .ReturnsAsync(new List<Prescription> {
-            new() { Content = "Thuốc A" }
-        });
+    //_prescriptionRepo.Setup(x => x.GetByTreatmentRecordIdAsync(100, It.IsAny<CancellationToken>()))
+    //    .ReturnsAsync(new List<Prescription> {
+    //        new() { Content = "Thuốc A" }
+    //    });
 
-    _instructionRepo.Setup(x => x.GetByTreatmentRecordIdAsync(100, It.IsAny<CancellationToken>()))
-        .ReturnsAsync(new List<Instruction> {
-            new() { Content = "Hướng dẫn A" }
-        });
+    //_instructionRepo.Setup(x => x.GetByTreatmentRecordIdAsync(100, It.IsAny<CancellationToken>()))
+    //    .ReturnsAsync(new List<Instruction> {
+    //        new() { Content = "Hướng dẫn A" }
+    //    });
 
     // Setup followup appointment
     var nextDate = new DateTime(2025, 12, 25);
