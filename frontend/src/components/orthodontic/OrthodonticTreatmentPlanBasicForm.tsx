@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useDentists } from '@/hooks/useDentists';
 
 const basicPlanSchema = z.object({
   planTitle: z.string().min(1, 'Tên kế hoạch là bắt buộc'),
@@ -22,7 +23,10 @@ export const OrthodonticTreatmentPlanBasicForm: React.FC = () => {
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
 
-  // Mock patient data
+  // Get dentists list
+  const { data: dentists = [], isLoading: isDentistsLoading } = useDentists();
+
+  // Mock patient data - should be fetched from API
   const patientInfo = {
     fullname: "Nguyễn Hoài Na",
     dob: "1991",
@@ -41,10 +45,13 @@ export const OrthodonticTreatmentPlanBasicForm: React.FC = () => {
   });
 
   const onSubmit = (data: BasicPlanFormData) => {
+    const selectedDentist = dentists.find(d => d.dentistId === data.dentistId);
+    
     // Save basic data to sessionStorage
     sessionStorage.setItem('basicPlanData', JSON.stringify({
       ...data,
       patientId: parseInt(patientId || '0'),
+      dentistName: selectedDentist?.fullName,
       patientInfo
     }));
     
@@ -158,24 +165,19 @@ export const OrthodonticTreatmentPlanBasicForm: React.FC = () => {
                     <SelectValue placeholder="Chọn bác sĩ" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">BS. Trần Văn Minh</SelectItem>
-                    <SelectItem value="2">BS. Nguyễn Thị Hương</SelectItem>
-                    <SelectItem value="3">BS. Lê Quang Đức</SelectItem>
+                    {isDentistsLoading ? (
+                      <SelectItem value="0" disabled>Đang tải...</SelectItem>
+                    ) : (
+                      dentists.map((dentist) => (
+                        <SelectItem key={dentist.dentistId} value={dentist.dentistId.toString()}>
+                          {dentist.fullName}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
                 {form.formState.errors.dentistId && (
                   <p className="text-sm text-red-600">{form.formState.errors.dentistId.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Ngày Tư Vấn *</label>
-                <Input
-                  type="date"
-                  {...form.register('consultationDate')}
-                />
-                {form.formState.errors.consultationDate && (
-                  <p className="text-sm text-red-600">{form.formState.errors.consultationDate.message}</p>
                 )}
               </div>
             </div>

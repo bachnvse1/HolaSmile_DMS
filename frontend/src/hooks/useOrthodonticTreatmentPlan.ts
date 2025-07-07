@@ -1,39 +1,33 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '@/lib/axios';
 import { toast } from 'react-toastify';
-import type { 
-  OrthodonticTreatmentPlan, 
-  CreateOrthodonticTreatmentPlanRequest, 
-  UpdateOrthodonticTreatmentPlanRequest 
-} from '@/types/orthodonticTreatmentPlan';
 
-// Get all treatment plans for a patient
-export const useOrthodonticTreatmentPlans = (patientId: number) => {
-  return useQuery({
-    queryKey: ['orthodontic-treatment-plans', patientId],
-    queryFn: async () => {
-      const response = await axiosInstance.get<OrthodonticTreatmentPlan[]>(
-        `/orthodontic-treatment-plans/patient/${patientId}`
-      );
-      return response.data;
-    },
-    enabled: !!patientId,
-  });
-};
+export interface CreateOrthodonticTreatmentPlanRequest {
+  patientId: number;
+  dentistId: number;
+  planTitle: string;
+  templateName: string;
+  treatmentHistory: string;
+  reasonForVisit: string;
+  examinationFindings: string;
+  intraoralExam: string;
+  xRayAnalysis: string;
+  modelAnalysis: string;
+  treatmentPlanContent: string;
+  totalCost: number;
+  paymentMethod: string;
+  startToday: boolean;
+}
 
-// Get single treatment plan
-export const useOrthodonticTreatmentPlan = (planId: number) => {
-  return useQuery({
-    queryKey: ['orthodontic-treatment-plan', planId],
-    queryFn: async () => {
-      const response = await axiosInstance.get<OrthodonticTreatmentPlan>(
-        `/orthodontic-treatment-plans/${planId}`
-      );
-      return response.data;
-    },
-    enabled: !!planId,
-  });
-};
+export interface OrthodonticTreatmentPlan extends CreateOrthodonticTreatmentPlanRequest {
+  planId: number;
+  consultationDate: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: number;
+  updatedBy: number;
+  isDeleted: boolean;
+}
 
 // Create treatment plan
 export const useCreateOrthodonticTreatmentPlan = () => {
@@ -41,10 +35,14 @@ export const useCreateOrthodonticTreatmentPlan = () => {
 
   return useMutation({
     mutationFn: async (data: CreateOrthodonticTreatmentPlanRequest) => {
+      console.log('Creating orthodontic treatment plan with data:', data);
+      
       const response = await axiosInstance.post<OrthodonticTreatmentPlan>(
-        '/orthodontic-treatment-plans',
+        '/orthodontic-treatment-plan',
         data
       );
+      
+      console.log('API Response:', response.data);
       return response.data;
     },
     onSuccess: (data) => {
@@ -53,53 +51,17 @@ export const useCreateOrthodonticTreatmentPlan = () => {
       });
       toast.success('Tạo kế hoạch điều trị thành công!');
     },
-    onError: (error: Error) => {
-      toast.error(error?.message || 'Có lỗi xảy ra khi tạo kế hoạch điều trị');
-    },
-  });
-};
-
-// Update treatment plan
-export const useUpdateOrthodonticTreatmentPlan = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (data: UpdateOrthodonticTreatmentPlanRequest) => {
-      const response = await axiosInstance.put<OrthodonticTreatmentPlan>(
-        `/orthodontic-treatment-plans/${data.planId}`,
-        data
-      );
-      return response.data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['orthodontic-treatment-plans', data.patientId] 
-      });
-      queryClient.invalidateQueries({ 
-        queryKey: ['orthodontic-treatment-plan', data.planId] 
-      });
-      toast.success('Cập nhật kế hoạch điều trị thành công!');
-    },
-    onError: (error: Error) => {
-      toast.error(error?.message || 'Có lỗi xảy ra khi cập nhật kế hoạch điều trị');
-    },
-  });
-};
-
-// Delete treatment plan
-export const useDeleteOrthodonticTreatmentPlan = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (planId: number) => {
-      await axiosInstance.delete(`/orthodontic-treatment-plans/${planId}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orthodontic-treatment-plans'] });
-      toast.success('Xóa kế hoạch điều trị thành công!');
-    },
-    onError: (error: Error) => {
-      toast.error(error?.message || 'Có lỗi xảy ra khi xóa kế hoạch điều trị');
+    onError: (error: unknown) => {
+      console.error('API Error in hook:', error);
+      
+      // Type-safe error handling
+      if (error && typeof error === 'object' && 'response' in error) {
+        const apiError = error as { response?: { data?: { message?: string } } };
+        const errorMessage = apiError.response?.data?.message || 'Có lỗi xảy ra khi tạo kế hoạch điều trị';
+        toast.error(errorMessage);
+      } else {
+        toast.error('Có lỗi xảy ra khi tạo kế hoạch điều trị');
+      }
     },
   });
 };

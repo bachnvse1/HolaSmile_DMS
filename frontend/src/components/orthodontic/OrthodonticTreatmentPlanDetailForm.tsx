@@ -7,24 +7,35 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useCreateOrthodonticTreatmentPlan } from '@/hooks/useOrthodonticTreatmentPlan';
+import { formatCurrency, handleCurrencyInput } from '@/utils/currencyUtils';
+import {
+  mapMedicalHistoryToString,
+  mapExaminationFindings,
+  mapXRayAnalysis,
+  mapModelAnalysis,
+  mapCostItemsToString,
+  mapCostItemsToTotalCost,
+} from '@/utils/orthodonticMapping';
+import type { BasicPlanData } from '@/utils/orthodonticMapping';
+
 
 interface DetailFormData {
   // Tiểu sử y khoa
   medicalHistory: {
     benhtim: boolean;
     tieuduong: boolean;
-    thenkinh: boolean;
+    thankinh: boolean;
     benhtruyen: boolean;
     caohuyetap: boolean;
     loangxuong: boolean;
     benhngan: boolean;
-    chaymauhau: boolean;
+    chaymausau: boolean;
   };
-  
+
   // Lý do đến khám
   reasonForVisit: string;
-  
+
   // Khám ngoài mặt
   faceShape: string;
   frontView: string;
@@ -32,20 +43,20 @@ interface DetailFormData {
   smileArc: string;
   smileLine: string;
   midline: string;
-  
+
   // Khám chức năng
   openBite: string;
   crossBite: string;
   tongueThrunt: string;
-  
+
   // Khám trong miệng
   intraoralExam: string;
-  
+
   // Phân tích phim
   boneAnalysis: string;
   sideViewAnalysis: string;
   apicalSclerosis: string;
-  
+
   // Phân tích mẫu hàm
   overjet: string;
   overbite: string;
@@ -56,13 +67,11 @@ interface DetailFormData {
   molarRelation: string;
   r3Relation: string;
   r6Relation: string;
-  
+
   // Nội dung và kế hoạch điều trị
   treatmentPlanContent: string;
-  
-  // Chi phí
-  totalCost: string;
-  
+
+
   // Chi phí chi tiết
   costItems: {
     khophang: string;
@@ -71,8 +80,9 @@ interface DetailFormData {
     maccai: string;
     chupcam: string;
     nongham: string;
-    tongcong: string;
   };
+
+  otherCost: string;
   paymentMethod: string;
 }
 
@@ -80,17 +90,19 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
 
+  const createMutation = useCreateOrthodonticTreatmentPlan();
+
   const form = useForm<DetailFormData>({
     defaultValues: {
       medicalHistory: {
         benhtim: false,
         tieuduong: false,
-        thenkinh: false,
+        thankinh: false,
         benhtruyen: false,
         caohuyetap: false,
         loangxuong: false,
         benhngan: false,
-        chaymauhau: false,
+        chaymausau: false,
       },
       reasonForVisit: '',
       faceShape: '',
@@ -116,7 +128,6 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
       r3Relation: '',
       r6Relation: '',
       treatmentPlanContent: '',
-      totalCost: '',
       costItems: {
         khophang: '',
         xquang: '',
@@ -124,16 +135,19 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
         maccai: '',
         chupcam: '',
         nongham: '',
-        tongcong: '',
       },
-      paymentMethod: `Thanh toán 1 lần: Giảm trực tiếp 1 triệu đồng
-
-Trả góp: Thanh toán lần đầu tối thiểu 5 - 10 triệu đồng. Còn lại 1 tháng tối thiểu 1-2 triệu đồng (không lãi suất)`,
+      otherCost: '',
+      paymentMethod: `Thanh toán 1 lần: Giảm trực tiếp 1 triệu đồng\n\nTrả góp: Thanh toán lần đầu tối thiểu 5 - 10 triệu đồng. Còn lại 1 tháng tối thiểu 1-2 triệu đồng (không lãi suất)`,
     },
   });
 
   // Get basic data from sessionStorage
-  const [basicData, setBasicData] = React.useState<any>(null);
+  const [basicData, setBasicData] = React.useState<BasicPlanData | null>(null);
+
+  // Watch cost items to calculate total
+  const costItems = form.watch('costItems');
+  const otherCost = form.watch('otherCost');
+  const totalCost = mapCostItemsToTotalCost(costItems, otherCost);
 
   useEffect(() => {
     const savedData = sessionStorage.getItem('basicPlanData');
@@ -142,15 +156,67 @@ Trả góp: Thanh toán lần đầu tối thiểu 5 - 10 triệu đồng. Còn 
     }
   }, []);
 
-  const onSave = (data: DetailFormData) => {
-    console.log('Saving data:', { ...basicData, ...data });
-    // Here you would save to backend
-    navigate(`/patients/${patientId}/orthodontic-treatment-plans`);
+  React.useEffect(() => {
+    console.log('Cost items:', costItems);
+    console.log('Total cost:', totalCost);
+  }, [costItems, totalCost]);
+
+  // Handle currency input for cost fields
+  const handleCostItemChange = (field: keyof DetailFormData['costItems'], value: string) => {
+    handleCurrencyInput(value, (formattedValue) => {
+      form.setValue(`costItems.${field}`, formattedValue, { shouldDirty: true });
+    });
   };
 
-  const onSaveAndPrint = (data: DetailFormData) => {
-    console.log('Saving and printing:', { ...basicData, ...data });
-    // Save and then print
+  const onSave = async (data: DetailFormData) => {
+    if (!basicData) return;
+
+    try {
+
+      // Map form data to API request
+      const requestData = {
+        patientId: basicData.patientId,
+        dentistId: basicData.dentistId,
+        planTitle: basicData.planTitle,
+        templateName: basicData.templateName,
+        treatmentHistory: mapMedicalHistoryToString(data.medicalHistory),
+        reasonForVisit: data.reasonForVisit,
+        examinationFindings: mapExaminationFindings(data),
+        intraoralExam: data.intraoralExam,
+        xRayAnalysis: mapXRayAnalysis(data),
+        modelAnalysis: mapModelAnalysis(data),
+        treatmentPlanContent: data.treatmentPlanContent,
+        totalCost: totalCost, // Use calculated total cost
+        paymentMethod: `${data.paymentMethod}\n\nChi tiết chi phí: ${mapCostItemsToString(data.costItems, data.otherCost)}`,
+        startToday: true,
+      };
+
+      // Debug logging
+      console.log('Request data being sent:', requestData);
+      console.log('PatientId from params:', patientId);
+      console.log('PatientId in request:', requestData.patientId);
+
+      await createMutation.mutateAsync(requestData);
+
+      // Clear session storage
+      sessionStorage.removeItem('basicPlanData');
+
+      navigate(`/patients/${patientId}/orthodontic-treatment-plans`);
+    } catch (error) {
+      console.error('Error creating treatment plan:', error);
+
+      // Log more detailed error info
+      if (error && typeof error === 'object' && 'response' in error) {
+        const apiError = error as { response?: { data?: unknown; status?: number; headers?: unknown } };
+        console.error('API Error Response:', apiError.response?.data);
+        console.error('API Error Status:', apiError.response?.status);
+        console.error('API Error Headers:', apiError.response?.headers);
+      }
+    }
+  };
+
+  const onSaveAndPrint = async (data: DetailFormData) => {
+    await onSave(data);
     window.print();
   };
 
@@ -205,7 +271,7 @@ Trả góp: Thanh toán lần đầu tối thiểu 5 - 10 triệu đồng. Còn 
                 <span className="font-medium">Ngày tư vấn:</span> {basicData.consultationDate}
               </div>
               <div>
-                <span className="font-medium">Bác sĩ phụ trách:</span> BS. Trần Văn Minh
+                <span className="font-medium">Bác sĩ phụ trách:</span> {basicData.dentistName || 'BS. Chưa xác định'}
               </div>
             </div>
           </CardContent>
@@ -223,10 +289,10 @@ Trả góp: Thanh toán lần đầu tối thiểu 5 - 10 triệu đồng. Còn 
                 { key: 'caohuyetap', label: 'Cao huyết áp' },
                 { key: 'tieuduong', label: 'Tiểu đường' },
                 { key: 'loangxuong', label: 'Loãng xương, máu đông, máu loãng' },
-                { key: 'thenkinh', label: 'Thần kinh' },
+                { key: 'thankinh', label: 'Thần kinh' },
                 { key: 'benhngan', label: 'Bệnh gan, thận bao tử' },
                 { key: 'benhtruyen', label: 'Bệnh truyền nhiễm (lao, hbv, hiv...)' },
-                { key: 'chaymauhau', label: 'Chảy máu kéo dài, đã có lần ngất xỉu' },
+                { key: 'chaymausau', label: 'Chảy máu kéo dài, đã có lần ngất xỉu' },
               ].map(({ key, label }) => {
                 const fieldName = `medicalHistory.${key}` as const;
                 return (
@@ -234,7 +300,7 @@ Trả góp: Thanh toán lần đầu tối thiểu 5 - 10 triệu đồng. Còn 
                     <Checkbox
                       id={key}
                       checked={form.watch(fieldName as any)}
-                      onCheckedChange={(checked) => 
+                      onCheckedChange={(checked) =>
                         form.setValue(fieldName as any, !!checked)
                       }
                     />
@@ -341,7 +407,7 @@ Trả góp: Thanh toán lần đầu tối thiểu 5 - 10 triệu đồng. Còn 
             </div>
 
             {/* Hình ảnh */}
-            <div>
+            {/* <div>
               <h4 className="font-medium mb-3">Hình ảnh</h4>
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
                 <input
@@ -356,7 +422,7 @@ Trả góp: Thanh toán lần đầu tối thiểu 5 - 10 triệu đồng. Còn 
                   <p className="text-sm text-gray-400 mt-1">Hỗ trợ nhiều file ảnh</p>
                 </label>
               </div>
-            </div>
+            </div> */}
 
             {/* Khám trong miệng */}
             <div>
@@ -408,23 +474,23 @@ Trả góp: Thanh toán lần đầu tối thiểu 5 - 10 triệu đồng. Còn 
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Đường giữa</label>
-                  <Input 
+                  <Input
                     placeholder="Bên trái/Bên phải/Bình thường"
-                    {...form.register('midlineAnalysis')} 
+                    {...form.register('midlineAnalysis')}
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Cắn ngược</label>
-                  <Input 
+                  <Input
                     placeholder="1-15mm"
-                    {...form.register('crossbite')} 
+                    {...form.register('crossbite')}
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Cắn hở</label>
-                  <Input 
+                  <Input
                     placeholder="1-15mm"
-                    {...form.register('openbite')} 
+                    {...form.register('openbite')}
                   />
                 </div>
                 <div className="space-y-2">
@@ -433,23 +499,23 @@ Trả góp: Thanh toán lần đầu tối thiểu 5 - 10 triệu đồng. Còn 
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Tương quan</label>
-                  <Input 
+                  <Input
                     placeholder="Tương quan 1/Tương quan 2/Tương quan 3"
-                    {...form.register('molarRelation')} 
+                    {...form.register('molarRelation')}
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Tương quan R3</label>
-                  <Input 
+                  <Input
                     placeholder="1-10mm"
-                    {...form.register('r3Relation')} 
+                    {...form.register('r3Relation')}
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Tương quan R6</label>
-                  <Input 
+                  <Input
                     placeholder="1-10mm"
-                    {...form.register('r6Relation')} 
+                    {...form.register('r6Relation')}
                   />
                 </div>
               </div>
@@ -480,43 +546,91 @@ Trả góp: Thanh toán lần đầu tối thiểu 5 - 10 triệu đồng. Còn 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Khớp hàng</label>
-                  <Input {...form.register('costItems.khophang')} />
+                  <div className="relative">
+                    <Input
+                      placeholder="0"
+                      value={form.watch('costItems.khophang')}
+                      onChange={(e) => handleCostItemChange('khophang', e.target.value)}
+                    />
+                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₫</span>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">X-Quang</label>
-                  <Input {...form.register('costItems.xquang')} />
+                  <div className="relative">
+                    <Input
+                      placeholder="0"
+                      value={form.watch('costItems.xquang')}
+                      onChange={(e) => handleCostItemChange('xquang', e.target.value)}
+                    />
+                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₫</span>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Minivis</label>
-                  <Input {...form.register('costItems.minivis')} />
+                  <div className="relative">
+                    <Input
+                      placeholder="0"
+                      value={form.watch('costItems.minivis')}
+                      onChange={(e) => handleCostItemChange('minivis', e.target.value)}
+                    />
+                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₫</span>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Mắc cài kim loại</label>
-                  <Input {...form.register('costItems.maccai')} />
+                  <div className="relative">
+                    <Input
+                      placeholder="0"
+                      value={form.watch('costItems.maccai')}
+                      onChange={(e) => handleCostItemChange('maccai', e.target.value)}
+                    />
+                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₫</span>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Chụp cằm</label>
-                  <Input {...form.register('costItems.chupcam')} />
+                  <div className="relative">
+                    <Input
+                      placeholder="0"
+                      value={form.watch('costItems.chupcam')}
+                      onChange={(e) => handleCostItemChange('chupcam', e.target.value)}
+                    />
+                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₫</span>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Nong hàm</label>
-                  <Input {...form.register('costItems.nongham')} />
+                  <div className="relative">
+                    <Input
+                      placeholder="0"
+                      value={form.watch('costItems.nongham')}
+                      onChange={(e) => handleCostItemChange('nongham', e.target.value)}
+                    />
+                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₫</span>
+                  </div>
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Tổng cộng</label>
-                <Input 
-                  className="font-semibold" 
-                  {...form.register('costItems.tongcong')} 
-                />
+
+              {/* Real-time total display */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-blue-800">Tổng chi phí:</span>
+                  <span className="text-lg font-bold text-blue-900">{formatCurrency(totalCost)} ₫</span>
+                </div>
               </div>
+
               <div className="space-y-2">
-                <label className="text-sm font-medium">Ghi chú thêm</label>
-                <Textarea
-                  rows={3}
-                  placeholder="Nhập thêm chi phí khác nếu có..."
-                  {...form.register('totalCost')}
-                />
+                <label className="text-sm font-medium">Chi phí khác (nếu có)</label>
+                <div className="relative">
+                  <Input
+                    placeholder="0"
+                    value={form.watch('otherCost')}
+                    onChange={(e) => handleCurrencyInput(e.target.value, (v) => form.setValue('otherCost', v))}
+                  />
+                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₫</span>
+                </div>
+                <p className="text-xs text-gray-500">Nhập thêm chi phí khác không có trong danh sách trên</p>
               </div>
             </div>
           </CardContent>
@@ -528,7 +642,7 @@ Trả góp: Thanh toán lần đầu tối thiểu 5 - 10 triệu đồng. Còn 
             <CardTitle>HÌNH THỨC THANH TOÁN</CardTitle>
           </CardHeader>
           <CardContent>
-            <Textarea 
+            <Textarea
               rows={6}
               value={form.watch('paymentMethod')}
               onChange={(e) => form.setValue('paymentMethod', e.target.value)}
@@ -542,11 +656,20 @@ Trả góp: Thanh toán lần đầu tối thiểu 5 - 10 triệu đồng. Còn 
             <X className="h-4 w-4 mr-2" />
             Thoát
           </Button>
-          <Button type="button" onClick={form.handleSubmit(onSave)}>
+          <Button
+            type="button"
+            onClick={form.handleSubmit(onSave)}
+            disabled={createMutation.isPending}
+          >
             <Save className="h-4 w-4 mr-2" />
-            Lưu
+            {createMutation.isPending ? 'Đang lưu...' : 'Lưu'}
           </Button>
-          <Button type="button" variant="secondary" onClick={form.handleSubmit(onSaveAndPrint)}>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={form.handleSubmit(onSaveAndPrint)}
+            disabled={createMutation.isPending}
+          >
             <Printer className="h-4 w-4 mr-2" />
             Lưu và In
           </Button>
