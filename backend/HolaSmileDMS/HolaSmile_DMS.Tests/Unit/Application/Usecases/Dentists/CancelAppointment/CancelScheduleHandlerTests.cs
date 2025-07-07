@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists.CancelAppointment
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
 {
     public class CancelScheduleHandlerTests
     {
