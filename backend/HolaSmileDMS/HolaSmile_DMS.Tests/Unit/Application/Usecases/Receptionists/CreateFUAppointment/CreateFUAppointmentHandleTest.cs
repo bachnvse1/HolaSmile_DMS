@@ -1,13 +1,14 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.Receptionist.CreateFollow_UpAppointment;
+using Application.Usecases.Receptionist.CreateFUAppointment;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using System.Security.Claims;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists.CreateFUAppointment;
-public class CreateFUAppointmentHandleTests
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
+{
+    public class CreateFUAppointmentHandleTests
 {
     private readonly Mock<IAppointmentRepository> _appointmentRepoMock;
     private readonly Mock<IPatientRepository> _patientRepoMock;
@@ -186,4 +187,5 @@ public class CreateFUAppointmentHandleTests
 
         Assert.Equal(MessageConstants.MSG.MSG89, ex.Message);
     }
+}
 }

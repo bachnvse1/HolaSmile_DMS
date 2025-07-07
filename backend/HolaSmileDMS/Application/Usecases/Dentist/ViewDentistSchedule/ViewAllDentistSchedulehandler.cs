@@ -62,7 +62,6 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
                                       UpdatedAt = s.UpdatedAt
                                    }).ToList()
                                  }).ToList();
-
             return result;
         }
     }

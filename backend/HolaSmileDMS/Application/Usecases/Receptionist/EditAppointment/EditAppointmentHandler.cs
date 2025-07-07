@@ -41,7 +41,7 @@ namespace Application.Usecases.Receptionist.EditAppointment
                 throw new Exception(MessageConstants.MSG.MSG28); // "Không tìm thấy lịch hẹn"
             }
 
-            if(existApp.Status != "confirmed")
+            if(existApp.Status.ToLower() != "confirmed")
             {
                 throw new Exception("Lịch hẹn đang ở trạng thái không thể thay đổi");
             }
@@ -61,11 +61,6 @@ namespace Application.Usecases.Receptionist.EditAppointment
                 throw new Exception(MessageConstants.MSG.MSG16); // "Bác sĩ không tồn tại"
             }
 
-            var checkValidAppointment = await _appointmentRepository.GetLatestAppointmentByPatientIdAsync(existApp.PatientId);
-            if (checkValidAppointment.Status == "confirmed")
-            {
-                throw new Exception(MessageConstants.MSG.MSG89); // "Kế hoạch điều trị đã tồn tại"
-            }
 
             var newDentist = await _dentistRepository.GetDentistByDentistIdAsync(request.DentistId);
             var currentDentist = await _dentistRepository.GetDentistByDentistIdAsync(existApp.DentistId);
