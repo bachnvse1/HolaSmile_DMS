@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 
-namespace Application.Usecases.Assistant.CreateSupply
+namespace Application.Usecases.Assistant.ExcelSupply
 {
     public class ImportSupplyFromExcelCommand : IRequest<int>
     {
