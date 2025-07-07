@@ -1,9 +1,10 @@
-﻿using Application.Usecases.UserCommon.ViewProfile;
+using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using Application.Usecases.Patients.ViewListPatient;
 using HDMS_API.Application.Usecases.UserCommon.Login;
+using Application.Usecases.Administrator.ViewListUser;
 
 namespace Application.Interfaces
 {
@@ -26,5 +27,8 @@ namespace Application.Interfaces
         Task<List<Receptionist>> GetAllReceptionistAsync();
         Task<int?> GetUserIdByRoleTableIdAsync(string role, int id);
 
+        Task<List<ViewListUserDTO>> GetAllUserAsync();
+        Task<bool> CreateUserAsync(User user, string role);
+        Task<bool> UpdateUserStatusAsync(int userId);
     }
 }

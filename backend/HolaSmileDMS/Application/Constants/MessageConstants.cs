@@ -99,5 +99,15 @@ public static class MessageConstants
         public const string MSG94 = "Số lượng trong kho không thể nhỏ hơn 0";
         public const string MSG95 = "Giá không thể nhỏ hơn 0";
         public const string MSG96 = "Hạn vật tư không thể nhỏ hơn hiện tại";
+
+        public const string MSG98 = "Thời hạn không hợp lệ. Vui lòng nhập ví dụ như '12 tháng' hoặc '2 năm'.";
+        public const string MSG99 = "Thủ thuật không tồn tại.";
+        public const string MSG100 = "Thủ thuật đã có thẻ bảo hành.";
+        public const string MSG101 = "Chỉ tạo thẻ bảo hành cho thủ thuật đã hoàn tất điều trị.";
+        public const string MSG102 = "Tạo thẻ bảo hành thành công.";
+        public const string MSG103 = "Thẻ bảo hành không tồn tại.";
+        public const string MSG104 = "Thẻ bảo hành đã bị vô hiệu hóa.";
+        public const string MSG105 = "Vô hiệu hóa thẻ bảo hành thành công.";
+        public const string MSG106 = "Cập nhật thẻ bảo hành thành công.";
     }
 }
