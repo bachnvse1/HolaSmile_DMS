@@ -99,5 +99,6 @@ public static class MessageConstants
         public const string MSG94 = "Số lượng trong kho không thể nhỏ hơn 0";
         public const string MSG95 = "Giá không thể nhỏ hơn 0";
         public const string MSG96 = "Hạn vật tư không thể nhỏ hơn hiện tại";
+        public const string MSG97 = "Cập nhật thành công.";
     }
 }
