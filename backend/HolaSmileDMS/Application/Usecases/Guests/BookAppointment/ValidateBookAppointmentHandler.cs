@@ -1,8 +1,6 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
-using AutoMapper;
 using HDMS_API.Application.Common.Helpers;
-using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using MediatR;
 using Microsoft.IdentityModel.Tokens;
 
@@ -10,16 +8,10 @@ namespace Application.Usecases.Guests.BookAppointment
 {
     public class ValidateBookAppointmentHandler : IRequestHandler<ValidateBookAppointmentCommand, ValidateBookAppointmentCommand>
     {
-        private readonly IAppointmentRepository _appointmentRepository;
-        private readonly IPatientRepository _patientRepository;
         private readonly IUserCommonRepository _userCommonRepository;
-        private readonly IMapper _mapper;
-        public ValidateBookAppointmentHandler(IAppointmentRepository appointmentRepository, IPatientRepository patientRepository, IUserCommonRepository userCommonRepository, IMapper mapper)
+        public ValidateBookAppointmentHandler(IUserCommonRepository userCommonRepository)
         {
-            _appointmentRepository = appointmentRepository;
-            _patientRepository = patientRepository;
             _userCommonRepository = userCommonRepository;
-            _mapper = mapper;
         }
 
         public async Task<ValidateBookAppointmentCommand> Handle(ValidateBookAppointmentCommand request, CancellationToken cancellationToken)

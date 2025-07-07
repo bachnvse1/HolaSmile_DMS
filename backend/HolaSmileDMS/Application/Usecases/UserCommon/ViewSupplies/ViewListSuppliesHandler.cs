@@ -4,7 +4,6 @@ using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using AutoMapper;
-using Application.Usecases.UserCommon.ViewListProcedure;
 
 namespace Application.Usecases.UserCommon.ViewSupplies
 {
@@ -45,7 +44,7 @@ namespace Application.Usecases.UserCommon.ViewSupplies
 
             if (listSupplies == null || !listSupplies.Any())
             {
-                return new List<SuppliesDTO>();
+                throw new Exception(MessageConstants.MSG.MSG16); // Không tìm thấy vật tư
             }
             var suppliesDTOs = _mapper.Map<List<SuppliesDTO>>(listSupplies);
 

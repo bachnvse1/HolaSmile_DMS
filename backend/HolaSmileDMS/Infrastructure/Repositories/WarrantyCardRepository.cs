@@ -1,9 +1,9 @@
-﻿using HDMS_API.Infrastructure.Persistence;
+using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
-    public class WarrantyCardRepository : IWarrantyRepository
+    public class WarrantyCardRepository : IWarrantyCardRepository
     {
         private readonly ApplicationDbContext _context;
 
@@ -12,12 +12,14 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<List<WarrantyCard>> GetAllWarrantyCardsWithProceduresAsync(CancellationToken cancellationToken)
+        public async Task<List<WarrantyCard>> GetAllWarrantyCardsWithProceduresAsync(
+            CancellationToken cancellationToken)
         {
             return await _context.WarrantyCards
                 .Include(w => w.Procedures)
                 .ToListAsync(cancellationToken);
         }
+
         public async Task<WarrantyCard?> GetByIdAsync(int id, CancellationToken ct)
         {
             return await _context.WarrantyCards
@@ -46,12 +48,12 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync(cancellationToken);
             return card;
         }
+
         public async Task<bool> UpdateWarrantyCardAsync(WarrantyCard card, CancellationToken cancellationToken)
         {
             _context.WarrantyCards.Update(card);
             var result = await _context.SaveChangesAsync(cancellationToken);
             return result > 0;
         }
-
     }
 }

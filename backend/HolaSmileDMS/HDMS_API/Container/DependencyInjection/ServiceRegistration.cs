@@ -1,7 +1,6 @@
 ﻿using Application.Common.Mappings;
 using Application.Interfaces;
 using Application.Services;
-using Application.Usecases.Assistant.CreateWarrantyCard;
 using Application.Usecases.SendNotification;
 using HDMS_API.Application.Common.Mappings;
 using HDMS_API.Application.Interfaces;
@@ -29,7 +28,7 @@ namespace HDMS_API.Container.DependencyInjection
                 options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)),
                 ServiceLifetime.Scoped
             );
-
+            
             // Repository & Services
             services.AddScoped<IAppointmentRepository, AppointmentRepository>();
             services.AddScoped<IEmailService, EmailService>();
@@ -51,9 +50,13 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IProcedureRepository, ProcedureRepository>();
             services.AddScoped<IReceptionistRepository, ReceptionistRepository>();
             services.AddScoped<IFileStorageService, FileStorageService>();
+            services.AddScoped<IOrthodonticTreatmentPlanRepository, OrthodonticTreatmentPlanRepository>();
             services.AddScoped<ITaskRepository, TaskRepository>();
+            services.AddScoped<IWarrantyCardRepository, WarrantyCardRepository>();
+            services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+            services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
+            services.AddScoped<IInstructionRepository, InstructionRepository>();
             services.AddScoped<IPrescriptionTemplateRepository, PrescriptionTemplateRepository>();
-            services.AddScoped<IWarrantyRepository, WarrantyCardRepository>();
 
 
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -77,7 +80,6 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddMediatR(typeof(CreatePatientCommand).Assembly);
             services.AddMediatR(typeof(LoginCommand).Assembly);
             services.AddMediatR(typeof(SendNotificationHandler).Assembly);
-            services.AddMediatR(typeof(CreateWarrantyCardHandler).Assembly);
 
             // AutoMapper
             services.AddAutoMapper(typeof(MappingViewTreatmentRecord));

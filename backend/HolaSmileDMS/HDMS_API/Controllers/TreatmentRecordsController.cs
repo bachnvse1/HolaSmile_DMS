@@ -46,9 +46,8 @@ public class TreatmentRecordsController : ControllerBase
         {
             return BadRequest(new
             {
-                message = MessageConstants.MSG.MSG58, // Cập nhật dữ liệu thất bại (có thể sửa thành "Lỗi khi truy vấn dữ liệu" nếu cần thêm mã riêng)
-                Inner = ex.InnerException?.Message,
-                Stack = ex.StackTrace
+                message = MessageConstants.MSG.MSG58
+
             });
         }
     }
