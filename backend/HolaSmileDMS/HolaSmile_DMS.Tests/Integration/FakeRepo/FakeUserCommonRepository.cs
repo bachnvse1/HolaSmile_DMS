@@ -116,4 +116,9 @@ public class FakeUserCommonRepository : IUserCommonRepository
     {
         throw new NotImplementedException();
     }
+
+    public Task<User?> GetByIdAsync(int? userId, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
 }
