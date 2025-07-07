@@ -117,3 +117,33 @@ export const useSupplyStats = () => {
     staleTime: 5 * 60 * 1000, 
   });
 };
+
+// Hook for exporting supplies to Excel
+export const useDownloadExcelSupplies = () => {
+  return useMutation({
+    mutationFn: () => supplyApi.downloadExcelTemplate(),
+    onSuccess: (blob) => {
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `supplies_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    },
+  });
+};
+
+// Hook for importing supplies from Excel
+export const useImportSupplies = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (file: File) => supplyApi.importExcel(file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: SUPPLY_KEYS.all });
+    },
+  });
+};

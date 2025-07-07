@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { 
   Plus, 
@@ -11,20 +11,31 @@ import {
   DollarSign,
   TrendingDown,
   Filter,
-  RotateCcw
+  RotateCcw,
+  Download,
+  Upload,
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { useSupplies, useDeactivateSupply, useSupplyStats } from '@/hooks/useSupplies';
+import { Pagination } from '@/components/ui/Pagination';
+import { 
+  useSupplies, 
+  useDeactivateSupply, 
+  useSupplyStats, 
+  useDownloadExcelSupplies, 
+  useImportSupplies 
+} from '@/hooks/useSupplies';
 import { useUserInfo } from '@/hooks/useUserInfo';
 import type { Supply } from '@/types/supply';
 
 export const SupplyList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'low-stock' | 'expiring'>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     supply: Supply | null;
@@ -35,6 +46,7 @@ export const SupplyList: React.FC = () => {
     action: 'delete'
   });
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const userInfo  = useUserInfo();
   const userRole = userInfo?.role || '';
@@ -45,6 +57,8 @@ export const SupplyList: React.FC = () => {
   const { data: supplies = [], isLoading, error, refetch } = useSupplies(searchQuery);
   const { data: stats, isLoading: isLoadingStats } = useSupplyStats();
   const { mutate: deactivateSupply, isPending: isDeactivating } = useDeactivateSupply();
+  const { mutate: downloadExcel, isPending: isDownloadExcel } = useDownloadExcelSupplies();
+  const { mutate: importExcel, isPending: isImporting } = useImportSupplies();
 
   // Filter supplies based on selected filter
   const filteredSupplies = supplies.filter(supply => {
@@ -59,8 +73,77 @@ export const SupplyList: React.FC = () => {
     return true;
   });
 
+  // Pagination logic
+  const totalItems = filteredSupplies.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedSupplies = filteredSupplies.slice(startIndex, endIndex);
+
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
+    setCurrentPage(1); // Reset to first page when searching
+  };
+
+  const handleFilterChange = (newFilter: 'all' | 'low-stock' | 'expiring') => {
+    setFilter(newFilter);
+    setCurrentPage(1); // Reset to first page when filtering
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1); // Reset to first page when changing items per page
+  };
+
+  const handleDownloadTemplate = () => {
+    downloadExcel(undefined, {
+      onSuccess: () => {
+        toast.success('Đã tải mẫu excel thành công');
+      },
+      onError: () => {
+        toast.error('Có lỗi xảy ra khi xuất file Excel');
+      }
+    });
+  };
+
+  const handleImportExcel = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Vui lòng chọn file Excel (.xlsx hoặc .xls)');
+      return;
+    }
+
+    importExcel(file, {
+      onSuccess: () => {
+        toast.success('Đã import file Excel thành công');
+        refetch();
+        // Reset file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      },
+      onError: (error: unknown) => {
+        const errorMessage = error && typeof error === 'object' && 'response' in error 
+          ? (error as { response?: { data?: { message?: string } } })?.response?.data?.message 
+          : 'Có lỗi xảy ra khi import file Excel';
+        toast.error(errorMessage);
+        // Reset file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      }
+    });
   };
 
   const handleView = (supply: Supply) => {
@@ -127,7 +210,7 @@ export const SupplyList: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6 max-w-7xl">
+      <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
         <div className="flex justify-center items-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -140,7 +223,7 @@ export const SupplyList: React.FC = () => {
 
   if (error) {
     return (
-      <div className="container mx-auto p-6 max-w-7xl">
+      <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
         <div className="flex justify-center items-center min-h-[400px]">
           <div className="text-center">
             <p className="text-red-600">Có lỗi xảy ra khi tải dữ liệu: {error.message}</p>
@@ -158,75 +241,112 @@ export const SupplyList: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
+    <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Quản Lý Kho Vật Tư</h1>
-          <p className="text-gray-600 mt-1">
-            Tổng cộng {filteredSupplies.length} vật tư
-          </p>
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Quản Lý Kho Vật Tư</h1>
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">
+              Tổng cộng {filteredSupplies.length} vật tư
+            </p>
+          </div>
         </div>
-        {canModify && (
-          <Button 
-            onClick={() => navigate('/inventory/create')}
-            className="mt-4 sm:mt-0"
+        
+        {/* Action buttons */}
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <Button
+            variant="outline"
+            onClick={handleDownloadTemplate}
+            disabled={isDownloadExcel}
+            className="w-full sm:w-auto"
           >
-            <Plus className="h-4 w-4 mr-2" />
-            Thêm Vật Tư Mới
+            <Download className="h-4 w-4 mr-2" />
+            {isDownloadExcel ? 'Đang tải...' : 'Tải Mẫu Excel'}
           </Button>
-        )}
+          
+          {canModify && (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isImporting}
+                className="w-full sm:w-auto"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                {isImporting ? 'Đang nhập...' : 'Nhập Excel'}
+              </Button>
+              
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handleImportExcel}
+                className="hidden"
+                title="Import Excel file"
+              />
+              
+              <Button 
+                onClick={() => navigate('/inventory/create')}
+                className="w-full sm:w-auto"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Thêm Vật Tư Mới
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Statistics Cards */}
       {!isLoadingStats && stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Tổng vật tư</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalSupplies}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Tổng vật tư</p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.totalSupplies}</p>
                 </div>
-                <Package className="h-8 w-8 text-blue-600" />
+                <Package className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Sắp hết hàng</p>
-                  <p className="text-2xl font-bold text-orange-600">{stats.lowStockCount}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Sắp hết hàng</p>
+                  <p className="text-lg sm:text-2xl font-bold text-orange-600">{stats.lowStockCount}</p>
                 </div>
-                <TrendingDown className="h-8 w-8 text-orange-600" />
+                <TrendingDown className="h-6 w-6 sm:h-8 sm:w-8 text-orange-600" />
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Sắp hết hạn</p>
-                  <p className="text-2xl font-bold text-red-600">{stats.expiringSoonCount}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Sắp hết hạn</p>
+                  <p className="text-lg sm:text-2xl font-bold text-red-600">{stats.expiringSoonCount}</p>
                 </div>
-                <AlertTriangle className="h-8 w-8 text-red-600" />
+                <AlertTriangle className="h-6 w-6 sm:h-8 sm:w-8 text-red-600" />
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Tổng giá trị</p>
-                  <p className="text-lg font-bold text-green-600">
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Tổng giá trị</p>
+                  <p className="text-sm sm:text-lg font-bold text-green-600 truncate">
                     {formatPrice(stats.totalValue)}
                   </p>
                 </div>
-                <DollarSign className="h-8 w-8 text-green-600" />
+                <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
@@ -236,8 +356,8 @@ export const SupplyList: React.FC = () => {
       {/* Search and Filter */}
       <Card className="mb-6">
         <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
+          <div className="flex flex-col gap-4">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 placeholder="Tìm kiếm theo tên vật tư..."
@@ -246,27 +366,31 @@ export const SupplyList: React.FC = () => {
                 className="pl-10"
               />
             </div>
-            <div className="flex gap-2">
+            
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant={filter === 'all' ? 'default' : 'outline'}
-                onClick={() => setFilter('all')}
+                onClick={() => handleFilterChange('all')}
                 size="sm"
+                className="flex-1 sm:flex-none"
               >
                 <Filter className="h-4 w-4 mr-2" />
                 Tất cả
               </Button>
               <Button
                 variant={filter === 'low-stock' ? 'default' : 'outline'}
-                onClick={() => setFilter('low-stock')}
+                onClick={() => handleFilterChange('low-stock')}
                 size="sm"
+                className="flex-1 sm:flex-none"
               >
                 <TrendingDown className="h-4 w-4 mr-2" />
                 Sắp hết
               </Button>
               <Button
                 variant={filter === 'expiring' ? 'default' : 'outline'}
-                onClick={() => setFilter('expiring')}
+                onClick={() => handleFilterChange('expiring')}
                 size="sm"
+                className="flex-1 sm:flex-none"
               >
                 <AlertTriangle className="h-4 w-4 mr-2" />
                 Hết hạn
@@ -331,7 +455,7 @@ export const SupplyList: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredSupplies.map((supply) => {
+                    {paginatedSupplies.map((supply) => {
                       const stockStatus = getStockStatus(supply.QuantityInStock);
                       const expiryStatus = getExpiryStatus(supply.ExpiryDate);
                       
@@ -431,30 +555,31 @@ export const SupplyList: React.FC = () => {
           </Card>
 
           {/* Mobile Cards */}
-          <div className="lg:hidden space-y-4">
-            {filteredSupplies.map((supply) => {
+          <div className="lg:hidden space-y-3 sm:space-y-4">
+            {paginatedSupplies.map((supply) => {
               const stockStatus = getStockStatus(supply.QuantityInStock);
               const expiryStatus = getExpiryStatus(supply.ExpiryDate);
               
               return (
                 <Card key={supply.SupplyID} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-4">
+                  <CardContent className="p-3 sm:p-4">
                     <div className="space-y-3">
                       {/* Header */}
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
                             {supply.Name}
                           </h3>
-                          <p className="text-sm text-gray-600 mt-1">
+                          <p className="text-xs sm:text-sm text-gray-600 mt-1">
                             Đơn vị: {supply.Unit}
                           </p>
                         </div>
-                        <div className="flex space-x-1">
+                        <div className="flex space-x-1 flex-shrink-0">
                           <Button
                             size="sm"
                             variant="ghost"
                             onClick={() => handleView(supply)}
+                            className="h-8 w-8 p-0"
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -464,6 +589,7 @@ export const SupplyList: React.FC = () => {
                                 size="sm"
                                 variant="ghost"
                                 onClick={() => handleEdit(supply)}
+                                className="h-8 w-8 p-0"
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
@@ -473,7 +599,7 @@ export const SupplyList: React.FC = () => {
                                   variant="ghost"
                                   onClick={() => handleDeactivate(supply)}
                                   disabled={isDeactivating}
-                                  className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                  className="text-green-600 hover:text-green-700 hover:bg-green-50 h-8 w-8 p-0"
                                   title="Khôi phục vật tư"
                                 >
                                   <RotateCcw className="h-4 w-4" />
@@ -484,7 +610,7 @@ export const SupplyList: React.FC = () => {
                                   variant="ghost"
                                   onClick={() => handleDeactivate(supply)}
                                   disabled={isDeactivating}
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
                                   title="Xóa vật tư"
                                 >
                                   <Trash2 className="h-4 w-4" />
@@ -496,11 +622,11 @@ export const SupplyList: React.FC = () => {
                       </div>
 
                       {/* Content */}
-                      <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-sm">
                         <div>
                           <span className="text-gray-600">Số lượng:</span>
-                          <div className="flex items-center mt-1">
-                            <span className="font-medium text-gray-900 mr-2">
+                          <div className="flex items-center mt-1 gap-2">
+                            <span className="font-medium text-gray-900">
                               {supply.QuantityInStock}
                             </span>
                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${stockStatus.color}`}>
@@ -511,7 +637,7 @@ export const SupplyList: React.FC = () => {
                         
                         <div>
                           <span className="text-gray-600">Giá:</span>
-                          <div className="font-medium text-gray-900 mt-1">
+                          <div className="font-medium text-gray-900 mt-1 truncate">
                             {formatPrice(supply.Price)}
                           </div>
                         </div>
@@ -520,8 +646,8 @@ export const SupplyList: React.FC = () => {
                       {/* Expiry */}
                       <div>
                         <span className="text-gray-600 text-sm">Hạn sử dụng:</span>
-                        <div className="flex items-center mt-1">
-                          <span className="text-sm text-gray-900 mr-2">
+                        <div className="flex items-center mt-1 gap-2">
+                          <span className="text-sm text-gray-900">
                             {formatDate(supply.ExpiryDate)}
                           </span>
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${expiryStatus.color}`}>
@@ -534,6 +660,19 @@ export const SupplyList: React.FC = () => {
                 </Card>
               );
             })}
+          </div>
+
+          {/* Pagination */}
+          <div className="mt-6 border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
+              onPageChange={handlePageChange}
+              onItemsPerPageChange={handleItemsPerPageChange}
+              className="justify-center"
+            />
           </div>
         </>
       )}

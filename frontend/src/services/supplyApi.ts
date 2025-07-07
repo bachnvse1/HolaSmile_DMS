@@ -10,7 +10,8 @@ function mapSupplyFromApi(apiSupply: any): Supply {
     SupplyID: apiSupply.supplyID ?? apiSupply.SupplyID ?? 0,
     Name: apiSupply.name ?? apiSupply.Name ?? "",
     Unit: apiSupply.unit ?? apiSupply.Unit ?? "",
-    QuantityInStock: apiSupply.quantityInStock ?? apiSupply.QuantityInStock ?? 0,
+    QuantityInStock:
+      apiSupply.quantityInStock ?? apiSupply.QuantityInStock ?? 0,
     ExpiryDate: apiSupply.expiryDate ?? apiSupply.ExpiryDate ?? "",
     Price: apiSupply.price ?? apiSupply.Price ?? 0,
     CreatedAt: apiSupply.createdAt ?? apiSupply.CreatedAt ?? "",
@@ -50,5 +51,32 @@ export const supplyApi = {
   // Delete/Undelete supply (toggle activation)
   toggleSupplyActivation: async (supplyId: number): Promise<void> => {
     await axiosInstance.put(`/supplies/DeleteandUndeleteSupply/${supplyId}`);
+  },
+
+  // Export supplies to Excel
+  downloadExcelTemplate: async (): Promise<Blob> => {
+    const response = await axiosInstance.post(
+      "/supplies/excel-template",
+      {}, 
+      { responseType: "blob" }
+    );
+    return response.data;
+  },
+
+  // Import supplies from Excel
+  importExcel: async (file: File): Promise<any> => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await axiosInstance.post(
+      "/supplies/import-excel",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
   },
 };

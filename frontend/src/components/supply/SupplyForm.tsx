@@ -135,7 +135,7 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
 
   if (mode === 'edit' && isLoadingSupply) {
     return (
-      <div className="container mx-auto p-6 max-w-4xl">
+      <div className="container mx-auto p-4 sm:p-6 max-w-4xl">
         <div className="flex justify-center items-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -148,7 +148,7 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
 
   if (mode === 'edit' && !supply) {
     return (
-      <div className="container mx-auto p-6 max-w-4xl">
+      <div className="container mx-auto p-4 sm:p-6 max-w-4xl">
         <div className="flex justify-center items-center min-h-[400px]">
           <div className="text-center">
             <p className="text-red-600">Không tìm thấy vật tư</p>
@@ -182,14 +182,14 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
         </div>
       </div>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
         {/* Basic Information */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg sm:text-xl">Thông Tin Cơ Bản</CardTitle>
+            <CardTitle className="text-base sm:text-lg lg:text-xl">Thông Tin Cơ Bản</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
                   Tên Vật Tư *
@@ -197,6 +197,7 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
                 <Input
                   placeholder="VD: Khẩu trang y tế 3 lớp"
                   {...form.register('name')}
+                  className="w-full"
                 />
                 {form.formState.errors.name && (
                   <p className="text-sm text-red-600">
@@ -215,9 +216,8 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
                   onValueChange={(value) => form.setValue('unit', value)}
                   disabled={isLoadingSupply}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn đơn vị">
-                    </SelectValue>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Chọn đơn vị" />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.values(SupplyUnit).map((value) => (
@@ -245,6 +245,7 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
                   min="0"
                   placeholder="0"
                   {...form.register('quantityInStock')}
+                  className="w-full"
                 />
                 {form.formState.errors.quantityInStock && (
                   <p className="text-sm text-red-600">
@@ -260,6 +261,7 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
                 <Input
                   type="date"
                   {...form.register('expiryDate')}
+                  className="w-full"
                 />
                 {form.formState.errors.expiryDate && (
                   <p className="text-sm text-red-600">
@@ -277,13 +279,14 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
                 placeholder="0"
                 onChange={handlePriceChange}
                 defaultValue={mode === 'edit' && supply ? formatPrice(supply.Price.toString()) : ''}
+                className="w-full"
               />
               {form.formState.errors.price && (
                 <p className="text-sm text-red-600">
                   {form.formState.errors.price.message}
                 </p>
               )}
-              <p className="text-sm text-gray-500">
+              <p className="text-xs sm:text-sm text-gray-500">
                 Nhập giá đơn vị của vật tư
               </p>
             </div>
@@ -292,11 +295,20 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
-          <Button type="button" variant="outline" onClick={handleGoBack} className="order-2 sm:order-1">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={handleGoBack} 
+            className="order-2 sm:order-1 w-full sm:w-auto"
+          >
             <X className="h-4 w-4 mr-2" />
             Hủy
           </Button>
-          <Button type="submit" disabled={isLoading} className="order-1 sm:order-2">
+          <Button 
+            type="submit" 
+            disabled={isLoading} 
+            className="order-1 sm:order-2 w-full sm:w-auto"
+          >
             <Save className="h-4 w-4 mr-2" />
             {isLoading
               ? (mode === 'create' ? 'Đang tạo...' : 'Đang cập nhật...')

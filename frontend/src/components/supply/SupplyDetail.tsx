@@ -101,7 +101,7 @@ export const SupplyDetail: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6 max-w-4xl">
+      <div className="container mx-auto p-4 sm:p-6 max-w-4xl">
         <div className="flex justify-center items-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -114,7 +114,7 @@ export const SupplyDetail: React.FC = () => {
 
   if (!supply) {
     return (
-      <div className="container mx-auto p-6 max-w-4xl">
+      <div className="container mx-auto p-4 sm:p-6 max-w-4xl">
         <div className="flex justify-center items-center min-h-[400px]">
           <div className="text-center">
             <p className="text-red-600">Không tìm thấy vật tư</p>
@@ -134,7 +134,7 @@ export const SupplyDetail: React.FC = () => {
   return (
     <div className="container mx-auto p-4 sm:p-6 max-w-4xl">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+      <div className="flex flex-row sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={handleGoBack}>
             <ArrowLeft className="h-5 w-5" />
@@ -146,33 +146,37 @@ export const SupplyDetail: React.FC = () => {
         </div>
 
         {canModify && (
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleEdit} className="flex-1 sm:flex-none">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button 
+              variant="outline" 
+              onClick={handleEdit} 
+              className="w-full sm:w-auto"
+            >
               <Edit className="h-4 w-4 mr-2" />
+              <span className="sm:hidden">Chỉnh sửa</span>
               <span className="hidden sm:inline">Chỉnh Sửa</span>
-              <span className="sm:hidden">Sửa</span>
             </Button>
             {supply.isDeleted === true ? (
               <Button
                 variant="outline"
                 onClick={handleDeactivate}
                 disabled={isDeactivating}
-                className="text-green-600 hover:text-green-700 hover:bg-green-50 flex-1 sm:flex-none"
+                className="text-green-600 hover:text-green-700 hover:bg-green-50 w-full sm:w-auto"
               >
                 <RotateCcw className="h-4 w-4 mr-2" />
+                <span className="sm:hidden">{isDeactivating ? 'Đang khôi phục...' : 'Khôi phục'}</span>
                 <span className="hidden sm:inline">{isDeactivating ? 'Đang khôi phục...' : 'Khôi phục'}</span>
-                <span className="sm:hidden">{isDeactivating ? '...' : 'Khôi phục'}</span>
               </Button>
             ) : (
               <Button
                 variant="outline"
                 onClick={handleDeactivate}
                 disabled={isDeactivating}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-1 sm:flex-none"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
+                <span className="sm:hidden">{isDeactivating ? 'Đang xóa...' : 'Xóa'}</span>
                 <span className="hidden sm:inline">{isDeactivating ? 'Đang xóa...' : 'Xóa'}</span>
-                <span className="sm:hidden">{isDeactivating ? '...' : 'Xóa'}</span>
               </Button>
             )}
           </div>
