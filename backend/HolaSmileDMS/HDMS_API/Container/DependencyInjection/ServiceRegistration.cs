@@ -61,6 +61,9 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
             services.AddScoped<IPdfGenerator, PdfGenerator>();
             services.AddScoped<IDentalExamSheetPrinter, DentalExamSheetPrinter>();
+            services.AddScoped<IPrescriptionTemplateRepository, PrescriptionTemplateRepository>();
+
+
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>
             {

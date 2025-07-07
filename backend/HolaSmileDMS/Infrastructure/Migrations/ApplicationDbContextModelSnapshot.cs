@@ -197,6 +197,9 @@ namespace HDMS_API.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<int?>("OrthodonticTreatmentPlanId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("PatientId")
                         .HasColumnType("int");
 
@@ -211,6 +214,8 @@ namespace HDMS_API.Migrations
 
                     b.HasKey("ImageId");
 
+                    b.HasIndex("OrthodonticTreatmentPlanId");
+
                     b.HasIndex("PatientId");
 
                     b.HasIndex("TreatmentRecordId");
@@ -222,6 +227,9 @@ namespace HDMS_API.Migrations
                 {
                     b.Property<int>("InstructionID")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AppointmentId")
                         .HasColumnType("int");
 
                     b.Property<string>("Content")
@@ -239,7 +247,7 @@ namespace HDMS_API.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<int?>("TreatmentRecord_Id")
+                    b.Property<int?>("TreatmentRecordID")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -250,9 +258,11 @@ namespace HDMS_API.Migrations
 
                     b.HasKey("InstructionID");
 
+                    b.HasIndex("AppointmentId");
+
                     b.HasIndex("Instruc_TemplateID");
 
-                    b.HasIndex("TreatmentRecord_Id");
+                    b.HasIndex("TreatmentRecordID");
 
                     b.ToTable("Instructions");
                 });
@@ -521,6 +531,9 @@ namespace HDMS_API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<int?>("AppointmentId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Content")
                         .HasColumnType("longtext");
 
@@ -536,7 +549,7 @@ namespace HDMS_API.Migrations
                     b.Property<int?>("Pre_TemplateID")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TreatmentRecord_Id")
+                    b.Property<int?>("TreatmentRecordID")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -547,9 +560,11 @@ namespace HDMS_API.Migrations
 
                     b.HasKey("PrescriptionId");
 
+                    b.HasIndex("AppointmentId");
+
                     b.HasIndex("Pre_TemplateID");
 
-                    b.HasIndex("TreatmentRecord_Id");
+                    b.HasIndex("TreatmentRecordID");
 
                     b.ToTable("Prescriptions");
                 });
@@ -879,6 +894,9 @@ namespace HDMS_API.Migrations
                     b.Property<int>("SupplyId")
                         .HasColumnType("int");
 
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
                     b.HasKey("ProcedureId", "SupplyId");
 
                     b.HasIndex("SupplyId");
@@ -1150,6 +1168,9 @@ namespace HDMS_API.Migrations
                     b.Property<int?>("CreateBy")
                         .HasColumnType("int");
 
+                    b.Property<int?>("Duration")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime(6)");
 
@@ -1159,8 +1180,8 @@ namespace HDMS_API.Migrations
                     b.Property<bool>("Status")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<string>("Term")
-                        .HasColumnType("longtext");
+                    b.Property<int>("TreatmentRecordID")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
@@ -1169,6 +1190,8 @@ namespace HDMS_API.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("WarrantyCardID");
+
+                    b.HasIndex("TreatmentRecordID");
 
                     b.ToTable("WarrantyCards");
                 });
@@ -1225,6 +1248,10 @@ namespace HDMS_API.Migrations
 
             modelBuilder.Entity("Image", b =>
                 {
+                    b.HasOne("OrthodonticTreatmentPlan", "OrthodonticTreatmentPlan")
+                        .WithMany()
+                        .HasForeignKey("OrthodonticTreatmentPlanId");
+
                     b.HasOne("Patient", "Patient")
                         .WithMany("Images")
                         .HasForeignKey("PatientId");
@@ -1233,6 +1260,8 @@ namespace HDMS_API.Migrations
                         .WithMany()
                         .HasForeignKey("TreatmentRecordId");
 
+                    b.Navigation("OrthodonticTreatmentPlan");
+
                     b.Navigation("Patient");
 
                     b.Navigation("TreatmentRecord");
@@ -1240,17 +1269,21 @@ namespace HDMS_API.Migrations
 
             modelBuilder.Entity("Instruction", b =>
                 {
+                    b.HasOne("Appointment", "Appointment")
+                        .WithMany()
+                        .HasForeignKey("AppointmentId");
+
                     b.HasOne("InstructionTemplate", "InstructionTemplate")
                         .WithMany("Instructions")
                         .HasForeignKey("Instruc_TemplateID");
 
-                    b.HasOne("TreatmentRecord", "TreatmentRecord")
+                    b.HasOne("TreatmentRecord", null)
                         .WithMany("Instructions")
-                        .HasForeignKey("TreatmentRecord_Id");
+                        .HasForeignKey("TreatmentRecordID");
+
+                    b.Navigation("Appointment");
 
                     b.Navigation("InstructionTemplate");
-
-                    b.Navigation("TreatmentRecord");
                 });
 
             modelBuilder.Entity("Invoice", b =>
@@ -1343,23 +1376,27 @@ namespace HDMS_API.Migrations
 
             modelBuilder.Entity("Prescription", b =>
                 {
+                    b.HasOne("Appointment", "Appointment")
+                        .WithMany()
+                        .HasForeignKey("AppointmentId");
+
                     b.HasOne("PrescriptionTemplate", "PrescriptionTemplate")
                         .WithMany("Prescriptions")
                         .HasForeignKey("Pre_TemplateID");
 
-                    b.HasOne("TreatmentRecord", "TreatmentRecord")
+                    b.HasOne("TreatmentRecord", null)
                         .WithMany("Prescriptions")
-                        .HasForeignKey("TreatmentRecord_Id");
+                        .HasForeignKey("TreatmentRecordID");
+
+                    b.Navigation("Appointment");
 
                     b.Navigation("PrescriptionTemplate");
-
-                    b.Navigation("TreatmentRecord");
                 });
 
             modelBuilder.Entity("Procedure", b =>
                 {
                     b.HasOne("WarrantyCard", "WarrantyCard")
-                        .WithMany("Procedures")
+                        .WithMany()
                         .HasForeignKey("WarrantyCardId");
 
                     b.Navigation("WarrantyCard");
@@ -1506,6 +1543,17 @@ namespace HDMS_API.Migrations
                     b.Navigation("Procedure");
                 });
 
+            modelBuilder.Entity("WarrantyCard", b =>
+                {
+                    b.HasOne("TreatmentRecord", "TreatmentRecord")
+                        .WithMany()
+                        .HasForeignKey("TreatmentRecordID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TreatmentRecord");
+                });
+
             modelBuilder.Entity("Appointment", b =>
                 {
                     b.Navigation("TreatmentRecords");
@@ -1585,11 +1633,6 @@ namespace HDMS_API.Migrations
                     b.Navigation("Prescriptions");
 
                     b.Navigation("TreatmentProgresses");
-                });
-
-            modelBuilder.Entity("WarrantyCard", b =>
-                {
-                    b.Navigation("Procedures");
                 });
 #pragma warning restore 612, 618
         }

@@ -12,10 +12,10 @@ public class PrescriptionRepository : IPrescriptionRepository
     {
         _context = context;
     }
-    public async Task<List<Prescription>> GetByTreatmentRecordIdAsync(int treatmentRecordId, CancellationToken ct = default)
+    public async Task<List<Prescription>> GetByTreatmentRecordIdAsync(int appointmentId, CancellationToken ct = default)
     {
         return await _context.Prescriptions
-            .Where(p => p.TreatmentRecord_Id == treatmentRecordId)
+            .Where(p => p.AppointmentId == appointmentId)
             .AsNoTracking()
             .ToListAsync(ct);
     }

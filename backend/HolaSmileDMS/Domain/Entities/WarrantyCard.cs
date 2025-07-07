@@ -1,6 +1,4 @@
-using System;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 public class WarrantyCard
 {
@@ -9,7 +7,7 @@ public class WarrantyCard
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
 
-    public string? Term { get; set; }
+    public int? Duration { get; set; }
 
     public bool Status { get; set; }
 
@@ -18,5 +16,7 @@ public class WarrantyCard
     public int? CreateBy { get; set; }
     public int? UpdatedBy { get; set; }
 
-    public ICollection<Procedure> Procedures { get; set; }
+    public TreatmentRecord TreatmentRecord { get; set; }
+    public int TreatmentRecordID { get; set; }
+
 }
