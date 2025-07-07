@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth"
 import type { Task, TaskFilter } from "@/types/task"
 import { taskService } from "@/services/taskService"
 import { toast } from "react-toastify"
+import { ConfirmModal } from "@/components/common/ConfirmModal"
 
 export default function AssignedTasks() {
     const [tasks, setTasks] = useState<Task[]>([])
@@ -47,6 +48,40 @@ export default function AssignedTasks() {
     const [selectedTask, setSelectedTask] = useState<Task | null>(null)
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
     const [isLoadingTask, setIsLoadingTask] = useState(false)
+
+    const [confirmModal, setConfirmModal] = useState({
+        open: false,
+        taskId: 0,
+        toStatus: "Pending" as "Pending" | "Completed",
+    })
+
+    const askConfirmStatusChange = (taskId: number, toStatus: "Pending" | "Completed") => {
+        setConfirmModal({ open: true, taskId, toStatus })
+    }
+
+    const confirmStatusChange = async () => {
+        const { taskId, toStatus } = confirmModal
+        const isCompleted = toStatus === "Completed"
+
+        try {
+            const res = await taskService.updateTaskStatus(taskId, isCompleted)
+
+            setTasks((prev) =>
+                prev.map((t) => (t.taskId === taskId ? { ...t, status: toStatus } : t))
+            )
+
+            setSelectedTask((prev) =>
+                prev && prev.taskId === taskId ? { ...prev, status: toStatus } : prev
+            )
+
+            toast.success(res.message || "Đã cập nhật trạng thái")
+        } catch (err: any) {
+            toast.error(err?.response?.data?.message || "Lỗi khi cập nhật")
+        } finally {
+            setConfirmModal((prev) => ({ ...prev, open: false }))
+        }
+    }
+
 
     const handleStatusChange = (taskId: number, status: "Pending" | "Completed") => {
         setTasks((prev) =>
@@ -137,7 +172,7 @@ export default function AssignedTasks() {
                             <TaskCard
                                 key={task.taskId}
                                 task={task}
-                                onStatusChange={handleStatusChange}
+                                onStatusChange={(id, status) => askConfirmStatusChange(id, status)}
                                 onViewDetails={handleViewDetails}
                             />
                         ))}
@@ -148,6 +183,15 @@ export default function AssignedTasks() {
                         onOpenChange={setIsDetailsModalOpen}
                         onStatusChange={handleStatusChange}
                         isLoading={isLoadingTask}
+                    />
+                    <ConfirmModal
+                        open={confirmModal.open}
+                        onOpenChange={(open) => setConfirmModal((prev) => ({ ...prev, open }))}
+                        onConfirm={confirmStatusChange}
+                        title="Xác nhận cập nhật"
+                        message={`Bạn có chắc muốn đánh dấu nhiệm vụ là ${confirmModal.toStatus === "Completed" ? "hoàn thành" : "chưa hoàn thành"}?`}
+                        confirmText="Xác nhận"
+                        cancelText="Hủy"
                     />
                 </div>
             </StaffLayout>

@@ -1,12 +1,12 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle, Eye } from "lucide-react"
+import { CheckCircle, Eye, AlertCircle } from "lucide-react"
 import type { Task } from "@/types/task"
 
 interface TaskCardProps {
   task: Task
-  onStatusChange: (taskId: number, status: Task["status"]) => void
+  onStatusChange: (taskId: number, status: "Pending" | "Completed") => void
   onViewDetails: (task: Task) => void
 }
 
@@ -50,6 +50,13 @@ export function TaskCard({ task, onStatusChange, onViewDetails }: TaskCardProps)
             <Button size="sm" onClick={() => onStatusChange(task.taskId, "Completed")}>
               <CheckCircle className="w-4 h-4 mr-2" />
               Hoàn thành
+            </Button>
+          )}
+
+          {task.status === "Completed" && (
+            <Button variant="outline" size="sm" onClick={() => onStatusChange(task.taskId, "Pending")}>
+              <AlertCircle className="w-4 h-4 mr-2" />
+              Chưa hoàn thành
             </Button>
           )}
         </div>

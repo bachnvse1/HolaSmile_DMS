@@ -27,4 +27,9 @@ export const taskService = {
       status: res.data.status === "Completed" ? "Completed" : "Pending",
     }
   },
+
+  async updateTaskStatus(taskId: number, isCompleted: boolean): Promise<{ message: string }> {
+    const res = await axiosInstance.put(`/task/tasks/${taskId}/status`, isCompleted,)
+    return res.data
+  },
 }
