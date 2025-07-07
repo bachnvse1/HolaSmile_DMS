@@ -6,6 +6,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("https://localhost:5001");
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddAuthenticationServices(builder.Configuration); 
+var dllPath = Path.Combine(Directory.GetCurrentDirectory(), "wkhtmltopdf", "libwkhtmltox.dll");
+
+var context = new CustomAssemblyLoadContext();
+context.LoadUnmanagedLibrary(dllPath);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

@@ -35,6 +35,19 @@ public class PdfGenerator : IPdfGenerator
             }
         };
 
-        return _converter.Convert(doc);
+        try
+        {
+            var pdfBytes = _converter.Convert(doc);
+            if (pdfBytes == null || pdfBytes.Length == 0)
+                throw new Exception("PDF generation failed: empty result.");
+
+            return pdfBytes;
+        }
+        catch (Exception ex)
+        {
+            // log lỗi chi tiết để debug
+            Console.WriteLine($"[PDF ERROR] {ex.Message}");
+            throw;
+        }
     }
 }
