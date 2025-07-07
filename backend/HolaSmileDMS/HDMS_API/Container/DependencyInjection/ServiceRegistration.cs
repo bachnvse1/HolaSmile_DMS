@@ -38,6 +38,7 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IPatientRepository, PatientRepository>();
             services.AddScoped<IDentistRepository, DentistRepository>();
+            services.AddScoped<ISupplyRepository, SupplyRepository>();
             services.AddScoped<IUserCommonRepository, UserCommonRepository>();
             services.AddScoped<ITreatmentRecordRepository, TreatmentRecordRepository>();
             services.AddScoped<IScheduleRepository, ScheduleRepository>();
