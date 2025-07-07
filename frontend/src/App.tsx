@@ -32,6 +32,7 @@ import { CreateSupplyPage } from './pages/supply/CreateSupplyPage';
 import { EditSupplyPage } from './pages/supply/EditSupplyPage';
 import { SupplyDetailPage } from './pages/supply/SupplyDetailPage';
 import UserManagement from './pages/auth/UserManagement';
+import AssignedTasks from './pages/assistant/AssignedTasks';
 function App() {
   return (
     <>
@@ -71,6 +72,7 @@ function App() {
         <Route path="/inventory/:supplyId" element={<SupplyDetailPage />} />
         <Route path="/inventory/:supplyId/edit" element={<EditSupplyPage />} />
         <Route path="/administrator/user-list" element={<UserManagement/>}/>
+        <Route path="/assistant/assigned-tasks" element={<AssignedTasks/>}/>
       </Routes>
     </>
   );
