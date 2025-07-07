@@ -17,10 +17,8 @@ import { StaffLayout } from '../../layouts/staff/StaffLayout';
 
 const PatientTreatmentRecords: React.FC = () => {
   const [searchParams] = useSearchParams()
-  const userIdParam = searchParams.get("userId")
   const patientIdParam = searchParams.get("patientId")
 
-  const patientUserId = Number(userIdParam)
   const patientId = Number(patientIdParam)
 
   const { register, watch } = useForm<FilterFormData>({
