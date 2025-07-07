@@ -35,7 +35,7 @@ public class DentalExamSheetPrinter : IDentalExamSheetPrinter
     sb.AppendLine("<tr><th>Ngày</th><th>Thủ thuật</th><th>Triệu chứng</th><th>Chẩn đoán</th><th>Nha sĩ</th><th>Số lượng</th><th>Đơn giá</th><th>Giảm</th><th>Tổng</th><th>Bảo hành</th></tr>");
     foreach (var t in sheet.Treatments)
     {
-        sb.AppendLine($"<tr><td>{t.TreatmentDate:dd/MM/yyyy}</td><td>{t.ProcedureName}</td><td>{t.Symptoms}</td><td>{t.Diagnosis}</td><td>{t.DentistName}</td><td>{t.Quantity}</td><td>{t.UnitPrice:N0}₫</td><td>{t.Discount:N0}₫</td><td>{t.TotalAmount:N0}₫</td><td>{t.WarrantyTerm ?? "-"}</td></tr>");
+        sb.AppendLine($"<tr><td>{t.TreatmentDate:dd/MM/yyyy}</td><td>{t.ProcedureName}</td><td>{t.Symptoms}</td><td>{t.Diagnosis}</td><td>{t.DentistName}</td><td>{t.Quantity}</td><td>{t.UnitPrice:N0}₫</td><td>{t.Discount:N0}₫</td><td>{t.TotalAmount:N0}₫</td><td>{t.WarrantyTerm ?? 0}</td></tr>");
     }
     sb.AppendLine("</table></section>");
 
