@@ -24,9 +24,11 @@ namespace HDMS_API.Container.DependencyInjection
         {
             // DB Context
             var connectionString = configuration.GetConnectionString("DefaultConnection");
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
-
+            services.AddDbContext<ApplicationDbContext>(
+                options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)),
+                ServiceLifetime.Scoped
+            );
+            
             // Repository & Services
             services.AddScoped<IAppointmentRepository, AppointmentRepository>();
             services.AddScoped<IEmailService, EmailService>();
@@ -48,9 +50,12 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IProcedureRepository, ProcedureRepository>();
             services.AddScoped<IReceptionistRepository, ReceptionistRepository>();
             services.AddScoped<IFileStorageService, FileStorageService>();
+            services.AddScoped<IOrthodonticTreatmentPlanRepository, OrthodonticTreatmentPlanRepository>();
             services.AddScoped<ITaskRepository, TaskRepository>();
-
-
+            services.AddScoped<IWarrantyCardRepository, WarrantyCardRepository>();
+            services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+            services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
+            services.AddScoped<IInstructionRepository, InstructionRepository>();
 
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>
@@ -79,6 +84,8 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddAutoMapper(typeof(MappingCreatePatient));
             services.AddAutoMapper(typeof(MappingAppointment));
             services.AddAutoMapper(typeof(MappingTreatmentProgress).Assembly);
+            services.AddAutoMapper(typeof(OrthodonticTreatmentPlanProfile).Assembly);
+
 
             // Caching
             services.AddMemoryCache();

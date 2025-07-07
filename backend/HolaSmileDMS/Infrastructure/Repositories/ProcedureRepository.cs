@@ -1,5 +1,6 @@
 using Application.Interfaces;
 using HDMS_API.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;
 
@@ -34,5 +35,9 @@ public class ProcedureRepository : IProcedureRepository
         var existingProcedure = await _context.Procedures.FindAsync(procedure.ProcedureId);
         _context.Procedures.Update(procedure);
         return await _context.SaveChangesAsync() > 0;
+    }
+    public Task<Procedure?> GetByIdAsync(int id, CancellationToken ct = default)
+    {
+        return _context.Procedures.FirstOrDefaultAsync(x => x.ProcedureId == id, ct);
     }
 }
