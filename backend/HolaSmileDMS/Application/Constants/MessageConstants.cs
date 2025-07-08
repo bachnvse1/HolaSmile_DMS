@@ -110,5 +110,9 @@ public static class MessageConstants
         public const string MSG105 = "Vô hiệu hóa thẻ bảo hành thành công.";
         public const string MSG106 = "Cập nhật thẻ bảo hành thành công.";
         public const string MSG107 = "Cập nhật dữ liệu thành công";
+        public const string MSG109 = "Cập nhật mẫu đơn thuốc thành công.";
+        public const string MSG110 = "Không tìm thấy dữ liệu mẫu đơn thuốc.";
+        public const string MSG111 = "Tạo mẫu đơn thuốc thành công.";
+        public const string MSG112 = "Hủy kích hoạt mẫu đơn thuốc thành công";
     }
 }

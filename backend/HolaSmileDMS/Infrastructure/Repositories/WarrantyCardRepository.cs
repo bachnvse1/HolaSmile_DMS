@@ -16,9 +16,10 @@ namespace Infrastructure.Repositories
         public async Task<List<WarrantyCard>> GetAllWarrantyCardsWithProceduresAsync(
             CancellationToken cancellationToken)
         {
-            return await _context.WarrantyCards
-                .Include(w => w.TreatmentRecord)
-                .ToListAsync(cancellationToken);
+                return await _context.WarrantyCards
+            .Include(w => w.TreatmentRecord)
+                .ThenInclude(tr => tr.Procedure)
+            .ToListAsync(cancellationToken);
         }
 
         public async Task<WarrantyCard?> GetByIdAsync(int id, CancellationToken ct)
@@ -45,10 +46,11 @@ namespace Infrastructure.Repositories
 
         public async Task<WarrantyCard> CreateWarrantyCardAsync(WarrantyCard card, CancellationToken cancellationToken)
         {
-            _context.WarrantyCards.Add(card);
+            await _context.WarrantyCards.AddAsync(card, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
             return card;
         }
+
 
         public async Task<bool> UpdateWarrantyCardAsync(WarrantyCard card, CancellationToken cancellationToken)
         {
