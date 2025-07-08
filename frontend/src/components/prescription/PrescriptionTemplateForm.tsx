@@ -69,7 +69,7 @@ export const PrescriptionTemplateForm: React.FC = () => {
         {/* Basic Information */}
         <Card>
           <CardHeader>
-            <CardTitle>Thông Tin Cơ Bản</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Thông Tin Cơ Bản</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -92,7 +92,7 @@ export const PrescriptionTemplateForm: React.FC = () => {
         {/* Template Content */}
         <Card>
           <CardHeader>
-            <CardTitle>Nội Dung Mẫu Đơn</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Nội Dung Mẫu Đơn</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">

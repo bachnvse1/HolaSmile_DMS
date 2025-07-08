@@ -77,32 +77,34 @@ export const PrescriptionTemplateDetail: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
+    <div className="container mx-auto p-4 sm:p-6 max-w-4xl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={handleGoBack}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Chi Tiết Mẫu Đơn Thuốc</h1>
-            <p className="text-gray-600 mt-1">Xem thông tin chi tiết mẫu đơn thuốc</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Chi Tiết Mẫu Đơn Thuốc</h1>
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">Xem thông tin chi tiết mẫu đơn thuốc</p>
           </div>
         </div>
         
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleEdit}>
+          <Button variant="outline" onClick={handleEdit} className="flex-1 sm:flex-none">
             <Edit className="h-4 w-4 mr-2" />
-            Chỉnh Sửa
+            <span className="hidden sm:inline">Chỉnh Sửa</span>
+            <span className="sm:hidden">Sửa</span>
           </Button>
           <Button 
             variant="outline" 
             onClick={handleDeactivate}
             disabled={isDeactivating}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-1 sm:flex-none"
           >
             <Trash2 className="h-4 w-4 mr-2" />
-            {isDeactivating ? 'Đang xóa...' : 'Xóa'}
+            <span className="hidden sm:inline">{isDeactivating ? 'Đang xóa...' : 'Xóa'}</span>
+            <span className="sm:hidden">{isDeactivating ? '...' : 'Xóa'}</span>
           </Button>
         </div>
       </div>

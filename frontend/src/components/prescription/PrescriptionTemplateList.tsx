@@ -92,18 +92,18 @@ export const PrescriptionTemplateList: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
+    <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Quản Lý Mẫu Đơn Thuốc</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Quản Lý Mẫu Đơn Thuốc</h1>
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">
             Tổng cộng {templates.length} mẫu đơn thuốc
           </p>
         </div>
         <Button 
           onClick={() => navigate('/prescription-templates/create')}
-          className="mt-4 sm:mt-0"
+          className="w-full sm:w-auto"
         >
           <Plus className="h-4 w-4 mr-2" />
           Tạo Mẫu Đơn Mới
@@ -133,7 +133,7 @@ export const PrescriptionTemplateList: React.FC = () => {
             <h3 className="text-lg font-medium text-gray-900 mb-2">
               {searchQuery ? 'Không tìm thấy mẫu đơn thuốc' : 'Chưa có mẫu đơn thuốc nào'}
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 mb-4 text-sm sm:text-base">
               {searchQuery 
                 ? 'Thử thay đổi từ khóa tìm kiếm của bạn'
                 : 'Bắt đầu tạo mẫu đơn thuốc đầu tiên'
@@ -148,11 +148,11 @@ export const PrescriptionTemplateList: React.FC = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {templates.map((template) => (
             <Card key={template.PreTemplateID} className="hover:shadow-lg transition-shadow">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg font-semibold text-gray-900 line-clamp-2">
+                <CardTitle className="text-base sm:text-lg font-semibold text-gray-900 line-clamp-2">
                   {template.PreTemplateName}
                 </CardTitle>
               </CardHeader>
@@ -167,17 +167,18 @@ export const PrescriptionTemplateList: React.FC = () => {
 
                   {/* Metadata */}
                   <div className="flex items-center text-xs text-gray-500">
-                    <Calendar className="h-3 w-3 mr-1" />
-                    <span>Cập nhật: {formatDate(template.UpdatedAt)}</span>
+                    <Calendar className="h-3 w-3 mr-1 flex-shrink-0" />
+                    <span className="truncate">Cập nhật: {formatDate(template.UpdatedAt)}</span>
                   </div>
 
                   {/* Actions */}
                   <div className="flex justify-between items-center pt-2">
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-1 sm:space-x-2">
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => handleView(template)}
+                        className="p-1 sm:p-2"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -185,6 +186,7 @@ export const PrescriptionTemplateList: React.FC = () => {
                         size="sm"
                         variant="ghost"
                         onClick={() => handleEdit(template)}
+                        className="p-1 sm:p-2"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -194,7 +196,7 @@ export const PrescriptionTemplateList: React.FC = () => {
                       variant="ghost"
                       onClick={() => handleDeactivate(template)}
                       disabled={isDeactivating}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 sm:p-2"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
