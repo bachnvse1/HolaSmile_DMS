@@ -1,4 +1,5 @@
 using Application.Usecases.Dentist.CreateOrthodonticTreatmentPlan;
+using Application.Usecases.Dentist.UpdateOrthodonticTreatmentPlan;
 using Application.Usecases.Patients.ViewOrthodonticTreatmentPlan;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -60,6 +61,33 @@ public class OrthodonticTreatmentPlanController : ControllerBase
         catch (Exception ex)
         {
             return BadRequest(new { message = ex.Message });
+        }
+    }
+    
+    /// <summary>
+    /// Cập nhật kế hoạch điều trị chỉnh nha (chỉ dành cho Dentist)
+    /// </summary>
+    [HttpPut("update")]
+    [Authorize]
+    public async Task<IActionResult> UpdateOrthodonticTreatmentPlan([FromBody] EditOrthodonticTreatmentPlanDto dto)
+    {
+        try
+        {
+            var result = await _mediator.Send(new EditOrthodonticTreatmentPlanCommand(dto));
+            return Ok(new { Message = result });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { Message = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            // Trả lỗi hệ thống hoặc lỗi chưa xác định
+            return BadRequest(new { Message = ex.Message });
         }
     }
 }
