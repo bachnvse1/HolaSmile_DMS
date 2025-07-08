@@ -1,7 +1,6 @@
 ﻿using Application.Interfaces;
 using Application.Usecases.Patients.ViewTreatmentRecord;
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -61,6 +60,22 @@ public class TreatmentRecordRepository : ITreatmentRecordRepository
         await _context.TreatmentRecords.AddAsync(record, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<TreatmentRecord?> GetByProcedureIdAsync(int procedureId, CancellationToken cancellationToken)
+    {
+        return await _context.TreatmentRecords
+            .Include(tr => tr.Appointment)
+            .FirstOrDefaultAsync(tr => tr.ProcedureID == procedureId && !tr.IsDeleted, cancellationToken);
+    }
+
+    public async Task<Patient?> GetPatientByPatientIdAsync(int patientId)
+    {
+        return await _context.Patients
+            .Include(p => p.User)
+            .FirstOrDefaultAsync(p => p.PatientID == patientId);
+    }
+
+
 
     public async Task<List<TreatmentRecord>> GetTreatmentRecordsByAppointmentIdAsync(int appointmentId, CancellationToken cancellationToken = default)
     {
