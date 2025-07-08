@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ShiftType, ScheduleStatus } from '@/types/schedule';
 import type { Schedule } from '@/types/schedule';
 import { cn } from '@/lib/utils';
+import { isPastDate } from '@/utils/dateUtils';
 
 interface ScheduleCalendarEnhancedProps {
   schedules: Schedule[];
@@ -109,13 +110,6 @@ export const ScheduleCalendarEnhanced: React.FC<ScheduleCalendarEnhancedProps> =
   const isInSelectedSlots = (date: Date, shift: ShiftType) => {
     const formattedDate = formatDateForCompare(date);
     return selectedSlots.some(slot => slot.date === formattedDate && slot.shift === shift);
-  };
-
-  // Kiểm tra xem ngày có phải trong quá khứ không
-  const isPastDate = (date: Date) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return date <= today;
   };
   
   // Lấy thông tin bác sĩ từ lịch

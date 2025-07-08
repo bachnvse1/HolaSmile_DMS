@@ -35,6 +35,7 @@ namespace Application.Usecases.Assistant.ViewPrescriptionTemplate
                 PreTemplateName = t.PreTemplateName,
                 PreTemplateContext = t.PreTemplateContext,
                 CreatedAt = t.CreatedAt,
+                UpdatedAt = t.UpdatedAt,
             }).ToList();
         }
     }

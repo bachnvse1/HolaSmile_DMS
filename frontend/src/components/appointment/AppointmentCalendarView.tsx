@@ -7,7 +7,7 @@ import { DateRangePicker } from '../ui/DateRangePicker';
 import { useAuth } from '../../hooks/useAuth';
 import { isAppointmentCancellable } from '../../utils/appointmentUtils';
 import type { AppointmentDTO, CalendarAppointment } from '../../types/appointment';
-
+import {isToday} from '../../utils/date.ts';
 interface AppointmentCalendarViewProps {
   appointments: AppointmentDTO[];
   onAppointmentClick?: (appointment: AppointmentDTO) => void;
@@ -128,11 +128,6 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
       day: 'numeric',
       month: 'numeric'
     });
-  };
-
-  const isToday = (date: Date) => {
-    const today = new Date();
-    return date.toDateString() === today.toDateString();
   };
 
   const goToPreviousWeek = () => {

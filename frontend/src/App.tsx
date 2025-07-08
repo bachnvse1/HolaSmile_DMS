@@ -24,8 +24,6 @@ import ScheduleManagementPage from './pages/staff/ScheduleManagementPage';
 import PatientTreatmentRecords from './pages/patient/PatientViewTreatmentRecord';
 import ViewTreatmentProgressPage from './pages/patient/ViewTreatmentProgress';
 import PatientList from './pages/patient/PatientList';
-import OrthodonticTreatmentPlansPage from './pages/OrthodonticTreatmentPlans';
-import OrthodonticTreatmentPlanFormPage from './pages/OrthodonticTreatmentPlanFormPage';
 import FUAppointmentPage from './pages/appointment/FUAppointmentPage';
 import { PrescriptionTemplatesPage } from './pages/prescription/PrescriptionTemplatesPage';
 import { CreatePrescriptionTemplatePage } from './pages/prescription/CreatePrescriptionTemplatePage';
@@ -67,8 +65,6 @@ function App() {
         <Route path="/patient/view-treatment-records" element={<PatientTreatmentRecords />} />
         <Route path="/patient/view-treatment-progress/:treatmentRecordId" element={<ViewTreatmentProgressPage />} />
         <Route path="/patients" element={<PatientList />} />
-        <Route path="/patients/:patientId/orthodontic-treatment-plans" element={<OrthodonticTreatmentPlansPage />} />
-        <Route path="/patients/:patientId/orthodontic-treatment-plans/new" element={<OrthodonticTreatmentPlanFormPage />} />
         <Route path="/patient/follow-up" element={<FUAppointmentPage />} />
         <Route path="/prescription-templates" element={<PrescriptionTemplatesPage />} />
         <Route path="/prescription-templates/create" element={<CreatePrescriptionTemplatePage />} />

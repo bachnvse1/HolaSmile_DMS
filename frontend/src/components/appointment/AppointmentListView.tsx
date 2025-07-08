@@ -11,6 +11,7 @@ import type { AppointmentDTO } from '../../types/appointment';
 import { useForm } from "react-hook-form";
 import TreatmentModal from '../patient/TreatmentModal';
 import type { TreatmentFormData } from "@/types/treatment";
+import {formatDateVN, formatTimeVN} from '../../utils/dateUtils';
 
 interface AppointmentListViewProps {
   appointments: AppointmentDTO[];
@@ -58,18 +59,6 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const formatTime = (timeString: string) => {
-    return timeString.substring(0, 5); // HH:MM
-  };
   // Filter appointments
   const filteredAppointments = appointments.filter(appointment => {
     const matchesSearch =
@@ -362,10 +351,10 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                   <div>
                     <p className="text-xs text-gray-500 font-medium">Ngày & Giờ</p>
                     <p className="font-semibold text-gray-900">
-                      {formatDate(appointment.appointmentDate)}
+                      {formatDateVN(appointment.appointmentDate)}
                     </p>
                     <p className="text-sm text-gray-600">
-                      {formatTime(appointment.appointmentTime)}
+                      {formatTimeVN(appointment.appointmentTime)}
                     </p>
                   </div>
                 </div>
@@ -400,9 +389,9 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
               {/* Timestamp */}
               <div className="mt-4 pt-3 border-t border-gray-100">
                 <p className="text-xs text-gray-500">
-                  Tạo lúc: {formatDate(appointment.createdAt)}
+                  Tạo lúc: {formatDateVN(appointment.createdAt)}
                   {appointment.updatedAt && (
-                    <span> • Cập nhật: {formatDate(appointment.updatedAt)}</span>
+                    <span> • Cập nhật: {formatDateVN(appointment.updatedAt)}</span>
                   )}
                 </p>
               </div>

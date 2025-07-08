@@ -13,6 +13,7 @@ import {
   usePrescriptionTemplate,
   useUpdatePrescriptionTemplate 
 } from '@/hooks/usePrescriptionTemplates';
+import { getErrorMessage } from '@/utils/formatUtils';
 
 const prescriptionTemplateSchema = z.object({
   PreTemplateName: z.string().min(1, 'Tên mẫu đơn là bắt buộc'),
@@ -52,12 +53,12 @@ export const PrescriptionTemplateEditForm: React.FC = () => {
       PreTemplateID: templateId,
       ...data,
     }, {
-      onSuccess: () => {
-        toast.success('Cập nhật mẫu đơn thuốc thành công');
+      onSuccess: (response) => {
+        toast.success(response?.message || 'Cập nhật mẫu đơn thuốc thành công');
         navigate('/prescription-templates');
       },
-      onError: () => {
-        toast.error('Có lỗi xảy ra khi cập nhật mẫu đơn thuốc');
+      onError: (error ) => {
+        toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi cập nhật mẫu đơn thuốc');
       }
     });
   };

@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCreatePrescriptionTemplate } from '@/hooks/usePrescriptionTemplates';
+import { getErrorMessage } from '@/utils/formatUtils';
 
 const prescriptionTemplateSchema = z.object({
   PreTemplateName: z.string().min(1, 'Tên mẫu đơn là bắt buộc'),
@@ -32,12 +33,12 @@ export const PrescriptionTemplateForm: React.FC = () => {
 
   const onSubmit = async (data: PrescriptionTemplateFormData) => {
     createTemplate(data, {
-      onSuccess: () => {
-        toast.success('Tạo mẫu đơn thuốc thành công');
+      onSuccess: (response) => {
+        toast.success(response?.message || 'Tạo mẫu đơn thuốc thành công');
         navigate('/prescription-templates');
       },
-      onError: () => {
-        toast.error('Có lỗi xảy ra khi tạo mẫu đơn thuốc');
+      onError: (error) => {
+        toast.error(getErrorMessage(error)|| 'Có lỗi xảy ra khi tạo mẫu đơn thuốc');
       }
     });
   };
