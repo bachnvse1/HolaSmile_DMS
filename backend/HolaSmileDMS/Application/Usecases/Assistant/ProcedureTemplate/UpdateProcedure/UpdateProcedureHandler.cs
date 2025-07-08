@@ -79,7 +79,7 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure
                 }
             }
 
-            await _procedureRepository.CreateProcedure(procedure);
+            await _procedureRepository.CreateSupplyUsed(suppliesUsed);
                 
             return await _procedureRepository.UpdateProcedureAsync(procedure);
         }
