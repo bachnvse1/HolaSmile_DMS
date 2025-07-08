@@ -73,7 +73,6 @@ namespace Application.Usecases.Assistant.CreateWarrantyCard
             var createdCard = await _warrantyRepo.CreateWarrantyCardAsync(card, ct);
 
             procedure.WarrantyCardId = createdCard.WarrantyCardID;
-            await _warrantyRepo.CreateWarrantyCardAsync(card,ct);
             try
             {
                 var patientId = treatmentRecord.Appointment?.PatientId;
