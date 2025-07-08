@@ -1,5 +1,6 @@
 ﻿using Application.Constants;
 using Application.Usecases.Assistant.ViewPrescriptionTemplate;
+using Application.Usecases.Assistants.CreatePrescriptionTemplate;
 using Application.Usecases.Assistants.UpdatePrescriptionTemplate;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -69,6 +70,26 @@ namespace HDMS_API.Controllers
                 return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
             }
         }
+
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> CreatePrescriptionTemplate([FromBody] CreatePrescriptionTemplateCommand command)
+        {
+            try
+            {
+                var result = await _mediator.Send(command);
+                return Ok(new { message = result });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = MessageConstants.MSG.MSG26 });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
+            }
+        }
+
 
     }
 }

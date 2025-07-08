@@ -31,5 +31,12 @@ namespace Infrastructure.Repositories
             var result = await _context.SaveChangesAsync(cancellationToken);
             return result > 0; 
         }
+        public async Task<bool> CreateAsync(PrescriptionTemplate template, CancellationToken cancellationToken)
+        {
+            _context.PrescriptionTemplates.Add(template);
+            var result = await _context.SaveChangesAsync(cancellationToken);
+            return result > 0;
+        }
+
     }
 }
