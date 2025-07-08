@@ -15,7 +15,10 @@ public class ProcedureRepository : IProcedureRepository
 
     public async Task<List<Procedure>> GetAll()
     {
-        return await _context.Procedures.ToListAsync();
+        return await _context.Procedures
+            .Include(p => p.SuppliesUsed)
+            .ThenInclude(su => su.Supplies)
+            .ToListAsync();
     }
 
     public async Task<Procedure> GetProcedureByProcedureId(int procedureId)
