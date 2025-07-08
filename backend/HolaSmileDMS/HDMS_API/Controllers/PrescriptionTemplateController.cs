@@ -1,6 +1,7 @@
 ﻿using Application.Constants;
 using Application.Usecases.Assistant.ViewPrescriptionTemplate;
 using Application.Usecases.Assistants.CreatePrescriptionTemplate;
+using Application.Usecases.Assistants.DeactivePrescriptionTemplate;
 using Application.Usecases.Assistants.UpdatePrescriptionTemplate;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -83,6 +84,30 @@ namespace HDMS_API.Controllers
             catch (UnauthorizedAccessException)
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new { message = MessageConstants.MSG.MSG26 });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
+            }
+        }
+
+        [HttpPut("deactivate/{id}")]
+        [Authorize]
+        public async Task<IActionResult> DeactivatePrescriptionTemplate(int id)
+        {
+            try
+            {
+                var command = new DeactivePrescriptionTemplateCommand { PreTemplateID = id };
+                var result = await _mediator.Send(command);
+                return Ok(new { message = result });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = MessageConstants.MSG.MSG26 });
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { message = MessageConstants.MSG.MSG110 });
             }
             catch (Exception)
             {
