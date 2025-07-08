@@ -125,6 +125,7 @@ public class ProceduresController : ControllerBase
             return StatusCode(500, new
             {
                 Message = false,
+                inner = ex.InnerException,
                 Error = ex.Message // "Cập nhật dữ liệu thất bại" (hoặc có thể là lỗi hệ thống không xác định)
             });
         }
