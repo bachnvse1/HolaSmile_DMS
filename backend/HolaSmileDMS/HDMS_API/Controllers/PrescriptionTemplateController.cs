@@ -46,15 +46,12 @@ namespace HDMS_API.Controllers
             }
         }
 
-        [HttpPut("{id}")]
+        [HttpPut]
         [Authorize]
-        public async Task<IActionResult> UpdatePrescriptionTemplate(int id, [FromBody] UpdatePrescriptionTemplateCommand command)
+        public async Task<IActionResult> UpdatePrescriptionTemplate([FromBody] UpdatePrescriptionTemplateCommand command)
         {
             try
             {
-                if (id != command.PreTemplateID)
-                    return BadRequest(new { message = MessageConstants.MSG.MSG57 }); // "Dữ liệu không hợp lệ"
-
                 var result = await _mediator.Send(command);
                 return Ok(new { message = result });
             }
@@ -71,6 +68,7 @@ namespace HDMS_API.Controllers
                 return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
             }
         }
+
 
         [HttpPost]
         [Authorize]
