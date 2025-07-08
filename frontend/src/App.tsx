@@ -32,6 +32,7 @@ import { OrthodonticTestPage } from './pages/OrthodonticTestPage';
 import { SimpleOrthodonticList } from './components/orthodontic/SimpleOrthodonticList';
 import { CreateOrthodonticTreatmentPlanBasicPage } from './pages/CreateOrthodonticTreatmentPlanBasicPage';
 import { CreateOrthodonticTreatmentPlanDetailPage } from './pages/CreateOrthodonticTreatmentPlanDetailPage';
+import UserManagement from './pages/auth/UserManagement';
 function App() {
   return (
     <>
@@ -70,6 +71,7 @@ function App() {
         <Route path="/patient/follow-up" element={<FUAppointmentPage />} />
         <Route path="/test-orthodontic" element={<OrthodonticTestPage />} />
         <Route path="/simple-orthodontic" element={<SimpleOrthodonticList />} />
+        <Route path="/administrator/user-list" element={<UserManagement/>}/>
       </Routes>
     </>
   );

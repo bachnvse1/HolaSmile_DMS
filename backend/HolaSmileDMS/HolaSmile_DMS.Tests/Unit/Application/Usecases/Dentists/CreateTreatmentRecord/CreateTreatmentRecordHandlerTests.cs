@@ -13,7 +13,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists.CreateTreatment
 
 public class CreateTreatmentRecordHandlerTests
 {
-    private static readonly DateTime AppointmentDate = new(2025, 7, 3);
+    private static readonly DateTime AppointmentDate = DateTime.Today;
     private static readonly DateTime FutureTreatmentDate = AppointmentDate.AddDays(1);
 
     private CreateTreatmentRecordCommand GetValidCommand() => new()

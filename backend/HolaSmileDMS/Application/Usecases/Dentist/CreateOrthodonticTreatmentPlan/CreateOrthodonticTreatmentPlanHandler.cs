@@ -65,20 +65,27 @@ public class CreateOrthodonticTreatmentPlanHandler : IRequestHandler<CreateOrtho
 
         await _repository.AddAsync(plan, cancellationToken);
         
-        // int userIdNotification = request.PatientId;
-        // if (userIdNotification > 0)
-        // {
-        //     var message = 
-        //         $"Kế hoạch điều trị chỉnh nha #{plan.PlanId} của bạn đã được nha sĩ {fullName} thiết lập và bắt đầu thực hiện trong hôm nay. Vui lòng kiểm tra chi tiết trong hồ sơ điều trị.";
+        int userIdNotification = request.PatientId;
+        if (userIdNotification > 0)
+        {
+            try
+            {
+                var message =
+                    $"Kế hoạch điều trị chỉnh nha #{plan.PlanId} của bạn đã được nha sĩ {fullName} thiết lập và bắt đầu thực hiện trong hôm nay. Vui lòng kiểm tra chi tiết trong hồ sơ điều trị.";
 
-        //     await _mediator.Send(new SendNotificationCommand(
-        //         userIdNotification,
-        //         "Kế hoạch điều trị mới",
-        //         message,
-        //         "Xem chi tiết",
-        //         0
-        //     ), cancellationToken);
-        // }
+                await _mediator.Send(new SendNotificationCommand(
+                    userIdNotification,
+                    "Kế hoạch điều trị mới",
+                    message,
+                    "Xem chi tiết",
+                    0
+                ), cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
 
         return MessageConstants.MSG.MSG37; // Tạo kế hoạch điều trị thành công
     }

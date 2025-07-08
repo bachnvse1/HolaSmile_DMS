@@ -38,6 +38,7 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IPatientRepository, PatientRepository>();
             services.AddScoped<IDentistRepository, DentistRepository>();
+            services.AddScoped<ISupplyRepository, SupplyRepository>();
             services.AddScoped<IUserCommonRepository, UserCommonRepository>();
             services.AddScoped<ITreatmentRecordRepository, TreatmentRecordRepository>();
             services.AddScoped<IScheduleRepository, ScheduleRepository>();
@@ -51,6 +52,10 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IFileStorageService, FileStorageService>();
             services.AddScoped<IOrthodonticTreatmentPlanRepository, OrthodonticTreatmentPlanRepository>();
             services.AddScoped<ITaskRepository, TaskRepository>();
+            services.AddScoped<IWarrantyCardRepository, WarrantyCardRepository>();
+            services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+            services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
+            services.AddScoped<IInstructionRepository, InstructionRepository>();
 
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>

@@ -86,7 +86,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 }
 
                 var checkValidAppointment = await _appointmentRepository.GetLatestAppointmentByPatientIdAsync(patient.PatientID);
-                if (checkValidAppointment.Status == "confirmed")
+                if (checkValidAppointment != null && checkValidAppointment.Status == "confirmed")
                 {
                     throw new Exception(MessageConstants.MSG.MSG89); // "Kế hoạch điều trị đã tồn tại"
                 }

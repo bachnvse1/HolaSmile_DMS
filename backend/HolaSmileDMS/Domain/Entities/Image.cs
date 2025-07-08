@@ -14,6 +14,10 @@ public class Image
     public int? TreatmentRecordId { get; set; }
     public TreatmentRecord? TreatmentRecord { get; set; }
 
+    public OrthodonticTreatmentPlan? OrthodonticTreatmentPlan { get; set; }
+    [ForeignKey("OrthodonticTreatmentPlan")]
+    public int? OrthodonticTreatmentPlanId { get; set; }
+
     public string? ImageURL { get; set; }
 
     [MaxLength(500)]

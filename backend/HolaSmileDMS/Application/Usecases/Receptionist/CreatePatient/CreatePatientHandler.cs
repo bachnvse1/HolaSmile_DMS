@@ -59,7 +59,6 @@ namespace HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount
                 throw new Exception(MessageConstants.MSG.MSG76); // => Gợi ý định nghĩa: "Tạo tài khoản thất bại."
             }
 
-            // Send password to guest email asynchronously
             _ = System.Threading.Tasks.Task.Run(async () =>
             {
                 try
@@ -71,7 +70,6 @@ namespace HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount
                     throw new Exception(MessageConstants.MSG.MSG78); // => Gợi ý định nghĩa: "Gửi mật khẩu cho khách không thành công."
                 }
             });
-
             var patient = await _patientRepository.CreatePatientAsync(guest, newUser.UserID);
             if (patient == null)
             {

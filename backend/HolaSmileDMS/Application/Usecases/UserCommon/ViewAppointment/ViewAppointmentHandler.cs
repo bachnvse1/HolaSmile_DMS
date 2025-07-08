@@ -46,9 +46,9 @@ namespace Application.Usecases.UserCommon.ViewAppointment
             {
                 listApp = await _appointmentRepository.GetAllAppointmentAsync();
             }
-            if(listApp == null)
+            if(listApp == null || listApp.Count == 0)
             {
-                throw new Exception("Không có dữ liệu");
+                throw new Exception(MessageConstants.MSG.MSG28);
             }
 
             //mapping data
