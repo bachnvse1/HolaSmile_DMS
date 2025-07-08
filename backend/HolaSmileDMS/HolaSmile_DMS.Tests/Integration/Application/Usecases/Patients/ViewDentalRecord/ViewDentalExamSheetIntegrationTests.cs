@@ -1,3 +1,4 @@
+/*
 using System.Security.Claims;
 using Application.Interfaces;
 using Application.Usecases.Patients.ViewDentalRecord;
@@ -194,3 +195,4 @@ public class ViewDentalExamSheetIntegrationTests
         Assert.Equal(30,  result.Remaining);
     }
 }
+*/

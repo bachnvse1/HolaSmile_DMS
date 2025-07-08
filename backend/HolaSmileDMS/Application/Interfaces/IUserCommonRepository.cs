@@ -1,4 +1,4 @@
-﻿using Application.Usecases.UserCommon.ViewProfile;
+using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
@@ -29,6 +29,5 @@ namespace Application.Interfaces
         Task<bool> CreateUserAsync(User user, string role);
         Task<bool> UpdateUserStatusAsync(int userId);
         Task<int?> GetUserIdByRoleTableIdAsync(string role, int id);
-
     }
 }

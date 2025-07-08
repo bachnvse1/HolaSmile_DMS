@@ -7,4 +7,6 @@ public interface IProcedureRepository
     Task<bool> UpdateProcedureAsync(Procedure procedure);
     Task<Procedure> GetProcedureByProcedureId(int procedureId);
     Task<Procedure?> GetByIdAsync(int id, CancellationToken ct = default);
+    Task<Procedure?> GetProcedureByIdAsync(int id, CancellationToken cancellationToken);
+    Task<bool> UpdateProcedureAsync(Procedure procedure, CancellationToken cancellationToken);
 }
