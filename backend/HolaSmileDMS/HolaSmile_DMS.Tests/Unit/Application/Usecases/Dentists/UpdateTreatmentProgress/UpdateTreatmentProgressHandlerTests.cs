@@ -1,6 +1,4 @@
-using System;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Application.Interfaces;
 using Application.Usecases.Dentist.UpdateTreatmentProgress;
 using MediatR;

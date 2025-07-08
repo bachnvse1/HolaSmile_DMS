@@ -1,5 +1,6 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
+using Application.Usecases.Administrator.ViewListUser;
 using Application.Usecases.Patients.ViewListPatient;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Common.Helpers;
@@ -20,34 +21,14 @@ namespace HDMS_API.Infrastructure.Repositories
         private readonly ApplicationDbContext _context;
         private readonly IEmailService _emailService;
         private readonly IMemoryCache _memoryCache;
-        public UserCommonRepository(ApplicationDbContext context,IEmailService emailService, IMemoryCache memoryCache)
+        public UserCommonRepository(ApplicationDbContext context, IEmailService emailService, IMemoryCache memoryCache)
         {
             _context = context;
             _emailService = emailService;
             _memoryCache = memoryCache;
         }
-        public async Task<User> CreatePatientAccountAsync(CreatePatientDto dto, string password )
+        public async Task<User> CreatePatientAccountAsync(CreatePatientDto dto, string password)
         {
-            if(await _context.Users.AnyAsync(u => u.Phone == dto.PhoneNumber))
-            {
-                throw new Exception(MessageConstants.MSG.MSG23); // "Số điện thoại đã được sử dụng"
-            }
-
-            if (dto.FullName.IsNullOrEmpty()){
-                throw new Exception(MessageConstants.MSG.MSG07); // "Vui lòng nhập thông tin bắt buộc"
-            }
-            if (!FormatHelper.FormatPhoneNumber(dto.PhoneNumber))
-            {
-                throw new Exception(MessageConstants.MSG.MSG56); // "Số điện thoại không đúng định dạng"
-            }
-            if (!FormatHelper.IsValidEmail(dto.Email))
-            {
-                throw new Exception(MessageConstants.MSG.MSG08); // "Định dạng email không hợp lệ"
-            }
-            if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
-            {
-                throw new Exception(MessageConstants.MSG.MSG22); // "Email đã tồn tại"
-            }
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
 
             var user = new User
@@ -59,11 +40,11 @@ namespace HDMS_API.Infrastructure.Repositories
                 Address = dto.Address,
                 DOB = FormatHelper.TryParseDob(dto.Dob),
                 Phone = dto.PhoneNumber,
-                Email = dto .Email,
+                Email = dto.Email,
                 IsVerify = true,
-                Status = true ,
+                Status = true,
                 CreatedAt = DateTime.Now,
-                CreatedBy = dto.CreatedBy 
+                CreatedBy = dto.CreatedBy
             };
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
@@ -71,7 +52,7 @@ namespace HDMS_API.Infrastructure.Repositories
         }
         public async Task<bool> SendPasswordForGuestAsync(string email)
         {
-            if(email.IsNullOrEmpty() || !FormatHelper.IsValidEmail(email))
+            if (email.IsNullOrEmpty() || !FormatHelper.IsValidEmail(email))
             {
                 throw new Exception(MessageConstants.MSG.MSG08);
             }
@@ -101,7 +82,7 @@ namespace HDMS_API.Infrastructure.Repositories
         }
         public async Task<bool> ResendOtpAsync(string toEmail)
         {
-            if(_memoryCache.TryGetValue($"otp:{toEmail}", out RequestOtpDto cachedOtp))
+            if (_memoryCache.TryGetValue($"otp:{toEmail}", out RequestOtpDto cachedOtp))
             {
                 if (cachedOtp.SendTime.AddMinutes(1) < DateTime.Now)
                 {
@@ -140,7 +121,7 @@ namespace HDMS_API.Infrastructure.Repositories
         }
         public async Task<string> ResetPasswordAsync(ForgotPasswordCommand request)
         {
-            if(_memoryCache.TryGetValue($"resetPasswordToken:{request.ResetPasswordToken}", out string email))
+            if (_memoryCache.TryGetValue($"resetPasswordToken:{request.ResetPasswordToken}", out string email))
             {
                 if (!FormatHelper.IsValidPassword(request.NewPassword))
                 {
@@ -151,17 +132,17 @@ namespace HDMS_API.Infrastructure.Repositories
                     throw new Exception(MessageConstants.MSG.MSG43);
                 }
                 var user = _context.Users.FirstOrDefault(u => u.Email == email);
-                    if (user == null)
-                    {
+                if (user == null)
+                {
                     throw new Exception(MessageConstants.MSG.MSG16);
                 }
                 user.Password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
-                    user.UpdatedAt = DateTime.Now;
-                    user.UpdatedBy = user.UserID;
-                    _context.Users.Update(user);
-                    _context.SaveChanges();
-                    _memoryCache.Remove($"resetPasswordToken:{request.ResetPasswordToken}");
-                    return MessageConstants.MSG.MSG10;
+                user.UpdatedAt = DateTime.Now;
+                user.UpdatedBy = user.UserID;
+                _context.Users.Update(user);
+                _context.SaveChanges();
+                _memoryCache.Remove($"resetPasswordToken:{request.ResetPasswordToken}");
+                return MessageConstants.MSG.MSG10;
                 ;
             }
             else
@@ -223,9 +204,7 @@ namespace HDMS_API.Infrastructure.Repositories
                 })
                 .FirstOrDefaultAsync(cancellationToken);
         }
-        public async Task<UserRoleResult?> GetUserRoleAsync(
-            string username,
-            CancellationToken cancellationToken)
+        public async Task<UserRoleResult?> GetUserRoleAsync(string username, CancellationToken cancellationToken)
         {
             var user = await GetByUsernameAsync(username, cancellationToken);
             if (user == null) return null;
@@ -254,6 +233,155 @@ namespace HDMS_API.Infrastructure.Repositories
                 .FromSqlRaw(sql)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        public async Task<List<ViewListUserDTO>> GetAllUserAsync()
+        {
+            //var allUsers = await _context.Users.Select(u => new
+            //{
+            //    u.Email,
+            //    u.Fullname,
+            //    u.Phone,
+            //    u.CreatedAt,
+            //    u.Status,
+            //    Role = _context.Dentists.Any(d => d.UserId == u.UserID) ? "nha sĩ" :
+            //   _context.Receptionists.Any(r => r.UserId == u.UserID) ? "lễ tân" :
+            //   _context.Assistants.Any(a => a.UserId == u.UserID) ? "trợ thủ" :
+            //   _context.Owners.Any(o => o.UserId == u.UserID) ? "chủ phòng khám" :
+            //   _context.Patients.Any(p => p.UserID == u.UserID) ? "chủ phòng khám" : "không xác định"
+            //}).Select(x => new ViewListUserDTO
+            //{
+            //    email = x.Email,
+            //    fullName = x.Fullname,
+            //    phoneNumber = x.Phone,
+            //    role = x.Role,
+            //    createdAt = x.CreatedAt,
+            //    isActive = x.Status
+            //}).ToListAsync();
+
+            var dentistUsers = _context.Users
+            .Join(_context.Dentists,
+             u => u.UserID,
+             d => d.UserId,
+            (u, d) => new ViewListUserDTO
+            {
+                UserId = u.UserID,
+                Email = u.Email,
+                FullName = u.Fullname,
+                PhoneNumber = u.Phone,
+                Role = "Dentist",
+                CreatedAt = u.CreatedAt,
+                Status = u.Status // Status = false là bị khoá
+            });
+
+            var patientUsers = _context.Users
+            .Join(_context.Patients,
+             u => u.UserID,
+             p => p.UserID,
+            (u, d) => new ViewListUserDTO
+            {
+                UserId = u.UserID,
+                Email = u.Email,
+                FullName = u.Fullname,
+                PhoneNumber = u.Phone,
+                Role = "Patient",
+                CreatedAt = u.CreatedAt,
+                Status = u.Status
+            });
+
+            var receptionistUsers = _context.Users
+                .Join(_context.Receptionists,
+                    u => u.UserID,
+                    r => r.UserId,
+                    (u, r) => new ViewListUserDTO
+                    {
+                        UserId = u.UserID,
+                        Email = u.Email,
+                        FullName = u.Fullname,
+                        PhoneNumber = u.Phone,
+                        Role = "Receptionist",
+                        CreatedAt = u.CreatedAt,
+                        Status = u.Status
+                    });
+
+            var assistantUsers = _context.Users
+                .Join(_context.Assistants,
+                    u => u.UserID,
+                    a => a.UserId,
+                    (u, a) => new ViewListUserDTO
+                    {
+                        UserId = u.UserID,
+                        Email = u.Email,
+                        FullName = u.Fullname,
+                        PhoneNumber = u.Phone,
+                        Role = "Assistant",
+                        CreatedAt = u.CreatedAt,
+                        Status = u.Status
+                    });
+
+            var ownerUsers = _context.Users
+                .Join(_context.Owners,
+                    u => u.UserID,
+                    o => o.UserId,
+                    (u, o) => new ViewListUserDTO
+                    {
+                        UserId = u.UserID,
+                        Email = u.Email,
+                        FullName = u.Fullname,
+                        PhoneNumber = u.Phone,
+                        Role = "Owner",
+                        CreatedAt = u.CreatedAt,
+                        Status = u.Status
+                    });
+
+            var allUsers = await dentistUsers
+                          .Union(receptionistUsers)
+                          .Union(assistantUsers)
+                          .Union(ownerUsers)
+                          .Union(patientUsers)
+                          .ToListAsync();
+
+            return allUsers;
+        }
+
+        public async Task<bool> CreateUserAsync(User user, string role)
+        {
+            await _context.Users.AddAsync(user);
+            await _context.SaveChangesAsync();
+            switch (role.ToLower())
+            {
+                case "dentist":
+                    var dentist = new Dentist { UserId = user.UserID };
+                    await _context.Dentists.AddAsync(dentist);
+                    break;
+                case "receptionist":
+                    var receptionist = new Receptionist { UserId = user.UserID };
+                    await _context.Receptionists.AddAsync(receptionist);
+                    break;
+                case "assistant":
+                    var assistant = new Assistant { UserId = user.UserID };
+                    await _context.Assistants.AddAsync(assistant);
+                    break;
+                case "owner":
+                    var owner = new Owner { UserId = user.UserID };
+                    await _context.Owners.AddAsync(owner);
+                    break;
+                default:
+                    return false;
+            }
+            return await _context.SaveChangesAsync() > 0;
+        }
+        public async Task<bool> UpdateUserStatusAsync(int userId)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId);
+            if (user == null)
+            {
+                return false;
+            }
+            user.Status = !user.Status; // Đảo ngược trạng thái
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+            return true;
         }
         
         public async Task<int?> GetUserIdByRoleTableIdAsync(string role, int id)

@@ -21,7 +21,6 @@ import { PatientBookingPage } from './pages/patient/PatientBookingPage';
 import { PatientAppointmentsPage } from './pages/patient/PatientAppointmentsPage';
 import { StaffAppointmentsPage } from './pages/staff/StaffAppointmentsPage';
 import ScheduleManagementPage from './pages/staff/ScheduleManagementPage';
-import { DentistScheduleViewer } from './components/appointment/DentistScheduleViewer';
 import PatientTreatmentRecords from './pages/patient/PatientViewTreatmentRecord';
 import ViewTreatmentProgressPage from './pages/patient/ViewTreatmentProgress';
 import PatientList from './pages/patient/PatientList';
@@ -32,6 +31,7 @@ import { PrescriptionTemplatesPage } from './pages/prescription/PrescriptionTemp
 import { CreatePrescriptionTemplatePage } from './pages/prescription/CreatePrescriptionTemplatePage';
 import { EditPrescriptionTemplatePage } from './pages/prescription/EditPrescriptionTemplatePage';
 import { PrescriptionTemplateDetailPage } from './pages/prescription/PrescriptionTemplateDetailPage';
+import UserManagement from './pages/auth/UserManagement';
 function App() {
   return (
     <>
@@ -64,12 +64,12 @@ function App() {
         <Route path="/patients" element={<PatientList />} />
         <Route path="/patients/:patientId/orthodontic-treatment-plans" element={<OrthodonticTreatmentPlansPage />} />
         <Route path="/patients/:patientId/orthodontic-treatment-plans/new" element={<OrthodonticTreatmentPlanFormPage />} />
-        <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId/edit" element={<OrthodonticTreatmentPlanFormPage />} />
         <Route path="/patient/follow-up" element={<FUAppointmentPage />} />
         <Route path="/prescription-templates" element={<PrescriptionTemplatesPage />} />
         <Route path="/prescription-templates/create" element={<CreatePrescriptionTemplatePage />} />
         <Route path="/prescription-templates/:id" element={<PrescriptionTemplateDetailPage />} />
         <Route path="/prescription-templates/:id/edit" element={<EditPrescriptionTemplatePage />} />
+        <Route path="/administrator/user-list" element={<UserManagement/>}/>
       </Routes>
     </>
   );

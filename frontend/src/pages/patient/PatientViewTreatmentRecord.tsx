@@ -10,7 +10,7 @@ import TreatmentTable from "@/components/patient/TreatmentTable"
 import TreatmentModal from "@/components/patient/TreatmentModal"
 
 import type { FilterFormData, TreatmentFormData, TreatmentRecord } from "@/types/treatment"
-import { getTreatmentRecordsByUser, deleteTreatmentRecord } from "@/services/treatmentService"
+import { getTreatmentRecordsByPatientId, deleteTreatmentRecord } from "@/services/treatmentService"
 import { useAuth } from '../../hooks/useAuth';
 import { AuthGuard } from '../../components/AuthGuard';
 import { StaffLayout } from '../../layouts/staff/StaffLayout';
@@ -53,9 +53,9 @@ const PatientTreatmentRecords: React.FC = () => {
   }
 
   const fetchRecords = async () => {
-    if (!patientUserId) return
+    if (!patientId) return
     try {
-      const data = await getTreatmentRecordsByUser(Number(patientUserId))
+      const data = await getTreatmentRecordsByPatientId(Number(patientId))
       setRecords(data)
     } catch (error) {
       console.error("Error fetching treatment records:", error)
@@ -64,7 +64,7 @@ const PatientTreatmentRecords: React.FC = () => {
 
   useEffect(() => {
     fetchRecords()
-  }, [patientUserId])
+  }, [patientId])
 
   const filteredRecords = records.filter((record) => {
     const matchesSearch =
