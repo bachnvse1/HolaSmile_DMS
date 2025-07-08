@@ -33,47 +33,15 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             }
 
-            var procedure = await _procedureRepository.GetProcedureByProcedureId(request.ProcedureId);
-            if (procedure == null)
-            {
-                throw new Exception(MessageConstants.MSG.MSG16); // "Không tìm thấy thủ thuật"
-            }
+            var procedure = await _procedureRepository.GetProcedureByProcedureId(request.ProcedureId) ?? throw new Exception(MessageConstants.MSG.MSG16);
+
             if (string.IsNullOrEmpty(request.ProcedureName))
-            {
                 throw new Exception(MessageConstants.MSG.MSG07);
-            }
-            if (request.Price <= 0)
-            {
+            if (request.Price <= 0 || request.OriginalPrice <= 0)
                 throw new Exception(MessageConstants.MSG.MSG95);
-            }
-            if (request.Discount < 0)
-            {
+            if (request.Discount < 0 || request.ConsumableCost < 0 || request.ReferralCommissionRate < 0 ||
+                request.DoctorCommissionRate < 0 || request.AssistantCommissionRate < 0 || request.TechnicianCommissionRate < 0)
                 throw new Exception(MessageConstants.MSG.MSG95);
-            }
-            if (request.OriginalPrice <= 0)
-            {
-                throw new Exception(MessageConstants.MSG.MSG95);
-            }
-            if (request.ConsumableCost < 0)
-            {
-                throw new Exception(MessageConstants.MSG.MSG95);
-            }
-            if (request.ReferralCommissionRate < 0)
-            {
-                throw new Exception(MessageConstants.MSG.MSG95);
-            }
-            if (request.DoctorCommissionRate < 0)
-            {
-                throw new Exception(MessageConstants.MSG.MSG95);
-            }
-            if (request.AssistantCommissionRate < 0)
-            {
-                throw new Exception(MessageConstants.MSG.MSG95);
-            }
-            if (request.TechnicianCommissionRate < 0)
-            {
-                throw new Exception(MessageConstants.MSG.MSG95);
-            }
 
             procedure.ProcedureName = request.ProcedureName;
             procedure.Price = Math.Round(request.Price);
@@ -88,6 +56,31 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure
             procedure.TechnicianCommissionRate = request.TechnicianCommissionRate;
             procedure.UpdatedAt = DateTime.UtcNow;
             procedure.UpdatedBy = currentUserId;
+
+            var isDeletedSuppliesUsed = await _procedureRepository.DeleteSuppliesUsed(request.ProcedureId);
+            if (!isDeletedSuppliesUsed)
+            {
+                throw new Exception(MessageConstants.MSG.MSG58);
+            }
+
+            var suppliesUsed = request.SuppliesUsed.Select(s => new SuppliesUsed
+            {
+                SupplyId = s.SupplyId,
+                Quantity = s.Quantity,
+                ProcedureId = request.ProcedureId
+            }).ToList();
+
+            if (suppliesUsed.Count > 0)
+            {
+                var isCreatedSuppliesUsed = await _procedureRepository.CreateSupplyUsed(suppliesUsed);
+                if (!isCreatedSuppliesUsed)
+                {
+                    throw new Exception(MessageConstants.MSG.MSG58);
+                }
+            }
+
+            await _procedureRepository.CreateProcedure(procedure);
+                
             return await _procedureRepository.UpdateProcedureAsync(procedure);
         }
     }
