@@ -21,7 +21,7 @@ export const PrescriptionTemplateList: React.FC = () => {
   const navigate = useNavigate();
   
   const { data: templates = [], isLoading, error, refetch } = usePrescriptionTemplates(searchQuery);
-  const { mutate: deactivateTemplate, isLoading: isDeactivating } = useDeactivatePrescriptionTemplate();
+  const { mutate: deactivateTemplate, isPending: isDeactivating } = useDeactivatePrescriptionTemplate();
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -37,13 +37,15 @@ export const PrescriptionTemplateList: React.FC = () => {
 
   const handleDeactivate = async (template: PrescriptionTemplate) => {
     if (window.confirm(`Bạn có chắc chắn muốn xóa mẫu đơn "${template.PreTemplateName}"?`)) {
-      try {
-        await deactivateTemplate(template.PreTemplateID);
-        toast.success('Đã xóa mẫu đơn thuốc thành công');
-        refetch();
-      } catch (error) {
-        toast.error('Có lỗi xảy ra khi xóa mẫu đơn thuốc');
-      }
+      deactivateTemplate(template.PreTemplateID, {
+        onSuccess: () => {
+          toast.success('Đã xóa mẫu đơn thuốc thành công');
+          refetch();
+        },
+        onError: () => {
+          toast.error('Có lỗi xảy ra khi xóa mẫu đơn thuốc');
+        }
+      });
     }
   };
 

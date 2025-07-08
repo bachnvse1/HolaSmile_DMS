@@ -1,187 +1,85 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { prescriptionTemplateApi } from '@/services/prescriptionTemplateApi';
 import type { 
   PrescriptionTemplate, 
-  CreatePrescriptionTemplateRequest, 
-  UpdatePrescriptionTemplateRequest 
+  CreatePrescriptionTemplateRequest,
+  UpdatePrescriptionTemplateRequest
 } from '@/types/prescriptionTemplate';
-import { 
-  getMockPrescriptionTemplates, 
-  getMockPrescriptionTemplateById,
-  searchMockPrescriptionTemplates,
-  mockPrescriptionTemplates 
-} from '@/data/mockPrescriptionTemplates';
 
-// Simulate API delay
-const simulateDelay = (ms: number = 500) => new Promise(resolve => setTimeout(resolve, ms));
+// Query keys
+const PRESCRIPTION_TEMPLATE_KEYS = {
+  all: ['prescription-templates'] as const,
+  lists: () => [...PRESCRIPTION_TEMPLATE_KEYS.all, 'list'] as const,
+  list: (searchQuery?: string) => [...PRESCRIPTION_TEMPLATE_KEYS.lists(), { searchQuery }] as const,
+};
 
 // Hook for getting all prescription templates
 export const usePrescriptionTemplates = (searchQuery?: string) => {
-  const [data, setData] = useState<PrescriptionTemplate[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        await simulateDelay(300);
-        
-        const templates = searchQuery 
-          ? searchMockPrescriptionTemplates(searchQuery)
-          : getMockPrescriptionTemplates();
-          
-        setData(templates);
-        setError(null);
-      } catch (err) {
-        setError(err as Error);
-      } finally {
-        setIsLoading(false);
+  return useQuery({
+    queryKey: PRESCRIPTION_TEMPLATE_KEYS.list(searchQuery),
+    queryFn: async () => {
+      const templates = await prescriptionTemplateApi.getPrescriptionTemplates();
+      
+      // Filter by search query if provided
+      if (searchQuery) {
+        return templates.filter(template => 
+          template.PreTemplateName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          template.PreTemplateContext.toLowerCase().includes(searchQuery.toLowerCase())
+        );
       }
-    };
-
-    fetchData();
-  }, [searchQuery]);
-
-  return { data, isLoading, error, refetch: () => setIsLoading(true) };
+      
+      return templates;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 };
 
-// Hook for getting single prescription template
+// Hook for getting single prescription template (from list API)
 export const usePrescriptionTemplate = (id: number) => {
-  const [data, setData] = useState<PrescriptionTemplate | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        await simulateDelay(300);
-        
-        const template = getMockPrescriptionTemplateById(id);
-        setData(template || null);
-        setError(null);
-      } catch (err) {
-        setError(err as Error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (id) {
-      fetchData();
-    }
-  }, [id]);
-
-  return { data, isLoading, error };
+  const { data: allTemplates, isLoading, error } = usePrescriptionTemplates();
+  
+  return {
+    data: allTemplates?.find(template => template.PreTemplateID === id) || null,
+    isLoading,
+    error
+  };
 };
 
 // Hook for creating prescription template
 export const useCreatePrescriptionTemplate = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const queryClient = useQueryClient();
 
-  const mutate = async (templateData: CreatePrescriptionTemplateRequest): Promise<PrescriptionTemplate> => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      await simulateDelay(800);
-      
-      const newTemplate: PrescriptionTemplate = {
-        PreTemplateID: Math.max(...mockPrescriptionTemplates.map(t => t.PreTemplateID)) + 1,
-        PreTemplateName: templateData.PreTemplateName,
-        PreTemplateContext: templateData.PreTemplateContext,
-        CreatedAt: new Date().toISOString(),
-        UpdatedAt: new Date().toISOString(),
-        IsDeleted: false
-      };
-      
-      // Add to mock data
-      mockPrescriptionTemplates.push(newTemplate);
-      
-      return newTemplate;
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return { mutate, isLoading, error };
+  return useMutation({
+    mutationFn: (data: CreatePrescriptionTemplateRequest) => 
+      prescriptionTemplateApi.createPrescriptionTemplate(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PRESCRIPTION_TEMPLATE_KEYS.lists() });
+    },
+  });
 };
 
 // Hook for updating prescription template
 export const useUpdatePrescriptionTemplate = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const queryClient = useQueryClient();
 
-  const mutate = async (templateData: UpdatePrescriptionTemplateRequest): Promise<PrescriptionTemplate> => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      await simulateDelay(800);
-      
-      const templateIndex = mockPrescriptionTemplates.findIndex(
-        t => t.PreTemplateID === templateData.PreTemplateID
-      );
-      
-      if (templateIndex === -1) {
-        throw new Error('Template không tồn tại');
-      }
-      
-      // Update the template
-      mockPrescriptionTemplates[templateIndex] = {
-        ...mockPrescriptionTemplates[templateIndex],
-        PreTemplateName: templateData.PreTemplateName,
-        PreTemplateContext: templateData.PreTemplateContext,
-        UpdatedAt: new Date().toISOString()
-      };
-      
-      return mockPrescriptionTemplates[templateIndex];
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return { mutate, isLoading, error };
+  return useMutation({
+    mutationFn: (data: UpdatePrescriptionTemplateRequest) => 
+      prescriptionTemplateApi.updatePrescriptionTemplate(data),
+    onSuccess: () => {
+      // Just invalidate the list, detail will automatically update
+      queryClient.invalidateQueries({ queryKey: PRESCRIPTION_TEMPLATE_KEYS.lists() });
+    },
+  });
 };
 
 // Hook for deactivating prescription template
 export const useDeactivatePrescriptionTemplate = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const queryClient = useQueryClient();
 
-  const mutate = async (id: number): Promise<void> => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      await simulateDelay(500);
-      
-      const templateIndex = mockPrescriptionTemplates.findIndex(
-        t => t.PreTemplateID === id
-      );
-      
-      if (templateIndex === -1) {
-        throw new Error('Template không tồn tại');
-      }
-      
-      // Mark as deleted
-      mockPrescriptionTemplates[templateIndex].IsDeleted = true;
-      mockPrescriptionTemplates[templateIndex].UpdatedAt = new Date().toISOString();
-      
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return { mutate, isLoading, error };
+  return useMutation({
+    mutationFn: (id: number) => prescriptionTemplateApi.deactivatePrescriptionTemplate(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PRESCRIPTION_TEMPLATE_KEYS.all });
+    },
+  });
 };

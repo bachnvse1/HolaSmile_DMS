@@ -1,6 +1,6 @@
 import React from 'react';
-import { PrescriptionTemplateForm } from '@/components/prescription/PrescriptionTemplateForm';
+import { PrescriptionTemplateEditForm } from '@/components/prescription/PrescriptionTemplateEditForm';
 
 export const EditPrescriptionTemplatePage: React.FC = () => {
-  return <PrescriptionTemplateForm mode="edit" />;
+  return <PrescriptionTemplateEditForm />;
 };

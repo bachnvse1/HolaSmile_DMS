@@ -12,7 +12,7 @@ export const PrescriptionTemplateDetail: React.FC = () => {
   
   const templateId = id ? parseInt(id) : 0;
   const { data: template, isLoading } = usePrescriptionTemplate(templateId);
-  const { mutate: deactivateTemplate, isLoading: isDeactivating } = useDeactivatePrescriptionTemplate();
+  const { mutate: deactivateTemplate, isPending: isDeactivating } = useDeactivatePrescriptionTemplate();
 
   const handleEdit = () => {
     navigate(`/prescription-templates/${templateId}/edit`);
@@ -22,13 +22,15 @@ export const PrescriptionTemplateDetail: React.FC = () => {
     if (!template) return;
     
     if (window.confirm(`Bạn có chắc chắn muốn xóa mẫu đơn "${template.PreTemplateName}"?`)) {
-      try {
-        await deactivateTemplate(template.PreTemplateID);
-        toast.success('Đã xóa mẫu đơn thuốc thành công');
-        navigate('/prescription-templates');
-      } catch (error) {
-        toast.error('Có lỗi xảy ra khi xóa mẫu đơn thuốc');
-      }
+      deactivateTemplate(template.PreTemplateID, {
+        onSuccess: () => {
+          toast.success('Đã xóa mẫu đơn thuốc thành công');
+          navigate('/prescription-templates');
+        },
+        onError: () => {
+          toast.error('Có lỗi xảy ra khi xóa mẫu đơn thuốc');
+        }
+      });
     }
   };
 

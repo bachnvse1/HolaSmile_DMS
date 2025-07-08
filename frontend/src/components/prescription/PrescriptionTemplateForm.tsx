@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import React from 'react';
+import { useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -9,11 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  usePrescriptionTemplate, 
-  useCreatePrescriptionTemplate, 
-  useUpdatePrescriptionTemplate 
-} from '@/hooks/usePrescriptionTemplates';
+import { useCreatePrescriptionTemplate } from '@/hooks/usePrescriptionTemplates';
 
 const prescriptionTemplateSchema = z.object({
   PreTemplateName: z.string().min(1, 'Tên mẫu đơn là bắt buộc'),
@@ -22,23 +18,9 @@ const prescriptionTemplateSchema = z.object({
 
 type PrescriptionTemplateFormData = z.infer<typeof prescriptionTemplateSchema>;
 
-interface PrescriptionTemplateFormProps {
-  mode: 'create' | 'edit';
-}
-
-export const PrescriptionTemplateForm: React.FC<PrescriptionTemplateFormProps> = ({ mode }) => {
+export const PrescriptionTemplateForm: React.FC = () => {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  
-  const templateId = id ? parseInt(id) : 0;
-  const { data: template, isLoading: isLoadingTemplate } = usePrescriptionTemplate(
-    mode === 'edit' ? templateId : 0
-  );
-  
-  const { mutate: createTemplate, isLoading: isCreating } = useCreatePrescriptionTemplate();
-  const { mutate: updateTemplate, isLoading: isUpdating } = useUpdatePrescriptionTemplate();
-  
-  const isLoading = isCreating || isUpdating;
+  const { mutate: createTemplate, isPending: isCreating } = useCreatePrescriptionTemplate();
 
   const form = useForm<PrescriptionTemplateFormData>({
     resolver: zodResolver(prescriptionTemplateSchema),
@@ -48,68 +30,24 @@ export const PrescriptionTemplateForm: React.FC<PrescriptionTemplateFormProps> =
     },
   });
 
-  // Load template data for edit mode
-  useEffect(() => {
-    if (mode === 'edit' && template) {
-      form.reset({
-        PreTemplateName: template.PreTemplateName,
-        PreTemplateContext: template.PreTemplateContext,
-      });
-    }
-  }, [template, mode, form]);
-
   const onSubmit = async (data: PrescriptionTemplateFormData) => {
-    try {
-      if (mode === 'create') {
-        await createTemplate(data);
+    createTemplate(data, {
+      onSuccess: () => {
         toast.success('Tạo mẫu đơn thuốc thành công');
-      } else {
-        await updateTemplate({
-          PreTemplateID: templateId,
-          ...data,
-        });
-        toast.success('Cập nhật mẫu đơn thuốc thành công');
+        navigate('/prescription-templates');
+      },
+      onError: () => {
+        toast.error('Có lỗi xảy ra khi tạo mẫu đơn thuốc');
       }
-      navigate('/prescription-templates');
-    } catch (error) {
-      toast.error(`Có lỗi xảy ra khi ${mode === 'create' ? 'tạo' : 'cập nhật'} mẫu đơn thuốc`);
-    }
+    });
   };
 
   const handleGoBack = () => {
     navigate('/prescription-templates');
   };
 
-  if (mode === 'edit' && isLoadingTemplate) {
-    return (
-      <div className="container mx-auto p-6 max-w-4xl">
-        <div className="flex justify-center items-center min-h-[400px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-600">Đang tải dữ liệu...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (mode === 'edit' && !template) {
-    return (
-      <div className="container mx-auto p-6 max-w-4xl">
-        <div className="flex justify-center items-center min-h-[400px]">
-          <div className="text-center">
-            <p className="text-red-600">Không tìm thấy mẫu đơn thuốc</p>
-            <Button variant="outline" onClick={handleGoBack} className="mt-2">
-              Quay lại
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
+    <div className="container mx-auto p-4 sm:p-6 max-w-4xl">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
@@ -117,14 +55,11 @@ export const PrescriptionTemplateForm: React.FC<PrescriptionTemplateFormProps> =
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {mode === 'create' ? 'Tạo Mẫu Đơn Thuốc Mới' : 'Chỉnh Sửa Mẫu Đơn Thuốc'}
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+              Tạo Mẫu Đơn Thuốc Mới
             </h1>
-            <p className="text-gray-600 mt-1">
-              {mode === 'create' 
-                ? 'Tạo mẫu đơn thuốc để sử dụng trong các ca điều trị'
-                : 'Cập nhật thông tin mẫu đơn thuốc'
-              }
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">
+              Tạo mẫu đơn thuốc để sử dụng trong các ca điều trị
             </p>
           </div>
         </div>
@@ -194,17 +129,14 @@ Lưu ý: Tái khám sau 1 tuần`}
         </Card>
 
         {/* Action Buttons */}
-        <div className="flex justify-end gap-3 pt-4">
-          <Button type="button" variant="outline" onClick={handleGoBack}>
+        <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
+          <Button type="button" variant="outline" onClick={handleGoBack} className="w-full sm:w-auto">
             <X className="h-4 w-4 mr-2" />
             Hủy
           </Button>
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" disabled={isCreating} className="w-full sm:w-auto">
             <Save className="h-4 w-4 mr-2" />
-            {isLoading 
-              ? (mode === 'create' ? 'Đang tạo...' : 'Đang cập nhật...') 
-              : (mode === 'create' ? 'Tạo Mẫu Đơn' : 'Cập Nhật')
-            }
+            {isCreating ? 'Đang tạo...' : 'Tạo Mẫu Đơn'}
           </Button>
         </div>
       </form>
