@@ -5,7 +5,7 @@ using Moq;
 using System.Security.Claims;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants.ViewPresciptionTemplate
 {
     public class ViewPrescriptionTemplateHandlerTests
     {

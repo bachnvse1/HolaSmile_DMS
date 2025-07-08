@@ -1,14 +1,12 @@
-﻿/*
-using Application.Constants;
+﻿using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Assistant.EditWarrantyCard;
-using HDMS_API.Application.Common.Helpers;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using System.Security.Claims;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
 {
     public class EditWarrantyCardHandlerTests
     {
@@ -47,17 +45,18 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
         {
             // Arrange
             SetupHttpContext("Assistant", "99");
-            var startDate = DateTime.Now.Date;
-            var warrantyCard = new WarrantyCard
+
+            var card = new WarrantyCard
             {
                 WarrantyCardID = 1,
-                StartDate = startDate,
-                Term = "12 tháng",
+                StartDate = new DateTime(2024, 1, 1),
+                Duration = 12,
+                EndDate = new DateTime(2025, 1, 1),
                 Status = true
             };
 
             _warrantyRepoMock.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(warrantyCard);
+                .ReturnsAsync(card);
 
             _warrantyRepoMock.Setup(r => r.UpdateWarrantyCardAsync(It.IsAny<WarrantyCard>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(true);
@@ -65,7 +64,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
             var command = new EditWarrantyCardCommand
             {
                 WarrantyCardId = 1,
-                Term = "24 tháng",
+                Duration = 24,
                 Status = false
             };
 
@@ -74,9 +73,10 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
 
             // Assert
             Assert.Equal(MessageConstants.MSG.MSG106, result);
-            Assert.Equal("24 tháng", warrantyCard.Term);
-            Assert.False(warrantyCard.Status);
-            Assert.Equal(99, warrantyCard.UpdatedBy);
+            Assert.Equal(24, card.Duration);
+            Assert.Equal(new DateTime(2026, 1, 1), card.EndDate); // 2024-01-01 + 24 months
+            Assert.False(card.Status);
+            Assert.Equal(99, card.UpdatedBy);
         }
 
         [Fact(DisplayName = "Abnormal - UTCID02 - HttpContext is null throws MSG17")]
@@ -85,7 +85,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
             SetupHttpContext(null);
 
             var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(new EditWarrantyCardCommand { WarrantyCardId = 1, Term = "12 tháng", Status = true }, default));
+                _handler.Handle(new EditWarrantyCardCommand { WarrantyCardId = 1, Duration = 12, Status = true }, default));
 
             Assert.Equal(MessageConstants.MSG.MSG17, ex.Message);
         }
@@ -96,7 +96,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
             SetupHttpContext("Owner");
 
             var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(new EditWarrantyCardCommand { WarrantyCardId = 1, Term = "12 tháng", Status = true }, default));
+                _handler.Handle(new EditWarrantyCardCommand { WarrantyCardId = 1, Duration = 12, Status = true }, default));
 
             Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
         }
@@ -110,21 +110,24 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
                 .ReturnsAsync((WarrantyCard?)null);
 
             var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-                _handler.Handle(new EditWarrantyCardCommand { WarrantyCardId = 1, Term = "12 tháng", Status = true }, default));
+                _handler.Handle(new EditWarrantyCardCommand { WarrantyCardId = 1, Duration = 12, Status = true }, default));
 
             Assert.Equal(MessageConstants.MSG.MSG102, ex.Message);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID05 - Invalid Term throws MSG98")]
-        public async System.Threading.Tasks.Task UTCID05_Invalid_Term_Throws()
+        [Theory(DisplayName = "Abnormal - UTCID05 - Invalid Duration throws MSG98")]
+        [InlineData(null)]
+        [InlineData(0)]
+        [InlineData(-5)]
+        public async System.Threading.Tasks.Task UTCID05_Invalid_Duration_Throws(int? invalidDuration)
         {
             SetupHttpContext("Assistant");
 
             var card = new WarrantyCard
             {
                 WarrantyCardID = 1,
-                StartDate = DateTime.Now,
-                Term = "12 tháng"
+                StartDate = DateTime.Today,
+                Duration = 12
             };
 
             _warrantyRepoMock.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
@@ -134,34 +137,11 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
                 _handler.Handle(new EditWarrantyCardCommand
                 {
                     WarrantyCardId = 1,
-                    Term = "???", // invalid format
+                    Duration = invalidDuration,
                     Status = true
                 }, default));
 
             Assert.Equal(MessageConstants.MSG.MSG98, ex.Message);
         }
-
-
-        [Fact(DisplayName = "Abnormal - UTCID06 - Invalid Term throws MSG98")]
-        public async System.Threading.Tasks.Task UTCID06_Invalid_Term_Format()
-        {
-            SetupHttpContext("Assistant");
-
-            var card = new WarrantyCard
-            {
-                WarrantyCardID = 1,
-                StartDate = DateTime.Now,
-                Term = "12 tháng"
-            };
-
-            _warrantyRepoMock.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(card);
-
-            var ex = await Assert.ThrowsAsync<FormatException>(() =>
-                _handler.Handle(new EditWarrantyCardCommand { WarrantyCardId = 1, Term = "??", Status = true }, default));
-
-            Assert.Equal(MessageConstants.MSG.MSG98, ex.Message);
-        }
     }
 }
-*/

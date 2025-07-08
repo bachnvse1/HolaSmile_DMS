@@ -1,5 +1,4 @@
-﻿/*
-using Application.Constants;
+﻿using Application.Constants;
 using Application.Usecases.Assistant.DeactiveWarrantyCard;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;
@@ -9,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
 {
     public class DeactiveWarrantyCardIntegrationTest
     {
@@ -56,28 +55,46 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
         private void SeedData()
         {
             _context.WarrantyCards.RemoveRange(_context.WarrantyCards);
+            _context.TreatmentRecords.RemoveRange(_context.TreatmentRecords);
             _context.SaveChanges();
+
+            _context.TreatmentRecords.Add(new TreatmentRecord
+            {
+                TreatmentRecordID = 1,
+                TreatmentStatus = "Completed",
+                AppointmentID = 1
+            });
+
+            _context.TreatmentRecords.Add(new TreatmentRecord
+            {
+                TreatmentRecordID = 2,
+                TreatmentStatus = "Completed",
+                AppointmentID = 1
+            });
 
             _context.WarrantyCards.Add(new WarrantyCard
             {
                 WarrantyCardID = 1,
+                TreatmentRecordID = 1,
                 StartDate = DateTime.Now.AddMonths(-6),
                 EndDate = DateTime.Now.AddMonths(6),
-                Term = "12 tháng",
+                Duration = 12,
                 Status = true
             });
 
             _context.WarrantyCards.Add(new WarrantyCard
             {
                 WarrantyCardID = 2,
+                TreatmentRecordID = 2,
                 StartDate = DateTime.Now.AddMonths(-12),
                 EndDate = DateTime.Now,
-                Term = "12 tháng",
+                Duration = 12,
                 Status = false
             });
 
             _context.SaveChanges();
         }
+
 
         [Fact(DisplayName = "Normal - UTCID01 - Assistant deactivates warranty card successfully")]
         public async System.Threading.Tasks.Task UTCID01_DeactivateWarrantyCard_Success()
@@ -91,7 +108,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
 
             var result = await _handler.Handle(command, default);
 
-            Assert.Equal(MessageConstants.MSG.MSG104, result);
+            Assert.Equal(MessageConstants.MSG.MSG105, result);
 
             var card = await _context.WarrantyCards.FindAsync(1);
             Assert.False(card!.Status);
@@ -123,7 +140,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
             Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID04 - WarrantyCard does not exist should throw MSG102")]
+        [Fact(DisplayName = "Abnormal - UTCID04 - WarrantyCard does not exist should throw MSG103")]
         public async System.Threading.Tasks.Task UTCID04_DeactivateWarrantyCard_NotFound_Throws()
         {
             SetupHttpContext("Assistant");
@@ -133,10 +150,10 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
             var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
                 _handler.Handle(command, default));
 
-            Assert.Equal(MessageConstants.MSG.MSG102, ex.Message);
+            Assert.Equal(MessageConstants.MSG.MSG103, ex.Message);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID05 - Already deactivated card should throw MSG103")]
+        [Fact(DisplayName = "Abnormal - UTCID05 - Already deactivated card should throw MSG104")]
         public async System.Threading.Tasks.Task UTCID05_DeactivateWarrantyCard_AlreadyInactive_Throws()
         {
             SetupHttpContext("Assistant");
@@ -146,8 +163,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _handler.Handle(command, default));
 
-            Assert.Equal(MessageConstants.MSG.MSG103, ex.Message);
+            Assert.Equal(MessageConstants.MSG.MSG104, ex.Message);
         }
     }
 }
-*/

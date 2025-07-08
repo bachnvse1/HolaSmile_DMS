@@ -1,5 +1,4 @@
-﻿/*
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Assistant.ViewListWarrantyCards;
@@ -7,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
 {
     public class ViewWarrantyCardHandlerTests
     {
@@ -57,15 +56,20 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
                     WarrantyCardID = 1,
                     StartDate = DateTime.Today,
                     EndDate = DateTime.Today.AddYears(1),
-                    Term = "1 năm",
+                    Duration = 12,
                     Status = true,
-                    Procedures = new List<Procedure>
+                    TreatmentRecord = new TreatmentRecord
                     {
-                        new Procedure { ProcedureId = 101, ProcedureName = "Trám răng" }
-                    }
+                        TreatmentRecordID = 200,
+                        Procedure = new Procedure
+                        {
+                            ProcedureId = 101,
+                            ProcedureName = "Trám răng"
+                        }
+                    },
+                    TreatmentRecordID = 200
                 }
             };
-
             _repositoryMock.Setup(r => r.GetAllWarrantyCardsWithProceduresAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(data);
 
@@ -74,6 +78,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
             Assert.Single(result);
             Assert.Equal(1, result[0].WarrantyCardId);
             Assert.Equal("Trám răng", result[0].ProcedureName);
+            Assert.Equal(101, result[0].ProcedureId);
+            Assert.Equal(12, result[0].Duration);
         }
 
         [Fact(DisplayName = "Abnormal - UTCID02 - HttpContext is null should throw MSG53")]
@@ -104,27 +110,30 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
             SetupHttpContext("Assistant");
 
             var data = new List<WarrantyCard>
-            {
-                new WarrantyCard
                 {
-                    WarrantyCardID = 2,
-                    StartDate = DateTime.Today,
-                    EndDate = DateTime.Today.AddYears(1),
-                    Term = "1 năm",
-                    Status = true,
-                    Procedures = new List<Procedure>() // Không có procedure nào
-                }
-            };
-
+                    new WarrantyCard
+                    {
+                        WarrantyCardID = 2,
+                        StartDate = DateTime.Today,
+                        EndDate = DateTime.Today.AddYears(1),
+                        Duration = 12,
+                        Status = true,
+                        TreatmentRecord = new TreatmentRecord
+                        {
+                            TreatmentRecordID = 300,
+                            Procedure = null // Không có Procedure
+                        },
+                        TreatmentRecordID = 300
+                    }
+                };
             _repositoryMock.Setup(r => r.GetAllWarrantyCardsWithProceduresAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(data);
-
             var result = await _handler.Handle(new ViewListWarrantyCardsCommand(), default);
-
             Assert.Single(result);
             Assert.Equal("Không xác định", result[0].ProcedureName);
             Assert.Null(result[0].ProcedureId);
+            Assert.Equal(12, result[0].Duration);
         }
+
     }
 }
-*/

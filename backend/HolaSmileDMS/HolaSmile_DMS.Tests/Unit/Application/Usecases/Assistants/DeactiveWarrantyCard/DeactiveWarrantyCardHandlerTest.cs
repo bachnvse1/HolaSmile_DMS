@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
 {
     public class DeactiveWarrantyCardHandlerTests
     {
@@ -22,7 +22,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
             );
         }
 
-        private void SetupHttpContext(string? role, string? userId = "10")
+        private void SetupHttpContext(string? role, string? userId = "99")
         {
             if (role == null)
             {
@@ -33,7 +33,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Role, role),
-                new Claim(ClaimTypes.NameIdentifier, userId ?? "")
+                new Claim(ClaimTypes.NameIdentifier, userId)
             };
 
             var identity = new ClaimsIdentity(claims, "TestAuth");
@@ -44,88 +44,94 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistant
         }
 
         [Fact(DisplayName = "Normal - UTCID01 - Assistant deactivates warranty card successfully")]
-        public async System.Threading.Tasks.Task UTCID01_Assistant_Deactivates_Successfully()
+        public async System.Threading.Tasks.Task UTCID01_Assistant_Deactivates_WarrantyCard_Successfully()
         {
             // Arrange
             SetupHttpContext("Assistant", "99");
 
-            var warrantyCard = new WarrantyCard
+            var card = new WarrantyCard
             {
                 WarrantyCardID = 1,
                 Status = true
             };
 
             _warrantyRepoMock.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(warrantyCard);
+                .ReturnsAsync(card);
 
-            _warrantyRepoMock
-                .Setup(r => r.DeactiveWarrantyCardAsync(warrantyCard, It.IsAny<CancellationToken>()))
+            _warrantyRepoMock.Setup(r => r.DeactiveWarrantyCardAsync(card, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(true);
-
 
             // Act
             var result = await _handler.Handle(new DeactiveWarrantyCardCommand { WarrantyCardId = 1 }, default);
 
             // Assert
-            Assert.Equal(MessageConstants.MSG.MSG104, result);
-            Assert.False(warrantyCard.Status);
-            Assert.Equal(99, warrantyCard.UpdatedBy);
+            Assert.Equal(MessageConstants.MSG.MSG105, result);
+            Assert.False(card.Status);
+            Assert.Equal(99, card.UpdatedBy);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID02 - HttpContext is null should throw MSG17")]
-        public async System.Threading.Tasks.Task UTCID02_HttpContext_Null()
+        [Fact(DisplayName = "Abnormal - UTCID02 - HttpContext is null throws MSG17")]
+        public async System.Threading.Tasks.Task UTCID02_HttpContext_Is_Null_Throws()
         {
+            // Arrange
             SetupHttpContext(null);
 
+            // Act & Assert
             var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
                 _handler.Handle(new DeactiveWarrantyCardCommand { WarrantyCardId = 1 }, default));
 
             Assert.Equal(MessageConstants.MSG.MSG17, ex.Message);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID03 - Role is not Assistant should throw MSG26")]
-        public async System.Threading.Tasks.Task UTCID03_Invalid_Role()
+        [Fact(DisplayName = "Abnormal - UTCID03 - Not Assistant role throws MSG26")]
+        public async System.Threading.Tasks.Task UTCID03_Not_Assistant_Role_Throws()
         {
+            // Arrange
             SetupHttpContext("Receptionist");
 
+            // Act & Assert
             var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
                 _handler.Handle(new DeactiveWarrantyCardCommand { WarrantyCardId = 1 }, default));
 
             Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID04 - Warranty card not found should throw MSG102")]
-        public async System.Threading.Tasks.Task UTCID04_Card_Not_Found()
+        [Fact(DisplayName = "Abnormal - UTCID04 - Warranty card not found throws MSG102")]
+        public async System.Threading.Tasks.Task UTCID04_Card_Not_Found_Throws()
         {
+            // Arrange
             SetupHttpContext("Assistant");
 
             _warrantyRepoMock.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((WarrantyCard?)null);
 
+            // Act & Assert
             var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
                 _handler.Handle(new DeactiveWarrantyCardCommand { WarrantyCardId = 1 }, default));
 
-            Assert.Equal(MessageConstants.MSG.MSG102, ex.Message);
+            Assert.Equal(MessageConstants.MSG.MSG103, ex.Message);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID05 - Warranty card already deactivated should throw MSG103")]
-        public async System.Threading.Tasks.Task UTCID05_Already_Deactivated()
+        [Fact(DisplayName = "Abnormal - UTCID05 - Card already deactivated throws MSG103")]
+        public async System.Threading.Tasks.Task UTCID05_Already_Deactivated_Throws()
         {
+            // Arrange
             SetupHttpContext("Assistant");
 
-            var warrantyCard = new WarrantyCard
+            var card = new WarrantyCard
             {
                 WarrantyCardID = 1,
                 Status = false
             };
 
             _warrantyRepoMock.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(warrantyCard);
+                .ReturnsAsync(card);
 
+            // Act & Assert
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _handler.Handle(new DeactiveWarrantyCardCommand { WarrantyCardId = 1 }, default));
 
-            Assert.Equal(MessageConstants.MSG.MSG103, ex.Message);
+            Assert.Equal(MessageConstants.MSG.MSG104, ex.Message);
         }
     }
 }

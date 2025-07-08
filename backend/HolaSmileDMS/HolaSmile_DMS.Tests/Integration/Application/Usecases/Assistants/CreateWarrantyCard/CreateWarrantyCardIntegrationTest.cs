@@ -1,5 +1,4 @@
-﻿/*
-using Application.Constants;
+﻿using Application.Constants;
 using Application.Usecases.Assistant.CreateWarrantyCard;
 using AutoMapper;
 using HDMS_API.Infrastructure.Persistence;
@@ -14,7 +13,7 @@ using Moq;
 using System.Security.Claims;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
 {
     public class CreateWarrantyCardIntegrationTest
     {
@@ -36,23 +35,18 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
             _context = provider.GetRequiredService<ApplicationDbContext>();
             _httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
 
-            // ✅ Mocks cần thiết
             var mockMapper = new Mock<IMapper>().Object;
             var mockHubContext = new Mock<IHubContext<NotifyHub>>().Object;
 
             var warrantyRepo = new WarrantyCardRepository(_context);
-            var procedureRepo = new ProcedureRepository(_context);
             var treatmentRecordRepo = new TreatmentRecordRepository(_context, mockMapper);
             var notificationRepo = new NotificationsRepository(_context, mockHubContext, mockMapper);
-            var mediator = new Mock<IMediator>().Object;
 
             _handler = new CreateWarrantyCardHandler(
                 warrantyRepo,
-                procedureRepo,
                 treatmentRecordRepo,
                 _httpContextAccessor,
-                notificationRepo,
-                mediator
+                notificationRepo
             );
 
             SeedData();
@@ -72,76 +66,58 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
 
         private void SeedData()
         {
-            _context.WarrantyCards.RemoveRange(_context.WarrantyCards);
-            _context.TreatmentRecords.RemoveRange(_context.TreatmentRecords);
-            _context.Procedures.RemoveRange(_context.Procedures);
-            _context.Appointments.RemoveRange(_context.Appointments);
             _context.Users.RemoveRange(_context.Users);
+            _context.Appointments.RemoveRange(_context.Appointments);
+            _context.Procedures.RemoveRange(_context.Procedures);
+            _context.TreatmentRecords.RemoveRange(_context.TreatmentRecords);
+            _context.WarrantyCards.RemoveRange(_context.WarrantyCards);
             _context.SaveChanges();
 
-            var patient = new User
-            {
-                UserID = 2,
-                Username = "patient01",
-                Phone = "0123456789" 
-            };
+            _context.Users.Add(new User { UserID = 2, Username = "patient01", Phone = "0123456789" });
 
-            var appointment = new Appointment
-            {
-                AppointmentId = 1,
-                PatientId = 1
-            };
+            _context.Appointments.Add(new Appointment { AppointmentId = 1, PatientId = 2 });
 
-            var procedure = new Procedure
-            {
-                ProcedureId = 1,
-                ProcedureName = "Trám răng",
-                WarrantyCardId = null
-            };
+            _context.Procedures.Add(new Procedure { ProcedureId = 1, ProcedureName = "Trám răng", WarrantyCardId = null });
 
-            var record = new TreatmentRecord
+            _context.TreatmentRecords.Add(new TreatmentRecord
             {
                 TreatmentRecordID = 1,
                 ProcedureID = 1,
-                TreatmentStatus = "Completed",
-                AppointmentID = 1
-            };
+                AppointmentID = 1,
+                TreatmentStatus = "Completed"
+            });
 
-            _context.Users.Add(patient);
-            _context.Appointments.Add(appointment);
-            _context.Procedures.Add(procedure);
-            _context.TreatmentRecords.Add(record);
             _context.SaveChanges();
         }
 
-        [Fact(DisplayName = "Normal - UTCID01 - Assistant creates warranty card successfully")]
-        public async System.Threading.Tasks.Task UTCID01_CreateWarrantyCard_Success()
+        [Fact(DisplayName = "UTCID01 - Assistant creates warranty card successfully")]
+        public async System.Threading.Tasks.Task UTCID01_Success()
         {
-            SetupHttpContext("Assistant", "1");
+            SetupHttpContext("Assistant");
 
             var command = new CreateWarrantyCardCommand
             {
-                ProcedureId = 1,
-                Term = "6 tháng"
+                TreatmentRecordId = 1,
+                Duration = 6
             };
 
             var result = await _handler.Handle(command, default);
 
             Assert.NotNull(result);
-            Assert.Equal("6 tháng", result.Term);
-            Assert.True(result.Status);
             Assert.True(result.WarrantyCardId > 0);
+            Assert.Equal(6, result.Duration);
+            Assert.True(result.Status);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID02 - Not logged in should throw MSG53")]
-        public async System.Threading.Tasks.Task UTCID02_CreateWarrantyCard_NoLogin_Throws()
+        [Fact(DisplayName = "UTCID02 - Not logged in should throw MSG53")]
+        public async System.Threading.Tasks.Task UTCID02_NoLogin_Throws()
         {
             _httpContextAccessor.HttpContext = null;
 
             var command = new CreateWarrantyCardCommand
             {
-                ProcedureId = 1,
-                Term = "6 tháng"
+                TreatmentRecordId = 1,
+                Duration = 6
             };
 
             var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
@@ -150,15 +126,15 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
             Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID03 - Not assistant should throw MSG26")]
-        public async System.Threading.Tasks.Task UTCID03_CreateWarrantyCard_NotAssistant_Throws()
+        [Fact(DisplayName = "UTCID03 - Not assistant should throw MSG26")]
+        public async System.Threading.Tasks.Task UTCID03_NotAssistant_Throws()
         {
             SetupHttpContext("Dentist");
 
             var command = new CreateWarrantyCardCommand
             {
-                ProcedureId = 1,
-                Term = "6 tháng"
+                TreatmentRecordId = 1,
+                Duration = 6
             };
 
             var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
@@ -167,48 +143,46 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
             Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID04 - Invalid ProcedureId should throw MSG99")]
-        public async System.Threading.Tasks.Task UTCID04_CreateWarrantyCard_InvalidProcedure_Throws()
+        [Fact(DisplayName = "UTCID04 - Invalid TreatmentRecordId should throw MSG101")]
+        public async System.Threading.Tasks.Task UTCID04_InvalidTreatmentRecordId_Throws()
         {
             SetupHttpContext("Assistant");
 
             var command = new CreateWarrantyCardCommand
             {
-                ProcedureId = 999,
-                Term = "6 tháng"
+                TreatmentRecordId = 999,
+                Duration = 6
             };
 
             var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
                 _handler.Handle(command, default));
 
-            Assert.Equal(MessageConstants.MSG.MSG99, ex.Message);
+            Assert.Equal(MessageConstants.MSG.MSG101, ex.Message);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID05 - Procedure already has card should throw MSG100")]
-        public async System.Threading.Tasks.Task UTCID05_CreateWarrantyCard_AlreadyExists_Throws()
+        [Fact(DisplayName = "UTCID05 - Procedure already has card should throw MSG100")]
+        public async System.Threading.Tasks.Task UTCID05_ProcedureAlreadyHasCard_Throws()
         {
             SetupHttpContext("Assistant");
 
-            var card = new WarrantyCard
+            _context.WarrantyCards.Add(new WarrantyCard
             {
-                WarrantyCardID = 999,
+                WarrantyCardID = 10,
                 StartDate = DateTime.Now,
                 EndDate = DateTime.Now.AddMonths(6),
-                Term = "6 tháng",
-                Status = true
-            };
-
-            _context.WarrantyCards.Add(card);
+                Duration = 6,
+                Status = true,
+                TreatmentRecordID = 1
+            });
 
             var procedure = _context.Procedures.First(p => p.ProcedureId == 1);
-            procedure.WarrantyCardId = 999;
-
+            procedure.WarrantyCardId = 10;
             _context.SaveChanges();
 
             var command = new CreateWarrantyCardCommand
             {
-                ProcedureId = 1,
-                Term = "6 tháng"
+                TreatmentRecordId = 1,
+                Duration = 6
             };
 
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -217,33 +191,31 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
             Assert.Equal(MessageConstants.MSG.MSG100, ex.Message);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID06 - Treatment not completed should throw MSG101")]
-        public async System.Threading.Tasks.Task UTCID06_CreateWarrantyCard_NotCompletedTreatment_Throws()
+        [Fact(DisplayName = "UTCID06 - Treatment not completed should throw MSG101")]
+        public async System.Threading.Tasks.Task UTCID06_TreatmentNotCompleted_Throws()
         {
             SetupHttpContext("Assistant");
 
-            var procedure = new Procedure
+            _context.Procedures.Add(new Procedure
             {
                 ProcedureId = 2,
                 ProcedureName = "Tẩy trắng"
-            };
+            });
 
-            var record = new TreatmentRecord
+            _context.TreatmentRecords.Add(new TreatmentRecord
             {
                 TreatmentRecordID = 2,
                 ProcedureID = 2,
-                TreatmentStatus = "in progress",
-                AppointmentID = 1
-            };
+                AppointmentID = 1,
+                TreatmentStatus = "In progress"
+            });
 
-            _context.Procedures.Add(procedure);
-            _context.TreatmentRecords.Add(record);
             _context.SaveChanges();
 
             var command = new CreateWarrantyCardCommand
             {
-                ProcedureId = 2,
-                Term = "6 tháng"
+                TreatmentRecordId = 2,
+                Duration = 6
             };
 
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -252,15 +224,15 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
             Assert.Equal(MessageConstants.MSG.MSG101, ex.Message);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID07 - Invalid term format should throw MSG97")]
-        public async System.Threading.Tasks.Task UTCID07_CreateWarrantyCard_InvalidTerm_Throws()
+        [Fact(DisplayName = "UTCID07 - Invalid duration should throw MSG98")]
+        public async System.Threading.Tasks.Task UTCID07_InvalidDuration_Throws()
         {
             SetupHttpContext("Assistant");
 
             var command = new CreateWarrantyCardCommand
             {
-                ProcedureId = 1,
-                Term = "abc" // Invalid
+                TreatmentRecordId = 1,
+                Duration = -5
             };
 
             var ex = await Assert.ThrowsAsync<FormatException>(() =>
@@ -270,4 +242,3 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
         }
     }
 }
-*/

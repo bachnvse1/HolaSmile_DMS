@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants.ViewPresciptionTemplate
 {
     public class ViewPrescriptionIntegrationTest
     {
