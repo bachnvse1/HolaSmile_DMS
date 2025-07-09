@@ -62,6 +62,9 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IPdfGenerator, PdfGenerator>();
             services.AddScoped<IDentalExamSheetPrinter, DentalExamSheetPrinter>();
             services.AddScoped<IPrescriptionTemplateRepository, PrescriptionTemplateRepository>();
+            services.AddScoped<ICloudinaryService, CloudinaryService>();
+            services.AddScoped<IImageRepository, ImageRepository>();
+
 
 
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
