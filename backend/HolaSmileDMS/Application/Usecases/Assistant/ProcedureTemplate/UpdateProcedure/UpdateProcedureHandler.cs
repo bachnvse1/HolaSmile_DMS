@@ -9,10 +9,12 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure
     public class UpdateProcedureHandler : IRequestHandler<UpdateProcedureCommand, bool>
     {
         private readonly IProcedureRepository _procedureRepository;
+        private readonly ISupplyRepository _supplyRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public UpdateProcedureHandler(IProcedureRepository procedureRepository, IHttpContextAccessor httpContextAccessor)
+        public UpdateProcedureHandler(IProcedureRepository procedureRepository, ISupplyRepository supplyRepository, IHttpContextAccessor httpContextAccessor)
         {
             _procedureRepository = procedureRepository;
+            _supplyRepository = supplyRepository;
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -43,13 +45,39 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure
                 request.DoctorCommissionRate < 0 || request.AssistantCommissionRate < 0 || request.TechnicianCommissionRate < 0)
                 throw new Exception(MessageConstants.MSG.MSG95);
 
+            decimal supplyCost = 0;
+            var existSuppliesUsed = new List<SuppliesUsed>();
+            if (request.SuppliesUsed != null)
+            {
+                foreach (var item in request.SuppliesUsed)
+                {
+                    var supply = await _supplyRepository.GetSupplyBySupplyIdAsync(item.SupplyId);
+                    if (supply == null)
+                        throw new Exception($"Supply với ID {item.SupplyId} không tồn tại.");
+
+                    if (supply.Unit?.Trim().ToLower() == "cái")
+                    {
+                        supplyCost += supply.Price * item.Quantity;
+                    }
+
+                    existSuppliesUsed.Add(new SuppliesUsed
+                    {
+                        SupplyId = item.SupplyId,
+                        Quantity = item.Quantity
+                    });
+                }
+            }
+
+            decimal consumableTotal = Math.Round(request.ConsumableCost + supplyCost, 2);
+            decimal priceTotal = Math.Round(request.OriginalPrice + consumableTotal, 0);
+
             procedure.ProcedureName = request.ProcedureName;
-            procedure.Price = Math.Round(request.Price);
+            procedure.Price = priceTotal;
             procedure.Description = request.Description;
             procedure.Discount = request.Discount;
             procedure.WarrantyPeriod = request.WarrantyPeriod;
             procedure.OriginalPrice = Math.Round(request.OriginalPrice,2);
-            procedure.ConsumableCost = Math.Round(request.ConsumableCost,2);
+            procedure.ConsumableCost = consumableTotal;
             procedure.ReferralCommissionRate = request.ReferralCommissionRate;
             procedure.DoctorCommissionRate = request.DoctorCommissionRate;
             procedure.AssistantCommissionRate = request.AssistantCommissionRate;
