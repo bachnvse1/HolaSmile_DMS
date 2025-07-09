@@ -83,4 +83,9 @@ public class TreatmentRecordRepository : ITreatmentRecordRepository
             .Where(tr => tr.AppointmentID == appointmentId && !tr.IsDeleted)
             .ToListAsync(cancellationToken);
     }
+    public IQueryable<TreatmentRecord> Query()
+    {
+        return _context.TreatmentRecords.AsQueryable();
+    }
+
 }
