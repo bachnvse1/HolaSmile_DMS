@@ -22,8 +22,10 @@ namespace Application.Usecases.Assistant.ViewPrescriptionTemplate
             var user = _httpContextAccessor.HttpContext?.User;
             var role = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-            if (user == null || role != "Assistant")
-                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
+            if (user == null || (role != "Assistant" && role != "Dentist" && role != "Receptionist"))
+            {
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
+            }
 
             var templates = await _repository.GetAllAsync(cancellationToken);
 
@@ -33,6 +35,7 @@ namespace Application.Usecases.Assistant.ViewPrescriptionTemplate
                 PreTemplateName = t.PreTemplateName,
                 PreTemplateContext = t.PreTemplateContext,
                 CreatedAt = t.CreatedAt,
+                UpdatedAt = t.UpdatedAt,
             }).ToList();
         }
     }

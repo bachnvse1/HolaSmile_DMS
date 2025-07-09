@@ -16,3 +16,7 @@ export const formatPercent = (number: number): string => {
     maximumFractionDigits: 2,
   }).format(number / 100);
 };
+
+export const getErrorMessage = (error: any): string => {
+  return error?.response?.data?.message || 'Đã xảy ra lỗi';
+};
