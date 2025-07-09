@@ -1,4 +1,5 @@
-﻿using Application.Usecases.Assistants.ViewPatientDentalImage;
+﻿using Application.Usecases.Assistants.DeactivePatientDentalImage;
+using Application.Usecases.Assistants.ViewPatientDentalImage;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -71,6 +72,30 @@ namespace HDMS_API.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+
+        [HttpDelete]
+        [Authorize]
+        public async Task<IActionResult> DeactiveImage(int imageId)
+        {
+            try
+            {
+                var result = await _mediator.Send(new DeactivePatientDentalImageCommand { ImageId = imageId });
+                return Ok(new { message = result });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
 
 
     }
