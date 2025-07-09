@@ -23,7 +23,7 @@ public class ViewListWarrantyCardsHandler : IRequestHandler<ViewListWarrantyCard
         if (user == null)
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53);
 
-        if (role != "Assistant")
+        if (role != "Assistant" && role != "Dentist" && role != "Receptionist")
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
         var cards = await _repository.GetAllWarrantyCardsWithProceduresAsync(cancellationToken);
@@ -37,7 +37,7 @@ public class ViewListWarrantyCardsHandler : IRequestHandler<ViewListWarrantyCard
                 WarrantyCardId = card.WarrantyCardID,
                 StartDate = card.StartDate,
                 EndDate = card.EndDate,
-                Duration = card.Duration, // <-- gán trực tiếp
+                Duration = card.Duration,
                 Status = card.Status,
                 ProcedureId = procedure?.ProcedureId,
                 ProcedureName = procedure?.ProcedureName ?? "Không xác định"

@@ -28,7 +28,7 @@ namespace Application.Usecases.Assistant.DeactiveWarrantyCard
             var role = user.FindFirst(ClaimTypes.Role)?.Value;
             var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (role != "Assistant")
+            if (user == null || (role != "Assistant" && role != "Dentist" && role != "Receptionist"))
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Không có quyền truy cập
 
             var warrantyCard = await _warrantyRepository.GetByIdAsync(request.WarrantyCardId, cancellationToken);

@@ -28,7 +28,7 @@ namespace Application.Usecases.Assistant.EditWarrantyCard
             var role = user.FindFirst(ClaimTypes.Role)?.Value;
             var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (role != "Assistant")
+            if (role != "Assistant" && role != "Dentist" && role != "Receptionist")
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
             var card = await _warrantyRepository.GetByIdAsync(request.WarrantyCardId, cancellationToken);
