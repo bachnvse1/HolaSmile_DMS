@@ -11,6 +11,7 @@ using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Infrastructure.Persistence;
 using HDMS_API.Infrastructure.Repositories;
 using HDMS_API.Infrastructure.Services;
+using Infrastructure.Configurations;
 using Infrastructure.Hubs;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
@@ -62,9 +63,11 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IPdfGenerator, PdfGenerator>();
             services.AddScoped<IDentalExamSheetPrinter, DentalExamSheetPrinter>();
             services.AddScoped<IPrescriptionTemplateRepository, PrescriptionTemplateRepository>();
+            services.AddScoped<IPayOSService, PayOSService>();
+            services.Configure<PayOSOptions>(configuration.GetSection("PayOS"));
+            services.AddScoped<IPayOSConfiguration, PayOSConfiguration>();
             services.AddScoped<ICloudinaryService, CloudinaryService>();
             services.AddScoped<IImageRepository, ImageRepository>();
-
 
 
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
