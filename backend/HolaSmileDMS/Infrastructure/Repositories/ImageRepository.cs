@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using HDMS_API.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 public class ImageRepository : IImageRepository
 {
@@ -15,4 +16,17 @@ public class ImageRepository : IImageRepository
         _context.Images.Add(image);
         return await _context.SaveChangesAsync() > 0;
     }
+
+    public async Task<List<Image>> GetImagesByPatientIdAsync(int patientId)
+    {
+        return await _context.Images
+            .Where(i => i.PatientId == patientId && !i.IsDeleted)
+            .OrderByDescending(i => i.CreatedAt)
+            .ToListAsync();
+    }
+    public IQueryable<Image> Query()
+    {
+        return _context.Images.AsQueryable();
+    }
+
 }
