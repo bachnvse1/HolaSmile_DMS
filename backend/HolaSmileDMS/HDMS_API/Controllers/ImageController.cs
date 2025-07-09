@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Application.Usecases.Assistants.ViewPatientDentalImage;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -41,6 +42,36 @@ namespace HDMS_API.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetImages([FromQuery] int patientId, [FromQuery] int? treatmentRecordId, [FromQuery] int? orthodonticTreatmentPlanId)
+        {
+            try
+            {
+                var result = await _mediator.Send(new ViewPatientDentalImageCommand
+                {
+                    PatientId = patientId,
+                    TreatmentRecordId = treatmentRecordId,
+                    OrthodonticTreatmentPlanId = orthodonticTreatmentPlanId
+                });
+
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
 
     }
 }
