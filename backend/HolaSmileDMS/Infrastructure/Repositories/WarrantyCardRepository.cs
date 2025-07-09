@@ -18,6 +18,11 @@ namespace Infrastructure.Repositories
         {
             return await _context.WarrantyCards
                 .Include(w => w.TreatmentRecord)
+                .ThenInclude(tr => tr.Procedure)
+                .Include(w => w.TreatmentRecord)
+                .ThenInclude(tr => tr.Appointment)
+                .ThenInclude(a => a.Patient)
+                    .ThenInclude(p => p.User)
                 .ToListAsync(cancellationToken);
         }
 
@@ -45,10 +50,11 @@ namespace Infrastructure.Repositories
 
         public async Task<WarrantyCard> CreateWarrantyCardAsync(WarrantyCard card, CancellationToken cancellationToken)
         {
-            _context.WarrantyCards.Add(card);
+            await _context.WarrantyCards.AddAsync(card, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
             return card;
         }
+
 
         public async Task<bool> UpdateWarrantyCardAsync(WarrantyCard card, CancellationToken cancellationToken)
         {
