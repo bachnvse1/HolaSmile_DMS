@@ -16,10 +16,14 @@ namespace Infrastructure.Repositories
         public async Task<List<WarrantyCard>> GetAllWarrantyCardsWithProceduresAsync(
             CancellationToken cancellationToken)
         {
-                return await _context.WarrantyCards
-            .Include(w => w.TreatmentRecord)
+            return await _context.WarrantyCards
+                .Include(w => w.TreatmentRecord)
                 .ThenInclude(tr => tr.Procedure)
-            .ToListAsync(cancellationToken);
+                .Include(w => w.TreatmentRecord)
+                .ThenInclude(tr => tr.Appointment)
+                .ThenInclude(a => a.Patient)
+                    .ThenInclude(p => p.User)
+                .ToListAsync(cancellationToken);
         }
 
         public async Task<WarrantyCard?> GetByIdAsync(int id, CancellationToken ct)

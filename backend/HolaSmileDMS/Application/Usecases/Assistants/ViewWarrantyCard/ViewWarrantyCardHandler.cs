@@ -30,8 +30,10 @@ public class ViewListWarrantyCardsHandler : IRequestHandler<ViewListWarrantyCard
 
         return cards.Select(card =>
         {
-            var procedure = card.TreatmentRecord?.Procedure;
-
+            var treatment = card.TreatmentRecord;
+            var procedure = treatment?.Procedure;
+            var appointment = treatment?.Appointment;
+            var patientName = appointment?.Patient?.User?.Fullname ?? "Không xác định";
             return new ViewWarrantyCardDto
             {
                 WarrantyCardId = card.WarrantyCardID,
@@ -40,7 +42,8 @@ public class ViewListWarrantyCardsHandler : IRequestHandler<ViewListWarrantyCard
                 Duration = card.Duration,
                 Status = card.Status,
                 ProcedureId = procedure?.ProcedureId,
-                ProcedureName = procedure?.ProcedureName ?? "Không xác định"
+                ProcedureName = procedure?.ProcedureName ?? "Không xác định",
+                PatientName = patientName
             };
         }).ToList();
     }
