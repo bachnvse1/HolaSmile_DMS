@@ -28,5 +28,16 @@ public class ImageRepository : IImageRepository
     {
         return _context.Images.AsQueryable();
     }
+    public async Task<Image?> GetByIdAsync(int imageId)
+    {
+        return await _context.Images.FirstOrDefaultAsync(x => x.ImageId == imageId);
+    }
+
+    public async Task<bool> UpdateAsync(Image image)
+    {
+        _context.Images.Update(image);
+        return await _context.SaveChangesAsync() > 0;
+    }
+
 
 }
