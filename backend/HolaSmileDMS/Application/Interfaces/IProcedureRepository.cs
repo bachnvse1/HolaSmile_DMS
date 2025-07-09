@@ -1,6 +1,6 @@
 namespace Application.Interfaces;
 
-public interface  IProcedureRepository
+public interface IProcedureRepository
 {
     Task<List<Procedure>> GetAll();
     Task<bool> CreateProcedure(Procedure procedure);

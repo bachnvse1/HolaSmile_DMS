@@ -66,6 +66,8 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IPayOSService, PayOSService>();
             services.Configure<PayOSOptions>(configuration.GetSection("PayOS"));
             services.AddScoped<IPayOSConfiguration, PayOSConfiguration>();
+            services.AddScoped<ICloudinaryService, CloudinaryService>();
+            services.AddScoped<IImageRepository, ImageRepository>();
 
 
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
