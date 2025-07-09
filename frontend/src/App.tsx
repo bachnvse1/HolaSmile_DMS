@@ -24,12 +24,11 @@ import ScheduleManagementPage from './pages/staff/ScheduleManagementPage';
 import PatientTreatmentRecords from './pages/patient/PatientViewTreatmentRecord';
 import ViewTreatmentProgressPage from './pages/patient/ViewTreatmentProgress';
 import PatientList from './pages/patient/PatientList';
-import {OrthodonticTreatmentPlanListPage} from './pages/OrthodonticTreatmentPlanListPage';
-import {OrthodonticTreatmentPlanDetailPage} from './pages/OrthodonticTreatmentPlanDetailPage';
-import { EditOrthodonticTreatmentPlanPage } from './pages/EditOrthodonticTreatmentPlanPage';
+import { OrthodonticTreatmentPlanListPage } from './pages/OrthodonticTreatmentPlanListPage';
+import { OrthodonticTreatmentPlanDetailPage } from './pages/OrthodonticTreatmentPlanDetailPage';
+import { OrthodonticTreatmentPlanEditPage } from './pages/OrthodonticTreatmentPlanEditPage';
+import { OrthodonticTreatmentPlanEditDetailPage } from './pages/OrthodonticTreatmentPlanEditDetailPage';
 import FUAppointmentPage from './pages/appointment/FUAppointmentPage';
-import { OrthodonticTestPage } from './pages/OrthodonticTestPage';
-import { SimpleOrthodonticList } from './components/orthodontic/SimpleOrthodonticList';
 import { CreateOrthodonticTreatmentPlanBasicPage } from './pages/CreateOrthodonticTreatmentPlanBasicPage';
 import { CreateOrthodonticTreatmentPlanDetailPage } from './pages/CreateOrthodonticTreatmentPlanDetailPage';
 import UserManagement from './pages/auth/UserManagement';
@@ -67,11 +66,10 @@ function App() {
         <Route path="/patients/:patientId/orthodontic-treatment-plans/create" element={<CreateOrthodonticTreatmentPlanBasicPage />} />
         <Route path="/patients/:patientId/orthodontic-treatment-plans/create/detail" element={<CreateOrthodonticTreatmentPlanDetailPage />} />
         <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId" element={<OrthodonticTreatmentPlanDetailPage />} />
-        <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId/edit" element={<EditOrthodonticTreatmentPlanPage />} />
+        <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId/edit" element={<OrthodonticTreatmentPlanEditPage />} />
+        <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId/edit/detail" element={<OrthodonticTreatmentPlanEditDetailPage />} />
         <Route path="/patient/follow-up" element={<FUAppointmentPage />} />
-        <Route path="/test-orthodontic" element={<OrthodonticTestPage />} />
-        <Route path="/simple-orthodontic" element={<SimpleOrthodonticList />} />
-        <Route path="/administrator/user-list" element={<UserManagement/>}/>
+        <Route path="/administrator/user-list" element={<UserManagement />} />
       </Routes>
     </>
   );

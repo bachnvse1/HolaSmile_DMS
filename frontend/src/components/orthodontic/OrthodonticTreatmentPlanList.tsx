@@ -5,28 +5,22 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useOrthodonticTreatmentPlans } from '@/hooks/useMockOrthodonticTreatmentPlan';
+import { useOrthodonticTreatmentPlans } from '@/hooks/useOrthodonticTreatmentPlan';
 import { formatCurrency } from '@/utils/formatUtils';
-import { formatDateWithDay } from '@/utils/dateUtils';
+import { formatDate } from '@/utils/dateUtils';
 import type { OrthodonticTreatmentPlan } from '@/types/orthodonticTreatmentPlan';
-
+import { useUserInfo } from '@/hooks/useUserInfo';
 export const OrthodonticTreatmentPlanList: React.FC = () => {
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const userInfo = useUserInfo();
+  const isDentist = userInfo?.role === 'Dentist';
 
   const { data: treatmentPlans = [], isLoading, error } = useOrthodonticTreatmentPlans(
     parseInt(patientId || '0')
   );
-
-  // Debug log
-  console.log('OrthodonticTreatmentPlanList Debug:', {
-    patientId,
-    treatmentPlans,
-    isLoading,
-    error
-  });
 
   const filteredPlans = treatmentPlans.filter(plan =>
     plan.planTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -64,8 +58,8 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
         <div className="flex justify-center items-center min-h-[400px]">
           <div className="text-center">
             <p className="text-red-600">Có lỗi xảy ra khi tải dữ liệu: {error.message}</p>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => window.location.reload()}
               className="mt-2"
             >
@@ -82,13 +76,17 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Kế Hoạch Điều Trị Chỉnh Hình</h1>
-          <p className="text-gray-600 mt-1">Quản lý kế hoạch điều trị nha khoa cho bệnh nhân</p>
+          <h1 className="text-2xl font-bold text-gray-900">Kế Hoạch Điều Trị Chỉnh Nha</h1>
+          {isDentist && (
+            <p className="text-gray-600 mt-1">Quản lý kế hoạch điều trị nha khoa cho bệnh nhân</p>
+          )}
         </div>
-        <Button onClick={handleCreatePlan} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Thêm Kế Hoạch Điều Trị
-        </Button>
+        {isDentist && (
+          <Button onClick={handleCreatePlan} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Thêm Kế Hoạch Điều Trị
+          </Button>
+        )}
       </div>
 
       {/* Search and Filters */}
@@ -117,7 +115,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
       </Card>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -163,11 +161,11 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        {/* <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Template Sử Dụng</p>
+                <p className="text-sm font-medium text-gray-600">Mẫu Sử Dụng</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {new Set(treatmentPlans.map(plan => plan.templateName)).size}
                 </p>
@@ -175,7 +173,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
               <Users className="h-8 w-8 text-purple-600" />
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       {/* Treatment Plans List */}
@@ -218,24 +216,32 @@ interface TreatmentPlanCardProps {
 }
 
 const TreatmentPlanCard: React.FC<TreatmentPlanCardProps> = ({ plan, onView, onEdit }) => {
+  const userInfo = useUserInfo();
+  const isDentist = userInfo?.role === 'Dentist';
   return (
     <Card className="hover:shadow-md transition-shadow duration-200">
       <CardContent className="p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="flex-1">
+        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between mb-2">
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1 truncate pr-2">
                 {plan.planTitle}
               </h3>
-              <Badge variant="secondary" className="ml-2">
+              <Badge variant="secondary" className="ml-2 flex-shrink-0">
                 {plan.templateName}
               </Badge>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
               <div>
                 <p className="font-medium">Ngày tạo:</p>
-                <p>{formatDateWithDay(plan.createdAt)}</p>
+                <p>{formatDate(new Date(plan.createdAt), 'dd/MM/yyyy HH:mm:ss')}</p>
+              </div>
+              <div>
+                <p className="font-medium">Bác sĩ phụ trách:</p>
+                <p>
+                  {(plan as { dentistName?: string }).dentistName || 'Chưa xác định'}
+                </p>
               </div>
               <div>
                 <p className="font-medium">Chi phí dự kiến:</p>
@@ -243,16 +249,23 @@ const TreatmentPlanCard: React.FC<TreatmentPlanCardProps> = ({ plan, onView, onE
                   {formatCurrency(plan.totalCost)}
                 </p>
               </div>
-              <div>
-                <p className="font-medium">Phương thức thanh toán:</p>
-                <p>{plan.paymentMethod}</p>
-              </div>
             </div>
 
-            <div className="mt-3">
-              <p className="text-sm text-gray-600 line-clamp-2">
-                <span className="font-medium">Lý do khám:</span> {plan.reasonForVisit}
-              </p>
+            <div className="mt-3 space-y-2">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-800 font-medium mb-1">Nội dung điều trị:</p>
+                <div className="text-sm text-black-700 leading-relaxed">
+                  <p className="line-clamp-3 break-words overflow-hidden">
+                    {plan.treatmentPlanContent || 'Chưa có nội dung điều trị'}
+                  </p>
+                </div>
+              </div>
+              
+              <div>
+                <p className="text-sm text-gray-600 line-clamp-2 break-words">
+                  <span className="font-medium">Lý do khám:</span> {plan.reasonForVisit || 'Chưa có thông tin'}
+                </p>
+              </div>
             </div>
           </div>
 
@@ -260,9 +273,11 @@ const TreatmentPlanCard: React.FC<TreatmentPlanCardProps> = ({ plan, onView, onE
             <Button variant="outline" size="sm" onClick={onView}>
               Chi Tiết
             </Button>
-            <Button variant="default" size="sm" onClick={onEdit}>
-              Chỉnh Sửa
-            </Button>
+            {isDentist && (
+              <Button variant="default" size="sm" onClick={onEdit}>
+                Chỉnh Sửa
+              </Button>
+            )}
           </div>
         </div>
       </CardContent>

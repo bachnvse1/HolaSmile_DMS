@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useCreateOrthodonticTreatmentPlan } from '@/hooks/useOrthodonticTreatmentPlan';
+import { useCreateOrthodonticTreatmentPlan, useUpdateOrthodonticTreatmentPlan, useOrthodonticTreatmentPlan } from '@/hooks/useOrthodonticTreatmentPlan';
+import { usePatient } from '@/hooks/usePatient';
 import { formatCurrency, handleCurrencyInput } from '@/utils/currencyUtils';
 import {
   mapMedicalHistoryToString,
@@ -86,11 +87,173 @@ interface DetailFormData {
   paymentMethod: string;
 }
 
-export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
-  const { patientId } = useParams<{ patientId: string }>();
+interface OrthodonticTreatmentPlanDetailFormProps {
+  mode?: 'create' | 'edit' | 'view';
+}
+
+export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPlanDetailFormProps> = ({ 
+  mode = 'create' 
+}) => {
+  const { patientId, planId } = useParams<{ patientId: string; planId: string }>();
   const navigate = useNavigate();
 
   const createMutation = useCreateOrthodonticTreatmentPlan();
+  const updateMutation = useUpdateOrthodonticTreatmentPlan();
+
+  // Fetch existing plan data if editing or viewing
+  const { data: treatmentPlan, isLoading: isPlanLoading, error: planError } = useOrthodonticTreatmentPlan(
+    parseInt(planId || '0'),
+    parseInt(patientId || '0'),
+    { enabled: (mode === 'edit' || mode === 'view') && !!planId }
+  );
+
+  // Get basic data from sessionStorage
+  const [basicData, setBasicData] = React.useState<BasicPlanData | null>(null);
+
+  // Get patient data from API
+  const { data: patientData } = usePatient(parseInt(patientId || '0'));
+
+  // Helper functions để parse data từ strings
+  const parseMedicalHistory = (treatmentHistory: string) => {
+    const defaultHistory = {
+      benhtim: false,
+      tieuduong: false,
+      thankinh: false,
+      benhtruyen: false,
+      caohuyetap: false,
+      loangxuong: false,
+      benhngan: false,
+      chaymausau: false,
+    };
+
+    if (!treatmentHistory) return defaultHistory;
+
+    const lowerText = treatmentHistory.toLowerCase();
+    return {
+      benhtim: lowerText.includes('bệnh tim') || lowerText.includes('tim'),
+      tieuduong: lowerText.includes('tiểu đường') || lowerText.includes('đường huyết'),
+      thankinh: lowerText.includes('thần kinh'),
+      benhtruyen: lowerText.includes('truyền nhiễm') || lowerText.includes('lao') || lowerText.includes('hiv'),
+      caohuyetap: lowerText.includes('cao huyết áp') || lowerText.includes('huyết áp'),
+      loangxuong: lowerText.includes('loãng xương') || lowerText.includes('máu đông'),
+      benhngan: lowerText.includes('bệnh gan') || lowerText.includes('thận'),
+      chaymausau: lowerText.includes('chảy máu') || lowerText.includes('ngất xỉu'),
+    };
+  };
+
+  const parseExaminationFindings = (examinationFindings: string) => {
+    const extractValue = (text: string, patterns: string[]) => {
+      for (const pattern of patterns) {
+        const regex = new RegExp(`${pattern}[:\\s]*([^;\\n,]+)`, 'i');
+        const match = text.match(regex);
+        if (match && match[1].trim()) {
+          return match[1].trim();
+        }
+      }
+      return '';
+    };
+
+    return {
+      faceShape: extractValue(examinationFindings, ['dạng mặt', 'dang mat']),
+      frontView: extractValue(examinationFindings, ['mặt thẳng', 'mat thang']),
+      sideView: extractValue(examinationFindings, ['mặt nghiêng', 'mat nghieng']),
+      smileArc: extractValue(examinationFindings, ['cung cười', 'cung cuoi']),
+      smileLine: extractValue(examinationFindings, ['đường cười', 'duong cuoi']),
+      midline: extractValue(examinationFindings, ['đường giữa', 'duong giua']),
+      openBite: extractValue(examinationFindings, ['cắn hở', 'can ho']),
+      crossBite: extractValue(examinationFindings, ['cắn chéo', 'can cheo']),
+      tongueThrunt: extractValue(examinationFindings, ['đẩy lưỡi', 'day luoi']),
+    };
+  };
+
+  const parseXRayAnalysis = (xRayAnalysis: string) => {
+    const extractValue = (text: string, pattern: string) => {
+      const regex = new RegExp(`${pattern}[:\\s]*([^;\\n,]+)`, 'i');
+      const match = text.match(regex);
+      return match ? match[1].trim() : '';
+    };
+
+    return {
+      boneAnalysis: extractValue(xRayAnalysis, 'xương'),
+      sideViewAnalysis: extractValue(xRayAnalysis, 'mặt nghiêng'),
+      apicalSclerosis: extractValue(xRayAnalysis, 'xơ cứng'),
+    };
+  };
+
+  const parseModelAnalysis = (modelAnalysis: string) => {
+    const extractValue = (text: string, pattern: string) => {
+      const regex = new RegExp(`${pattern}[:\\s]*([^;\\n,]+)`, 'i');
+      const match = text.match(regex);
+      return match ? match[1].trim() : '';
+    };
+
+    return {
+      overjet: extractValue(modelAnalysis, 'cắn phủ'),
+      overbite: extractValue(modelAnalysis, 'cắn chỉa'),
+      midlineAnalysis: extractValue(modelAnalysis, 'đường giữa'),
+      crossbite: extractValue(modelAnalysis, 'cắn ngược'),
+      openbite: extractValue(modelAnalysis, 'cắn hở'),
+      archForm: extractValue(modelAnalysis, 'cung hàm'),
+      molarRelation: extractValue(modelAnalysis, 'tương quan'),
+      r3Relation: extractValue(modelAnalysis, 'tương quan r3'),
+      r6Relation: extractValue(modelAnalysis, 'tương quan r6'),
+    };
+  };
+
+  const parseCostItems = (paymentMethod: string) => {
+    if (!paymentMethod) return {
+      costItems: {
+        khophang: '',
+        xquang: '',
+        minivis: '',
+        maccai: '',
+        chupcam: '',
+        nongham: '',
+      },
+      otherCost: '',
+      cleanPaymentMethod: paymentMethod,
+    };
+
+    // Extract cost details from payment method
+    const costDetailsRegex = /chi tiết chi phí[:\s]*([^]+)/i;
+    const match = paymentMethod.match(costDetailsRegex);
+    
+    if (match) {
+      const costDetails = match[1];
+      const extractCost = (text: string, pattern: string) => {
+        const regex = new RegExp(`${pattern}[:\\s]*([0-9,\\.\\s]+)`, 'i');
+        const costMatch = text.match(regex);
+        return costMatch ? costMatch[1].trim() : '';
+      };
+
+      const costItems = {
+        khophang: extractCost(costDetails, 'khớp hàng'),
+        xquang: extractCost(costDetails, 'x-quang'),
+        minivis: extractCost(costDetails, 'minivis'),
+        maccai: extractCost(costDetails, 'mắc cài'),
+        chupcam: extractCost(costDetails, 'chụp cằm'),
+        nongham: extractCost(costDetails, 'nong hàm'),
+      };
+
+      const otherCost = extractCost(costDetails, 'khác');
+      const cleanPaymentMethod = paymentMethod.replace(costDetailsRegex, '').trim();
+
+      return { costItems, otherCost, cleanPaymentMethod };
+    }
+
+    return {
+      costItems: {
+        khophang: '',
+        xquang: '',
+        minivis: '',
+        maccai: '',
+        chupcam: '',
+        nongham: '',
+      },
+      otherCost: '',
+      cleanPaymentMethod: paymentMethod,
+    };
+  };
 
   const form = useForm<DetailFormData>({
     defaultValues: {
@@ -141,25 +304,52 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
     },
   });
 
-  // Get basic data from sessionStorage
-  const [basicData, setBasicData] = React.useState<BasicPlanData | null>(null);
-
   // Watch cost items to calculate total
   const costItems = form.watch('costItems');
   const otherCost = form.watch('otherCost');
   const totalCost = mapCostItemsToTotalCost(costItems, otherCost);
 
   useEffect(() => {
-    const savedData = sessionStorage.getItem('basicPlanData');
+    const storageKey = mode === 'edit' ? 'editBasicPlanData' : (mode === 'view' ? 'viewBasicPlanData' : 'basicPlanData');
+    const savedData = sessionStorage.getItem(storageKey);
     if (savedData) {
       setBasicData(JSON.parse(savedData));
     }
-  }, []);
+  }, [mode, setBasicData]);
 
-  React.useEffect(() => {
-    console.log('Cost items:', costItems);
-    console.log('Total cost:', totalCost);
-  }, [costItems, totalCost]);
+  // Populate form với existing data khi edit hoặc view
+  useEffect(() => {
+    if ((mode === 'edit' || mode === 'view') && treatmentPlan) {
+      try {
+        // Parse existing data từ API response
+        const plan = treatmentPlan as Record<string, unknown>;
+               
+        // Parse các trường complex từ string
+        const medicalHistory = parseMedicalHistory((plan.treatmentHistory as string) || '');
+        const examinationData = parseExaminationFindings((plan.examinationFindings as string) || '');
+        const xrayData = parseXRayAnalysis((plan.xRayAnalysis as string) || '');
+        const modelData = parseModelAnalysis((plan.modelAnalysis as string) || '');
+        const costData = parseCostItems((plan.paymentMethod as string) || '');
+
+        const formData = {
+          medicalHistory,
+          reasonForVisit: (plan.reasonForVisit as string) || '',
+          ...examinationData,
+          intraoralExam: (plan.intraoralExam as string) || '',
+          ...xrayData,
+          ...modelData,
+          treatmentPlanContent: (plan.treatmentPlanContent as string) || '',
+          costItems: costData.costItems,
+          otherCost: costData.otherCost,
+          paymentMethod: costData.cleanPaymentMethod,
+        };
+
+        form.reset(formData);
+      } catch (error) {
+        console.error('Error parsing treatment plan data:', error);
+      }
+    }
+  }, [treatmentPlan, form, mode]);
 
   // Handle currency input for cost fields
   const handleCostItemChange = (field: keyof DetailFormData['costItems'], value: string) => {
@@ -172,59 +362,124 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
     if (!basicData) return;
 
     try {
+      if (mode === 'edit') {
+        // Update existing plan
+        const requestData = {
+          planId: parseInt(planId || '0'),
+          patientId: basicData.patientId,
+          planTitle: basicData.planTitle,
+          templateName: basicData.templateName,
+          treatmentHistory: mapMedicalHistoryToString(data.medicalHistory),
+          reasonForVisit: data.reasonForVisit,
+          examinationFindings: mapExaminationFindings(data),
+          intraoralExam: data.intraoralExam,
+          xRayAnalysis: mapXRayAnalysis(data),
+          modelAnalysis: mapModelAnalysis(data),
+          treatmentPlanContent: data.treatmentPlanContent,
+          totalCost: totalCost,
+          paymentMethod: `${data.paymentMethod}\n\nChi tiết chi phí: ${mapCostItemsToString(data.costItems, data.otherCost)}`,
+          startToday: true,
+          consultationDate: basicData.consultationDate,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          createdBy: 1,
+          updatedBy: 1,
+          isDeleted: false,
+        };
 
-      // Map form data to API request
-      const requestData = {
-        patientId: basicData.patientId,
-        dentistId: basicData.dentistId,
-        planTitle: basicData.planTitle,
-        templateName: basicData.templateName,
-        treatmentHistory: mapMedicalHistoryToString(data.medicalHistory),
-        reasonForVisit: data.reasonForVisit,
-        examinationFindings: mapExaminationFindings(data),
-        intraoralExam: data.intraoralExam,
-        xRayAnalysis: mapXRayAnalysis(data),
-        modelAnalysis: mapModelAnalysis(data),
-        treatmentPlanContent: data.treatmentPlanContent,
-        totalCost: totalCost, // Use calculated total cost
-        paymentMethod: `${data.paymentMethod}\n\nChi tiết chi phí: ${mapCostItemsToString(data.costItems, data.otherCost)}`,
-        startToday: true,
-      };
+        await updateMutation.mutateAsync(requestData);
+      } else {
+        // Create new plan
+        const requestData = {
+          patientId: basicData.patientId,
+          dentistId: basicData.dentistId,
+          planTitle: basicData.planTitle,
+          templateName: basicData.templateName,
+          treatmentHistory: mapMedicalHistoryToString(data.medicalHistory),
+          reasonForVisit: data.reasonForVisit,
+          examinationFindings: mapExaminationFindings(data),
+          intraoralExam: data.intraoralExam,
+          xRayAnalysis: mapXRayAnalysis(data),
+          modelAnalysis: mapModelAnalysis(data),
+          treatmentPlanContent: data.treatmentPlanContent,
+          totalCost: totalCost,
+          paymentMethod: `${data.paymentMethod}\n\nChi tiết chi phí: ${mapCostItemsToString(data.costItems, data.otherCost)}`,
+          startToday: true,
+        };
 
-      // Debug logging
-      console.log('Request data being sent:', requestData);
-      console.log('PatientId from params:', patientId);
-      console.log('PatientId in request:', requestData.patientId);
-
-      await createMutation.mutateAsync(requestData);
+        await createMutation.mutateAsync(requestData);
+      }
 
       // Clear session storage
-      sessionStorage.removeItem('basicPlanData');
+      const storageKey = mode === 'edit' ? 'editBasicPlanData' : 'basicPlanData';
+      sessionStorage.removeItem(storageKey);
 
       navigate(`/patients/${patientId}/orthodontic-treatment-plans`);
     } catch (error) {
-      console.error('Error creating treatment plan:', error);
-
-      // Log more detailed error info
-      if (error && typeof error === 'object' && 'response' in error) {
-        const apiError = error as { response?: { data?: unknown; status?: number; headers?: unknown } };
-        console.error('API Error Response:', apiError.response?.data);
-        console.error('API Error Status:', apiError.response?.status);
-        console.error('API Error Headers:', apiError.response?.headers);
-      }
+      console.error('Error saving treatment plan:', error);
     }
   };
 
   const onSaveAndPrint = async (data: DetailFormData) => {
-    await onSave(data);
     window.print();
+    onSave(data);
   };
 
   const handleGoBack = () => {
-    navigate(`/patients/${patientId}/orthodontic-treatment-plans/create`);
+    if (mode === 'edit') {
+      navigate(`/patients/${patientId}/orthodontic-treatment-plans/${planId}/edit`);
+    } else if (mode === 'view') {
+      navigate(`/patients/${patientId}/orthodontic-treatment-plans`);
+    } else {
+      navigate(`/patients/${patientId}/orthodontic-treatment-plans/create`);
+    }
   };
 
-  if (!basicData) {
+  if (mode === 'edit' && isPlanLoading) {
+    return (
+      <div className="container mx-auto p-6 max-w-7xl">
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Đang tải dữ liệu...</p>
+            <p className="mt-1 text-xs text-gray-500">Plan ID: {planId}, Patient ID: {patientId}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === 'edit' && planError) {
+    return (
+      <div className="container mx-auto p-6 max-w-7xl">
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="text-center">
+            <p className="text-red-600">Lỗi tải dữ liệu: {planError.message}</p>
+            <Button variant="outline" onClick={() => navigate(`/patients/${patientId}/orthodontic-treatment-plans`)} className="mt-2">
+              Quay lại
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === 'view' && !treatmentPlan && !isPlanLoading) {
+    return (
+      <div className="container mx-auto p-6 max-w-7xl">
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="text-center">
+            <p className="text-red-600">Không tìm thấy kế hoạch điều trị</p>
+            <Button variant="outline" onClick={() => navigate(`/patients/${patientId}/orthodontic-treatment-plans`)} className="mt-2">
+              Quay lại
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!basicData && mode !== 'view') {
     return (
       <div className="container mx-auto p-6">
         <p>Đang tải dữ liệu...</p>
@@ -241,8 +496,16 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Chi Tiết Kế Hoạch Điều Trị</h1>
-            <p className="text-gray-600 mt-1">{basicData.planTitle}</p>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {mode === 'edit' ? 'Chỉnh Sửa Chi Tiết Kế Hoạch Điều Trị' : 
+               mode === 'view' ? 'Xem Chi Tiết Kế Hoạch Điều Trị' : 
+               'Chi Tiết Kế Hoạch Điều Trị'}
+            </h1>
+            <p className="text-gray-600 mt-1">
+              {mode === 'view' && treatmentPlan && (treatmentPlan as { planTitle?: string }).planTitle ||
+               basicData?.planTitle ||
+               'Kế hoạch điều trị'}
+            </p>
           </div>
         </div>
       </div>
@@ -256,22 +519,26 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
               <div>
-                <span className="font-medium">Họ và tên:</span> {basicData.patientInfo.fullname}
+                <span className="font-medium">Họ và tên:</span> {patientData?.fullname || basicData?.patientInfo?.fullname || 'Đang tải...'}
               </div>
               <div>
-                <span className="font-medium">Năm sinh:</span> {basicData.patientInfo.dob}
+                <span className="font-medium">Năm sinh:</span> {patientData?.dob || basicData?.patientInfo?.dob || 'Chưa cập nhật'}
               </div>
               <div>
-                <span className="font-medium">Địa chỉ:</span>
+                <span className="font-medium">Địa chỉ:</span> {patientData?.address || 'Chưa cập nhật'}
               </div>
               <div>
-                <span className="font-medium">Điện thoại:</span> {basicData.patientInfo.phone}
+                <span className="font-medium">Điện thoại:</span> {patientData?.phone || basicData?.patientInfo?.phone || 'Chưa cập nhật'}
               </div>
               <div>
-                <span className="font-medium">Ngày tư vấn:</span> {basicData.consultationDate}
+                <span className="font-medium">Ngày tư vấn:</span> {basicData?.consultationDate || 'Chưa xác định'}
               </div>
               <div>
-                <span className="font-medium">Bác sĩ phụ trách:</span> {basicData.dentistName || 'BS. Chưa xác định'}
+                <span className="font-medium">Bác sĩ phụ trách:</span> {
+                  mode === 'view' && treatmentPlan && (treatmentPlan as { dentistName?: string }).dentistName ||
+                  basicData?.dentistName || 
+                  'BS. Chưa xác định'
+                }
               </div>
             </div>
           </CardContent>
@@ -300,9 +567,10 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
                     <Checkbox
                       id={key}
                       checked={form.watch(fieldName as any)}
-                      onCheckedChange={(checked) =>
+                      onCheckedChange={mode === 'view' ? undefined : (checked) =>
                         form.setValue(fieldName as any, !!checked)
                       }
+                      className={mode === 'view' ? 'opacity-60 cursor-not-allowed' : ''}
                     />
                     <label htmlFor={key} className="text-sm">{label}</label>
                   </div>
@@ -322,6 +590,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
               placeholder="Chính nha hàm trên"
               rows={2}
               {...form.register('reasonForVisit')}
+              readOnly={mode === 'view'}
             />
           </CardContent>
         </Card>
@@ -341,6 +610,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
                   <Input
                     placeholder="Lệch/Bình thường"
                     {...form.register('faceShape')}
+                    readOnly={mode === 'view'}
                   />
                 </div>
                 <div className="space-y-2">
@@ -348,6 +618,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
                   <Input
                     placeholder="Lệch trái/Lệch phải/Bình thường"
                     {...form.register('frontView')}
+                    readOnly={mode === 'view'}
                   />
                 </div>
                 <div className="space-y-2">
@@ -355,6 +626,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
                   <Input
                     placeholder="Lồi/Lõm/Bình thường"
                     {...form.register('sideView')}
+                    readOnly={mode === 'view'}
                   />
                 </div>
                 <div className="space-y-2">
@@ -362,12 +634,14 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
                   <Input
                     placeholder="Méo/Bình thường"
                     {...form.register('smileArc')}
+                    readOnly={mode === 'view'}
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Đường cười</label>
                   <Input
                     {...form.register('smileLine')}
+                    readOnly={mode === 'view'}
                   />
                 </div>
                 <div className="space-y-2">
@@ -375,6 +649,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
                   <Input
                     placeholder="Lệch trái/Lệch phải/Bình thường"
                     {...form.register('midline')}
+                    readOnly={mode === 'view'}
                   />
                 </div>
               </div>
@@ -388,12 +663,14 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
                   <label className="text-sm font-medium">Cắn hở</label>
                   <Input
                     {...form.register('openBite')}
+                    readOnly={mode === 'view'}
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Cắn chéo</label>
                   <Input
                     {...form.register('crossBite')}
+                    readOnly={mode === 'view'}
                   />
                 </div>
                 <div className="space-y-2">
@@ -401,6 +678,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
                   <Input
                     placeholder="Có/Chưa phát hiện"
                     {...form.register('tongueThrunt')}
+                    readOnly={mode === 'view'}
                   />
                 </div>
               </div>
@@ -430,6 +708,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
               <Textarea
                 rows={4}
                 {...form.register('intraoralExam')}
+                readOnly={mode === 'view'}
               />
             </div>
           </CardContent>
@@ -447,15 +726,25 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium">Xương</label>
-                  <Textarea rows={2} {...form.register('boneAnalysis')} />
+                  <Textarea 
+                    rows={2} 
+                    {...form.register('boneAnalysis')} 
+                    readOnly={mode === 'view'}
+                  />
                 </div>
                 <div>
                   <label className="text-sm font-medium">Mặt nghiêng</label>
-                  <Input {...form.register('sideViewAnalysis')} />
+                  <Input 
+                    {...form.register('sideViewAnalysis')} 
+                    readOnly={mode === 'view'}
+                  />
                 </div>
                 <div>
                   <label className="text-sm font-medium">Xơ cứng xương quanh chóp</label>
-                  <Input {...form.register('apicalSclerosis')} />
+                  <Input 
+                    {...form.register('apicalSclerosis')} 
+                    readOnly={mode === 'view'}
+                  />
                 </div>
               </div>
             </div>
@@ -466,17 +755,18 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Cắn phủ</label>
-                  <Input {...form.register('overjet')} />
+                  <Input {...form.register('overjet')} readOnly={mode === 'view'} />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Cắn chỉa</label>
-                  <Input {...form.register('overbite')} />
+                  <Input {...form.register('overbite')} readOnly={mode === 'view'} />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Đường giữa</label>
                   <Input
                     placeholder="Bên trái/Bên phải/Bình thường"
                     {...form.register('midlineAnalysis')}
+                    readOnly={mode === 'view'}
                   />
                 </div>
                 <div className="space-y-2">
@@ -484,6 +774,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
                   <Input
                     placeholder="1-15mm"
                     {...form.register('crossbite')}
+                    readOnly={mode === 'view'}
                   />
                 </div>
                 <div className="space-y-2">
@@ -491,17 +782,19 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
                   <Input
                     placeholder="1-15mm"
                     {...form.register('openbite')}
+                    readOnly={mode === 'view'}
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Cung hàm</label>
-                  <Input {...form.register('archForm')} />
+                  <Input {...form.register('archForm')} readOnly={mode === 'view'} />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Tương quan</label>
                   <Input
                     placeholder="Tương quan 1/Tương quan 2/Tương quan 3"
                     {...form.register('molarRelation')}
+                    readOnly={mode === 'view'}
                   />
                 </div>
                 <div className="space-y-2">
@@ -509,6 +802,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
                   <Input
                     placeholder="1-10mm"
                     {...form.register('r3Relation')}
+                    readOnly={mode === 'view'}
                   />
                 </div>
                 <div className="space-y-2">
@@ -516,6 +810,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
                   <Input
                     placeholder="1-10mm"
                     {...form.register('r6Relation')}
+                    readOnly={mode === 'view'}
                   />
                 </div>
               </div>
@@ -532,6 +827,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
             <Textarea
               rows={8}
               {...form.register('treatmentPlanContent')}
+              readOnly={mode === 'view'}
             />
           </CardContent>
         </Card>
@@ -550,7 +846,9 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
                     <Input
                       placeholder="0"
                       value={form.watch('costItems.khophang')}
-                      onChange={(e) => handleCostItemChange('khophang', e.target.value)}
+                      onChange={mode === 'view' ? undefined : (e) => handleCostItemChange('khophang', e.target.value)}
+                      readOnly={mode === 'view'}
+                      className={mode === 'view' ? 'bg-gray-50' : ''}
                     />
                     <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₫</span>
                   </div>
@@ -561,7 +859,8 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
                     <Input
                       placeholder="0"
                       value={form.watch('costItems.xquang')}
-                      onChange={(e) => handleCostItemChange('xquang', e.target.value)}
+                      onChange={mode === 'view' ? undefined : (e) => handleCostItemChange('xquang', e.target.value)}
+                      readOnly={mode === 'view'}
                     />
                     <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₫</span>
                   </div>
@@ -572,7 +871,8 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
                     <Input
                       placeholder="0"
                       value={form.watch('costItems.minivis')}
-                      onChange={(e) => handleCostItemChange('minivis', e.target.value)}
+                      onChange={mode === 'view' ? undefined : (e) => handleCostItemChange('minivis', e.target.value)}
+                      readOnly={mode === 'view'}
                     />
                     <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₫</span>
                   </div>
@@ -583,7 +883,8 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
                     <Input
                       placeholder="0"
                       value={form.watch('costItems.maccai')}
-                      onChange={(e) => handleCostItemChange('maccai', e.target.value)}
+                      onChange={mode === 'view' ? undefined : (e) => handleCostItemChange('maccai', e.target.value)}
+                      readOnly={mode === 'view'}
                     />
                     <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₫</span>
                   </div>
@@ -594,7 +895,8 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
                     <Input
                       placeholder="0"
                       value={form.watch('costItems.chupcam')}
-                      onChange={(e) => handleCostItemChange('chupcam', e.target.value)}
+                      onChange={mode === 'view' ? undefined : (e) => handleCostItemChange('chupcam', e.target.value)}
+                      readOnly={mode === 'view'}
                     />
                     <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₫</span>
                   </div>
@@ -605,7 +907,8 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
                     <Input
                       placeholder="0"
                       value={form.watch('costItems.nongham')}
-                      onChange={(e) => handleCostItemChange('nongham', e.target.value)}
+                      onChange={mode === 'view' ? undefined : (e) => handleCostItemChange('nongham', e.target.value)}
+                      readOnly={mode === 'view'}
                     />
                     <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₫</span>
                   </div>
@@ -618,15 +921,14 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
                   <span className="text-sm font-medium text-blue-800">Tổng chi phí:</span>
                   <span className="text-lg font-bold text-blue-900">{formatCurrency(totalCost)} ₫</span>
                 </div>
-              </div>
-
-              <div className="space-y-2">
+              </div>                <div className="space-y-2">
                 <label className="text-sm font-medium">Chi phí khác (nếu có)</label>
                 <div className="relative">
                   <Input
                     placeholder="0"
                     value={form.watch('otherCost')}
-                    onChange={(e) => handleCurrencyInput(e.target.value, (v) => form.setValue('otherCost', v))}
+                    onChange={mode === 'view' ? undefined : (e) => handleCurrencyInput(e.target.value, (v) => form.setValue('otherCost', v))}
+                    readOnly={mode === 'view'}
                   />
                   <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₫</span>
                 </div>
@@ -645,35 +947,59 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC = () => {
             <Textarea
               rows={6}
               value={form.watch('paymentMethod')}
-              onChange={(e) => form.setValue('paymentMethod', e.target.value)}
+              onChange={mode === 'view' ? undefined : (e) => form.setValue('paymentMethod', e.target.value)}
+              readOnly={mode === 'view'}
             />
           </CardContent>
         </Card>
 
         {/* Action Buttons */}
-        <div className="flex justify-end gap-3 print:hidden">
-          <Button type="button" variant="outline" onClick={handleGoBack}>
-            <X className="h-4 w-4 mr-2" />
-            Thoát
-          </Button>
-          <Button
-            type="button"
-            onClick={form.handleSubmit(onSave)}
-            disabled={createMutation.isPending}
-          >
-            <Save className="h-4 w-4 mr-2" />
-            {createMutation.isPending ? 'Đang lưu...' : 'Lưu'}
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={form.handleSubmit(onSaveAndPrint)}
-            disabled={createMutation.isPending}
-          >
-            <Printer className="h-4 w-4 mr-2" />
-            Lưu và In
-          </Button>
-        </div>
+        {mode !== 'view' && (
+          <div className="flex justify-end gap-3 print:hidden">
+            <Button type="button" variant="outline" onClick={handleGoBack}>
+              <X className="h-4 w-4 mr-2" />
+              Thoát
+            </Button>
+            <Button
+              type="button"
+              onClick={form.handleSubmit(onSave)}
+              disabled={mode === 'edit' ? updateMutation.isPending : createMutation.isPending}
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {mode === 'edit' 
+                ? (updateMutation.isPending ? 'Đang cập nhật...' : 'Cập Nhật')
+                : (createMutation.isPending ? 'Đang lưu...' : 'Lưu')
+              }
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={form.handleSubmit(onSaveAndPrint)}
+              disabled={mode === 'edit' ? updateMutation.isPending : createMutation.isPending}
+            >
+              <Printer className="h-4 w-4 mr-2" />
+              {mode === 'edit' ? 'Cập Nhật và In' : 'Lưu và In'}
+            </Button>
+          </div>
+        )}
+
+        {/* View Mode Buttons */}
+        {mode === 'view' && (
+          <div className="flex justify-end gap-3 print:hidden">
+            <Button type="button" variant="outline" onClick={handleGoBack}>
+              <X className="h-4 w-4 mr-2" />
+              Quay lại
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => window.print()}
+            >
+              <Printer className="h-4 w-4 mr-2" />
+              In
+            </Button>
+          </div>
+        )}
       </form>
     </div>
   );

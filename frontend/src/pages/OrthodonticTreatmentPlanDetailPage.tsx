@@ -1,6 +1,6 @@
 import React from 'react';
-import { OrthodonticTreatmentPlanDetail } from '@/components/orthodontic/OrthodonticTreatmentPlanDetail';
+import { OrthodonticTreatmentPlanDetailForm } from '@/components/orthodontic/OrthodonticTreatmentPlanDetailForm';
 
 export const OrthodonticTreatmentPlanDetailPage: React.FC = () => {
-  return <OrthodonticTreatmentPlanDetail />;
+  return <OrthodonticTreatmentPlanDetailForm mode="view" />;
 };
