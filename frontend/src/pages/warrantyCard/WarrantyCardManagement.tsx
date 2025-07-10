@@ -46,7 +46,7 @@ export default function WarrantyCardManagement() {
   }, [])
 
   const filteredCards = useMemo(() => {
-    return warrantyCards.filter((card) => {
+    return warrantyCards?.filter((card) => {
       const matchesStatus =
         filterStatus === "all" ||
         (filterStatus === "active" && card.status) ||
