@@ -15,7 +15,10 @@ public class ProcedureRepository : IProcedureRepository
 
     public async Task<List<Procedure>> GetAll()
     {
-        return await _context.Procedures.ToListAsync();
+        return await _context.Procedures
+            .Include(p => p.SuppliesUsed)
+            .ThenInclude(su => su.Supplies)
+            .ToListAsync();
     }
 
     public async Task<Procedure> GetProcedureByProcedureId(int procedureId)
@@ -39,7 +42,7 @@ public class ProcedureRepository : IProcedureRepository
 
     public Task<Procedure?> GetByIdAsync(int id, CancellationToken ct = default)
     {
-        return _context.Procedures.FirstOrDefaultAsync(x=> x.ProcedureId == id, ct);
+        return _context.Procedures.FirstOrDefaultAsync(x => x.ProcedureId == id, ct);
     }
     public async Task<Procedure?> GetProcedureByIdAsync(int id, CancellationToken cancellationToken)
     {
