@@ -7,7 +7,7 @@ import { DateRangePicker } from '../ui/DateRangePicker';
 import { useAuth } from '../../hooks/useAuth';
 import { isAppointmentCancellable } from '../../utils/appointmentUtils';
 import type { AppointmentDTO, CalendarAppointment } from '../../types/appointment';
-
+import {isToday} from '../../utils/date.ts';
 interface AppointmentCalendarViewProps {
   appointments: AppointmentDTO[];
   onAppointmentClick?: (appointment: AppointmentDTO) => void;
@@ -130,11 +130,6 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
     });
   };
 
-  const isToday = (date: Date) => {
-    const today = new Date();
-    return date.toDateString() === today.toDateString();
-  };
-
   const goToPreviousWeek = () => {
     setCurrentWeek(prev => prev - 1);
   };
@@ -222,24 +217,24 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
       </CardHeader>
 
       {/* Calendar Grid */}
-      <CardContent className="p-6">
+      <CardContent className="p-3 sm:p-6">
         {/* Week/Month Headers */}
         <div className={`grid gap-2 mb-4 ${viewMode === 'month' ? 'grid-cols-7' : 'grid-cols-7'}`}>
           {currentDates.slice(0, viewMode === 'week' ? 7 : Math.min(currentDates.length, 7)).map((date, index) => (
             <div
               key={index}
-              className={`text-center p-3 rounded-lg ${isToday(date)
+              className={`text-center p-2 sm:p-3 rounded-lg ${isToday(date)
                 ? 'bg-blue-100 text-blue-900 font-bold'
                 : 'text-gray-700'
                 }`}
             >
-              <div className="text-sm font-medium">{formatDateHeader(date)}</div>
+              <div className="text-xs sm:text-sm font-medium">{formatDateHeader(date)}</div>
             </div>
           ))}
         </div>
 
-        {/* Calendar Body */}
-        <div className={`grid gap-2 ${viewMode === 'month' ? 'grid-cols-7' : 'grid-cols-7'} ${viewMode === 'month' ? 'min-h-[600px]' : 'min-h-[400px]'}`}>
+        {/* Desktop Calendar Body */}
+        <div className={`hidden sm:grid gap-2 ${viewMode === 'month' ? 'grid-cols-7' : 'grid-cols-7'} ${viewMode === 'month' ? 'min-h-[600px]' : 'min-h-[400px]'}`}>
           {currentDates.map((date, index) => {
             const dateKey = date.toISOString().split('T')[0];
             const dayAppointments = calendarAppointments[dateKey] || [];
@@ -310,6 +305,66 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
               </div>
             );
           })}
+        </div>
+
+        {/* Mobile Calendar Body */}
+        <div className="sm:hidden overflow-x-auto">
+          <div className="min-w-[700px]">
+            <div className={`grid gap-2 ${viewMode === 'month' ? 'grid-cols-7' : 'grid-cols-7'} ${viewMode === 'month' ? 'min-h-[600px]' : 'min-h-[400px]'}`}>
+              {currentDates.map((date, index) => {
+                const dateKey = date.toISOString().split('T')[0];
+                const dayAppointments = calendarAppointments[dateKey] || [];
+
+                return (
+                  <div
+                    key={index}
+                    className={`border border-gray-200 p-2 min-w-[90px] ${viewMode === 'month' ? 'min-h-[100px]' : 'min-h-[120px]'} ${isToday(date) ? 'bg-blue-50 border-blue-300' : 'bg-gray-50'
+                      }`}
+                  >
+                    {/* Date number for month view */}
+                    {viewMode === 'month' && (
+                      <div className="text-xs font-medium text-gray-600 mb-1">
+                        {date.getDate()}
+                      </div>
+                    )}
+
+                    <div className="space-y-1">
+                      {dayAppointments.map((appointment) => (
+                        <div
+                          key={appointment.id}
+                          onClick={() => onAppointmentClick?.(appointment.details)}
+                          className={`p-1.5 border cursor-pointer hover:shadow-sm transition-all text-xs ${getStatusColor(appointment.status)}`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-medium text-xs">{appointment.time}</span>
+                            <div className="flex items-center space-x-1">
+                              {appointment.isNewPatient && (
+                                <Badge variant="outline" className="text-xs px-1">Mới</Badge>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="space-y-0.5">
+                            <div className="flex items-center">
+                              <User className="h-3 w-3 mr-1 flex-shrink-0" />
+                              <span className="truncate text-xs">{appointment.details.patientName}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Empty state for days with no appointments */}
+                    {dayAppointments.length === 0 && (
+                      <div className="flex items-center justify-center h-full text-gray-400">
+                        <span className="text-xs">Không có</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </CardContent>
 

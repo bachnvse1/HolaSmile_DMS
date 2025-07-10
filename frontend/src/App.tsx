@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Route, Routes } from 'react-router';
+import { Route, Routes } from 'react-router';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; // Quan trọng!
 
@@ -21,14 +21,28 @@ import { PatientBookingPage } from './pages/patient/PatientBookingPage';
 import { PatientAppointmentsPage } from './pages/patient/PatientAppointmentsPage';
 import { StaffAppointmentsPage } from './pages/staff/StaffAppointmentsPage';
 import ScheduleManagementPage from './pages/staff/ScheduleManagementPage';
-import { DentistScheduleViewer } from './components/appointment/DentistScheduleViewer';
 import PatientTreatmentRecords from './pages/patient/PatientViewTreatmentRecord';
 import ViewTreatmentProgressPage from './pages/patient/ViewTreatmentProgress';
 import PatientList from './pages/patient/PatientList';
-import OrthodonticTreatmentPlansPage from './pages/OrthodonticTreatmentPlans';
-import OrthodonticTreatmentPlanFormPage from './pages/OrthodonticTreatmentPlanFormPage';
+import { OrthodonticTreatmentPlanListPage } from './pages/orthodontic/OrthodonticTreatmentPlanListPage';
+import { OrthodonticTreatmentPlanDetailPage } from './pages/orthodontic/OrthodonticTreatmentPlanDetailPage';
+import { OrthodonticTreatmentPlanEditPage } from './pages/orthodontic/OrthodonticTreatmentPlanEditPage';
+import { OrthodonticTreatmentPlanEditDetailPage } from './pages/orthodontic/OrthodonticTreatmentPlanEditDetailPage';
 import FUAppointmentPage from './pages/appointment/FUAppointmentPage';
+import { CreateOrthodonticTreatmentPlanBasicPage } from './pages/orthodontic/CreateOrthodonticTreatmentPlanBasicPage';
+import { CreateOrthodonticTreatmentPlanDetailPage } from './pages/orthodontic/CreateOrthodonticTreatmentPlanDetailPage';
+import { PatientOrthodonticListPage } from './pages/patient/PatientOrthodonticListPage';
+import { PatientOrthodonticDetailPage } from './pages/patient/PatientOrthodonticDetailPage';
+import { PrescriptionTemplatesPage } from './pages/prescription/PrescriptionTemplatesPage';
+import { CreatePrescriptionTemplatePage } from './pages/prescription/CreatePrescriptionTemplatePage';
+import { EditPrescriptionTemplatePage } from './pages/prescription/EditPrescriptionTemplatePage';
+import { PrescriptionTemplateDetailPage } from './pages/prescription/PrescriptionTemplateDetailPage';
+import { InventoryPage } from './pages/supply/InventoryPage';
+import { CreateSupplyPage } from './pages/supply/CreateSupplyPage';
+import { EditSupplyPage } from './pages/supply/EditSupplyPage';
+import { SupplyDetailPage } from './pages/supply/SupplyDetailPage';
 import UserManagement from './pages/auth/UserManagement';
+import AssignedTasks from './pages/assistant/AssignedTasks';
 function App() {
   return (
     <>
@@ -59,11 +73,27 @@ function App() {
         <Route path="/patient/view-treatment-records" element={<PatientTreatmentRecords />} />
         <Route path="/patient/view-treatment-progress/:treatmentRecordId" element={<ViewTreatmentProgressPage />} />
         <Route path="/patients" element={<PatientList />} />
-        <Route path="/patients/:patientId/orthodontic-treatment-plans" element={<OrthodonticTreatmentPlansPage />} />
-        <Route path="/patients/:patientId/orthodontic-treatment-plans/new" element={<OrthodonticTreatmentPlanFormPage />} />
-        <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId/edit" element={<OrthodonticTreatmentPlanFormPage />} />
+        <Route path="/patients/:patientId/orthodontic-treatment-plans" element={<OrthodonticTreatmentPlanListPage />} />
+        <Route path="/patients/:patientId/orthodontic-treatment-plans/create" element={<CreateOrthodonticTreatmentPlanBasicPage />} />
+        <Route path="/patients/:patientId/orthodontic-treatment-plans/create/detail" element={<CreateOrthodonticTreatmentPlanDetailPage />} />
+        <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId" element={<OrthodonticTreatmentPlanDetailPage />} />
+        <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId/edit" element={<OrthodonticTreatmentPlanEditPage />} />
+        <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId/edit/detail" element={<OrthodonticTreatmentPlanEditDetailPage />} />
+        <Route path="/patient/orthodontic-treatment-plans" element={<PatientOrthodonticListPage />} />
+        <Route path="/patient/orthodontic-treatment-plans/:planId" element={<PatientOrthodonticDetailPage />} />
         <Route path="/patient/follow-up" element={<FUAppointmentPage />} />
-        <Route path="/administrator/user-list" element={<UserManagement/>}/>
+        <Route path="/administrator/user-list" element={<UserManagement />} />
+        <Route path="/patient/follow-up" element={<FUAppointmentPage />} />
+        <Route path="/prescription-templates" element={<PrescriptionTemplatesPage />} />
+        <Route path="/prescription-templates/create" element={<CreatePrescriptionTemplatePage />} />
+        <Route path="/prescription-templates/:id" element={<PrescriptionTemplateDetailPage />} />
+        <Route path="/prescription-templates/:id/edit" element={<EditPrescriptionTemplatePage />} />
+        <Route path="/inventory" element={<InventoryPage />} />
+        <Route path="/inventory/create" element={<CreateSupplyPage />} />
+        <Route path="/inventory/:supplyId" element={<SupplyDetailPage />} />
+        <Route path="/inventory/:supplyId/edit" element={<EditSupplyPage />} />
+        <Route path="/administrator/user-list" element={<UserManagement />} />
+        <Route path="/assistant/assigned-tasks" element={<AssignedTasks />} />
       </Routes>
     </>
   );

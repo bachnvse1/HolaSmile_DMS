@@ -1,18 +1,19 @@
 import { useState } from 'react';
-import { 
-  Home, 
-  Calendar, 
-  Users, 
-  FileText, 
-  Settings, 
-  UserCheck, 
+import {
+  Home,
+  Calendar,
+  Users,
+  FileText,
+  Settings,
+  UserCheck,
   TrendingUp,
   Stethoscope,
   CreditCard,
   Package,
   ChevronDown,
   ChevronRight,
-  Activity
+  Activity,
+  Pill
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 
@@ -28,12 +29,26 @@ interface MenuItem {
 interface StaffSidebarProps {
   userRole: string;
   isCollapsed: boolean;
+  isMobile?: boolean;
+  onClose?: () => void;
 }
 
-export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapsed }) => {
+export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapsed, isMobile, onClose }) => {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleMenuClick = (item: MenuItem) => {
+    if (item.children && item.children.length > 0) {
+      toggleExpand(item.id);
+    } else if (item.path) {
+      navigate(item.path);
+      // Close sidebar on mobile after navigation
+      if (isMobile && onClose) {
+        onClose();
+      }
+    }
+  };
 
   const menuItems: MenuItem[] = [
     {
@@ -95,6 +110,20 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       roles: ['Administrator', 'Owner', 'Dentist', 'Assistant']
     },
     {
+      id: 'prescription-templates',
+      label: 'Mẫu Đơn Thuốc',
+      icon: <Pill className="h-5 w-5" />,
+      path: '/prescription-templates',
+      roles: ['Assistant']
+    },
+    {
+      id: 'assigned-tasks',
+      label: 'Công Việc Được Giao',
+      icon: <Activity className="h-5 w-5" />,
+      path: '/assistant/assigned-tasks',
+      roles: ['Assistant']
+    },
+    {
       id: 'finance',
       label: 'Tài Chính',
       icon: <CreditCard className="h-5 w-5" />,
@@ -121,7 +150,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       label: 'Kho Vật Tư',
       icon: <Package className="h-5 w-5" />,
       path: '/inventory',
-      roles: ['Administrator', 'Owner', 'Assistant']
+      roles: ['Administrator', 'Owner', 'Assistant', "Receptionist", 'Dentist'],
     },
     {
       id: 'reports',
@@ -203,16 +232,9 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
     return (
       <div key={item.id}>
         <button
-          onClick={() => {
-            if (hasChildren) {
-              toggleExpand(item.id);
-            } else if (item.path) {
-              navigate(item.path);
-            }
-          }}
-          className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-blue-50 hover:text-blue-600 transition-colors ${
-            level > 0 ? 'pl-8' : ''
-          } ${isActive ? 'bg-blue-100 text-blue-600 border-r-2 border-blue-600' : 'text-gray-700'}`}
+          onClick={() => handleMenuClick(item)}
+          className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-blue-50 hover:text-blue-600 transition-colors ${level > 0 ? 'pl-8' : ''
+            } ${isActive ? 'bg-blue-100 text-blue-600 border-r-2 border-blue-600' : 'text-gray-700'}`}
         >
           <div className="flex items-center space-x-3">
             {item.icon}
@@ -239,25 +261,66 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
   };
 
   return (
-    <div className={`bg-white shadow-lg h-full transition-all duration-300 ${
-      isCollapsed ? 'w-16' : 'w-64'
-    }`}>
-      <div className="p-4 border-b">
-        {!isCollapsed && (
-          <h2 className="text-xl font-bold text-blue-600 h-8">HolaSmile</h2>
-        )}
-        {isCollapsed && (
-          <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-            <span className="text-white font-bold text-sm">H</span>
-          </div>
-        )}
-      </div>
+    <>
+      {/* Mobile Overlay - Prevent interaction with content behind */}
+      {isMobile && !isCollapsed && (
+        <div
+          className="fixed inset-0 bg-opacity-30 z-40 md:hidden"
+          onClick={onClose}
+        />
+      )}
 
-      <nav className="flex-1 overflow-y-auto">
-        <div className="py-2">
-          {menuItems.map(item => renderMenuItem(item))}
+      {/* Sidebar */}
+      <div className={`
+        ${isMobile ? 'fixed left-0 top-0 z-50' : 'relative'}
+        bg-white shadow-lg transition-all duration-300 ease-in-out
+        ${isCollapsed ? (isMobile ? '-translate-x-full' : 'w-16') : 'w-64'}
+        ${isMobile ? 'h-screen flex flex-col' : 'h-full'}
+      `}>
+        {/* Header - Fixed */}
+        <div className="p-4 border-b flex-shrink-0 h-16 shadow-sm">
+          {!isCollapsed && (
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-blue-600">HolaSmile</h2>
+              {isMobile && (
+                <button
+                  onClick={onClose}
+                  className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                  title="Close sidebar"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          )}
+          {isCollapsed && !isMobile && (
+            <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+              <span className="text-white font-bold text-sm">H</span>
+            </div>
+          )}
         </div>
-      </nav>
-    </div>
+
+        {/* Navigation - Scrollable */}
+        <nav
+          className="flex-1 overflow-y-auto overflow-x-hidden"
+          style={{
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+          }}
+        >
+          <div
+            style={{
+              overflowY: 'scroll',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+            }}
+          >
+            {menuItems.map(item => renderMenuItem(item))}
+          </div>
+        </nav>
+      </div >
+    </>
   );
 };

@@ -6,6 +6,7 @@ import { Badge } from '../ui/badge';
 import { useCancelAppointment } from '../../hooks/useCancelAppointment';
 import { getTimeUntilAppointment } from '../../utils/appointmentUtils';
 import type { AppointmentDTO } from '../../types/appointment';
+import { formatDateVN, formatTimeVN } from '../../utils/dateUtils';
 
 interface CancelAppointmentDialogProps {
   appointment: AppointmentDTO;
@@ -40,19 +41,6 @@ export const CancelAppointmentDialog: React.FC<CancelAppointmentDialogProps> = (
       // Error handling is done in the mutation
       console.error('Cancel appointment error:', error);
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const formatTime = (timeString: string) => {
-    return timeString.substring(0, 5);
   };
 
   return (
@@ -93,8 +81,8 @@ export const CancelAppointmentDialog: React.FC<CancelAppointmentDialogProps> = (
               </div>
               <div className="space-y-1 text-sm">
                 <p><span className="font-medium">Bác sĩ:</span> {appointment.dentistName}</p>
-                <p><span className="font-medium">Ngày:</span> {formatDate(appointment.appointmentDate)}</p>
-                <p><span className="font-medium">Giờ:</span> {formatTime(appointment.appointmentTime)}</p>
+                <p><span className="font-medium">Ngày:</span> {formatDateVN(appointment.appointmentDate)}</p>
+                <p><span className="font-medium">Giờ:</span> {formatTimeVN(appointment.appointmentTime)}</p>
                 <p><span className="font-medium">Loại hẹn: </span>{appointment.appointmentType === 'follow-up'
                   ? 'Tái khám'
                   : appointment.appointmentType === 'consultation'
