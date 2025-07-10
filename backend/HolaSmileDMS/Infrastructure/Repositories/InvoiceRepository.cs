@@ -37,4 +37,37 @@ public class InvoiceRepository : IInvoiceRepository
         _context.Invoices.Update(invoice);
         await _context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<List<Invoice>> GetFilteredInvoicesAsync(
+        string? status,
+        DateTime? fromDate,
+        DateTime? toDate,
+        int? patientId)
+    {
+        var query = _context.Invoices.Include(x=>x.Patient).ThenInclude(x=>x.User)
+            .Where(x => !x.IsDeleted)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(status))
+            query = query.Where(x => x.Status == status);
+
+        if (fromDate.HasValue)
+            query = query.Where(x => x.CreatedAt >= fromDate.Value);
+
+        if (toDate.HasValue)
+            query = query.Where(x => x.CreatedAt <= toDate.Value);
+
+        if (patientId.HasValue)
+            query = query.Where(x => x.PatientId == patientId.Value);
+
+        return await query
+            .OrderByDescending(x => x.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<Invoice?> GetInvoiceByIdAsync(int invoiceId)
+    {
+        return await _context.Invoices.Include(x=>x.Patient).ThenInclude(x=>x.User)
+            .FirstOrDefaultAsync(x => x.InvoiceId == invoiceId && !x.IsDeleted);
+    }
 }
