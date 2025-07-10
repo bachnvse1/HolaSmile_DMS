@@ -39,7 +39,7 @@ namespace HDMS_API.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
+                return StatusCode(500, new { message = MessageConstants.MSG.MSG110 });
             }
         }
 
@@ -66,7 +66,7 @@ namespace HDMS_API.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
+                return StatusCode(500, new { message = MessageConstants.MSG.MSG110 });
             }
         }
 
@@ -98,7 +98,7 @@ namespace HDMS_API.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
+                return StatusCode(500, new { message = MessageConstants.MSG.MSG110 });
             }
         }
 
@@ -125,7 +125,7 @@ namespace HDMS_API.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
+                return StatusCode(500, new { message = MessageConstants.MSG.MSG110 });
             }
         }
 

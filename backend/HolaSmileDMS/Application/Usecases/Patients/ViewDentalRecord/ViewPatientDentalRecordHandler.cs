@@ -112,7 +112,7 @@ public sealed class ViewDentalExamSheetHandler :
             var invs = await _invoiceRepo.GetByTreatmentRecordIdAsync(rec.TreatmentRecordID, ct);
             sheet.Payments.AddRange(invs.Select((x, idx) => new PaymentHistoryDto
             {
-                Date   = x.PaymentDate,
+                Date = x.PaymentDate.GetValueOrDefault(),
                 Amount = (decimal)(x.PaidAmount ?? 0),
                 Note   = x.Description ?? $"Hoá đơn {idx + 1}"
             }));

@@ -33,7 +33,9 @@ namespace Application.Usecases.Assistant.CreateWarrantyCard
             var user = _httpContextAccessor.HttpContext?.User
                        ?? throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53);
 
-            if (user.FindFirst(ClaimTypes.Role)?.Value != "Assistant")
+            var role = user?.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (user == null || (role != "Assistant" && role != "Dentist" && role != "Receptionist"))  
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
             var userId = int.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var uid) ? uid : (int?)null;
