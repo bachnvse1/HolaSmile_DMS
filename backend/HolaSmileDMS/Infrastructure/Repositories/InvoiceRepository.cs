@@ -24,4 +24,17 @@ public class InvoiceRepository : IInvoiceRepository
             .AsNoTracking()
             .ToListAsync(ct);
     }
+
+    public async Task<Invoice?> GetByOrderCodeAsync(string orderCode, CancellationToken cancellationToken)
+    {
+        return await _context.Invoices.Include(x=>x.Patient)
+            .ThenInclude(x=>x.User)
+            .FirstOrDefaultAsync(i => i.OrderCode == orderCode, cancellationToken);
+    }
+
+    public async System.Threading.Tasks.Task UpdateAsync(Invoice invoice, CancellationToken cancellationToken)
+    {
+        _context.Invoices.Update(invoice);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
 }
