@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
+using Application.Usecases.SendNotification;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
@@ -9,17 +10,21 @@ namespace Application.Usecases.Receptionist.CreateInvoice;
 public class CreateInvoiceHandler : IRequestHandler<CreateInvoiceCommand, string>
 {
     private readonly IInvoiceRepository _invoiceRepository;
+    private readonly IPatientRepository _patientRepository;
     private readonly ITreatmentRecordRepository _treatmentRecordRepository;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IMediator _mediator;
 
     public CreateInvoiceHandler(
         IInvoiceRepository invoiceRepository,
         ITreatmentRecordRepository treatmentRecordRepository,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor, IPatientRepository patientRepository, IMediator mediator)
     {
         _invoiceRepository = invoiceRepository;
         _treatmentRecordRepository = treatmentRecordRepository;
         _httpContextAccessor = httpContextAccessor;
+        _patientRepository = patientRepository;
+        _mediator = mediator;
     }
 
     public async Task<string> Handle(CreateInvoiceCommand request, CancellationToken cancellationToken)
@@ -30,6 +35,7 @@ public class CreateInvoiceHandler : IRequestHandler<CreateInvoiceCommand, string
         var userId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
         var roleIdClaim = user.FindFirst("role_table_id")?.Value;
         var role = user.FindFirst(ClaimTypes.Role)?.Value;
+        var fullName = user?.FindFirst(ClaimTypes.GivenName)?.Value;
 
         // Check permission
         if (role != "Receptionist" && role != "Patient")
@@ -61,6 +67,7 @@ public class CreateInvoiceHandler : IRequestHandler<CreateInvoiceCommand, string
 
         // Tính remaining & status
         var remaining = totalAmount - newTotalPaid;
+        var orderCode = $"{DateTime.Now:yyyyMMddHHmmss}{new Random().Next(100000, 999999)}";
 
         var invoice = new Invoice
         {
@@ -73,6 +80,7 @@ public class CreateInvoiceHandler : IRequestHandler<CreateInvoiceCommand, string
             Description = request.Description ?? "Thanh toán điều trị",
             Status = "pending",
             PaidAmount = request.PaidAmount,
+            OrderCode = orderCode,
             RemainingAmount = remaining,
             CreatedAt = DateTime.Now,
             CreatedBy = userId,
@@ -80,6 +88,30 @@ public class CreateInvoiceHandler : IRequestHandler<CreateInvoiceCommand, string
         };
 
         await _invoiceRepository.CreateInvoiceAsync(invoice);
+        var patient = await _patientRepository.GetPatientByPatientIdAsync(request.PatientId);
+        if (patient != null)
+        {
+            int userIdNotification = patient.UserID ?? 0;
+            if (userIdNotification > 0)
+            {
+                try
+                {
+                    var message =
+                        $"Hoá đơn thanh toán {invoice.OrderCode} đã được tạo";
+                    await _mediator.Send(new SendNotificationCommand(
+                        userIdNotification,
+                        "Thanh toán",
+                        message,
+                        "Thanh toán",
+                        userId
+                    ), cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+        }
 
         return MessageConstants.MSG.MSG19; // "Tạo hoá đơn thành công"
     }
