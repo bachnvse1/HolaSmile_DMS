@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
 import { Plus, Stethoscope, Percent, Package, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import type { ProcedureCreateForm, Supply, SupplyItem } from "@/types/procedure"
@@ -203,7 +202,7 @@ export function CreateProcedureModal({
                     type="number"
                     min="0"
                     max="100"
-                    step="1"
+                    step="0.1"
                     value={form.discount || ''}
                     onChange={(e) => updateForm("discount", Number.parseFloat(e.target.value) || 0)}
                     placeholder="0"
@@ -278,7 +277,7 @@ export function CreateProcedureModal({
                     type="number"
                     min="0"
                     max="100"
-                    step="1"
+                    step="0.1"
                     value={form.doctorCommissionRate || ''}
                     onChange={(e) => updateForm("doctorCommissionRate", Number.parseFloat(e.target.value) || 0)}
                     placeholder="0"
@@ -292,7 +291,7 @@ export function CreateProcedureModal({
                     type="number"
                     min="0"
                     max="100"
-                    step="1"
+                    step="0.1"
                     value={form.assistantCommissionRate || ''}
                     onChange={(e) => updateForm("assistantCommissionRate", Number.parseFloat(e.target.value) || 0)}
                     placeholder="0"
@@ -306,7 +305,7 @@ export function CreateProcedureModal({
                     type="number"
                     min="0"
                     max="100"
-                    step="1"
+                    step="0.1"
                     value={form.technicianCommissionRate || ''}
                     onChange={(e) => updateForm("technicianCommissionRate", Number.parseFloat(e.target.value) || 0)}
                     placeholder="0"
@@ -320,7 +319,7 @@ export function CreateProcedureModal({
                     type="number"
                     min="0"
                     max="100"
-                    step="1"
+                    step="0.1"
                     value={form.referralCommissionRate || ''}
                     onChange={(e) => updateForm("referralCommissionRate", Number.parseFloat(e.target.value) || 0)}
                     placeholder="0"
@@ -367,10 +366,7 @@ export function CreateProcedureModal({
                     <div key={`${supply.supplyId}-${index}`} className="flex gap-4 items-center p-4 border rounded-lg bg-muted/20">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <h4 className="font-medium">{supply.supplyName || `Vật tư #${supply.supplyId}`}</h4>
-                          <Badge variant="outline" className="text-xs">
-                            ID: {supply.supplyId}
-                          </Badge>
+                          <h4 className="font-medium">{supply.supplyName}</h4>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">

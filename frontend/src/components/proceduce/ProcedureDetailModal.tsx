@@ -73,8 +73,8 @@ export function ProcedureDetailModal({ procedure, isOpen, onOpenChange, onEdit, 
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
                             <h2 className="text-2xl font-bold">{procedure.procedureName}</h2>
-                            <Badge variant={procedure.isDeleted !== false ? "default" : "secondary"}>
-                                {procedure.isDeleted !== false ? "Hoạt động" : "Không hoạt động"}
+                            <Badge variant={procedure.isDeleted !== true ? "default" : "secondary"}>
+                                {procedure.isDeleted !== true ? "Hoạt động" : "Không hoạt động"}
                             </Badge>
                         </div>
                         <p className="text-muted-foreground">{procedure.description}</p>

@@ -138,13 +138,8 @@ export default function ProcedureManagement() {
         if (!pendingToggleProcedure) return
         try {
             const result = await ProcedureService.toggleActive(pendingToggleProcedure.procedureId)
-            setProcedures((prev) =>
-                prev.map((p) =>
-                    p.procedureId === pendingToggleProcedure.procedureId
-                        ? { ...p, isDeleted: pendingToggleProcedure.isDeleted }
-                        : p
-                )
-            )
+            const refreshed = await ProcedureService.getAll()
+            setProcedures(refreshed)
             toast.success(result.message || "Cập nhật trạng thái thành công")
         } catch (err: any) {
             toast.error(err?.response?.data?.message || "Lỗi khi cập nhật trạng thái")
