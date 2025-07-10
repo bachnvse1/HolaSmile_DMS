@@ -44,7 +44,7 @@ public class ProcedureRepository : IProcedureRepository
 
     public Task<Procedure?> GetByIdAsync(int id, CancellationToken ct = default)
     {
-        return _context.Procedures.FirstOrDefaultAsync(x=> x.ProcedureId == id, ct);
+        return _context.Procedures.FirstOrDefaultAsync(x => x.ProcedureId == id, ct);
     }
     public async Task<Procedure?> GetProcedureByIdAsync(int id, CancellationToken cancellationToken)
     {

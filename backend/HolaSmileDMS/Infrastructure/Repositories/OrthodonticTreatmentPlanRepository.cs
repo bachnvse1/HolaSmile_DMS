@@ -64,4 +64,13 @@ public class OrthodonticTreatmentPlanRepository : IOrthodonticTreatmentPlanRepos
         _context.OrthodonticTreatmentPlans.Update(plan);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<List<OrthodonticTreatmentPlan>> GetAllByPatientIdAsync(int patientId, CancellationToken cancellationToken)
+    {
+        return await _context.OrthodonticTreatmentPlans
+            .Where(p => p.PatientId == patientId && !p.IsDeleted)
+            .Include(p => p.Patient).ThenInclude(u => u.User)
+            .Include(p => p.Dentist).ThenInclude(u => u.User)
+            .ToListAsync(cancellationToken);
+    }
 }

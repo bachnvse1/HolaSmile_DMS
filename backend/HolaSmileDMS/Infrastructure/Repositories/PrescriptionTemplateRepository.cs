@@ -19,5 +19,24 @@ namespace Infrastructure.Repositories
                 .OrderByDescending(x => x.CreatedAt)
                 .ToListAsync(cancellationToken);
         }
+        public async Task<PrescriptionTemplate?> GetByIdAsync(int id, CancellationToken cancellationToken)
+        {
+            return await _context.PrescriptionTemplates
+                .FirstOrDefaultAsync(x => x.PreTemplateID == id, cancellationToken);
+        }
+
+        public async Task<bool> UpdateAsync(PrescriptionTemplate template, CancellationToken cancellationToken)
+        {
+            _context.PrescriptionTemplates.Update(template);
+            var result = await _context.SaveChangesAsync(cancellationToken);
+            return result > 0; 
+        }
+        public async Task<bool> CreateAsync(PrescriptionTemplate template, CancellationToken cancellationToken)
+        {
+            _context.PrescriptionTemplates.Add(template);
+            var result = await _context.SaveChangesAsync(cancellationToken);
+            return result > 0;
+        }
+
     }
 }
