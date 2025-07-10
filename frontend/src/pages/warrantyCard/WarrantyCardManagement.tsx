@@ -60,13 +60,18 @@ export default function WarrantyCardManagement() {
   }, [warrantyCards, filterStatus, searchQuery])
 
   const availableTreatmentRecords = useMemo(() => {
-    const existingRecordIds = warrantyCards.map((card) => card.treatmentRecordId)
-    return treatmentRecords.filter(
-      (record) =>
-        record.treatmentStatus === "completed" &&
-        !record.isDeleted &&
-        !existingRecordIds.includes(record.treatmentRecordID)
+    const existingRecordIds = new Set(
+      warrantyCards.map((card) => card.treatmentRecordId)
     )
+
+    return treatmentRecords.filter((record) => {
+      const recordId =  record.treatmentRecordID
+
+      return (
+        record.treatmentStatus === "completed" &&
+        !existingRecordIds.has(recordId)
+      )
+    })
   }, [treatmentRecords, warrantyCards])
 
   const validateCreateForm = () => {
