@@ -169,8 +169,8 @@ export function ProcedureTable({
                                     )}
                                 </TableCell>
                                 <TableCell>
-                                    <Badge variant={procedure.isDeleted !== false ? "default" : "secondary"}>
-                                        {procedure.isDeleted !== false ? "Hoạt động" : "Không hoạt động"}
+                                    <Badge variant={procedure.isDeleted !== true ? "default" : "secondary"}>
+                                        {procedure.isDeleted !== true ? "Hoạt động" : "Không hoạt động"}
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right">
@@ -184,7 +184,7 @@ export function ProcedureTable({
                                                 <Button variant="outline" size="sm" onClick={() => onEdit(procedure)}>
                                                     <Edit className="w-4 h-4" />
                                                 </Button>
-                                                {procedure.isDeleted !== false ? (
+                                                {procedure.isDeleted !== true ? (
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
