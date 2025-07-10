@@ -171,7 +171,7 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
             if (record.DiscountPercentage.HasValue)
                 total *= (1 - (decimal)record.DiscountPercentage.Value / 100);
 
-            // Trừ thêm phần giảm tiền mặt
+            // Trừ thêm phần giảm cash
             if (record.DiscountAmount.HasValue)
                 total -= record.DiscountAmount.Value;
 

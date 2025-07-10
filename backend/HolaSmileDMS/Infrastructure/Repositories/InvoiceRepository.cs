@@ -70,4 +70,17 @@ public class InvoiceRepository : IInvoiceRepository
         return await _context.Invoices.Include(x=>x.Patient).ThenInclude(x=>x.User)
             .FirstOrDefaultAsync(x => x.InvoiceId == invoiceId && !x.IsDeleted);
     }
+
+    public async System.Threading.Tasks.Task CreateInvoiceAsync(Invoice invoice)
+    {
+        _context.Invoices.Add(invoice);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<decimal> GetTotalPaidForTreatmentRecord(int treatmentRecordId)
+    {
+        return await _context.Invoices
+            .Where(x => x.TreatmentRecord_Id == treatmentRecordId && !x.IsDeleted)
+            .SumAsync(x => x.PaidAmount ?? 0);
+    }
 }

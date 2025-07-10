@@ -12,4 +12,6 @@ public interface IInvoiceRepository
         int? patientId
     );
     Task<Invoice?> GetInvoiceByIdAsync(int invoiceId);
+    System.Threading.Tasks.Task CreateInvoiceAsync(Invoice invoice);
+    Task<decimal> GetTotalPaidForTreatmentRecord(int treatmentRecordId);
 }

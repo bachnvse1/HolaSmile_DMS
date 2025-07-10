@@ -1,5 +1,6 @@
 using Application.Constants;
 using Application.Usecases.Patients.ViewInvoices;
+using Application.Usecases.Receptionist.CreateInvoice;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -51,6 +52,28 @@ public class InvoiceController : ControllerBase
         catch (Exception ex)
         {
             return BadRequest(new { message = ex.Message });
+        }
+    }
+    [HttpPost("create")]
+    public async Task<IActionResult> CreateInvoice([FromBody] CreateInvoiceCommand command)
+    {
+        try
+        {
+            var result = await _mediator.Send(command);
+            return Ok(new { message = result });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { message = MessageConstants.MSG.MSG26 });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            // Trả lỗi 500 cho những exception không xác định
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
 }
