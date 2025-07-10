@@ -1,15 +1,18 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
-import { ArrowLeft, Save, Printer, X } from 'lucide-react';
+import { ArrowLeft, Save, Printer, X, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useCreateOrthodonticTreatmentPlan, useUpdateOrthodonticTreatmentPlan, useOrthodonticTreatmentPlan } from '@/hooks/useOrthodonticTreatmentPlan';
+import { useCreateOrthodonticTreatmentPlan, useUpdateOrthodonticTreatmentPlan, useOrthodonticTreatmentPlan, useDeactivateOrthodonticTreatmentPlan } from '@/hooks/useOrthodonticTreatmentPlan';
 import { usePatient } from '@/hooks/usePatient';
 import { formatCurrency, handleCurrencyInput } from '@/utils/currencyUtils';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { useUserInfo } from '@/hooks/useUserInfo';
+import { TokenUtils } from '@/utils/tokenUtils';
 import {
   mapMedicalHistoryToString,
   mapExaminationFindings,
@@ -91,14 +94,24 @@ interface OrthodonticTreatmentPlanDetailFormProps {
   mode?: 'create' | 'edit' | 'view';
 }
 
-export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPlanDetailFormProps> = ({ 
-  mode = 'create' 
+export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPlanDetailFormProps> = ({
+  mode = 'create'
 }) => {
-  const { patientId, planId } = useParams<{ patientId: string; planId: string }>();
+  const { patientId: paramPatientId, planId } = useParams<{ patientId: string; planId: string }>();
   const navigate = useNavigate();
+
+  const userInfo = useUserInfo();
+  const isDentist = userInfo?.role === 'Dentist';
 
   const createMutation = useCreateOrthodonticTreatmentPlan();
   const updateMutation = useUpdateOrthodonticTreatmentPlan();
+  const deactivateMutation = useDeactivateOrthodonticTreatmentPlan();
+  let patientId: string | undefined = paramPatientId;
+  if (userInfo?.role === 'Patient') {
+    const roleTableId = userInfo.roleTableId ?? TokenUtils.getRoleTableIdFromToken(localStorage.getItem('token') || '');
+    patientId = roleTableId === null ? undefined : roleTableId;
+  }
+
 
   // Fetch existing plan data if editing or viewing
   const { data: treatmentPlan, isLoading: isPlanLoading, error: planError } = useOrthodonticTreatmentPlan(
@@ -217,7 +230,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
     // Extract cost details from payment method
     const costDetailsRegex = /chi tiết chi phí[:\s]*([^]+)/i;
     const match = paymentMethod.match(costDetailsRegex);
-    
+
     if (match) {
       const costDetails = match[1];
       const extractCost = (text: string, pattern: string) => {
@@ -323,7 +336,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
       try {
         // Parse existing data từ API response
         const plan = treatmentPlan as Record<string, unknown>;
-               
+
         // Parse các trường complex từ string
         const medicalHistory = parseMedicalHistory((plan.treatmentHistory as string) || '');
         const examinationData = parseExaminationFindings((plan.examinationFindings as string) || '');
@@ -428,10 +441,29 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
   const handleGoBack = () => {
     if (mode === 'edit') {
       navigate(`/patients/${patientId}/orthodontic-treatment-plans/${planId}/edit`);
-    } else if (mode === 'view') {
+    } else if (userInfo?.role === 'Patient') {
+      navigate(`/patient/orthodontic-treatment-plans`);
+    }
+    else if (mode === 'view') {
       navigate(`/patients/${patientId}/orthodontic-treatment-plans`);
     } else {
       navigate(`/patients/${patientId}/orthodontic-treatment-plans/create`);
+    }
+  };
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deactivateMutation.mutateAsync(parseInt(planId || '0'));
+      navigate(`/patients/${patientId}/orthodontic-treatment-plans`);
+    } catch (error) {
+      console.error('Error deleting treatment plan:', error);
+    } finally {
+      setIsDeleting(false);
+      setConfirmOpen(false);
     }
   };
 
@@ -497,17 +529,40 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
           </Button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              {mode === 'edit' ? 'Chỉnh Sửa Chi Tiết Kế Hoạch Điều Trị' : 
-               mode === 'view' ? 'Xem Chi Tiết Kế Hoạch Điều Trị' : 
-               'Chi Tiết Kế Hoạch Điều Trị'}
+              {mode === 'edit' ? 'Chỉnh Sửa Chi Tiết Kế Hoạch Điều Trị' :
+                mode === 'view' ? 'Xem Chi Tiết Kế Hoạch Điều Trị' :
+                  'Chi Tiết Kế Hoạch Điều Trị'}
             </h1>
             <p className="text-gray-600 mt-1">
               {mode === 'view' && treatmentPlan && (treatmentPlan as { planTitle?: string }).planTitle ||
-               basicData?.planTitle ||
-               'Kế hoạch điều trị'}
+                basicData?.planTitle ||
+                'Kế hoạch điều trị'}
             </p>
           </div>
         </div>
+
+        {mode === 'view' && isDentist && (
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/patients/${patientId}/orthodontic-treatment-plans/${planId}/edit`)}
+              className="w-full sm:w-auto"
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              <span className="sm:hidden">Chỉnh sửa</span>
+              <span className="hidden sm:inline">Chỉnh Sửa</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setConfirmOpen(true)}
+              disabled={isDeleting}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {isDeleting ? 'Đang xóa...' : 'Xóa'}
+            </Button>
+          </div>
+        )}
       </div>
 
       <form className="space-y-6">
@@ -530,13 +585,13 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
               <div>
                 <span className="font-medium">Điện thoại:</span> {patientData?.phone || basicData?.patientInfo?.phone || 'Chưa cập nhật'}
               </div>
-              <div>
+              {/* <div>
                 <span className="font-medium">Ngày tư vấn:</span> {basicData?.consultationDate || 'Chưa xác định'}
-              </div>
+              </div> */}
               <div>
                 <span className="font-medium">Bác sĩ phụ trách:</span> {
                   mode === 'view' && treatmentPlan && (treatmentPlan as { dentistName?: string }).dentistName ||
-                  basicData?.dentistName || 
+                  basicData?.dentistName ||
                   'BS. Chưa xác định'
                 }
               </div>
@@ -726,23 +781,23 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium">Xương</label>
-                  <Textarea 
-                    rows={2} 
-                    {...form.register('boneAnalysis')} 
+                  <Textarea
+                    rows={2}
+                    {...form.register('boneAnalysis')}
                     readOnly={mode === 'view'}
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium">Mặt nghiêng</label>
-                  <Input 
-                    {...form.register('sideViewAnalysis')} 
+                  <Input
+                    {...form.register('sideViewAnalysis')}
                     readOnly={mode === 'view'}
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium">Xơ cứng xương quanh chóp</label>
-                  <Input 
-                    {...form.register('apicalSclerosis')} 
+                  <Input
+                    {...form.register('apicalSclerosis')}
                     readOnly={mode === 'view'}
                   />
                 </div>
@@ -966,7 +1021,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
               disabled={mode === 'edit' ? updateMutation.isPending : createMutation.isPending}
             >
               <Save className="h-4 w-4 mr-2" />
-              {mode === 'edit' 
+              {mode === 'edit'
                 ? (updateMutation.isPending ? 'Đang cập nhật...' : 'Cập Nhật')
                 : (createMutation.isPending ? 'Đang lưu...' : 'Lưu')
               }
@@ -998,9 +1053,22 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
               <Printer className="h-4 w-4 mr-2" />
               In
             </Button>
+
           </div>
         )}
       </form>
+
+      {/* Confirm Deletion Modal */}
+      <ConfirmModal
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleDelete}
+        title="Xác nhận xóa kế hoạch điều trị"
+        message="Bạn có chắc chắn muốn xóa kế hoạch điều trị này? Hành động này không thể hoàn tác."
+        confirmText="Xóa kế hoạch"
+        confirmVariant="destructive"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

@@ -1,42 +1,157 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { Plus, Search, Filter, FileText, Calendar, Users, DollarSign } from 'lucide-react';
+import { Plus, Search, Filter, FileText, Calendar, DollarSign, ArrowLeft, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useOrthodonticTreatmentPlans } from '@/hooks/useOrthodonticTreatmentPlan';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { DateRangePicker } from '@/components/ui/date-picker';
+import { Pagination } from '@/components/ui/Pagination';
+import { useOrthodonticTreatmentPlans, useDeactivateOrthodonticTreatmentPlan } from '@/hooks/useOrthodonticTreatmentPlan';
 import { formatCurrency } from '@/utils/formatUtils';
 import { formatDate } from '@/utils/dateUtils';
 import type { OrthodonticTreatmentPlan } from '@/types/orthodonticTreatmentPlan';
 import { useUserInfo } from '@/hooks/useUserInfo';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { TokenUtils } from '@/utils/tokenUtils';
 export const OrthodonticTreatmentPlanList: React.FC = () => {
-  const { patientId } = useParams<{ patientId: string }>();
+  const { patientId: paramPatientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deletingPlanId, setDeletingPlanId] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+
+  // Filter state
+  const [selectedTemplate, setSelectedTemplate] = useState('all');
+  const [selectedDentist, setSelectedDentist] = useState('all');
+  const [dateRange, setDateRange] = useState<{
+    from: Date | undefined;
+    to: Date | undefined;
+  }>({ from: undefined, to: undefined });
+  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
+  const [priceSliderRange, setPriceSliderRange] = useState([0, 100000000]); // For slider
+
   const userInfo = useUserInfo();
   const isDentist = userInfo?.role === 'Dentist';
+  let patientId: string | undefined = paramPatientId;
+  if (userInfo?.role === 'Patient') {
+    const roleTableId = userInfo.roleTableId ?? TokenUtils.getRoleTableIdFromToken(localStorage.getItem('token') || '');
+    patientId = roleTableId === null ? undefined : roleTableId;
+  }
 
   const { data: treatmentPlans = [], isLoading, error } = useOrthodonticTreatmentPlans(
     parseInt(patientId || '0')
   );
 
-  const filteredPlans = treatmentPlans.filter(plan =>
-    plan.planTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    plan.templateName.toLowerCase().includes(searchTerm.toLowerCase())
+  // Get unique values for filter options
+  const uniqueTemplates = useMemo(() =>
+    [...new Set(treatmentPlans.map((plan: any) => plan.templateName))],
+    [treatmentPlans]
   );
+
+  const uniqueDentists = useMemo(() =>
+    [...new Set(treatmentPlans.map((plan: any) => (plan as { dentistName?: string }).dentistName).filter(Boolean))],
+    [treatmentPlans]
+  );
+
+  // Advanced filtering logic
+  const filteredPlans = useMemo(() => {
+    return treatmentPlans.filter((plan: any) => {
+      // Search term filter
+      const matchesSearch = plan.planTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        plan.templateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (plan.treatmentPlanContent || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (plan.reasonForVisit || '').toLowerCase().includes(searchTerm.toLowerCase());
+
+      // Template filter
+      const matchesTemplate = !selectedTemplate || selectedTemplate === 'all' || plan.templateName === selectedTemplate;
+
+      // Dentist filter
+      const matchesDentist = !selectedDentist || selectedDentist === 'all' || (plan as { dentistName?: string }).dentistName === selectedDentist;
+
+      // Date range filter
+      const matchesDateRange = !dateRange.from || !dateRange.to ||
+        (new Date(plan.createdAt) >= dateRange.from &&
+          new Date(plan.createdAt) <= new Date(dateRange.to.getTime() + 24 * 60 * 60 * 1000 - 1));
+
+      // Price range filter
+      const matchesPriceRange = (!priceRange.min || plan.totalCost >= parseInt(priceRange.min)) &&
+        (!priceRange.max || plan.totalCost <= parseInt(priceRange.max));
+
+      return matchesSearch && matchesTemplate && matchesDentist && matchesDateRange && matchesPriceRange;
+    });
+  }, [treatmentPlans, searchTerm, selectedTemplate, selectedDentist, dateRange, priceRange]);
+
+  // Pagination logic
+  const paginatedPlans = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredPlans.slice(startIndex, endIndex);
+  }, [filteredPlans, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(filteredPlans.length / itemsPerPage);
+
+  // Reset to first page when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedTemplate, selectedDentist, dateRange, priceRange]);
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedTemplate('all');
+    setSelectedDentist('all');
+    setDateRange({ from: undefined, to: undefined });
+    setPriceRange({ min: '', max: '' });
+    setPriceSliderRange([0, 100000000]);
+  };
 
   const handleCreatePlan = () => {
     navigate(`/patients/${patientId}/orthodontic-treatment-plans/create`);
   };
 
   const handleViewPlan = (planId: number) => {
-    navigate(`/patients/${patientId}/orthodontic-treatment-plans/${planId}`);
+    if (userInfo.role !== 'Patient') {
+      navigate(`/patients/${patientId}/orthodontic-treatment-plans/${planId}`);
+    }
+    else {
+      navigate(`/patient/orthodontic-treatment-plans/${planId}`);
+    }
   };
 
   const handleEditPlan = (planId: number) => {
     navigate(`/patients/${patientId}/orthodontic-treatment-plans/${planId}/edit`);
+  };
+
+  const deactivateMutation = useDeactivateOrthodonticTreatmentPlan();
+
+  const handleDeletePlan = (planId: number) => {
+    setDeletingPlanId(planId);
+    setConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingPlanId) return;
+
+    setIsDeleting(true);
+    try {
+      await deactivateMutation.mutateAsync(deletingPlanId);
+      window.location.reload(); // Refresh to show updated list
+    } catch (error) {
+      console.error('Error deleting plan:', error);
+    } finally {
+      setIsDeleting(false);
+      setConfirmOpen(false);
+      setDeletingPlanId(null);
+    }
   };
 
   if (isLoading) {
@@ -75,11 +190,23 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
     <div className="container mx-auto p-6 max-w-7xl">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Kế Hoạch Điều Trị Chỉnh Nha</h1>
-          {isDentist && (
-            <p className="text-gray-600 mt-1">Quản lý kế hoạch điều trị nha khoa cho bệnh nhân</p>
+        <div className="flex items-center gap-4">
+          {userInfo.role !== 'Patient' && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/patients')}
+              title="Quay lại danh sách bệnh nhân"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
           )}
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Kế Hoạch Điều Trị Chỉnh Nha</h1>
+            {isDentist && (
+              <p className="text-gray-600 mt-1">Quản lý kế hoạch điều trị nha khoa cho bệnh nhân</p>
+            )}
+          </div>
         </div>
         {isDentist && (
           <Button onClick={handleCreatePlan} className="flex items-center gap-2">
@@ -96,7 +223,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Tìm kiếm theo tên kế hoạch hoặc template..."
+                placeholder="Tìm kiếm theo tên kế hoạch, template, nội dung điều trị..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -111,6 +238,109 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
               Bộ lọc
             </Button>
           </div>
+
+          {/* Advanced Filters */}
+          {showFilters && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Template Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Mẫu
+                  </label>
+                  <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Tất cả các mẫu" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tất cả</SelectItem>
+                      {uniqueTemplates.map((template) => (
+                        <SelectItem key={template as string} value={template as string}>
+                          {template as string}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Dentist Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Bác sĩ phụ trách
+                  </label>
+                  <Select value={selectedDentist} onValueChange={setSelectedDentist}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Tất cả bác sĩ" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tất cả</SelectItem>
+                      {uniqueDentists.map((dentist) => (
+                        <SelectItem key={dentist as string} value={dentist as string}>
+                          {dentist as string}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Date Range Filter */}
+                <div className="md:col-span-2">
+                  <div className="flex justify-between">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Khoảng thời gian
+                    </label>
+                  </div>
+                  <DateRangePicker
+                    dateRange={dateRange}
+                    onDateRangeChange={setDateRange}
+                    fromPlaceholder="Từ ngày"
+                    toPlaceholder="Đến ngày"
+                  />
+                </div>
+
+                {/* Price Range Filter với Slider */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Khoảng chi phí: {formatCurrency(priceSliderRange[0])} - {formatCurrency(priceSliderRange[1])}
+                  </label>
+                  <div className="px-2">
+                    <Slider
+                      value={priceSliderRange}
+                      onValueChange={(value) => {
+                        setPriceSliderRange(value);
+                        setPriceRange({
+                          min: value[0].toString(),
+                          max: value[1].toString()
+                        });
+                      }}
+                      max={100000000}
+                      min={0}
+                      step={1000000}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>0đ</span>
+                      <span>100tr</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Clear Filters Button */}
+                <div className="md:col-span-2 lg:col-span-4">
+                  <Button
+                    variant="outline"
+                    onClick={clearFilters}
+                    className="w-full md:w-auto"
+                  >
+                    Xóa bộ lọc
+                  </Button>
+                  <span className="ml-2 text-sm text-gray-600">
+                    Tìm thấy {filteredPlans.length} kết quả
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -132,15 +362,8 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Kế Hoạch Gần Đây</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {treatmentPlans.filter(plan => {
-                    const planDate = new Date(plan.createdAt);
-                    const weekAgo = new Date();
-                    weekAgo.setDate(weekAgo.getDate() - 7);
-                    return planDate >= weekAgo;
-                  }).length}
-                </p>
+                <p className="text-sm font-medium text-gray-600">Kết Quả Lọc</p>
+                <p className="text-2xl font-bold text-gray-900">{filteredPlans.length}</p>
               </div>
               <Calendar className="h-8 w-8 text-green-600" />
             </div>
@@ -153,7 +376,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Tổng Chi Phí</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(treatmentPlans.reduce((sum, plan) => sum + plan.totalCost, 0))}
+                  {formatCurrency(filteredPlans.reduce((sum: number, plan: any) => sum + plan.totalCost, 0))}
                 </p>
               </div>
               <DollarSign className="h-8 w-8 text-orange-600" />
@@ -183,28 +406,68 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
             <CardContent className="p-8 text-center">
               <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Chưa có kế hoạch điều trị nào
+                {searchTerm || (selectedTemplate !== 'all') || (selectedDentist !== 'all') || dateRange.from || priceRange.min ?
+                  'Không tìm thấy kết quả phù hợp' :
+                  'Chưa có kế hoạch điều trị nào'
+                }
               </h3>
               <p className="text-gray-600 mb-4">
-                Bắt đầu tạo kế hoạch điều trị đầu tiên cho bệnh nhân này
+                {searchTerm || (selectedTemplate !== 'all') || (selectedDentist !== 'all') || dateRange.from || priceRange.min ?
+                  'Thử thay đổi điều kiện tìm kiếm hoặc bộ lọc' :
+                  (isDentist ? 'Bắt đầu tạo kế hoạch điều trị đầu tiên cho bệnh nhân này' : 'Chưa có kế hoạch điều trị nào được tạo cho bệnh nhân này')
+                }
               </p>
-              <Button onClick={handleCreatePlan}>
-                <Plus className="h-4 w-4 mr-2" />
-                Tạo Kế Hoạch Điều Trị
-              </Button>
+              {isDentist && !searchTerm && (selectedTemplate === 'all') && (selectedDentist === 'all') && !dateRange.from && !priceRange.min && (
+                <Button onClick={handleCreatePlan}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Tạo Kế Hoạch Điều Trị
+                </Button>
+              )}
             </CardContent>
           </Card>
         ) : (
-          filteredPlans.map((plan) => (
-            <TreatmentPlanCard
-              key={plan.planId}
-              plan={plan}
-              onView={() => handleViewPlan(plan.planId)}
-              onEdit={() => handleEditPlan(plan.planId)}
-            />
-          ))
+          <>
+            {paginatedPlans.map((plan: any) => (
+              <TreatmentPlanCard
+                key={plan.planId}
+                plan={plan}
+                onView={() => handleViewPlan(plan.planId)}
+                onEdit={() => handleEditPlan(plan.planId)}
+                onDelete={() => handleDeletePlan(plan.planId)}
+              />
+            ))}
+
+            {/* Pagination Controls */}
+            {paginatedPlans.length > 0 && (
+              <Card>
+                <CardContent className="p-4">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                    totalItems={filteredPlans.length}
+                    itemsPerPage={itemsPerPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                    className="my-2"
+                  />
+                </CardContent>
+              </Card>
+            )}
+          </>
         )}
       </div>
+
+      {/* Confirm Deletion Modal */}
+      <ConfirmModal
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={confirmDelete}
+        title="Xác nhận xóa kế hoạch điều trị"
+        message="Bạn có chắc chắn muốn xóa kế hoạch điều trị này? Hành động này không thể hoàn tác."
+        confirmText="Xóa kế hoạch"
+        confirmVariant="destructive"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };
@@ -213,9 +476,10 @@ interface TreatmentPlanCardProps {
   plan: OrthodonticTreatmentPlan;
   onView: () => void;
   onEdit: () => void;
+  onDelete?: () => void;
 }
 
-const TreatmentPlanCard: React.FC<TreatmentPlanCardProps> = ({ plan, onView, onEdit }) => {
+const TreatmentPlanCard: React.FC<TreatmentPlanCardProps> = ({ plan, onView, onEdit, onDelete }) => {
   const userInfo = useUserInfo();
   const isDentist = userInfo?.role === 'Dentist';
   return (
@@ -255,12 +519,12 @@ const TreatmentPlanCard: React.FC<TreatmentPlanCardProps> = ({ plan, onView, onE
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <p className="text-sm text-blue-800 font-medium mb-1">Nội dung điều trị:</p>
                 <div className="text-sm text-black-700 leading-relaxed">
-                  <p className="line-clamp-3 break-words overflow-hidden">
+                  <p className="line-clamp-3 break-words overflow-hidden whitespace-pre-wrap">
                     {plan.treatmentPlanContent || 'Chưa có nội dung điều trị'}
                   </p>
                 </div>
               </div>
-              
+
               <div>
                 <p className="text-sm text-gray-600 line-clamp-2 break-words">
                   <span className="font-medium">Lý do khám:</span> {plan.reasonForVisit || 'Chưa có thông tin'}
@@ -269,14 +533,20 @@ const TreatmentPlanCard: React.FC<TreatmentPlanCardProps> = ({ plan, onView, onE
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Button variant="outline" size="sm" onClick={onView}>
               Chi Tiết
             </Button>
             {isDentist && (
-              <Button variant="default" size="sm" onClick={onEdit}>
-                Chỉnh Sửa
-              </Button>
+              <>
+                <Button variant="outline" size="sm" onClick={onEdit} className='text-blue-600 hover:text-blue-700 hover:bg-red-50 w-full sm:w-auto'>
+                  Chỉnh Sửa
+                </Button>
+                <Button variant="outline" size="sm" onClick={onDelete} className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto">
+                  <Trash2 className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Xóa</span>
+                </Button>
+              </>
             )}
           </div>
         </div>

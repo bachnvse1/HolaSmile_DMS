@@ -24,13 +24,15 @@ import ScheduleManagementPage from './pages/staff/ScheduleManagementPage';
 import PatientTreatmentRecords from './pages/patient/PatientViewTreatmentRecord';
 import ViewTreatmentProgressPage from './pages/patient/ViewTreatmentProgress';
 import PatientList from './pages/patient/PatientList';
-import { OrthodonticTreatmentPlanListPage } from './pages/OrthodonticTreatmentPlanListPage';
-import { OrthodonticTreatmentPlanDetailPage } from './pages/OrthodonticTreatmentPlanDetailPage';
-import { OrthodonticTreatmentPlanEditPage } from './pages/OrthodonticTreatmentPlanEditPage';
-import { OrthodonticTreatmentPlanEditDetailPage } from './pages/OrthodonticTreatmentPlanEditDetailPage';
+import { OrthodonticTreatmentPlanListPage } from './pages/orthodontic/OrthodonticTreatmentPlanListPage';
+import { OrthodonticTreatmentPlanDetailPage } from './pages/orthodontic/OrthodonticTreatmentPlanDetailPage';
+import { OrthodonticTreatmentPlanEditPage } from './pages/orthodontic/OrthodonticTreatmentPlanEditPage';
+import { OrthodonticTreatmentPlanEditDetailPage } from './pages/orthodontic/OrthodonticTreatmentPlanEditDetailPage';
 import FUAppointmentPage from './pages/appointment/FUAppointmentPage';
-import { CreateOrthodonticTreatmentPlanBasicPage } from './pages/CreateOrthodonticTreatmentPlanBasicPage';
-import { CreateOrthodonticTreatmentPlanDetailPage } from './pages/CreateOrthodonticTreatmentPlanDetailPage';
+import { CreateOrthodonticTreatmentPlanBasicPage } from './pages/orthodontic/CreateOrthodonticTreatmentPlanBasicPage';
+import { CreateOrthodonticTreatmentPlanDetailPage } from './pages/orthodontic/CreateOrthodonticTreatmentPlanDetailPage';
+import { PatientOrthodonticListPage } from './pages/patient/PatientOrthodonticListPage';
+import { PatientOrthodonticDetailPage } from './pages/patient/PatientOrthodonticDetailPage';
 import { PrescriptionTemplatesPage } from './pages/prescription/PrescriptionTemplatesPage';
 import { CreatePrescriptionTemplatePage } from './pages/prescription/CreatePrescriptionTemplatePage';
 import { EditPrescriptionTemplatePage } from './pages/prescription/EditPrescriptionTemplatePage';
@@ -77,6 +79,8 @@ function App() {
         <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId" element={<OrthodonticTreatmentPlanDetailPage />} />
         <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId/edit" element={<OrthodonticTreatmentPlanEditPage />} />
         <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId/edit/detail" element={<OrthodonticTreatmentPlanEditDetailPage />} />
+        <Route path="/patient/orthodontic-treatment-plans" element={<PatientOrthodonticListPage />} />
+        <Route path="/patient/orthodontic-treatment-plans/:planId" element={<PatientOrthodonticDetailPage />} />
         <Route path="/patient/follow-up" element={<FUAppointmentPage />} />
         <Route path="/administrator/user-list" element={<UserManagement />} />
         <Route path="/patient/follow-up" element={<FUAppointmentPage />} />
@@ -88,8 +92,8 @@ function App() {
         <Route path="/inventory/create" element={<CreateSupplyPage />} />
         <Route path="/inventory/:supplyId" element={<SupplyDetailPage />} />
         <Route path="/inventory/:supplyId/edit" element={<EditSupplyPage />} />
-        <Route path="/administrator/user-list" element={<UserManagement/>}/>
-        <Route path="/assistant/assigned-tasks" element={<AssignedTasks/>}/>
+        <Route path="/administrator/user-list" element={<UserManagement />} />
+        <Route path="/assistant/assigned-tasks" element={<AssignedTasks />} />
       </Routes>
     </>
   );

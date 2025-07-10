@@ -1,6 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import axiosInstance from '@/lib/axios';
-import { toast } from 'react-toastify';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import axiosInstance from "@/lib/axios";
+import { toast } from "react-toastify";
+import { getErrorMessage } from "@/utils/formatUtils";
 
 export interface CreateOrthodonticTreatmentPlanRequest {
   patientId: number;
@@ -19,7 +20,8 @@ export interface CreateOrthodonticTreatmentPlanRequest {
   startToday: boolean;
 }
 
-export interface OrthodonticTreatmentPlan extends CreateOrthodonticTreatmentPlanRequest {
+export interface OrthodonticTreatmentPlan
+  extends CreateOrthodonticTreatmentPlanRequest {
   planId: number;
   consultationDate: string;
   createdAt: string;
@@ -31,11 +33,13 @@ export interface OrthodonticTreatmentPlan extends CreateOrthodonticTreatmentPlan
 
 // Query keys
 const ORTHODONTIC_KEYS = {
-  all: ['orthodontic-treatment-plans'] as const,
-  lists: () => [...ORTHODONTIC_KEYS.all, 'list'] as const,
-  list: (patientId: number) => [...ORTHODONTIC_KEYS.lists(), { patientId }] as const,
-  details: () => [...ORTHODONTIC_KEYS.all, 'detail'] as const,
-  detail: (planId: number, patientId: number) => [...ORTHODONTIC_KEYS.details(), { planId, patientId }] as const,
+  all: ["orthodontic-treatment-plans"] as const,
+  lists: () => [...ORTHODONTIC_KEYS.all, "list"] as const,
+  list: (patientId: number) =>
+    [...ORTHODONTIC_KEYS.lists(), { patientId }] as const,
+  details: () => [...ORTHODONTIC_KEYS.all, "detail"] as const,
+  detail: (planId: number, patientId: number) =>
+    [...ORTHODONTIC_KEYS.details(), { planId, patientId }] as const,
 };
 
 // Create treatment plan
@@ -44,33 +48,23 @@ export const useCreateOrthodonticTreatmentPlan = () => {
 
   return useMutation({
     mutationFn: async (data: CreateOrthodonticTreatmentPlanRequest) => {
-      console.log('Creating orthodontic treatment plan with data:', data);
-      
       const response = await axiosInstance.post<OrthodonticTreatmentPlan>(
-        '/orthodontic-treatment-plan',
+        "/orthodontic-treatment-plan",
         data
       );
-      
-      console.log('API Response:', response.data);
+
       return response.data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['orthodontic-treatment-plans', data.patientId] 
+      queryClient.invalidateQueries({
+        queryKey: ["orthodontic-treatment-plans", data.patientId],
       });
-      toast.success('Tạo kế hoạch điều trị thành công!');
+      toast.success("Tạo kế hoạch điều trị thành công!");
     },
-    onError: (error: unknown) => {
-      console.error('API Error in hook:', error);
-      
-      // Type-safe error handling
-      if (error && typeof error === 'object' && 'response' in error) {
-        const apiError = error as { response?: { data?: { message?: string } } };
-        const errorMessage = apiError.response?.data?.message || 'Có lỗi xảy ra khi tạo kế hoạch điều trị';
-        toast.error(errorMessage);
-      } else {
-        toast.error('Có lỗi xảy ra khi tạo kế hoạch điều trị');
-      }
+    onError: (error) => {
+      toast.error(
+        getErrorMessage(error) || "Có lỗi xảy ra khi tạo kế hoạch điều trị"
+      );
     },
   });
 };
@@ -80,40 +74,46 @@ export const useOrthodonticTreatmentPlans = (patientId: number) => {
   return useQuery({
     queryKey: ORTHODONTIC_KEYS.list(patientId),
     queryFn: async () => {
-      const response = await axiosInstance.get(`/orthodontic-treatment-plan/view-all?patientId=${patientId}`);
+      const response = await axiosInstance.get(
+        `/orthodontic-treatment-plan/view-all?patientId=${patientId}`
+      );
+      console.log("Fetched orthodontic treatment plans:", response.data);
       return response.data.data;
     },
     enabled: !!patientId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 };
 
 // Get single orthodontic treatment plan
 export const useOrthodonticTreatmentPlan = (
-  planId: number, 
-  patientId: number, 
+  planId: number,
+  patientId: number,
   options?: { enabled?: boolean }
 ) => {
   return useQuery({
     queryKey: ORTHODONTIC_KEYS.detail(planId, patientId),
     queryFn: async () => {
-      console.log('Fetching plan data for planId:', planId, 'patientId:', patientId);
       try {
-        const response = await axiosInstance.get(`/orthodontic-treatment-plan/${planId}?patientId=${patientId}`);
-        console.log('API response for treatment plan:', response.data);
+        const response = await axiosInstance.get(
+          `/orthodontic-treatment-plan/${planId}?patientId=${patientId}`
+        );
         return response.data;
       } catch (error) {
-        console.error('Error fetching treatment plan:', error);
+        console.error("Error fetching treatment plan:", error);
         throw error;
       }
     },
-    enabled: options?.enabled !== undefined ? options.enabled : (!!planId && !!patientId && planId > 0 && patientId > 0),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled:
+      options?.enabled !== undefined
+        ? options.enabled
+        : !!planId && !!patientId && planId > 0 && patientId > 0,
+    staleTime: 5 * 60 * 1000,
     retry: 1,
     retryOnMount: false,
     retryDelay: 1000,
-    gcTime: 5 * 60 * 1000, // 5 minutes cache time
-    networkMode: 'always',
+    gcTime: 5 * 60 * 1000, 
+    networkMode: "always",
   });
 };
 
@@ -147,26 +147,22 @@ export const useUpdateOrthodonticTreatmentPlan = () => {
 
   return useMutation({
     mutationFn: async (data: UpdateOrthodonticTreatmentPlanRequest) => {
-      console.log('Updating orthodontic treatment plan with data:', data);
-      const response = await axiosInstance.put('/orthodontic-treatment-plan/update', data);
-      console.log('Update API Response:', response.data);
+      const response = await axiosInstance.put(
+        "/orthodontic-treatment-plan/update",
+        data
+      );
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ORTHODONTIC_KEYS.all
+      queryClient.invalidateQueries({
+        queryKey: ORTHODONTIC_KEYS.all,
       });
-      toast.success('Cập nhật kế hoạch điều trị thành công!');
+      toast.success("Cập nhật kế hoạch điều trị thành công!");
     },
-    onError: (error: unknown) => {
-      console.error('API Error in update hook:', error);
-      if (error && typeof error === 'object' && 'response' in error) {
-        const apiError = error as { response?: { data?: { message?: string } } };
-        const errorMessage = apiError.response?.data?.message || 'Có lỗi xảy ra khi cập nhật kế hoạch điều trị';
-        toast.error(errorMessage);
-      } else {
-        toast.error('Có lỗi xảy ra khi cập nhật kế hoạch điều trị');
-      }
+    onError: (error) => {
+      toast.error(
+        getErrorMessage(error) || "Có lỗi xảy ra khi cập nhật kế hoạch điều trị"
+      );
     },
   });
 };
@@ -174,31 +170,21 @@ export const useUpdateOrthodonticTreatmentPlan = () => {
 // Deactivate orthodontic treatment plan
 export const useDeactivateOrthodonticTreatmentPlan = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (planId: number) => {
-      console.log('Deactivating orthodontic treatment plan:', planId);
-      
       await axiosInstance.put(`/orthodontic-treatment-plan/deactive/${planId}`);
     },
     onSuccess: () => {
-      toast.success('Xóa kế hoạch điều trị thành công!');
-      // Invalidate all orthodontic queries
+      toast.success("Xóa kế hoạch điều trị thành công!");
       queryClient.invalidateQueries({
-        queryKey: ORTHODONTIC_KEYS.all
+        queryKey: ORTHODONTIC_KEYS.all,
       });
     },
-    onError: (error: unknown) => {
-      console.error('API Error in deactivate hook:', error);
-      
-      // Type-safe error handling
-      if (error && typeof error === 'object' && 'response' in error) {
-        const apiError = error as { response?: { data?: { message?: string } } };
-        const errorMessage = apiError.response?.data?.message || 'Có lỗi xảy ra khi xóa kế hoạch điều trị';
-        toast.error(errorMessage);
-      } else {
-        toast.error('Có lỗi xảy ra khi xóa kế hoạch điều trị');
-      }
+    onError: (error) => {
+      toast.error(
+        getErrorMessage(error) || "Có lỗi xảy ra khi xóa kế hoạch điều trị"
+      );
     },
   });
 };
