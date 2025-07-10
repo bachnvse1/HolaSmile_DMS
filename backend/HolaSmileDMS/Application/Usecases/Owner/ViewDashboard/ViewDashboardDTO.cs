@@ -8,8 +8,8 @@ namespace Application.Usecases.Owner.ViewDashboard
 {
     public class ViewDashboardDTO
     {
-        public double TotalRevenue { get; set; }
-        public int TotalAppoinemtn { get; set; }
+        public decimal TotalRevenue { get; set; }
+        public int TotalAppointments { get; set; }
         public int TotalPatient { get; set; }
         public int TotalEmployee { get; set; }
         public int NewPatient { get; set; }
