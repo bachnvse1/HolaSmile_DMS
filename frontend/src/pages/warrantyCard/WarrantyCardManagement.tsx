@@ -65,10 +65,10 @@ export default function WarrantyCardManagement() {
     )
 
     return treatmentRecords.filter((record) => {
-      const recordId =  record.treatmentRecordID
+      const recordId = record.treatmentRecordID
 
       return (
-        record.treatmentStatus === "completed" &&
+        record.treatmentStatus?.toLowerCase() === "completed" &&
         !existingRecordIds.has(recordId)
       )
     })
