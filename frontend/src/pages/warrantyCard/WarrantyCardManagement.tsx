@@ -20,7 +20,11 @@ import {
 } from "@/services/warrantyCardService"
 import { fetchAllTreatmentRecords } from "@/services/treatmentService"
 
-
+// Định nghĩa kiểu dữ liệu cho response khi không có data
+interface ApiResponse<T> {
+  data?: T;
+  message?: string;
+}
 
 export default function WarrantyCardManagement() {
   const [warrantyCards, setWarrantyCards] = useState<WarrantyCard[]>([])
@@ -37,16 +41,37 @@ export default function WarrantyCardManagement() {
 
   useEffect(() => {
     fetchWarrantyCards()
-      .then(setWarrantyCards)
+      .then((response: WarrantyCard[] | ApiResponse<WarrantyCard[]>) => {
+        // Kiểm tra nếu response là mảng, nếu không thì set mảng rỗng
+        if (Array.isArray(response)) {
+          setWarrantyCards(response)
+        } else {
+          setWarrantyCards([])
+          // Nếu có message từ backend, có thể hiển thị thông báo
+          if (response?.message) {
+            toast.info(response.message)
+          }
+        }
+      })
       .catch(() => toast.error("Không thể tải danh sách thẻ bảo hành"))
 
     fetchAllTreatmentRecords()
-      .then(setTreatmentRecords)
+      .then((response: TreatmentRecord[] | ApiResponse<TreatmentRecord[]>) => {
+        // Tương tự cho treatment records
+        if (Array.isArray(response)) {
+          setTreatmentRecords(response)
+        } else {
+          setTreatmentRecords([])
+          if (response?.message) {
+            toast.info(response.message)
+          }
+        }
+      })
       .catch(() => toast.error("Lỗi khi tải hồ sơ điều trị"))
   }, [])
 
   const filteredCards = useMemo(() => {
-    return warrantyCards?.filter((card) => {
+    return warrantyCards.filter((card) => {
       const matchesStatus =
         filterStatus === "all" ||
         (filterStatus === "active" && card.status) ||
@@ -60,18 +85,12 @@ export default function WarrantyCardManagement() {
   }, [warrantyCards, filterStatus, searchQuery])
 
   const availableTreatmentRecords = useMemo(() => {
-    const existingRecordIds = new Set(
-      warrantyCards.map((card) => card.treatmentRecordId)
-    )
-
-    return treatmentRecords.filter((record) => {
-      const recordId =  record.treatmentRecordID
-
-      return (
+    const existingRecordIds = warrantyCards.map((card) => card.treatmentRecordId)
+    return treatmentRecords.filter(
+      (record) =>
         record.treatmentStatus === "completed" &&
-        !existingRecordIds.has(recordId)
-      )
-    })
+        !existingRecordIds.includes(record.treatmentRecordID)
+    )
   }, [treatmentRecords, warrantyCards])
 
   const validateCreateForm = () => {
@@ -103,8 +122,13 @@ export default function WarrantyCardManagement() {
       setIsCreateOpen(false)
       setCreateForm({ treatmentRecordId: 0, duration: 12 })
       setFormErrors({})
-      const updatedCards = await fetchWarrantyCards()
-      setWarrantyCards(updatedCards)
+      const updatedCards = await fetchWarrantyCards() as WarrantyCard[] | ApiResponse<WarrantyCard[]>
+      // Kiểm tra response trước khi set state
+      if (Array.isArray(updatedCards)) {
+        setWarrantyCards(updatedCards)
+      } else {
+        setWarrantyCards([])
+      }
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Lỗi khi tạo thẻ bảo hành")
     }
@@ -118,8 +142,13 @@ export default function WarrantyCardManagement() {
       setIsEditOpen(false)
       setEditingCard(null)
       setFormErrors({})
-      const updatedCards = await fetchWarrantyCards()
-      setWarrantyCards(updatedCards)
+      const updatedCards = await fetchWarrantyCards() as WarrantyCard[] | ApiResponse<WarrantyCard[]>
+      // Kiểm tra response trước khi set state
+      if (Array.isArray(updatedCards)) {
+        setWarrantyCards(updatedCards)
+      } else {
+        setWarrantyCards([])
+      }
     } catch {
       toast.error("Lỗi khi cập nhật thẻ bảo hành")
     }
@@ -129,8 +158,13 @@ export default function WarrantyCardManagement() {
     try {
       await deactivateWarrantyCard(cardId)
       toast.success("Đã cập nhật trạng thái thẻ bảo hành.")
-      const updatedCards = await fetchWarrantyCards()
-      setWarrantyCards(updatedCards)
+      const updatedCards = await fetchWarrantyCards() as WarrantyCard[] | ApiResponse<WarrantyCard[]>
+      // Kiểm tra response trước khi set state
+      if (Array.isArray(updatedCards)) {
+        setWarrantyCards(updatedCards)
+      } else {
+        setWarrantyCards([])
+      }
     } catch {
       toast.error("Không thể thay đổi trạng thái thẻ.")
     }
