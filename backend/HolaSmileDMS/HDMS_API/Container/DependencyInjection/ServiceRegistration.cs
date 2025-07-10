@@ -1,8 +1,9 @@
 ﻿using Application.Common.Mappings;
 using Application.Interfaces;
 using Application.Services;
-using Application.Usecases.Assistant.CreateWarrantyCard;
 using Application.Usecases.SendNotification;
+using DinkToPdf;
+using DinkToPdf.Contracts;
 using HDMS_API.Application.Common.Mappings;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
@@ -10,6 +11,7 @@ using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Infrastructure.Persistence;
 using HDMS_API.Infrastructure.Repositories;
 using HDMS_API.Infrastructure.Services;
+using Infrastructure.Configurations;
 using Infrastructure.Hubs;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
@@ -39,6 +41,7 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IPatientRepository, PatientRepository>();
             services.AddScoped<IDentistRepository, DentistRepository>();
+            services.AddScoped<ISupplyRepository, SupplyRepository>();
             services.AddScoped<IUserCommonRepository, UserCommonRepository>();
             services.AddScoped<ITreatmentRecordRepository, TreatmentRecordRepository>();
             services.AddScoped<IScheduleRepository, ScheduleRepository>();
@@ -50,8 +53,21 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IProcedureRepository, ProcedureRepository>();
             services.AddScoped<IReceptionistRepository, ReceptionistRepository>();
             services.AddScoped<IFileStorageService, FileStorageService>();
+            services.AddScoped<IOrthodonticTreatmentPlanRepository, OrthodonticTreatmentPlanRepository>();
             services.AddScoped<ITaskRepository, TaskRepository>();
-            services.AddScoped<IWarrantyRepository, WarrantyCardRepository>();
+            services.AddScoped<IWarrantyCardRepository, WarrantyCardRepository>();
+            services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+            services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
+            services.AddScoped<IInstructionRepository, InstructionRepository>();
+            services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
+            services.AddScoped<IPdfGenerator, PdfGenerator>();
+            services.AddScoped<IDentalExamSheetPrinter, DentalExamSheetPrinter>();
+            services.AddScoped<IPrescriptionTemplateRepository, PrescriptionTemplateRepository>();
+            services.AddScoped<IPayOSService, PayOSService>();
+            services.Configure<PayOSOptions>(configuration.GetSection("PayOS"));
+            services.AddScoped<IPayOSConfiguration, PayOSConfiguration>();
+            services.AddScoped<ICloudinaryService, CloudinaryService>();
+            services.AddScoped<IImageRepository, ImageRepository>();
 
 
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -75,13 +91,14 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddMediatR(typeof(CreatePatientCommand).Assembly);
             services.AddMediatR(typeof(LoginCommand).Assembly);
             services.AddMediatR(typeof(SendNotificationHandler).Assembly);
-            services.AddMediatR(typeof(CreateWarrantyCardHandler).Assembly);
 
             // AutoMapper
             services.AddAutoMapper(typeof(MappingViewTreatmentRecord));
             services.AddAutoMapper(typeof(MappingCreatePatient));
             services.AddAutoMapper(typeof(MappingAppointment));
             services.AddAutoMapper(typeof(MappingTreatmentProgress).Assembly);
+            services.AddAutoMapper(typeof(OrthodonticTreatmentPlanProfile).Assembly);
+
 
             // Caching
             services.AddMemoryCache();

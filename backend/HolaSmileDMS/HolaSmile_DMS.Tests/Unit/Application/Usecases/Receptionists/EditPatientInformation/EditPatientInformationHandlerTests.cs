@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists.EditPatientInformation
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
 {
     public class EditPatientInformationHandlerTests
     {

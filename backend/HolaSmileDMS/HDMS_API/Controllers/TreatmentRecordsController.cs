@@ -1,11 +1,12 @@
 using Application.Constants;
+using Application.Usecases.Assistants.ViewListTreatmentRecord;
 using Application.Usecases.Dentist.CreateTreatmentRecord;
 using Application.Usecases.Dentist.UpdateTreatmentRecord;
 using Application.Usecases.Patients.ViewTreatmentRecord;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+
 
 [ApiController]
 [Route("api/treatment-records")]
@@ -46,9 +47,8 @@ public class TreatmentRecordsController : ControllerBase
         {
             return BadRequest(new
             {
-                message = MessageConstants.MSG.MSG58, // Cập nhật dữ liệu thất bại (có thể sửa thành "Lỗi khi truy vấn dữ liệu" nếu cần thêm mã riêng)
-                Inner = ex.InnerException?.Message,
-                Stack = ex.StackTrace
+                message = MessageConstants.MSG.MSG58
+
             });
         }
     }
@@ -81,7 +81,7 @@ public class TreatmentRecordsController : ControllerBase
         }
         catch (UnauthorizedAccessException)
         {
-            return Forbid(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
+            return StatusCode(403, new { message = MessageConstants.MSG.MSG26 });
         }
     }
 
@@ -101,7 +101,7 @@ public class TreatmentRecordsController : ControllerBase
         }
         catch (UnauthorizedAccessException)
         {
-            return Forbid(MessageConstants.MSG.MSG26);
+            return StatusCode(403, new { message = MessageConstants.MSG.MSG26 });
         }
         catch (Exception ex)
         {
@@ -147,6 +147,32 @@ public class TreatmentRecordsController : ControllerBase
                 success = false,
                 message = ex.Message ?? "Lỗi hệ thống không xác định"
             });
+        }
+    }
+
+    [HttpGet("List")]
+    [Authorize]
+    public async Task<IActionResult> GetAllTreatmentRecords()
+    {
+        try
+        {
+            var result = await _mediator.Send(new ViewListTreatmentRecordCommand());
+
+            if (result == null || !result.Any())
+                return Ok(new { message = MessageConstants.MSG.MSG16 }); // "Không có dữ liệu"
+
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                message = MessageConstants.MSG.MSG26 // "Bạn không có quyền truy cập chức năng này"
+            });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { message = MessageConstants.MSG.MSG58 }); // "Có lỗi xảy ra"
         }
     }
 }

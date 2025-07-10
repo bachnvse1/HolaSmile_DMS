@@ -39,9 +39,7 @@ public class TreatmentProgressController : ControllerBase
         {
             return BadRequest(new
             {
-                ex.Message,
-                Inner = ex.InnerException?.Message,
-                Stack = ex.StackTrace
+                ex.Message
             });
         }
     }
@@ -49,8 +47,23 @@ public class TreatmentProgressController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTreatmentProgressDto dto)
     {
-        var result = await _mediator.Send(new CreateTreatmentProgressCommand { ProgressDto = dto });
-        return Ok(new { message = result });
+        try
+        {
+            var result = await _mediator.Send(new CreateTreatmentProgressCommand { ProgressDto = dto });
+            return Ok(new { message = result });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { message = MessageConstants.MSG.MSG26 });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Đã xảy ra lỗi không mong muốn.", detail = ex.Message });
+        }
     }
     
     [HttpPut("{id}")]

@@ -21,11 +21,11 @@ export default function PatientList() {
   const [searchTerm, setSearchTerm] = useState("")
   const [genderFilter, setGenderFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
   const { fullName, role, userId } = useAuth();
 
-  // Create userInfo object for StaffLayout
   const userInfo = {
     id: userId || '',
     name: fullName || 'User',
@@ -34,18 +34,19 @@ export default function PatientList() {
     avatar: undefined
   };
 
-  useEffect(() => {
-    const fetchPatients = async () => {
-      try {
-        const data = await getAllPatients()
-        console.log("Fetched patients:", data)
-        setPatients(data)
-      } catch (error: any) {
-        console.error("Failed to fetch patients:", error)
-        toast.error(error.message || "Lỗi khi tải danh sách bệnh nhân")
-      }
+  const fetchPatients = async () => {
+    try {
+      setLoading(true)
+      const data = await getAllPatients()
+      setPatients(data)
+    } catch (error: any) {
+      toast.error(error.message || "Lỗi khi tải danh sách bệnh nhân")
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchPatients()
   }, [])
 
@@ -54,7 +55,7 @@ export default function PatientList() {
       const matchesSearch =
         patient.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
         patient.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        patient.phone.includes(searchTerm)
+        patient.phone?.includes(searchTerm)
 
       const matchesGender =
         genderFilter === "all" || patient.gender === genderFilter
@@ -105,7 +106,11 @@ export default function PatientList() {
             />
           </Card>
 
-          <PatientTable patients={paginatedPatients} />
+          {loading ? (
+            <div className="text-center py-10 text-muted-foreground">Đang tải dữ liệu...</div>
+          ) : (
+            <PatientTable patients={paginatedPatients} refetchPatients={fetchPatients} />
+          )}
 
           {filteredPatients.length > PAGE_SIZE && (
             <PaginationControls

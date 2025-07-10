@@ -1,7 +1,6 @@
 ﻿using Application.Interfaces;
 using Application.Usecases.Patients.ViewTreatmentRecord;
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -76,5 +75,17 @@ public class TreatmentRecordRepository : ITreatmentRecordRepository
             .FirstOrDefaultAsync(p => p.PatientID == patientId);
     }
 
+
+
+    public async Task<List<TreatmentRecord>> GetTreatmentRecordsByAppointmentIdAsync(int appointmentId, CancellationToken cancellationToken = default)
+    {
+        return await _context.TreatmentRecords
+            .Where(tr => tr.AppointmentID == appointmentId && !tr.IsDeleted)
+            .ToListAsync(cancellationToken);
+    }
+    public IQueryable<TreatmentRecord> Query()
+    {
+        return _context.TreatmentRecords.AsQueryable();
+    }
 
 }

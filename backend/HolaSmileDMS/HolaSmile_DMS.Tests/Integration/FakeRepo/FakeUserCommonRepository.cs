@@ -77,11 +77,11 @@ public class FakeUserCommonRepository : IUserCommonRepository
         throw new NotImplementedException();
     }
 
-    public Task<User?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    public Task<User?> GetByIdAsync(int? userId, CancellationToken cancellationToken)
     {
         return System.Threading.Tasks.Task.FromResult<User?>(new User
         {
-            UserID = id,
+            UserID = userId ?? 0,
             Username = "Test User",
             Email = "test@mail.com"
         });
@@ -97,11 +97,6 @@ public class FakeUserCommonRepository : IUserCommonRepository
         throw new NotImplementedException();
     }
 
-    public Task<int?> GetUserIdByRoleTableIdAsync(string role, int id)
-    {
-        throw new NotImplementedException();
-    }
-
     public Task<List<ViewListUserDTO>> GetAllUserAsync()
     {
         throw new NotImplementedException();
@@ -113,6 +108,11 @@ public class FakeUserCommonRepository : IUserCommonRepository
     }
 
     public Task<bool> UpdateUserStatusAsync(int userId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<int?> GetUserIdByRoleTableIdAsync(string role, int id)
     {
         throw new NotImplementedException();
     }
