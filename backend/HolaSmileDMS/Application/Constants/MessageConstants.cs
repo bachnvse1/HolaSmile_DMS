@@ -111,5 +111,6 @@ public static class MessageConstants
         public const string MSG106 = "Cập nhật thẻ bảo hành thành công.";
         public const string MSG107 = "Cập nhật dữ liệu thành công";
         public const string MSG108 = "Đơn thuốc đã được tạo trước đó";
+        public const string MSG97 = "Cập nhật thành công.";
     }
 }
