@@ -311,7 +311,7 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
               <Button
                 variant="destructive"
                 onClick={() => setShowCancelDialog(true)}
-                className="flex-1 mr-3"
+                className="flex-1 mr-3 text-whites"
               >
                 Hủy lịch hẹn
               </Button>

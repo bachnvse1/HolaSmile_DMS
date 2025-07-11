@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, User, FileText, Tag, UserCheck, CheckCircle, XCircle, AlertTriangle, Plus, Eye } from 'lucide-react';
+import { Calendar, Clock, User, FileText, Tag, UserCheck, CheckCircle, XCircle, AlertTriangle, Plus, Eye, ArrowLeft } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { CancelAppointmentDialog } from './CancelAppointmentDialog';
@@ -23,19 +23,27 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
-  const { role } = useAuth();
+  const {   role } = useAuth();
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
-  
+
   // Fetch appointment details
   const { data: appointment, isLoading: isAppointmentLoading } = useAppointmentDetail(appointmentId);
-  
+
   // Fetch dentist data for edit dialog
   const { dentists } = useDentistSchedule();
-  
+
   // Check if prescription exists for this appointment
-  const { data: existingPrescription, isLoading: isPrescriptionLoading } = usePrescriptionByAppointment(appointmentId);
-  
+  const { isLoading: isPrescriptionLoading } = usePrescriptionByAppointment(appointmentId);
+
+  const handleGoBack = () => {
+    if (role === 'Patient') {
+      navigate(`/patient/appointments`);
+    }else{
+      navigate('/appointments')
+    }
+  };
+
   if (isAppointmentLoading) {
     return (
       <div className="bg-white rounded-lg shadow-sm p-8">
@@ -46,7 +54,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
       </div>
     );
   }
-  
+
   if (!appointment) {
     return (
       <div className="bg-white rounded-lg shadow-sm p-8">
@@ -93,48 +101,62 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
   const statusConfig = getStatusConfig(appointment.status);
 
   return (
-    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl mx-auto max-h-[90vh] overflow-y-auto">
+    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-auto max-h-[90vh] overflow-y-auto">
       {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b border-gray-200">
-        <h2 className="text-2xl font-bold text-gray-900">
-          Chi tiết lịch hẹn
-        </h2>
-        <div className="flex items-center gap-3">
-          {/* Action Buttons */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate(`/patients/${patientId}/orthodontic-treatment-plans`)}
-            className="flex items-center gap-2"
-          >
-            <FileText className="h-4 w-4" />
-            Tạo hồ sơ điều trị
+      <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          <Button variant="ghost" size="icon" onClick={handleGoBack}>
+            <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
-          
-          <Button
-            variant={existingPrescription ? "outline" : "default"}
-            size="sm"
-            onClick={() => setShowPrescriptionModal(true)}
-            className="flex items-center gap-2"
-            disabled={isPrescriptionLoading}
-          >
-            {isPrescriptionLoading ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
-                Đang tải...
-              </>
-            ) : existingPrescription ? (
-              <>
-                <Eye className="h-4 w-4" />
-                Xem đơn thuốc
-              </>
-            ) : (
-              <>
-                <Plus className="h-4 w-4" />
-                Thêm đơn thuốc
-              </>
-            )}
-          </Button>
+          <h2 className="text-lg sm:text-2xl font-bold text-gray-900">
+            Chi tiết lịch hẹn
+          </h2>
+        </div>
+        
+        {/* Action Buttons - Dentist có full quyền, Patient chỉ xem đơn thuốc */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {role === 'Dentist' && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(`/patients/${patientId}/orthodontic-treatment-plans`)}
+              className="flex items-center gap-2 text-xs sm:text-sm"
+            >
+              <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Tạo hồ sơ điều trị</span>
+              <span className="sm:hidden">Hồ sơ</span>
+            </Button>
+          )}
+
+          {/* Nút đơn thuốc: Dentist có thể thêm/xem, Patient chỉ xem */}
+          {((role === 'Dentist') || (role !== 'Dentist' && appointment.isExistPrescription)) && (
+            <Button
+              variant={appointment.isExistPrescription ? "outline" : "default"}
+              size="sm"
+              onClick={() => setShowPrescriptionModal(true)}
+              className="flex items-center gap-2 text-xs sm:text-sm"
+              disabled={isPrescriptionLoading}
+            >
+              {isPrescriptionLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-gray-600"></div>
+                  <span className="hidden sm:inline">Đang tải...</span>
+                </>
+              ) : appointment.isExistPrescription ? (
+                <>
+                  <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Xem đơn thuốc</span>
+                  <span className="sm:hidden">Đơn thuốc</span>
+                </>
+              ) : (
+                <>
+                  <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Thêm đơn thuốc</span>
+                  <span className="sm:hidden">Thêm</span>
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -158,7 +180,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
             <span>{statusConfig.text}</span>
           </Badge>
         </div>
-        
+
         {/* Patient & Dentist Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex items-start">
@@ -271,6 +293,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
           <Button
             variant="destructive"
             onClick={() => setShowCancelDialog(true)}
+            className='text-white'
           >
             Hủy lịch hẹn
           </Button>

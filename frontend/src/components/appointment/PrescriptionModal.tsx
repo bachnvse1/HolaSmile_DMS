@@ -45,12 +45,6 @@ export const PrescriptionModal: React.FC<PrescriptionModalProps> = ({
   const { data: existingPrescription, isLoading: isLoadingPrescription } = usePrescriptionByAppointment(appointmentId);
   const { data: templates = [] } = usePrescriptionTemplates();
   
-  console.log('PrescriptionModal:', {
-    appointmentId,
-    existingPrescription,
-    isLoadingPrescription
-  });
-  
   // Mutations
   const createMutation = useCreatePrescription();
   const updateMutation = useUpdatePrescription();
@@ -90,7 +84,7 @@ export const PrescriptionModal: React.FC<PrescriptionModalProps> = ({
     try {
       if (isEditing && existingPrescription) {
         const updateData: UpdatePrescriptionRequest = {
-          prescriptionId: existingPrescription.appointmentId, // Assuming this maps to prescription ID
+          prescriptionId: existingPrescription.prescriptionId, // Use correct prescriptionId
           contents: data.content,
         };
         await updateMutation.mutateAsync(updateData);
@@ -120,7 +114,7 @@ export const PrescriptionModal: React.FC<PrescriptionModalProps> = ({
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-gray-500 bg-opacity-75 backdrop-blur-sm"
+        className="absolute inset-0 bg-opacity-75 backdrop-blur-sm"
         onClick={onClose}
       />
 

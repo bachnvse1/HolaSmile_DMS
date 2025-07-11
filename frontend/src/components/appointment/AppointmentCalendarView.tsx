@@ -258,7 +258,13 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
                   {dayAppointments.map((appointment) => (
                     <div
                       key={appointment.id}
-                      onClick={() => navigate(`/appointments/${appointment.details.appointmentId}`)}
+                      onClick={() => {
+                        if (role === 'Patient') {
+                          navigate(`/patient/appointments/${appointment.details.appointmentId}`);
+                        } else {
+                          navigate(`/appointments/${appointment.details.appointmentId}`);
+                        }
+                      }}
                       className={`p-2 border cursor-pointer hover:shadow-sm transition-all text-xs ${getStatusColor(appointment.status)}`}
                     >
                       <div className="flex items-center justify-between mb-1">
@@ -266,6 +272,9 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
                         <div className="flex items-center space-x-1">
                           {appointment.isNewPatient && (
                             <Badge variant="outline" className="text-xs px-1">Mới</Badge>
+                          )}
+                          {appointment.details.isExistPrescription && (
+                            <Badge variant="success" className="text-xs px-1">Thuốc</Badge>
                           )}
                           {role === 'Patient' && appointment.status === 'confirmed' &&
                             !isAppointmentCancellable(appointment.details.appointmentDate, appointment.details.appointmentTime) && (
@@ -334,7 +343,13 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
                       {dayAppointments.map((appointment) => (
                         <div
                           key={appointment.id}
-                          onClick={() => navigate(`/appointments/${appointment.details.appointmentId}`)}
+                          onClick={() => {
+                            if (role === 'Patient') {
+                              navigate(`/patient/appointments/${appointment.details.appointmentId}`);
+                            } else {
+                              navigate(`/appointments/${appointment.details.appointmentId}`);
+                            }
+                          }}
                           className={`p-1.5 border cursor-pointer hover:shadow-sm transition-all text-xs ${getStatusColor(appointment.status)}`}
                         >
                           <div className="flex items-center justify-between mb-1">
