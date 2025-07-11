@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { 
-  Home, 
-  Calendar, 
-  Users, 
-  FileText, 
-  Settings, 
-  UserCheck, 
+import {
+  Home,
+  Calendar,
+  Users,
+  FileText,
+  Settings,
+  UserCheck,
   TrendingUp,
   Stethoscope,
   CreditCard,
@@ -93,6 +93,13 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       icon: <Stethoscope className="h-5 w-5" />,
       path: '/treatments',
       roles: ['Administrator', 'Owner', 'Dentist', 'Assistant']
+    },
+    {
+      id: 'warranty',
+      label: 'Bảo Hành',
+      icon: <FileText className="h-5 w-5" />,
+      path: '/assistant/warranty-cards',
+      roles: ['Assistant']
     },
     {
       id: 'finance',
@@ -210,9 +217,8 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
               navigate(item.path);
             }
           }}
-          className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-blue-50 hover:text-blue-600 transition-colors ${
-            level > 0 ? 'pl-8' : ''
-          } ${isActive ? 'bg-blue-100 text-blue-600 border-r-2 border-blue-600' : 'text-gray-700'}`}
+          className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-blue-50 hover:text-blue-600 transition-colors ${level > 0 ? 'pl-8' : ''
+            } ${isActive ? 'bg-blue-100 text-blue-600 border-r-2 border-blue-600' : 'text-gray-700'}`}
         >
           <div className="flex items-center space-x-3">
             {item.icon}
@@ -239,9 +245,8 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
   };
 
   return (
-    <div className={`bg-white shadow-lg h-full transition-all duration-300 ${
-      isCollapsed ? 'w-16' : 'w-64'
-    }`}>
+    <div className={`bg-white shadow-lg h-full transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'
+      }`}>
       <div className="p-4 border-b">
         {!isCollapsed && (
           <h2 className="text-xl font-bold text-blue-600 h-8">HolaSmile</h2>
