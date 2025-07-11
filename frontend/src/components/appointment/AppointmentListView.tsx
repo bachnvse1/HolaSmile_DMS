@@ -6,6 +6,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Pagination } from '../ui/Pagination';
 import { useAuth } from '../../hooks/useAuth';
+import { useNavigate } from 'react-router';
 import { isAppointmentCancellable } from '../../utils/appointmentUtils';
 import type { AppointmentDTO } from '../../types/appointment';
 import { useForm } from "react-hook-form";
@@ -19,14 +20,14 @@ interface AppointmentListViewProps {
 }
 
 export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
-  appointments,
-  onAppointmentClick
+  appointments
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'confirmed' | 'canceled'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5); // Make it configurable
   const { role } = useAuth();
+  const navigate = useNavigate();
 
   const [showTreatmentModal, setShowTreatmentModal] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<number | null>(null);
@@ -298,7 +299,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => onAppointmentClick?.(appointment)}
+                    onClick={() => navigate(`/appointments/${appointment.appointmentId}`)}
                     className="flex items-center gap-2"
                   >
                     <Eye className="h-4 w-4" />

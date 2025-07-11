@@ -5,6 +5,7 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { DateRangePicker } from '../ui/DateRangePicker';
 import { useAuth } from '../../hooks/useAuth';
+import { useNavigate } from 'react-router';
 import { isAppointmentCancellable } from '../../utils/appointmentUtils';
 import type { AppointmentDTO, CalendarAppointment } from '../../types/appointment';
 import {isToday} from '../../utils/date.ts';
@@ -22,6 +23,7 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const { role } = useAuth();
+  const navigate = useNavigate();
   // Generate week dates starting from today
   const getWeekDates = (weekOffset: number) => {
     const today = new Date();
@@ -256,7 +258,7 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
                   {dayAppointments.map((appointment) => (
                     <div
                       key={appointment.id}
-                      onClick={() => onAppointmentClick?.(appointment.details)}
+                      onClick={() => navigate(`/appointments/${appointment.details.appointmentId}`)}
                       className={`p-2 border cursor-pointer hover:shadow-sm transition-all text-xs ${getStatusColor(appointment.status)}`}
                     >
                       <div className="flex items-center justify-between mb-1">
@@ -332,7 +334,7 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
                       {dayAppointments.map((appointment) => (
                         <div
                           key={appointment.id}
-                          onClick={() => onAppointmentClick?.(appointment.details)}
+                          onClick={() => navigate(`/appointments/${appointment.details.appointmentId}`)}
                           className={`p-1.5 border cursor-pointer hover:shadow-sm transition-all text-xs ${getStatusColor(appointment.status)}`}
                         >
                           <div className="flex items-center justify-between mb-1">
