@@ -1,4 +1,3 @@
-/*
 using System.Security.Claims;
 using Application.Interfaces;
 using Application.Usecases.Patients.ViewDentalRecord;
@@ -98,8 +97,8 @@ public class ViewDentalExamSheetIntegrationTests
 
         context.Procedures  .Add(new Procedure  { ProcedureId  = 300, ProcedureName = "Nhổ răng" });
         context.Invoices    .Add(new Invoice    { InvoiceId    = 1, TreatmentRecord_Id = 200, PaidAmount = 150, PaymentDate = DateTime.Today });
-        context.Prescriptions.Add(new Prescription { PrescriptionId = 1, TreatmentRecord_Id = 200, Content = "Kháng sinh" });
-        context.Instructions .Add(new Instruction  { InstructionID  = 1, TreatmentRecord_Id = 200, Content = "Nghỉ ngơi" });
+        context.Prescriptions.Add(new Prescription { PrescriptionId = 1, AppointmentId = 100, Content = "Kháng sinh" });
+        context.Instructions .Add(new Instruction  { InstructionID  = 1, AppointmentId = 100, Content = "Nghỉ ngơi" });
 
         await context.SaveChangesAsync();
     }
@@ -195,4 +194,3 @@ public class ViewDentalExamSheetIntegrationTests
         Assert.Equal(30,  result.Remaining);
     }
 }
-*/
