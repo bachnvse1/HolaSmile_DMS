@@ -95,4 +95,13 @@ public class InvoiceRepository : IInvoiceRepository
         _context.Invoices.Update(invoice);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<bool> HasUnpaidInvoice(int treatmentRecordId)
+    {
+        return await _context.Invoices.AnyAsync(i =>
+            i.TreatmentRecord_Id == treatmentRecordId &&
+            !i.IsDeleted &&
+            i.Status != "paid"
+        );
+    }
 }

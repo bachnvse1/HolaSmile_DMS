@@ -42,6 +42,12 @@ public class CreateInvoiceHandler : IRequestHandler<CreateInvoiceCommand, string
 
         if (role == "Patient" && int.Parse(roleIdClaim ?? "0") != request.PatientId)
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
+        
+        // Nếu đã có bất kỳ hoá đơn nào của TreatmentRecord này chưa thanh toán → chặn tạo mới
+        var hasUnpaidInvoice = await _invoiceRepository.HasUnpaidInvoice(request.TreatmentRecordId);
+
+        if (hasUnpaidInvoice)
+            throw new Exception("Vui lòng thanh toán các hoá đơn trước đó trước khi tạo hoá đơn mới.");
 
         if (role == "Patient")
         {
