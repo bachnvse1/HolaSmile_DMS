@@ -80,7 +80,19 @@ public class InvoiceRepository : IInvoiceRepository
     public async Task<decimal> GetTotalPaidForTreatmentRecord(int treatmentRecordId)
     {
         return await _context.Invoices
-            .Where(x => x.TreatmentRecord_Id == treatmentRecordId && !x.IsDeleted)
+            .Where(x => x.TreatmentRecord_Id == treatmentRecordId
+                        && !x.IsDeleted
+                        && x.Status == "paid")
             .SumAsync(x => x.PaidAmount ?? 0);
+    }
+
+    public async System.Threading.Tasks.Task UpdateInvoiceAsync(Invoice invoice)
+    {
+        if (invoice.IsDeleted)
+        {
+            throw new InvalidOperationException("Không thể cập nhật hoá đơn đã bị xoá hoặc không tồn tại.");
+        }
+        _context.Invoices.Update(invoice);
+        await _context.SaveChangesAsync();
     }
 }

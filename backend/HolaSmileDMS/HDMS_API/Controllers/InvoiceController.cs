@@ -1,6 +1,7 @@
 using Application.Constants;
 using Application.Usecases.Patients.ViewInvoices;
 using Application.Usecases.Receptionist.CreateInvoice;
+using Application.Usecases.Receptionist.UpdateInvoice;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -74,6 +75,34 @@ public class InvoiceController : ControllerBase
         {
             // Trả lỗi 500 cho những exception không xác định
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
+        }
+    }
+    
+    [HttpPut("update")]
+    [Authorize]
+    public async Task<IActionResult> UpdateInvoice([FromBody] UpdateInvoiceCommand command)
+    {
+        try
+        {
+            var result = await _mediator.Send(command);
+            return Ok(new { message = result });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { message = MessageConstants.MSG.MSG26 });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            // Trường hợp lỗi không rõ, có thể log lại nếu cần
+            return StatusCode(500, new { message = ex.Message });
         }
     }
 }
