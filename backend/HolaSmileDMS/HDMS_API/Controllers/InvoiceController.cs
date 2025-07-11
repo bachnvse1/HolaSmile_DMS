@@ -1,4 +1,5 @@
 using Application.Constants;
+using Application.Services;
 using Application.Usecases.Patients.ViewInvoices;
 using Application.Usecases.Receptionist.CreateInvoice;
 using Application.Usecases.Receptionist.UpdateInvoice;
@@ -14,10 +15,14 @@ namespace HDMS_API.Controllers;
 public class InvoiceController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly IPdfGenerator _pdfGenerator;
+    private readonly IPrinter _printer;
 
-    public InvoiceController(IMediator mediator)
+    public InvoiceController(IMediator mediator, IPdfGenerator pdfGenerator, IPrinter printer)
     {
         _mediator = mediator;
+        _pdfGenerator = pdfGenerator;
+        _printer = printer;
     }
 
     [HttpGet("view-list")]
@@ -105,4 +110,16 @@ public class InvoiceController : ControllerBase
             return StatusCode(500, new { message = ex.Message });
         }
     }
+    
+    [HttpGet("print/{InvoiceId}")]
+    [Authorize]
+    public async Task<IActionResult> PrintInvoice(int InvoiceId)
+    {
+        var invoice = await _mediator.Send(new ViewDetailInvoiceCommand(InvoiceId));
+        var htmlContent = _printer.RenderInvoiceToHtml(invoice);
+        var pdfBytes = _pdfGenerator.GeneratePdf(htmlContent);
+
+        return File(pdfBytes, "application/pdf", $"Invoice_{InvoiceId}.pdf");
+    }
+
 }
