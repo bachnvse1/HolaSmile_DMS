@@ -23,6 +23,8 @@ namespace Application.Usecases.UserCommon.ViewAppointment
         public int? UpdatedBy { get; set; }
         public bool IsExistPrescription { get; set; }
         public bool IsExistInstruction { get; set; }
+        public int? PrescriptionId { get; set; }
+        public int? InstructionId { get; set; }
 
 
     }

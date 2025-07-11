@@ -40,7 +40,7 @@ namespace HDMS_API.Controllers
             }
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpGet("{appointmentId}")]
         public async Task<IActionResult> ViewDetailAppointment([FromRoute] int appointmentId, CancellationToken cancellationToken)
         {
