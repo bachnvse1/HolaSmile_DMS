@@ -15,9 +15,9 @@ namespace HDMS_API.Controllers
     {
         private readonly IMediator _mediator;
         private readonly IPdfGenerator _pdfGenerator;
-        private readonly IDentalExamSheetPrinter _printer;
+        private readonly IPrinter _printer;
 
-        public PatientController(IMediator mediator, IPdfGenerator pdfGenerator, IDentalExamSheetPrinter printer)
+        public PatientController(IMediator mediator, IPdfGenerator pdfGenerator, IPrinter printer)
         {
             _mediator = mediator;
             _pdfGenerator = pdfGenerator;
