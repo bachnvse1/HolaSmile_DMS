@@ -22,25 +22,23 @@ namespace HDMS_API.Infrastructure.Repositories
 
         public async Task<AppointmentDTO?> GetDetailAppointmentByAppointmentIDAsync(int appointmentId)
         {
+            // Lấy appointment bao gồm user/patient/dentist
             var appointment = await _context.Appointments
                 .Include(a => a.Patient).ThenInclude(p => p.User)
                 .Include(a => a.Dentist).ThenInclude(d => d.User)
-                .FirstOrDefaultAsync(appointments => appointments.AppointmentId == appointmentId && !appointments.IsDeleted);
+                .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId && !a.IsDeleted);
 
+            if (appointment == null)
+                return null;
 
-            var prescriptionIds = await _context.Prescriptions
-                .Where(p => appointment.AppointmentId == p.AppointmentId)
-                .Select(p => p.AppointmentId)
-                .Distinct()
-                .ToListAsync();
+            // Vì là quan hệ 1-1 nên dùng FirstOrDefault là đủ, không cần Distinct
+            var prescription = await _context.Prescriptions
+                .FirstOrDefaultAsync(p => p.AppointmentId == appointmentId);
 
-            var instructionIds = await _context.Instructions
-                .Where(i => appointment.AppointmentId == i.AppointmentId)
-                .Select(i => i.AppointmentId)
-                .Distinct()
-                .ToListAsync();
+            var instruction = await _context.Instructions
+                .FirstOrDefaultAsync(i => i.AppointmentId == appointmentId);
 
-
+            // Mapping thủ công sang DTO
             var result = new AppointmentDTO
             {
                 AppointmentId = appointment.AppointmentId,
@@ -56,12 +54,16 @@ namespace HDMS_API.Infrastructure.Repositories
                 UpdatedAt = appointment.UpdatedAt,
                 CreatedBy = appointment.CreatedBy,
                 UpdatedBy = appointment.UpdatedBy,
-                IsExistPrescription = prescriptionIds.Contains(appointment.AppointmentId),
-                IsExistInstruction = instructionIds.Contains(appointment.AppointmentId)
-            };
 
+                // Gắn thông tin Prescription / Instruction
+                IsExistPrescription = prescription != null,
+                IsExistInstruction = instruction != null,
+                PrescriptionId = prescription?.PrescriptionId,
+                InstructionId = instruction?.InstructionID
+            };
             return result;
         }
+
         public async Task<List<AppointmentDTO>> GetAppointmentsByPatientIdAsync(int userID)
         {
             var appointments = await _context.Appointments
@@ -72,36 +74,40 @@ namespace HDMS_API.Infrastructure.Repositories
             
             var appIds = appointments.Select(a => a.AppointmentId).ToList();
 
-            var prescriptionIds = await _context.Prescriptions
-                .Where(p => appIds.Contains(p.AppointmentId.Value))
-                .Select(p => p.AppointmentId)
-                .Distinct()
-                .ToListAsync();
+            var prescriptionDict = await _context.Prescriptions
+              .Where(p => p.AppointmentId != null && appIds.Contains(p.AppointmentId.Value))
+              .ToDictionaryAsync(p => p.AppointmentId!.Value);
 
-            var instructionIds = await _context.Instructions
-                .Where(i => appIds.Contains(i.AppointmentId.Value))
-                .Select(i => i.AppointmentId)
-                .Distinct()
-                .ToListAsync();
+            var instructionDict = await _context.Instructions
+                .Where(i => i.AppointmentId != null && appIds.Contains(i.AppointmentId.Value))
+                .ToDictionaryAsync(i => i.AppointmentId!.Value);
 
 
-            var result = appointments.Select(a => new AppointmentDTO
+            var result = appointments.Select(app =>
             {
-                AppointmentId = a.AppointmentId,
-                PatientName = a.Patient.User.Fullname,
-                DentistName = a.Dentist.User.Fullname,
-                AppointmentDate = a.AppointmentDate,
-                AppointmentTime = a.AppointmentTime,
-                Content = a.Content,
-                AppointmentType = a.AppointmentType,
-                IsNewPatient = a.IsNewPatient,
-                Status = a.Status,
-                CreatedAt = a.CreatedAt,
-                UpdatedAt = a.UpdatedAt,
-                CreatedBy = a.CreatedBy,
-                UpdatedBy = a.UpdatedBy,
-                IsExistPrescription = prescriptionIds.Contains(a.AppointmentId),
-                IsExistInstruction = instructionIds.Contains(a.AppointmentId)
+                prescriptionDict.TryGetValue(app.AppointmentId, out var pres);
+                instructionDict.TryGetValue(app.AppointmentId, out var inst);
+
+                return new AppointmentDTO
+                {
+                    AppointmentId = app.AppointmentId,
+                    PatientName = app.Patient.User.Fullname,
+                    DentistName = app.Dentist.User.Fullname,
+                    AppointmentDate = app.AppointmentDate,
+                    AppointmentTime = app.AppointmentTime,
+                    Content = app.Content,
+                    AppointmentType = app.AppointmentType,
+                    IsNewPatient = app.IsNewPatient,
+                    Status = app.Status,
+                    CreatedAt = app.CreatedAt,
+                    UpdatedAt = app.UpdatedAt,
+                    CreatedBy = app.CreatedBy,
+                    UpdatedBy = app.UpdatedBy,
+                    IsExistPrescription = pres != null,
+                    IsExistInstruction = inst != null,
+                    PrescriptionId = pres?.PrescriptionId,
+                    InstructionId = inst?.InstructionID
+                };
             }).ToList();
 
             return result;
@@ -117,36 +123,40 @@ namespace HDMS_API.Infrastructure.Repositories
 
             var appIds = appointments.Select(a => a.AppointmentId).ToList();
 
-            var prescriptionIds = await _context.Prescriptions
-                .Where(p => appIds.Contains(p.AppointmentId.Value))
-                .Select(p => p.AppointmentId)
-                .Distinct()
-                .ToListAsync();
+            var prescriptionDict = await _context.Prescriptions
+              .Where(p => p.AppointmentId != null && appIds.Contains(p.AppointmentId.Value))
+              .ToDictionaryAsync(p => p.AppointmentId!.Value);
 
-            var instructionIds = await _context.Instructions
-                .Where(i => appIds.Contains(i.AppointmentId.Value))
-                .Select(i => i.AppointmentId)
-                .Distinct()
-                .ToListAsync();
+            var instructionDict = await _context.Instructions
+                .Where(i => i.AppointmentId != null && appIds.Contains(i.AppointmentId.Value))
+                .ToDictionaryAsync(i => i.AppointmentId!.Value);
 
 
-            var result = appointments.Select(a => new AppointmentDTO
+            var result = appointments.Select(app =>
             {
-                AppointmentId = a.AppointmentId,
-                PatientName = a.Patient.User.Fullname,
-                DentistName = a.Dentist.User.Fullname,
-                AppointmentDate = a.AppointmentDate,
-                AppointmentTime = a.AppointmentTime,
-                Content = a.Content,
-                AppointmentType = a.AppointmentType,
-                IsNewPatient = a.IsNewPatient,
-                Status = a.Status,
-                CreatedAt = a.CreatedAt,
-                UpdatedAt = a.UpdatedAt,
-                CreatedBy = a.CreatedBy,
-                UpdatedBy = a.UpdatedBy,
-                IsExistPrescription = prescriptionIds.Contains(a.AppointmentId),
-                IsExistInstruction = instructionIds.Contains(a.AppointmentId)
+                prescriptionDict.TryGetValue(app.AppointmentId, out var pres);
+                instructionDict.TryGetValue(app.AppointmentId, out var inst);
+
+                return new AppointmentDTO
+                {
+                    AppointmentId = app.AppointmentId,
+                    PatientName = app.Patient.User.Fullname,
+                    DentistName = app.Dentist.User.Fullname,
+                    AppointmentDate = app.AppointmentDate,
+                    AppointmentTime = app.AppointmentTime,
+                    Content = app.Content,
+                    AppointmentType = app.AppointmentType,
+                    IsNewPatient = app.IsNewPatient,
+                    Status = app.Status,
+                    CreatedAt = app.CreatedAt,
+                    UpdatedAt = app.UpdatedAt,
+                    CreatedBy = app.CreatedBy,
+                    UpdatedBy = app.UpdatedBy,
+                    IsExistPrescription = pres != null,
+                    IsExistInstruction = inst != null,
+                    PrescriptionId = pres?.PrescriptionId,
+                    InstructionId = inst?.InstructionID
+                };
             }).ToList();
 
             return result;
@@ -162,36 +172,41 @@ namespace HDMS_API.Infrastructure.Repositories
 
             var appIds = appointments.Select(a => a.AppointmentId).ToList();
 
-            var prescriptionIds = await _context.Prescriptions
-                .Where(p => appIds.Contains(p.AppointmentId.Value))
-                .Select(p => p.AppointmentId)
-                .Distinct()
-                .ToListAsync();
+            // Dùng dictionary để truy nhanh theo AppointmentId
+            var prescriptionDict = await _context.Prescriptions
+               .Where(p => p.AppointmentId != null && appIds.Contains(p.AppointmentId.Value))
+               .ToDictionaryAsync(p => p.AppointmentId!.Value); 
 
-            var instructionIds = await _context.Instructions
-                .Where(i => appIds.Contains(i.AppointmentId.Value))
-                .Select(i => i.AppointmentId)
-                .Distinct()
-                .ToListAsync();
+            var instructionDict = await _context.Instructions
+                .Where(i => i.AppointmentId != null && appIds.Contains(i.AppointmentId.Value))
+                .ToDictionaryAsync(i => i.AppointmentId!.Value);
 
 
-            var result = appointments.Select(a => new AppointmentDTO
+            var result = appointments.Select(app =>
             {
-                AppointmentId = a.AppointmentId,
-                PatientName = a.Patient.User.Fullname,
-                DentistName = a.Dentist.User.Fullname,
-                AppointmentDate = a.AppointmentDate,
-                AppointmentTime = a.AppointmentTime,
-                Content = a.Content,
-                AppointmentType = a.AppointmentType,
-                IsNewPatient = a.IsNewPatient,
-                Status = a.Status,
-                CreatedAt = a.CreatedAt,
-                UpdatedAt = a.UpdatedAt,
-                CreatedBy = a.CreatedBy,
-                UpdatedBy = a.UpdatedBy,
-                IsExistPrescription = prescriptionIds.Contains(a.AppointmentId),
-                IsExistInstruction = instructionIds.Contains(a.AppointmentId)
+                prescriptionDict.TryGetValue(app.AppointmentId, out var pres);
+                instructionDict.TryGetValue(app.AppointmentId, out var inst);
+
+                return new AppointmentDTO
+                {
+                    AppointmentId = app.AppointmentId,
+                    PatientName = app.Patient.User.Fullname,
+                    DentistName = app.Dentist.User.Fullname,
+                    AppointmentDate = app.AppointmentDate,
+                    AppointmentTime = app.AppointmentTime,
+                    Content = app.Content,
+                    AppointmentType = app.AppointmentType,
+                    IsNewPatient = app.IsNewPatient,
+                    Status = app.Status,
+                    CreatedAt = app.CreatedAt,
+                    UpdatedAt = app.UpdatedAt,
+                    CreatedBy = app.CreatedBy,
+                    UpdatedBy = app.UpdatedBy,
+                    IsExistPrescription = pres != null,
+                    IsExistInstruction = inst != null,
+                    PrescriptionId = pres?.PrescriptionId,
+                    InstructionId = inst?.InstructionID
+                };
             }).ToList();
 
             return result;

@@ -25,10 +25,10 @@ namespace Application.Usecases.UserCommon.ViewAppointment
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
             // Check if the user is authenticated
-            if (currentUserRole == null)
-            {
-                throw new UnauthorizedAccessException("Bạn cần đăng nhập để thực hiện thao tác này.");
-            }
+            //if (currentUserRole == null)
+            //{
+            //    throw new UnauthorizedAccessException("Bạn cần đăng nhập để thực hiện thao tác này.");
+            //}
 
             // Check if the user is a patient and has access to the appointment
             if (string.Equals(currentUserRole, "patient", StringComparison.OrdinalIgnoreCase))
