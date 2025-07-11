@@ -63,14 +63,19 @@ namespace Application.Usecases.Patients.CancelAppointment
                 cancellationToken);
 
             // GỬI THÔNG BÁO CHO TẤT CẢ RECEPTIONIST
-            var notifyReceptionists = receptionists.Select(r =>
-             _mediator.Send(new SendNotificationCommand(
-                           r.UserId,
-                           "Hủy lịch khám",
-                            $"Bệnh nhân đã hủy lịch khám vào giờ {existAppointment.AppointmentTime} ngày {existAppointment.AppointmentDate.Date}.",
-                            "Hủy lịch khám", null),
-                            cancellationToken));
-            await System.Threading.Tasks.Task.WhenAll(notifyReceptionists);
+            try
+            {
+                var notifyReceptionists = receptionists.Select(r =>
+                _mediator.Send(new SendNotificationCommand(
+                          r.UserId,
+                          "Hủy lịch khám",
+                           $"Bệnh nhân đã hủy lịch khám vào giờ {existAppointment.AppointmentTime} ngày {existAppointment.AppointmentDate.Date}.",
+                           "Hủy lịch khám", null),
+                           cancellationToken));
+                await System.Threading.Tasks.Task.WhenAll(notifyReceptionists);
+            }
+            catch { }
+
 
             return cancleApp ? MessageConstants.MSG.MSG06 : MessageConstants.MSG.MSG58;
         }

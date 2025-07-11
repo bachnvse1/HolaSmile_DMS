@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
+using Application.Usecases.SendNotification;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
@@ -11,11 +12,15 @@ namespace Application.Usecases.Dentist.ManageSchedule
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IScheduleRepository _scheduleRepository;
         private readonly IDentistRepository _dentistRepository;
-        public CreateScheduleHandle(IHttpContextAccessor httpContextAccessor, IScheduleRepository scheduleRepository , IDentistRepository dentistRepository)
+        private readonly IOwnerRepository _ownerRepository;
+        private readonly IMediator _mediator;
+
+        public CreateScheduleHandle(IHttpContextAccessor httpContextAccessor, IScheduleRepository scheduleRepository , IDentistRepository dentistRepository,IOwnerRepository ownerRepository, IMediator mediator)
         {
             _httpContextAccessor = httpContextAccessor;
             _dentistRepository = dentistRepository;
             _scheduleRepository = scheduleRepository;
+            _mediator = mediator;
         }
 
         public async Task<string> Handle(CreateScheduleCommand request, CancellationToken cancellationToken)
@@ -81,6 +86,32 @@ namespace Application.Usecases.Dentist.ManageSchedule
                     return MessageConstants.MSG.MSG73; // "Cập nhật dữ liệu thất bại"
                 }
             }
+
+            var owners = await _ownerRepository.GetAllOwnersAsync();
+
+            // Send notification to owner and dentist
+            try
+            {
+                await _mediator.Send(new SendNotificationCommand(
+                      currentUserId,
+                      "Đăng ký lịch làm việc",
+                      $"Bạn đã đăng ký lịch làm việc vào lúc {DateTime.Now}",
+                      "Đăng ký lịch làm việc",
+                      null),
+                      cancellationToken);
+
+                var notifyOwners = owners.Select(async o =>
+                await _mediator.Send(new SendNotificationCommand(
+                      o.User.UserID,
+                      "Đăng ký lịch làm việc",
+                      $"Nha Sĩ {o.User.Fullname} đã đăng ký lịch làm việc vào lúc {DateTime.Now}",
+                      "Tạo lịch khám lần đầu", null),
+                cancellationToken));
+                await System.Threading.Tasks.Task.WhenAll(notifyOwners);  
+            }
+            catch { }
+
+
             return MessageConstants.MSG.MSG52; // "Tạo lịch làm việc thành công"
         }
     }
