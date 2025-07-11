@@ -44,6 +44,7 @@ import { SupplyDetailPage } from './pages/supply/SupplyDetailPage';
 import UserManagement from './pages/auth/UserManagement';
 import AssignedTasks from './pages/assistant/AssignedTasks';
 import { AppointmentDetailsPage } from './pages/appointment/AppointmentDetailsPage';
+import ProcedureManagement from './pages/proceduce/ProcedureManagement';
 function App() {
   return (
     <>
@@ -96,6 +97,9 @@ function App() {
         <Route path="/inventory/:supplyId/edit" element={<EditSupplyPage />} />
         <Route path="/administrator/user-list" element={<UserManagement />} />
         <Route path="/assistant/assigned-tasks" element={<AssignedTasks />} />
+        <Route path="/administrator/user-list" element={<UserManagement/>}/>
+        <Route path="/assistant/assigned-tasks" element={<AssignedTasks/>}/>
+        <Route path="/proceduces" element={<ProcedureManagement/>}/>
       </Routes>
     </>
   );

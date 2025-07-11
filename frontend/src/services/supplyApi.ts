@@ -4,6 +4,16 @@ import type {
   CreateSupplyRequest,
   UpdateSupplyRequest,
 } from "@/types/supply";
+import type { SupplyItem } from "@/types/procedure"
+
+export const mapToSupplyItem = (supply: Supply): SupplyItem => ({
+  id: supply.SupplyID,
+  name: supply.Name,
+  unit: supply.Unit,
+  price: supply.Price,
+  inStock: supply.QuantityInStock,
+})
+
 
 function mapSupplyFromApi(apiSupply: any): Supply {
   return {
@@ -92,3 +102,5 @@ export const supplyApi = {
     return response.data;
   },
 };
+
+
