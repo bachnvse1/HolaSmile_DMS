@@ -8,6 +8,7 @@ import { isAppointmentCancellable, getTimeUntilAppointment } from '../../utils/a
 import type { AppointmentDTO, Dentist } from '../../types/appointment';
 import { Link, useParams } from 'react-router';
 import { EditAppointmentDialog } from './EditAppointmentDialog';
+import {formatDateVN, formatTimeVN} from '../../utils/dateUtils';
 
 interface AppointmentDetailModalProps {
   appointment: AppointmentDTO | null;
@@ -33,19 +34,6 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
     isAppointmentCancellable(appointment.appointmentDate, appointment.appointmentTime);
 
   const timeUntilAppointment = getTimeUntilAppointment(appointment.appointmentDate, appointment.appointmentTime);
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const formatTime = (timeString: string) => {
-    return timeString.substring(0, 5); // "HH:MM"
-  };
 
   const getStatusConfig = (
     status: 'confirmed' | 'canceled' | 'attended' | 'absented'
@@ -153,7 +141,7 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
                 <Calendar className="h-5 w-5 text-purple-600 mr-3 mt-0.5" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-600">Ngày hẹn</p>
-                  <p className="font-semibold text-gray-900">{formatDate(appointment.appointmentDate)}</p>
+                  <p className="font-semibold text-gray-900">{formatDateVN(appointment.appointmentDate)}</p>
                 </div>
               </div>
 
@@ -161,7 +149,7 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
                 <Clock className="h-5 w-5 text-orange-600 mr-3 mt-0.5" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-600">Giờ hẹn</p>
-                  <p className="font-semibold text-gray-900">{formatTime(appointment.appointmentTime)}</p>
+                  <p className="font-semibold text-gray-900">{formatTimeVN(appointment.appointmentTime)}</p>
                   {role === 'Patient' && appointment.status === 'confirmed' && (
                     <p className={`text-xs mt-1 ${canCancelAppointment ? 'text-green-600' : 'text-red-600'
                       }`}>
@@ -208,11 +196,11 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
             <div className="border-t border-gray-200 pt-4 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Ngày tạo:</span>
-                <span className="text-gray-900">{formatDate(appointment.createdAt)}</span>
+                <span className="text-gray-900">{formatDateVN(appointment.createdAt)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Cập nhật lần cuối:</span>
-                <span className="text-gray-900">{formatDate(appointment.updatedAt || appointment.createdAt)}</span>
+                <span className="text-gray-900">{formatDateVN(appointment.updatedAt || appointment.createdAt)}</span>
               </div>
             </div>
           </div>

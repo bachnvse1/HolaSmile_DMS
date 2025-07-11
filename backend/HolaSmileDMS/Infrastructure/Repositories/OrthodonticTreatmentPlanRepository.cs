@@ -48,9 +48,29 @@ public class OrthodonticTreatmentPlanRepository : IOrthodonticTreatmentPlanRepos
         return dto;
     }
 
+    public Task<OrthodonticTreatmentPlan?> GetPlanByPlanIdAsync(int planId, CancellationToken cancellationToken)
+    {
+        return _context.OrthodonticTreatmentPlans.FirstOrDefaultAsync(x=> x.PlanId == planId, cancellationToken);
+    }
+
     public async System.Threading.Tasks.Task AddAsync(OrthodonticTreatmentPlan plan, CancellationToken cancellationToken)
     {
         await _context.OrthodonticTreatmentPlans.AddAsync(plan, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async System.Threading.Tasks.Task UpdateAsync(OrthodonticTreatmentPlan plan)
+    {
+        _context.OrthodonticTreatmentPlans.Update(plan);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<OrthodonticTreatmentPlan>> GetAllByPatientIdAsync(int patientId, CancellationToken cancellationToken)
+    {
+        return await _context.OrthodonticTreatmentPlans
+            .Where(p => p.PatientId == patientId && !p.IsDeleted)
+            .Include(p => p.Patient).ThenInclude(u => u.User)
+            .Include(p => p.Dentist).ThenInclude(u => u.User)
+            .ToListAsync(cancellationToken);
     }
 }

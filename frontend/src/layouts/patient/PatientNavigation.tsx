@@ -62,16 +62,16 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
                 Lịch Hẹn
               </button>
               <button 
-                onClick={() => navigate('/patient/medical-records')} 
+                onClick={() => navigate('/patient/treatment-records')} 
                 className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
               >
-                Hồ Sơ Y Tế
+                Hồ Sơ 
               </button>
               <button 
-                onClick={() => navigate('/patient/treatments')} 
+                onClick={() => navigate('/patient/orthodontic-treatment-plans')} 
                 className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
               >
-                Điều Trị
+                Kế Hoạch 
               </button>
             </div>
           </div>
@@ -168,16 +168,16 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
               Lịch Hẹn
             </button>
             <button 
-              onClick={() => navigate('/patient/medical-records')} 
+              onClick={() => navigate('/patient/treatment-records')} 
               className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
             >
-              Hồ Sơ Y Tế
+              Hồ Sơ 
             </button>
             <button 
-              onClick={() => navigate('/patient/treatments')} 
+              onClick={() => navigate('/patient/orthodontic-treatment-plans')} 
               className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
             >
-              Điều Trị
+              Kế Hoạch 
             </button>
             
             <div className="border-t pt-4">
@@ -194,12 +194,12 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
                 </div>
                 <div>
                   <p className="text-sm font-medium">{displayName}</p>
-                  <p className="text-xs text-gray-500">{userInfo?.email || 'No email'}</p>
+                  <p className="text-xs text-gray-500">{displayRole}</p>
                 </div>
               </div>
               
               <button
-                onClick={() => navigate('/patient/profile')}
+                onClick={() => navigate('/view-profile')}
                 className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
               >
                 Thông Tin Cá Nhân
