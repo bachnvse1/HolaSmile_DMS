@@ -35,7 +35,6 @@ public class CreateInvoiceHandler : IRequestHandler<CreateInvoiceCommand, string
         var userId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
         var roleIdClaim = user.FindFirst("role_table_id")?.Value;
         var role = user.FindFirst(ClaimTypes.Role)?.Value;
-        var fullName = user?.FindFirst(ClaimTypes.GivenName)?.Value;
 
         // Check permission
         if (role != "Receptionist" && role != "Patient")
@@ -43,10 +42,22 @@ public class CreateInvoiceHandler : IRequestHandler<CreateInvoiceCommand, string
 
         if (role == "Patient" && int.Parse(roleIdClaim ?? "0") != request.PatientId)
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
+        
+        // Nếu đã có bất kỳ hoá đơn nào của TreatmentRecord này chưa thanh toán → chặn tạo mới
+        var hasUnpaidInvoice = await _invoiceRepository.HasUnpaidInvoice(request.TreatmentRecordId);
 
-        // Validate input
-        if (request.PaymentMethod != "PayOS" && request.PaymentMethod != "cash")
-            throw new ArgumentException("Phương thức thanh toán không hợp lệ");
+        if (hasUnpaidInvoice)
+            throw new Exception("Vui lòng thanh toán các hoá đơn trước đó trước khi tạo hoá đơn mới.");
+
+        if (role == "Patient")
+        {
+            request.PaymentMethod = "PayOS"; // mặc định online
+        }
+        else // Receptionist
+        {
+            if (request.PaymentMethod != "PayOS" && request.PaymentMethod != "cash")
+                throw new ArgumentException("Phương thức thanh toán không hợp lệ");
+        }
 
         if (request.TransactionType != "full" && request.TransactionType != "partial")
             throw new ArgumentException("Loại giao dịch không hợp lệ");
