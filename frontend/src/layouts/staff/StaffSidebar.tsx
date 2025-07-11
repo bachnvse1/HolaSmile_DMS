@@ -272,17 +272,17 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       {/* Mobile Overlay - Prevent interaction with content behind */}
       {isMobile && !isCollapsed && (
         <div
-          className="fixed inset-0 bg-opacity-30 z-40 md:hidden"
+          className="fixed inset-0 bg-opacity-30 z-20 md:hidden"
           onClick={onClose}
         />
       )}
 
       {/* Sidebar */}
       <div className={`
-        ${isMobile ? 'fixed left-0 top-0 z-50' : 'relative'}
+        ${isMobile ? 'fixed left-0 top-0 z-50' : 'fixed left-0 top-0 z-30'}
         bg-white shadow-lg transition-all duration-300 ease-in-out
         ${isCollapsed ? (isMobile ? '-translate-x-full' : 'w-16') : 'w-64'}
-        ${isMobile ? 'h-screen flex flex-col' : 'h-full'}
+        h-screen flex flex-col
       `}>
         {/* Header - Fixed */}
         <div className="p-4 border-b flex-shrink-0 h-16 shadow-sm">

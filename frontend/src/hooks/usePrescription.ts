@@ -4,6 +4,7 @@ import type {
   CreatePrescriptionRequest,
   UpdatePrescriptionRequest,
 } from "@/types/prescription";
+import { toast } from "react-toastify";
 
 // Query keys
 const PRESCRIPTION_KEYS = {
@@ -38,7 +39,8 @@ export const useCreatePrescription = () => {
   return useMutation({
     mutationFn: (data: CreatePrescriptionRequest) =>
       prescriptionApi.createPrescription(data),
-    onSuccess: (_, variables) => {
+    onSuccess: (response, variables) => {
+      toast.success(response.message || "Tạo đơn thuốc thành công!");
       queryClient.invalidateQueries({
         queryKey: PRESCRIPTION_KEYS.byAppointment(variables.appointmentId),
       });
@@ -53,7 +55,8 @@ export const useUpdatePrescription = () => {
   return useMutation({
     mutationFn: (data: UpdatePrescriptionRequest) =>
       prescriptionApi.updatePrescription(data),
-    onSuccess: (_, variables) => {
+    onSuccess: (response, variables) => {
+      toast.success(response.message || "Cập nhật đơn thuốc thành công!");
       queryClient.invalidateQueries({
         queryKey: PRESCRIPTION_KEYS.detail(variables.prescriptionId),
       });

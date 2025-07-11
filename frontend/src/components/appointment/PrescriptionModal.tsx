@@ -11,13 +11,8 @@ import { usePrescriptionByAppointment, useCreatePrescription, useUpdatePrescript
 import { usePrescriptionTemplates } from '../../hooks/usePrescriptionTemplates';
 import { useAppointmentDetail } from '../../hooks/useAppointments';
 import { formatDateVN } from '../../utils/dateUtils';
-import type { AppointmentDTO } from '../../types/appointment';
 import type { CreatePrescriptionRequest, UpdatePrescriptionRequest } from '../../types/prescription';
-
-// Extended interface for appointment with prescription
-interface AppointmentWithPrescription extends AppointmentDTO {
-  prescriptionId?: number;
-}
+import { getErrorMessage } from '@/utils/formatUtils';
 
 interface PrescriptionModalProps {
   appointmentId: number;
@@ -88,21 +83,21 @@ export const PrescriptionModal: React.FC<PrescriptionModalProps> = ({
           contents: data.content,
         };
         await updateMutation.mutateAsync(updateData);
-        toast.success('Cập nhật đơn thuốc thành công!');
+        // toast.success('Cập nhật đơn thuốc thành công!');
       } else {
         const createData: CreatePrescriptionRequest = {
           appointmentId: appointmentId,
           contents: data.content,
         };
         await createMutation.mutateAsync(createData);
-        toast.success('Tạo đơn thuốc thành công!');
+        // toast.success('Tạo đơn thuốc thành công!');
       }
       
       onSuccess?.();
       onClose();
     } catch (error) {
       console.error('Error saving prescription:', error);
-      toast.error('Có lỗi xảy ra khi lưu đơn thuốc. Vui lòng thử lại!');
+      toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi lưu đơn thuốc. Vui lòng thử lại!');
     }
   };
 
