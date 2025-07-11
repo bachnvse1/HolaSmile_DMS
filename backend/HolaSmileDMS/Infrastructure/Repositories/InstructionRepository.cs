@@ -12,6 +12,12 @@ public class InstructionRepository : IInstructionRepository
     {
         _context = context;
     }
+
+    public Task<bool> CreateAsync(Instruction instruction, CancellationToken ct = default)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<List<Instruction>> GetByTreatmentRecordIdAsync(int appointmentId, CancellationToken ct = default)
     {
         return await _context.Instructions
