@@ -1,0 +1,57 @@
+# --------------------
+# Visual Studio
+# --------------------
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# --------------------
+# Build folders
+# --------------------
+**/bin/
+**/obj/
+**/Debug/
+**/Release/
+
+# --------------------
+# App settings (config)
+# --------------------
+**/appsettings.json
+**/appsettings.*.json
+
+# --------------------
+# Logs and temp files
+# --------------------
+*.log
+*.tlog
+*.cache
+*.tmp
+*.bak
+
+# --------------------
+# Dotnet Tools
+# --------------------
+.terraform/
+.dotnet/
+.vscode/
+
+# --------------------
+# Others
+# --------------------
+*.db
+*.pdb
+*.db-shm
+*.db-wal
+*.sqlite
+
+# --------------------
+# node_modules (if using frontend)
+# --------------------
+node_modules/
+dist/
+.env
+.env.local
+.env.*.local
