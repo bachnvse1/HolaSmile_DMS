@@ -1,4 +1,6 @@
-﻿using Application.Interfaces;
+﻿using System.Linq;
+using Application.Interfaces;
+using Application.Usecases.UserCommon.ViewAppointment;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,44 +20,181 @@ namespace HDMS_API.Infrastructure.Repositories
             return true;
         }
 
-        public async Task<Appointment?> GetAllAppointmentAsync(int appointmentId)
+        public async Task<AppointmentDTO?> GetDetailAppointmentByAppointmentIDAsync(int appointmentId)
         {
-            var result = await _context.Appointments
-                .Include( a => a.Patient)
-                .Include(a => a.Dentist)
-                .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId && !a.IsDeleted);
+            var appointment = await _context.Appointments
+                .Include(a => a.Patient).ThenInclude(p => p.User)
+                .Include(a => a.Dentist).ThenInclude(d => d.User)
+                .FirstOrDefaultAsync(appointments => appointments.AppointmentId == appointmentId && !appointments.IsDeleted);
+
+
+            var prescriptionIds = await _context.Prescriptions
+                .Where(p => appointment.AppointmentId == p.AppointmentId)
+                .Select(p => p.AppointmentId)
+                .Distinct()
+                .ToListAsync();
+
+            var instructionIds = await _context.Instructions
+                .Where(i => appointment.AppointmentId == i.AppointmentId)
+                .Select(i => i.AppointmentId)
+                .Distinct()
+                .ToListAsync();
+
+
+            var result = new AppointmentDTO
+            {
+                AppointmentId = appointment.AppointmentId,
+                PatientName = appointment.Patient.User.Fullname,
+                DentistName = appointment.Dentist.User.Fullname,
+                AppointmentDate = appointment.AppointmentDate,
+                AppointmentTime = appointment.AppointmentTime,
+                Content = appointment.Content,
+                AppointmentType = appointment.AppointmentType,
+                IsNewPatient = appointment.IsNewPatient,
+                Status = appointment.Status,
+                CreatedAt = appointment.CreatedAt,
+                UpdatedAt = appointment.UpdatedAt,
+                CreatedBy = appointment.CreatedBy,
+                UpdatedBy = appointment.UpdatedBy,
+                IsExistPrescription = prescriptionIds.Contains(appointment.AppointmentId),
+                IsExistInstruction = instructionIds.Contains(appointment.AppointmentId)
+            };
+
             return result;
         }
-        public async Task<List<Appointment>> GetAppointmentsByPatientIdAsync(int userID)
+        public async Task<List<AppointmentDTO>> GetAppointmentsByPatientIdAsync(int userID)
         {
-            var result = await _context.Appointments
+            var appointments = await _context.Appointments
                 .Include(a => a.Patient).ThenInclude(p => p.User)
                 .Include(a => a.Dentist).ThenInclude(d => d.User)
-                .Where(a => a.Patient.User.UserID == userID && !a.IsDeleted)
+                .Where(a => a.Patient.User.UserID == userID && !a.IsDeleted).OrderBy(a => a.AppointmentId)
                 .ToListAsync();
-            return result ?? new List<Appointment>();
+            
+            var appIds = appointments.Select(a => a.AppointmentId).ToList();
+
+            var prescriptionIds = await _context.Prescriptions
+                .Where(p => appIds.Contains(p.AppointmentId.Value))
+                .Select(p => p.AppointmentId)
+                .Distinct()
+                .ToListAsync();
+
+            var instructionIds = await _context.Instructions
+                .Where(i => appIds.Contains(i.AppointmentId.Value))
+                .Select(i => i.AppointmentId)
+                .Distinct()
+                .ToListAsync();
+
+
+            var result = appointments.Select(a => new AppointmentDTO
+            {
+                AppointmentId = a.AppointmentId,
+                PatientName = a.Patient.User.Fullname,
+                DentistName = a.Dentist.User.Fullname,
+                AppointmentDate = a.AppointmentDate,
+                AppointmentTime = a.AppointmentTime,
+                Content = a.Content,
+                AppointmentType = a.AppointmentType,
+                IsNewPatient = a.IsNewPatient,
+                Status = a.Status,
+                CreatedAt = a.CreatedAt,
+                UpdatedAt = a.UpdatedAt,
+                CreatedBy = a.CreatedBy,
+                UpdatedBy = a.UpdatedBy,
+                IsExistPrescription = prescriptionIds.Contains(a.AppointmentId),
+                IsExistInstruction = instructionIds.Contains(a.AppointmentId)
+            }).ToList();
+
+            return result;
         }
 
-        public async Task<List<Appointment>> GetAppointmentsByDentistIdAsync(int userID)
+        public async Task<List<AppointmentDTO>> GetAppointmentsByDentistIdAsync(int userID)
         {
-            var result = await _context.Appointments
+            var appointments = await _context.Appointments
                 .Include(a => a.Patient).ThenInclude(p => p.User)
                 .Include(a => a.Dentist).ThenInclude(d => d.User)
-                .Where(a => a.Dentist.User.UserID == userID && !a.IsDeleted)
+                .Where(a => a.Dentist.User.UserID == userID && !a.IsDeleted).OrderBy(a => a.AppointmentId)
                 .ToListAsync();
-            return result ?? new List<Appointment>();
+
+            var appIds = appointments.Select(a => a.AppointmentId).ToList();
+
+            var prescriptionIds = await _context.Prescriptions
+                .Where(p => appIds.Contains(p.AppointmentId.Value))
+                .Select(p => p.AppointmentId)
+                .Distinct()
+                .ToListAsync();
+
+            var instructionIds = await _context.Instructions
+                .Where(i => appIds.Contains(i.AppointmentId.Value))
+                .Select(i => i.AppointmentId)
+                .Distinct()
+                .ToListAsync();
+
+
+            var result = appointments.Select(a => new AppointmentDTO
+            {
+                AppointmentId = a.AppointmentId,
+                PatientName = a.Patient.User.Fullname,
+                DentistName = a.Dentist.User.Fullname,
+                AppointmentDate = a.AppointmentDate,
+                AppointmentTime = a.AppointmentTime,
+                Content = a.Content,
+                AppointmentType = a.AppointmentType,
+                IsNewPatient = a.IsNewPatient,
+                Status = a.Status,
+                CreatedAt = a.CreatedAt,
+                UpdatedAt = a.UpdatedAt,
+                CreatedBy = a.CreatedBy,
+                UpdatedBy = a.UpdatedBy,
+                IsExistPrescription = prescriptionIds.Contains(a.AppointmentId),
+                IsExistInstruction = instructionIds.Contains(a.AppointmentId)
+            }).ToList();
+
+            return result;
         }
 
-        public async Task<List<Appointment>> GetAllAppointmentAsync()
+        public async Task<List<AppointmentDTO>> GetAllAppointmentAsync()
         {
-            var result = await _context.Appointments
-                .Include(a => a.Patient)
-                .ThenInclude(p => p.User)
-                .Include(a => a.Dentist)
-                .ThenInclude(d => d.User)
-                .Where(a => !a.IsDeleted)
+            var appointments = await _context.Appointments
+                 .Include(a => a.Patient).ThenInclude(p => p.User)
+                 .Include(a => a.Dentist).ThenInclude(d => d.User)
+                 .OrderBy(a => a.AppointmentId)
+                 .ToListAsync();
+
+            var appIds = appointments.Select(a => a.AppointmentId).ToList();
+
+            var prescriptionIds = await _context.Prescriptions
+                .Where(p => appIds.Contains(p.AppointmentId.Value))
+                .Select(p => p.AppointmentId)
+                .Distinct()
                 .ToListAsync();
-            return result ?? new List<Appointment>();
+
+            var instructionIds = await _context.Instructions
+                .Where(i => appIds.Contains(i.AppointmentId.Value))
+                .Select(i => i.AppointmentId)
+                .Distinct()
+                .ToListAsync();
+
+
+            var result = appointments.Select(a => new AppointmentDTO
+            {
+                AppointmentId = a.AppointmentId,
+                PatientName = a.Patient.User.Fullname,
+                DentistName = a.Dentist.User.Fullname,
+                AppointmentDate = a.AppointmentDate,
+                AppointmentTime = a.AppointmentTime,
+                Content = a.Content,
+                AppointmentType = a.AppointmentType,
+                IsNewPatient = a.IsNewPatient,
+                Status = a.Status,
+                CreatedAt = a.CreatedAt,
+                UpdatedAt = a.UpdatedAt,
+                CreatedBy = a.CreatedBy,
+                UpdatedBy = a.UpdatedBy,
+                IsExistPrescription = prescriptionIds.Contains(a.AppointmentId),
+                IsExistInstruction = instructionIds.Contains(a.AppointmentId)
+            }).ToList();
+
+            return result;
         }
         public async Task<Appointment> GetAppointmentByIdAsync(int appointmentId)
         {

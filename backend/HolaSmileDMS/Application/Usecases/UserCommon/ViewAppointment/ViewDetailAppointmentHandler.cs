@@ -48,16 +48,16 @@ namespace Application.Usecases.UserCommon.ViewAppointment
             }
 
             // Retrieve the appointment by AppointmentID
-            var appointment = await _appointmentRepository.GetAppointmentByIdAsync(request.AppointmentId);
+            var appointment = await _appointmentRepository.GetDetailAppointmentByAppointmentIDAsync(request.AppointmentId);
             if (appointment == null)
             {
                 throw new Exception("không tìm thấy dữ liệu cuộc hẹn. ");
             }
 
             // Map data
-            var result = _mapper.Map<AppointmentDTO>(appointment);
-            result.AppointmentId = appointment.AppointmentId;
-            return result;
+            //var result = _mapper.Map<AppointmentDTO>(appointment);
+            //result.AppointmentId = appointment.AppointmentId;
+            return appointment;
         }
     }
 }
