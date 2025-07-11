@@ -57,6 +57,7 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
             services.AddScoped<IInstructionRepository, InstructionRepository>();
             services.AddScoped<IPrescriptionTemplateRepository, PrescriptionTemplateRepository>();
+            services.AddScoped<IInstructionTemplateRepository, InstructionTemplateRepository>();
 
 
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";

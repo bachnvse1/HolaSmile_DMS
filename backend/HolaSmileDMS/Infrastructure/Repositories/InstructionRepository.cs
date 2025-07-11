@@ -13,10 +13,13 @@ public class InstructionRepository : IInstructionRepository
         _context = context;
     }
 
-    public Task<bool> CreateAsync(Instruction instruction, CancellationToken ct = default)
+    public async Task<bool> CreateAsync(Instruction instruction, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        _context.Instructions.Add(instruction);
+        var result = await _context.SaveChangesAsync(ct);
+        return result > 0;
     }
+
 
     public async Task<List<Instruction>> GetByTreatmentRecordIdAsync(int appointmentId, CancellationToken ct = default)
     {

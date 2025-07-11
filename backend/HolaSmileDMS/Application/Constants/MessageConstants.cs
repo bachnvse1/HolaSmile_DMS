@@ -114,5 +114,6 @@ public static class MessageConstants
         public const string MSG111 = "Tạo mẫu đơn thuốc thành công.";
         public const string MSG112 = "Hủy kích hoạt mẫu đơn thuốc thành công";
         public const string MSG113 = "Tạo chỉ dẫn thành công";
+        public const string MSG114 = "Mẫu chỉ dẫn không tồn tại";
     }
-}
+}   
