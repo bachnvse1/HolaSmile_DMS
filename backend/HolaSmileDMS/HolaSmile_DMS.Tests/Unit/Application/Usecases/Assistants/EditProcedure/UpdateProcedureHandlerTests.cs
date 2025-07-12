@@ -1,11 +1,11 @@
-﻿// using Application.Constants;
-// using Application.Interfaces;
-// using Application.Usecases.Assistant.ProcedureTemplate.CreateProcedure;
-// using Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure;
-// using Microsoft.AspNetCore.Http;
-// using Moq;
-// using System.Security.Claims;
-// using Xunit;
+﻿using Application.Constants;
+using Application.Interfaces;
+using Application.Usecases.Assistant.ProcedureTemplate.CreateProcedure;
+using Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure;
+using Microsoft.AspNetCore.Http;
+using Moq;
+using System.Security.Claims;
+using Xunit;
 
 namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants;
 public class UpdateProcedureHandlerTests
