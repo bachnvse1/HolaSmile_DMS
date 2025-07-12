@@ -21,14 +21,20 @@ import { PatientBookingPage } from './pages/patient/PatientBookingPage';
 import { PatientAppointmentsPage } from './pages/patient/PatientAppointmentsPage';
 import { StaffAppointmentsPage } from './pages/staff/StaffAppointmentsPage';
 import ScheduleManagementPage from './pages/staff/ScheduleManagementPage';
-import { DentistScheduleViewer } from './components/appointment/DentistScheduleViewer';
 import PatientTreatmentRecords from './pages/patient/PatientViewTreatmentRecord';
 import ViewTreatmentProgressPage from './pages/patient/ViewTreatmentProgress';
 import PatientList from './pages/patient/PatientList';
-import OrthodonticTreatmentPlansPage from './pages/OrthodonticTreatmentPlans';
-import OrthodonticTreatmentPlanFormPage from './pages/OrthodonticTreatmentPlanFormPage';
 import FUAppointmentPage from './pages/appointment/FUAppointmentPage';
+import { PrescriptionTemplatesPage } from './pages/prescription/PrescriptionTemplatesPage';
+import { CreatePrescriptionTemplatePage } from './pages/prescription/CreatePrescriptionTemplatePage';
+import { EditPrescriptionTemplatePage } from './pages/prescription/EditPrescriptionTemplatePage';
+import { PrescriptionTemplateDetailPage } from './pages/prescription/PrescriptionTemplateDetailPage';
+import { InventoryPage } from './pages/supply/InventoryPage';
+import { CreateSupplyPage } from './pages/supply/CreateSupplyPage';
+import { EditSupplyPage } from './pages/supply/EditSupplyPage';
+import { SupplyDetailPage } from './pages/supply/SupplyDetailPage';
 import UserManagement from './pages/auth/UserManagement';
+import AssignedTasks from './pages/assistant/AssignedTasks';
 import WarrantyCardManagement from './pages/warrantyCard/WarrantyCardManagement';
 function App() {
   return (
@@ -60,11 +66,17 @@ function App() {
         <Route path="/patient/view-treatment-records" element={<PatientTreatmentRecords />} />
         <Route path="/patient/view-treatment-progress/:treatmentRecordId" element={<ViewTreatmentProgressPage />} />
         <Route path="/patients" element={<PatientList />} />
-        <Route path="/patients/:patientId/orthodontic-treatment-plans" element={<OrthodonticTreatmentPlansPage />} />
-        <Route path="/patients/:patientId/orthodontic-treatment-plans/new" element={<OrthodonticTreatmentPlanFormPage />} />
-        <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId/edit" element={<OrthodonticTreatmentPlanFormPage />} />
         <Route path="/patient/follow-up" element={<FUAppointmentPage />} />
+        <Route path="/prescription-templates" element={<PrescriptionTemplatesPage />} />
+        <Route path="/prescription-templates/create" element={<CreatePrescriptionTemplatePage />} />
+        <Route path="/prescription-templates/:id" element={<PrescriptionTemplateDetailPage />} />
+        <Route path="/prescription-templates/:id/edit" element={<EditPrescriptionTemplatePage />} />
+        <Route path="/inventory" element={<InventoryPage />} />
+        <Route path="/inventory/create" element={<CreateSupplyPage />} />
+        <Route path="/inventory/:supplyId" element={<SupplyDetailPage />} />
+        <Route path="/inventory/:supplyId/edit" element={<EditSupplyPage />} />
         <Route path="/administrator/user-list" element={<UserManagement/>}/>
+        <Route path="/assistant/assigned-tasks" element={<AssignedTasks/>}/>
         <Route path="/assistant/warranty-cards" element={<WarrantyCardManagement/>}/>
       </Routes>
     </>

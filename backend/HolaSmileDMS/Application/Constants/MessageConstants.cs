@@ -99,7 +99,7 @@ public static class MessageConstants
                 public const string MSG94 = "Số lượng trong kho không thể nhỏ hơn 0";
                 public const string MSG95 = "Giá không thể nhỏ hơn 0";
                 public const string MSG96 = "Hạn vật tư không thể nhỏ hơn hiện tại";
-
+                public const string MSG97 = "Cập nhật thành công.";
                 public const string MSG98 = "Thời hạn không hợp lệ. Vui lòng nhập ví dụ như '12 tháng' hoặc '2 năm'.";
                 public const string MSG99 = "Thủ thuật không tồn tại.";
                 public const string MSG100 = "Thủ thuật đã có thẻ bảo hành.";
