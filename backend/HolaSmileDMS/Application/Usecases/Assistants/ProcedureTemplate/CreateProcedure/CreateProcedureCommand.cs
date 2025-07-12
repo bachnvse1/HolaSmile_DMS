@@ -16,5 +16,6 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.CreateProcedure
         public float AssistantCommissionRate { get; set; }
         public float TechnicianCommissionRate { get; set; }
         public List<SupplyUsedDTO> SuppliesUsed { get; set; }
+
     }
 }

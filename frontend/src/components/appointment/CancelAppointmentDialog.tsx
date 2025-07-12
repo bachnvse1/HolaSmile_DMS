@@ -47,7 +47,7 @@ export const CancelAppointmentDialog: React.FC<CancelAppointmentDialogProps> = (
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-gray-500 bg-opacity-75 backdrop-blur-sm"
+        className="absolute inset-0 bg-opacity-90 backdrop-blur-sm"
         onClick={onClose}
       />
 
@@ -143,7 +143,7 @@ export const CancelAppointmentDialog: React.FC<CancelAppointmentDialogProps> = (
               <Button
                 variant="destructive"
                 onClick={handleCancel}
-                className="flex-1"
+                className="flex-1 text-white"
                 disabled={cancelMutation.isPending}
               >
                 {cancelMutation.isPending ? 'Đang hủy...' : 'Xác nhận hủy'}

@@ -33,16 +33,16 @@ namespace HDMS_API.Controllers
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new
                 {
-                    Message = false,
-                    Error = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
-                    Message = false,
-                    Error = "An unexpected error occurred: " + ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
         }
@@ -60,16 +60,16 @@ namespace HDMS_API.Controllers
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new
                 {
-                    Message = false,
-                    Error = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
-                    Message = false,
-                    Error = "An unexpected error occurred: " + ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
         }
@@ -91,24 +91,24 @@ namespace HDMS_API.Controllers
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new
                 {
-                    Message = false,
-                    Error = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
             catch(ArgumentException ex)
             {
                 return BadRequest(new
                 {
-                    Message = false,
-                    Error = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
-                    Message = false,
-                    Error = "An unexpected error occurred: " + ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
         }
@@ -126,24 +126,24 @@ namespace HDMS_API.Controllers
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new
                 {
-                    Message = false,
-                    Error = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
             catch (ArgumentException ex)
             {
                 return BadRequest(new
                 {
-                    Message = false,
-                    Error = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
-                    Message = false,
-                    Error = "An unexpected error occurred: " + ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
         }
@@ -161,24 +161,24 @@ namespace HDMS_API.Controllers
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new
                 {
-                    Message = false,
-                    Error = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
             catch (ArgumentException ex)
             {
                 return BadRequest(new
                 {
-                    Message = false,
-                    Error = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
-                    Message = false,
-                    Error = "An unexpected error occurred: " + ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
         }
@@ -196,24 +196,24 @@ namespace HDMS_API.Controllers
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new
                 {
-                    Message = false,
-                    Error = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
             catch (ArgumentException ex)
             {
                 return BadRequest(new
                 {
-                    Message = false,
-                    Error = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
-                    Message = false,
-                    Error = "An unexpected error occurred: " + ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
         }
@@ -235,24 +235,24 @@ namespace HDMS_API.Controllers
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new
                 {
-                    Message = false,
-                    Error = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
             catch (ArgumentException ex)
             {
                 return BadRequest(new
                 {
-                    Message = false,
-                    Error = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
-                    Message = false,
-                    Error = "An unexpected error occurred: " + ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
         }
@@ -270,24 +270,24 @@ namespace HDMS_API.Controllers
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new
                 {
-                    Message = false,
-                    Error = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
             catch (ArgumentException ex)
             {
                 return BadRequest(new
                 {
-                    Message = false,
-                    Error = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
-                    Message = false,
-                    Error = "An unexpected error occurred: " + ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
         }
