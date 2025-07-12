@@ -3,9 +3,9 @@ import { AssignTaskModal } from "@/components/task/AssignTaskModal"
 import { TaskCard } from "@/components/task/TaskCard"
 import { TaskFilters } from "@/components/task/TaskFilters"
 import { TaskStats } from "@/components/task/TaskStats"
-import type { Task, TaskAssignment } from "@/types/task"
+import type { BasicTask, TaskAssignment } from "@/types/task"
 
-const initialTasks: Task[] = [
+const initialTasks: BasicTask[] = [
     {
         taskId: 1,
         progressName: "Chuẩn bị dụng cụ phẫu thuật",
@@ -76,15 +76,15 @@ const assistants = [
 ]
 
 export default function TaskList({ treatmentProgressID }: { treatmentProgressID: number }) {
-    const [taskList, setTaskList] = useState<Task[]>(initialTasks)
+    const [taskList, setTaskList] = useState<BasicTask[]>(initialTasks)
     const [searchTerm, setSearchTerm] = useState("")
     const [statusFilter, setStatusFilter] = useState("Tất cả")
 
     const handleTaskAssign = (task: TaskAssignment) => {
-        const assignedTask: Task = {
+        const assignedTask: BasicTask = {
             taskId: Date.now(),
-            status: false,
             ...task,
+            status: false,
             assistantName: assistants.find(a => a.assistantId === task.assistantId)?.name || "Không rõ"
         }
         setTaskList(prev => [...prev, assignedTask])

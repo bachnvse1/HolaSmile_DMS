@@ -31,9 +31,7 @@ namespace HDMS_API.Controllers
             {
                 return BadRequest(new
                 {
-                    ex.Message,
-                    Inner = ex.InnerException?.Message,
-                    Stack = ex.StackTrace
+                    ex.Message
                 });
             }
         }
