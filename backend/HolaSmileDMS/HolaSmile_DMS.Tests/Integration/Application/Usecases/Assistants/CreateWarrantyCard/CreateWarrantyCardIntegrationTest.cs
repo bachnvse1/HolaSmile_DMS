@@ -129,7 +129,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
         [Fact(DisplayName = "UTCID03 - Not assistant should throw MSG26")]
         public async System.Threading.Tasks.Task UTCID03_NotAssistant_Throws()
         {
-            SetupHttpContext("Dentist");
+            SetupHttpContext("Patient");
 
             var command = new CreateWarrantyCardCommand
             {
