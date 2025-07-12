@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
+using Application.Usecases.SendNotification;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
@@ -12,13 +13,16 @@ namespace Application.Usecases.Receptionist.CreateFUAppointment
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly IPatientRepository _patientRepository;
         private readonly IDentistRepository _dentistRepository;
+        private readonly IMediator _mediator;
 
-        public CreateFUAppointmentHandle(IAppointmentRepository appointmentRepository, IHttpContextAccessor httpContextAccessor, IPatientRepository patientRepository, IDentistRepository dentistRepository)
+
+        public CreateFUAppointmentHandle(IAppointmentRepository appointmentRepository, IHttpContextAccessor httpContextAccessor, IPatientRepository patientRepository, IDentistRepository dentistRepository, IMediator mediator)
         {
             _httpContextAccessor = httpContextAccessor;
             _appointmentRepository = appointmentRepository;
             _patientRepository = patientRepository;
             _dentistRepository = dentistRepository;
+            _mediator = mediator;
         }
         public async Task<string> Handle(CreateFUAppointmentCommand request, CancellationToken cancellationToken)
         {
@@ -68,6 +72,31 @@ namespace Application.Usecases.Receptionist.CreateFUAppointment
             };
 
             var isbookappointment = await _appointmentRepository.CreateAppointmentAsync(appointment);
+            var dentist = await _dentistRepository.GetDentistByDentistIdAsync(request.DentistId);
+            var patient = await _patientRepository.GetPatientByPatientIdAsync(request.PatientId);
+            // Send notification to patient and dentist
+            try
+            {
+                await _mediator.Send(new SendNotificationCommand(
+                      patient.User.UserID,
+                      "Đặt lịch hẹn tái khám",
+                      $"Lễ tân đã đặt lịch hẹn tái khám cho bạn với bác sĩ {dentist.User.Fullname} vào lúc {appointment.AppointmentDate} {appointment.AppointmentTime}",
+                      "lịch hẹn",
+                      null),cancellationToken);
+                await _mediator.Send(new SendNotificationCommand(
+                      dentist.User.UserID,
+                      "Đặt lịch hẹn tái khám",
+                      $"Lễ tân đã đặt lịch hẹn tái khám cho bệnh nhân {patient.User.Fullname} với bạn vào lúc {appointment.AppointmentDate} {appointment.AppointmentTime}",
+                      "lịch hẹn"
+                        , null), cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception or handle it as needed
+                throw new Exception("Lỗi khi gửi thông báo: " + ex.Message);
+            }
+
+
             return isbookappointment ? MessageConstants.MSG.MSG05 : MessageConstants.MSG.MSG58;
         }
     }
