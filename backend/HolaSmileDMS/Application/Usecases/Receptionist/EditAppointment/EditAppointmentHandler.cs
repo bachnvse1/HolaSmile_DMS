@@ -72,30 +72,32 @@ namespace Application.Usecases.Receptionist.EditAppointment
             existApp.Content = request.ReasonForFollowUp;
             existApp.UpdatedAt = DateTime.Now;
             existApp.UpdatedBy = currentUserId;
+
             var isUpdate = await _appointmentRepository.UpdateAppointmentAsync(existApp);
-
-
-
-            await _mediator.Send(new SendNotificationCommand(
+            try
+            {
+                await _mediator.Send(new SendNotificationCommand(
                     currentPatient.User.UserID,
                    "Thay đổi thông tin lịch khám",
                    $"Lịch khám của bạn đã được thay đổi vào ngày {request.AppointmentDate.Date}.",
                    "Tạo lịch khám lần đầu", null),
              cancellationToken);
 
-            await _mediator.Send(new SendNotificationCommand(
-                    currentDentist.User.UserID,
-                    "Thay đổi thông tin lịch khám",
-                    $"Lịch khám của bạn đã được thay đổi vào ngày {request.AppointmentDate.Date}.",
-                    "Tạo lịch khám lần đầu", null),
-             cancellationToken);
+                await _mediator.Send(new SendNotificationCommand(
+                        currentDentist.User.UserID,
+                        "Thay đổi thông tin lịch khám",
+                        $"Lịch khám của bạn đã được thay đổi vào ngày {request.AppointmentDate.Date}.",
+                        "Tạo lịch khám lần đầu", null),
+                 cancellationToken);
 
-            await _mediator.Send(new SendNotificationCommand(
-                    newDentist.User.UserID,
-                    "Thay đổi thông tin lịch khám",
-                    $"Lịch khám của bạn đã được thay đổi vào ngày {request.AppointmentDate.Date}.",
-                    "Tạo lịch khám lần đầu", null),
-             cancellationToken);
+                await _mediator.Send(new SendNotificationCommand(
+                        newDentist.User.UserID,
+                        "Thay đổi thông tin lịch khám",
+                        $"Lịch khám của bạn đã được thay đổi vào ngày {request.AppointmentDate.Date}.",
+                        "Tạo lịch khám lần đầu", null),
+                 cancellationToken);
+            }
+            catch { }
 
             return isUpdate;
         }

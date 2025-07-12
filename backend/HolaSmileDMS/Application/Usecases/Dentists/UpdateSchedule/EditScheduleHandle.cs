@@ -20,6 +20,7 @@ namespace Application.Usecases.Dentist.UpdateSchedule
             _httpContextAccessor = httpContextAccessor;
             _dentistRepository = dentistRepository;
             _scheduleRepository = scheduleRepository;
+            _ownerRepository = ownerRepository;
             _mediator = mediator;
         }
 

@@ -90,12 +90,9 @@ namespace Application.Usecases.Receptionist.CreateFUAppointment
                       "lịch hẹn"
                         , null), cancellationToken);
             }
-            catch (Exception ex)
+            catch
             {
-                // Log the exception or handle it as needed
-                throw new Exception("Lỗi khi gửi thông báo: " + ex.Message);
             }
-
 
             return isbookappointment ? MessageConstants.MSG.MSG05 : MessageConstants.MSG.MSG58;
         }
