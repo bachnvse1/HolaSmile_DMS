@@ -61,29 +61,30 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children, userInfo }) 
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <div className="flex-shrink-0">
-        <StaffSidebar 
-          userRole={userInfo.role} 
-          isCollapsed={isSidebarCollapsed}
-          isMobile={isMobile}
-          onClose={closeSidebar}
-        />
-      </div>
+    <div className="h-screen flex overflow-hidden">
+      {/* Fixed Sidebar */}
+      <StaffSidebar 
+        userRole={userInfo.role} 
+        isCollapsed={isSidebarCollapsed}
+        isMobile={isMobile}
+        onClose={closeSidebar}
+      />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
+      {/* Main Content Area - No margin, header will handle its own positioning */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Fixed Header with dynamic margin */}
         <StaffHeader 
           userInfo={userInfo} 
           onToggleSidebar={toggleSidebar}
           isSidebarOpen={!isSidebarCollapsed}
           isMobile={isMobile}
+          isCollapsed={isSidebarCollapsed}
         />
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-auto">
+        {/* Scrollable Content with margin to avoid sidebar overlap */}
+        <main className={`flex-1 overflow-y-auto bg-gray-50 transition-all duration-300 ${
+          isMobile ? 'pt-16' : `pt-16 ${!isSidebarCollapsed ? 'ml-64' : 'ml-16'}`
+        }`}>
           <div className="p-4 sm:p-6">
             {children}
           </div>

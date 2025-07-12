@@ -61,7 +61,7 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IInstructionRepository, InstructionRepository>();
             services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
             services.AddScoped<IPdfGenerator, PdfGenerator>();
-            services.AddScoped<IDentalExamSheetPrinter, DentalExamSheetPrinter>();
+            services.AddScoped<IPrinter, Printer>();
             services.AddScoped<IPrescriptionTemplateRepository, PrescriptionTemplateRepository>();
             services.AddScoped<IPayOSService, PayOSService>();
             services.Configure<PayOSOptions>(configuration.GetSection("PayOS"));

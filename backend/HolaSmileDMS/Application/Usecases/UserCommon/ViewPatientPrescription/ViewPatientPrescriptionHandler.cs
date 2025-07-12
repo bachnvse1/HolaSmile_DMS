@@ -47,6 +47,8 @@ namespace Application.Usecases.UserCommon.ViewPatientPrescription
 
             var result = new ViewPrescriptionDTO
             {
+                PrescriptionId = existPrescription.PrescriptionId,
+                AppointmentId = existPrescription.AppointmentId ?? 0,
                 content = existPrescription.Content,
                 CreatedAt = existPrescription.CreatedAt,
                 CreatedBy = createdByDentist.User?.Fullname ?? "Unknown Dentist",

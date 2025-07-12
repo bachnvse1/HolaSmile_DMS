@@ -76,3 +76,9 @@ export const updateTreatmentRecord = async (
     throw new Error(error.response?.data?.message || "Lỗi hệ thống không xác định")
   }
 }
+
+
+export const fetchAllTreatmentRecords = async (): Promise<TreatmentRecord[]> => {
+  const res = await axiosInstance.get("/treatment-records/List")
+  return res.data
+}
