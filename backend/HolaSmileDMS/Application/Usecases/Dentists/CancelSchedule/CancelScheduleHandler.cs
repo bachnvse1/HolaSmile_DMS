@@ -19,6 +19,7 @@ namespace Application.Usecases.Dentist.CancelSchedule
         {
             _httpContextAccessor = httpContextAccessor;
             _dentistRepository = dentistRepository;
+            _ownerRepository = ownerRepository;
             _scheduleRepository = scheduleRepository;
             _mediator = mediator;
         }

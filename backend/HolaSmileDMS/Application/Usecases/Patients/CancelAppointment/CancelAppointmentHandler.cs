@@ -76,7 +76,6 @@ namespace Application.Usecases.Patients.CancelAppointment
             }
             catch { }
 
-
             return cancleApp ? MessageConstants.MSG.MSG06 : MessageConstants.MSG.MSG58;
         }
     }
