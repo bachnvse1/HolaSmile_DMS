@@ -81,7 +81,7 @@ public class TreatmentRecordsController : ControllerBase
         }
         catch (UnauthorizedAccessException)
         {
-            return Forbid(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
+            return StatusCode(403, new { message = MessageConstants.MSG.MSG26 });
         }
     }
 
@@ -101,7 +101,7 @@ public class TreatmentRecordsController : ControllerBase
         }
         catch (UnauthorizedAccessException)
         {
-            return Forbid(MessageConstants.MSG.MSG26);
+            return StatusCode(403, new { message = MessageConstants.MSG.MSG26 });
         }
         catch (Exception ex)
         {

@@ -70,18 +70,40 @@ export const useCreateOrthodonticTreatmentPlan = () => {
 };
 
 // Get all orthodontic treatment plans for a patient
-export const useOrthodonticTreatmentPlans = (patientId: number) => {
+export const useOrthodonticTreatmentPlans = (
+  patientId: number
+) => {
   return useQuery({
-    queryKey: ORTHODONTIC_KEYS.list(patientId),
+    queryKey: ['orthodontic-treatment-plans', patientId],
     queryFn: async () => {
-      const response = await axiosInstance.get(
-        `/orthodontic-treatment-plan/view-all?patientId=${patientId}`
-      );
-      console.log("Fetched orthodontic treatment plans:", response.data);
-      return response.data.data;
+      try {
+        const response = await axiosInstance.get(
+          `/orthodontic-treatment-plan/view-all?patientId=${patientId}`
+        );
+        return response.data.data;
+      } catch (error) {
+        console.error('Error fetching treatment plans:', error);
+        throw error;
+      }
     },
-    enabled: !!patientId,
-    staleTime: 5 * 60 * 1000, 
+    enabled: patientId > 0,
+    // Optimized retry strategy for 404 errors
+    retry: (failureCount, error) => {
+      // Don't retry on 404 errors (expected when no data exists)
+      const errorMessage = error?.message || error?.toString() || '';
+      if (errorMessage.includes('404') || errorMessage.includes('Not Found')) {
+        return false;
+      }
+      // Only retry 2 times for other errors
+      return failureCount < 2;
+    },
+    // Prevent unnecessary refetching
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    // Cache data for 5 minutes
+    staleTime: 5 * 60 * 1000,
+    // Use gcTime instead of cacheTime for newer versions of React Query
+    gcTime: 10 * 60 * 1000,
   });
 };
 

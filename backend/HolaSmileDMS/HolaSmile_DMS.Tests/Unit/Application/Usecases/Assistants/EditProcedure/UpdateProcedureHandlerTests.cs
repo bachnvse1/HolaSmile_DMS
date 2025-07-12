@@ -1,4 +1,4 @@
-﻿using Application.Constants;
+using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Assistant.ProcedureTemplate.CreateProcedure;
 using Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure;

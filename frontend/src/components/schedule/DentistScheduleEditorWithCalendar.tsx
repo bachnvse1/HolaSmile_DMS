@@ -560,7 +560,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
                 </>
               ) : (
                 <>
-                  <Trash className="h-4 w-4 mr-2" />
+                  <Trash className="h-4 w-4 mr-2 text-white" />
                   Xác nhận hủy
                 </>
               )}
