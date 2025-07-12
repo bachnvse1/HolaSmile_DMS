@@ -1,6 +1,6 @@
 namespace Application.Interfaces;
 
-public interface  IProcedureRepository
+public interface IProcedureRepository
 {
     Task<List<Procedure>> GetAll();
     Task<bool> CreateProcedure(Procedure procedure);
@@ -10,4 +10,6 @@ public interface  IProcedureRepository
     Task<bool> DeleteSuppliesUsed(int procedureId);
     Task<List<SuppliesUsed>> GetSuppliesUsedByProcedureId(int procedureId);
     Task<bool> CreateSupplyUsed(List<SuppliesUsed> suppliesUsed);
+    Task<Procedure?> GetProcedureByIdAsync(int id, CancellationToken cancellationToken);
+    Task<bool> UpdateProcedureAsync(Procedure procedure, CancellationToken cancellationToken);
 }

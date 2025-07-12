@@ -2,6 +2,8 @@
 using Application.Interfaces;
 using Application.Services;
 using Application.Usecases.SendNotification;
+using DinkToPdf;
+using DinkToPdf.Contracts;
 using HDMS_API.Application.Common.Mappings;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
@@ -9,6 +11,7 @@ using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Infrastructure.Persistence;
 using HDMS_API.Infrastructure.Repositories;
 using HDMS_API.Infrastructure.Services;
+using Infrastructure.Configurations;
 using Infrastructure.Hubs;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
@@ -56,6 +59,16 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IInvoiceRepository, InvoiceRepository>();
             services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
             services.AddScoped<IInstructionRepository, InstructionRepository>();
+            services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
+            services.AddScoped<IPdfGenerator, PdfGenerator>();
+            services.AddScoped<IDentalExamSheetPrinter, DentalExamSheetPrinter>();
+            services.AddScoped<IPrescriptionTemplateRepository, PrescriptionTemplateRepository>();
+            services.AddScoped<IPayOSService, PayOSService>();
+            services.Configure<PayOSOptions>(configuration.GetSection("PayOS"));
+            services.AddScoped<IPayOSConfiguration, PayOSConfiguration>();
+            services.AddScoped<ICloudinaryService, CloudinaryService>();
+            services.AddScoped<IImageRepository, ImageRepository>();
+
 
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>

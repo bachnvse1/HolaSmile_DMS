@@ -7,6 +7,7 @@ import { ScheduleCalendar } from './ScheduleCalendar';
 import { SelectedAppointmentInfo } from './SelectedAppointmentInfo';
 import axiosInstance from '@/lib/axios';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '@/utils/formatUtils';
 import type { Dentist, AppointmentDTO } from '../../types/appointment';
 
 interface EditAppointmentDialogProps {
@@ -78,8 +79,8 @@ export const EditAppointmentDialog: React.FC<EditAppointmentDialogProps> = ({
       toast.success('Cập nhật lịch hẹn thành công!');
       onSuccess?.();
       onClose();
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Có lỗi xảy ra!');
+    } catch (error) {
+      toast.error(getErrorMessage(error)|| 'Có lỗi xảy ra!');
     } finally {
       setIsSubmitting(false);
     }

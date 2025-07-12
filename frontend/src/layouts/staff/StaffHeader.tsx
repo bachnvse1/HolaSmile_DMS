@@ -15,9 +15,10 @@ interface StaffHeaderProps {
   onToggleSidebar: () => void;
   isSidebarOpen?: boolean;
   isMobile?: boolean;
+  isCollapsed?: boolean;
 }
 
-export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSidebar, isSidebarOpen = false, isMobile = false }) => {
+export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSidebar, isSidebarOpen = false, isMobile = false, isCollapsed = false }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -40,12 +41,20 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSide
     return roleMap[role] || role;
   };
 
+  const getHeaderMargin = () => {
+    if (isMobile) return '0px';
+    return isCollapsed ? '64px' : '256px';
+  };
+
   return (
-    <header className="bg-white shadow-sm border-b h-16 flex items-center justify-between px-4 sm:px-6 relative z-30">
+    <header 
+      className={`${isMobile ? 'relative' : 'fixed top-0 right-0'} bg-white shadow-sm border-b h-16 flex items-center justify-between px-4 sm:px-6 z-40 transition-all duration-300`}
+      style={!isMobile ? { left: getHeaderMargin() } : {}}
+    >
       {/* Left side */}
       <div className="flex items-center space-x-2 sm:space-x-4">
-        {/* Show menu button only when sidebar is closed on mobile, or always on desktop */}
-        {(!isMobile || (isMobile && isSidebarOpen === false)) && (
+        {/* Show menu button on mobile when sidebar is closed, or always on desktop */}
+        {(isMobile && !isSidebarOpen) || !isMobile ? (
           <button
             onClick={onToggleSidebar}
             className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100"
@@ -53,7 +62,7 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSide
           >
             <Menu className="h-5 w-5" />
           </button>
-        )}
+        ) : null}
         
         <div className="hidden sm:block">
           <h1 className="text-lg font-semibold text-gray-900">

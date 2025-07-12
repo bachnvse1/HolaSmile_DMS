@@ -4,6 +4,7 @@ export interface JWTPayload {
   "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": string;
   "http://schemas.microsoft.com/ws/2008/06/identity/claims/role": string;
   "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname": string;
+  "role_table_id": string;
   exp: number;
   iss: string;
   aud: string;
@@ -13,6 +14,7 @@ export interface DecodedToken {
   userId: string;
   username: string;
   role: string;
+  role_table_id?: string; 
   givenname: string;
   exp: number;
   iss: string;
@@ -49,6 +51,7 @@ export class TokenUtils {
         role: parsedPayload[
           "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
         ],
+        role_table_id: parsedPayload["role_table_id"],
         givenname: parsedPayload[
           "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"
         ],
@@ -79,6 +82,11 @@ export class TokenUtils {
   static getRoleFromToken(token: string): string | null {
     const decoded = this.decodeToken(token);
     return decoded?.role || null;
+  }
+
+  static getRoleTableIdFromToken(token: string): string | null {
+    const decoded = this.decodeToken(token);
+    return decoded?.role_table_id || null;
   }
 
   /**
@@ -174,6 +182,7 @@ export class TokenUtils {
     username: string | null;
     fullName: string | null;
     role: string | null;
+    role_table_id?: string | null;
     refreshToken: string | null;
   } {
     const token = localStorage.getItem("token") || localStorage.getItem("authToken");
@@ -186,6 +195,7 @@ export class TokenUtils {
         username: null,
         fullName: null,
         role: null,
+        role_table_id: null,
         refreshToken
       };
     }
@@ -199,6 +209,7 @@ export class TokenUtils {
         fullName: null,
         username: null,
         role: null,
+        role_table_id: null,
         refreshToken
       };
     }
@@ -209,6 +220,7 @@ export class TokenUtils {
       username: decoded.username,
       fullName: decoded.givenname,
       role: decoded.role,
+      role_table_id: decoded.role_table_id,
       refreshToken
     };
   }

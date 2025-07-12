@@ -12,11 +12,11 @@ public class InstructionRepository : IInstructionRepository
     {
         _context = context;
     }
-    //public async Task<List<Instruction>> GetByTreatmentRecordIdAsync(int treatmentRecordId, CancellationToken ct = default)
-    //{
-    //    return await _context.Instructions
-    //        .Where(i => i.TreatmentRecord_Id == treatmentRecordId)
-    //        .AsNoTracking()
-    //        .ToListAsync(ct);
-    //}
+    public async Task<List<Instruction>> GetByTreatmentRecordIdAsync(int appointmentId, CancellationToken ct = default)
+    {
+        return await _context.Instructions
+            .Where(i => i.AppointmentId == appointmentId)
+            .AsNoTracking()
+            .ToListAsync(ct);
+    }
 }

@@ -1,49 +1,57 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { ArrowLeft, Edit, Trash2, Calendar, User } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { usePrescriptionTemplate, useDeactivatePrescriptionTemplate } from '@/hooks/usePrescriptionTemplates';
-
+import { formatDate } from '@/utils/dateUtils';
+import { useUserInfo } from '@/hooks/useUserInfo';
+import { getErrorMessage } from '@/utils/formatUtils';
 export const PrescriptionTemplateDetail: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false
+  });
+
+   const userInfo = useUserInfo();
+   const userRole = userInfo?.role || '';
+  
   const templateId = id ? parseInt(id) : 0;
   const { data: template, isLoading } = usePrescriptionTemplate(templateId);
-  const { mutate: deactivateTemplate, isLoading: isDeactivating } = useDeactivatePrescriptionTemplate();
+  const { mutate: deactivateTemplate, isPending: isDeactivating } = useDeactivatePrescriptionTemplate();
 
   const handleEdit = () => {
     navigate(`/prescription-templates/${templateId}/edit`);
   };
 
-  const handleDeactivate = async () => {
+  const handleDeactivate = () => {
+    setConfirmModal({
+      isOpen: true
+    });
+  };
+
+  const handleConfirmDelete = () => {
     if (!template) return;
-    
-    if (window.confirm(`Bạn có chắc chắn muốn xóa mẫu đơn "${template.PreTemplateName}"?`)) {
-      try {
-        await deactivateTemplate(template.PreTemplateID);
-        toast.success('Đã xóa mẫu đơn thuốc thành công');
+
+    deactivateTemplate(template.PreTemplateID, {
+      onSuccess: (response: any) => {
+        toast.success(response?.message || 'Đã xóa mẫu đơn thuốc thành công');
+        setConfirmModal({ isOpen: false });
         navigate('/prescription-templates');
-      } catch (error) {
-        toast.error('Có lỗi xảy ra khi xóa mẫu đơn thuốc');
+      },
+      onError: (error) => {
+        toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi xóa mẫu đơn thuốc');
+        setConfirmModal({ isOpen: false });
       }
-    }
+    });
   };
 
   const handleGoBack = () => {
     navigate('/prescription-templates');
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
   };
 
   if (isLoading) {
@@ -89,21 +97,25 @@ export const PrescriptionTemplateDetail: React.FC = () => {
         </div>
         
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleEdit} className="flex-1 sm:flex-none">
-            <Edit className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Chỉnh Sửa</span>
-            <span className="sm:hidden">Sửa</span>
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={handleDeactivate}
-            disabled={isDeactivating}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-1 sm:flex-none"
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">{isDeactivating ? 'Đang xóa...' : 'Xóa'}</span>
-            <span className="sm:hidden">{isDeactivating ? '...' : 'Xóa'}</span>
-          </Button>
+          {userRole === 'Assistant' && (
+            <>
+              <Button variant="outline" onClick={handleEdit} className="flex-1 sm:flex-none">
+                <Edit className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Chỉnh Sửa</span>
+                <span className="sm:hidden">Sửa</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={handleDeactivate}
+                disabled={isDeactivating}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-1 sm:flex-none"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">{isDeactivating ? 'Đang xóa...' : 'Xóa'}</span>
+                <span className="sm:hidden">{isDeactivating ? '...' : 'Xóa'}</span>
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -125,11 +137,11 @@ export const PrescriptionTemplateDetail: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
                 <div className="flex items-center text-sm text-gray-600">
                   <Calendar className="h-4 w-4 mr-2" />
-                  <span>Tạo lúc: {formatDate(template.CreatedAt)}</span>
+                  <span>Tạo lúc: {formatDate(new Date(template.CreatedAt), 'dd/MM/yyyy HH:mm:ss')}</span>
                 </div>
                 <div className="flex items-center text-sm text-gray-600">
                   <Calendar className="h-4 w-4 mr-2" />
-                  <span>Cập nhật: {formatDate(template.UpdatedAt)}</span>
+                  <span>Cập nhật: {formatDate(new Date(template.UpdatedAt), 'dd/MM/yyyy HH:mm:ss')}</span>
                 </div>
               </div>
             </div>
@@ -173,6 +185,22 @@ export const PrescriptionTemplateDetail: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false })}
+        onConfirm={handleConfirmDelete}
+        title="Xóa mẫu đơn thuốc"
+        message={
+          template
+            ? `Bạn có chắc chắn muốn xóa mẫu đơn "${template.PreTemplateName}"?`
+            : ''
+        }
+        confirmText="Xóa"
+        confirmVariant="destructive"
+        isLoading={isDeactivating}
+      />
     </div>
   );
 };

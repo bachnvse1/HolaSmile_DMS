@@ -18,7 +18,7 @@ namespace Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<Dentist> GetDentistByDentistIdAsync(int dentistId)
+        public async Task<Dentist> GetDentistByDentistIdAsync(int? dentistId)
         {
             var dentist = await _context.Dentists.Include(d => d.User).FirstOrDefaultAsync(d => d.DentistId == dentistId);
             if (dentist == null || dentist.User == null)
