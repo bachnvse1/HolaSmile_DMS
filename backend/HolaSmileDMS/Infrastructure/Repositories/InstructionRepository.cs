@@ -19,4 +19,11 @@ public class InstructionRepository : IInstructionRepository
             .AsNoTracking()
             .ToListAsync(ct);
     }
+    public async Task<List<Instruction>> GetInstructionsByAppointmentIdAsync(int appointmentId)
+    {
+        return await _context.Instructions
+            .Include(i => i.InstructionTemplate)
+            .Where(i => i.AppointmentId == appointmentId && !i.IsDeleted)
+            .ToListAsync();
+    }
 }
