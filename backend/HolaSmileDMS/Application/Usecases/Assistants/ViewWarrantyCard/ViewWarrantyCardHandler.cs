@@ -23,24 +23,27 @@ public class ViewListWarrantyCardsHandler : IRequestHandler<ViewListWarrantyCard
         if (user == null)
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53);
 
-        if (role != "Assistant")
+        if (role != "Assistant" && role != "Dentist" && role != "Receptionist")
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
         var cards = await _repository.GetAllWarrantyCardsWithProceduresAsync(cancellationToken);
 
         return cards.Select(card =>
         {
-            var procedure = card.TreatmentRecord?.Procedure;
-
+            var treatment = card.TreatmentRecord;
+            var procedure = treatment?.Procedure;
+            var appointment = treatment?.Appointment;
+            var patientName = appointment?.Patient?.User?.Fullname ?? "Không xác định";
             return new ViewWarrantyCardDto
             {
                 WarrantyCardId = card.WarrantyCardID,
                 StartDate = card.StartDate,
                 EndDate = card.EndDate,
-                Duration = card.Duration, // <-- gán trực tiếp
+                Duration = card.Duration,
                 Status = card.Status,
                 ProcedureId = procedure?.ProcedureId,
-                ProcedureName = procedure?.ProcedureName ?? "Không xác định"
+                ProcedureName = procedure?.ProcedureName ?? "Không xác định",
+                PatientName = patientName
             };
         }).ToList();
     }
