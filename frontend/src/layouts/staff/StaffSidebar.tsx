@@ -121,6 +121,13 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       label: 'Công Việc Được Giao',
       icon: <Activity className="h-5 w-5" />,
       path: '/assistant/assigned-tasks',
+        roles: ['Assistant']
+    },
+      {
+      id: 'warranty',
+      label: 'Bảo Hành',
+      icon: <FileText className="h-5 w-5" />,
+      path: '/assistant/warranty-cards',
       roles: ['Assistant']
     },
     {

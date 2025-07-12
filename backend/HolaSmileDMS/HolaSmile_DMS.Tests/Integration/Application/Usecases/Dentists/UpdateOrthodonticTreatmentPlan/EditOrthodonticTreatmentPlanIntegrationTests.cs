@@ -85,7 +85,7 @@ public class EditOrthodonticTreatmentPlanIntegrationTests
             ModelAnalysis = "Hẹp cung",
             TreatmentPlanContent = "Niềng trong 12 tháng",
             TotalCost = 20000000,
-            PaymentMethod = "Tiền mặt"
+            PaymentMethod = "cash"
         };
 
         var result = await handler.Handle(new EditOrthodonticTreatmentPlanCommand(dto), default);
@@ -93,7 +93,7 @@ public class EditOrthodonticTreatmentPlanIntegrationTests
         var updated = await _context.OrthodonticTreatmentPlans.FindAsync(5);
         Assert.Equal("Chỉnh nha mới", updated.PlanTitle);
         Assert.Equal(20000000, updated.TotalCost);
-        Assert.Equal("Tiền mặt", updated.PaymentMethod);
+        Assert.Equal("cash", updated.PaymentMethod);
         Assert.Equal(MessageConstants.MSG.MSG107, result);
     }
 
@@ -107,7 +107,7 @@ public class EditOrthodonticTreatmentPlanIntegrationTests
             PlanId = 99,
             PlanTitle = "Valid",
             TotalCost = 10000000,
-            PaymentMethod = "Tiền mặt"
+            PaymentMethod = "cash"
         };
 
         var ex = await Assert.ThrowsAsync<Exception>(() =>
@@ -126,7 +126,7 @@ public class EditOrthodonticTreatmentPlanIntegrationTests
             PlanId = 5,
             PlanTitle = "Valid",
             TotalCost = -1,
-            PaymentMethod = "Tiền mặt"
+            PaymentMethod = "cash"
         };
 
         var ex = await Assert.ThrowsAsync<Exception>(() =>
@@ -145,7 +145,7 @@ public class EditOrthodonticTreatmentPlanIntegrationTests
             PlanId = 5,
             PlanTitle = "",
             TotalCost = 10000000,
-            PaymentMethod = "Tiền mặt"
+            PaymentMethod = "cash"
         };
 
         var ex = await Assert.ThrowsAsync<Exception>(() =>
@@ -164,7 +164,7 @@ public class EditOrthodonticTreatmentPlanIntegrationTests
             PlanId = 5,
             PlanTitle = "Valid",
             TotalCost = 10000000,
-            PaymentMethod = "Tiền mặt"
+            PaymentMethod = "cash"
         };
 
         var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
