@@ -1,4 +1,4 @@
-﻿using Application.Constants;
+using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Assistant.ProcedureTemplate.CreateProcedure;
 using Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure;
@@ -49,15 +49,16 @@ public class UpdateProcedureHandlerTests
         Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
     }
 
-//     [Fact(DisplayName = "UTCID03 - Không phải assistant")]
-//     public async System.Threading.Tasks.Task UTCID03_NotAssistant_ThrowsUnauthorized()
-//     {
-//         SetupHttpContext("owner", "1");
-//         var command = new UpdateProcedureCommand();
+    [Fact(DisplayName = "UTCID02 - Role is not assistant - Throw UnauthorizedAccessException")]
+    public async System.Threading.Tasks.Task UTCID02_NotAssistant_ThrowUnauthorized()
+    {
+        SetupHttpContext("receptionist");
 
-//         var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(command, default));
-//         Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
-//     }
+        var command = new UpdateProcedureCommand();
+
+        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(command, default));
+        Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
+    }
 
     [Fact(DisplayName = "UTCID03 - Procedure not found - Throw Exception")]
     public async System.Threading.Tasks.Task UTCID03_ProcedureNotFound_Throw()
@@ -196,3 +197,4 @@ public class UpdateProcedureHandlerTests
         Assert.True(result);
     }
 }
+
