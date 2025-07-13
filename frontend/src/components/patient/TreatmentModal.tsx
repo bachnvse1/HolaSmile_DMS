@@ -174,7 +174,7 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
               </span>
             )}
           </h3>
-          <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 focus:outline-none">
+          <button onClick={handleClose} title="Đóng" className="text-gray-400 hover:text-gray-600 focus:outline-none">
             <X className="h-6 w-6" />
           </button>
         </div>

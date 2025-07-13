@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { FileText, Calendar, ChevronDown, ChevronRight, ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button2";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { TreatmentRecord } from "@/types/treatment";
 import RecordRow from "./RecordRow";

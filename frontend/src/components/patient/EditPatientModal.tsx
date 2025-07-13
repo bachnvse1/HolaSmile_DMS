@@ -6,7 +6,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button2"
 import { Label } from "@/components/ui/label"
 import { useEffect } from "react"
 import type { Patient } from "@/types/patient"

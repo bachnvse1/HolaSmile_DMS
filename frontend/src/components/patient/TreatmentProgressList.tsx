@@ -3,7 +3,7 @@ import { Eye, User, UserCheck, Clock, CalendarClock, Filter } from "lucide-react
 import { formatVietnameseDateFull } from "@/utils/date"
 import type { TreatmentProgress } from "@/types/treatmentProgress"
 import { Skeleton } from "../ui/skeleton"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button2"
 import { Pagination } from "../ui/Pagination"
 import TaskListModal from "@/components/task/TaskListModal"
 
@@ -55,6 +55,7 @@ export function TreatmentProgressList({
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-gray-400" />
           <select
+            aria-label="Lọc theo trạng thái tiến trình điều trị"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm"

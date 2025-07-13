@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import {Badge} from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button2"
 import { Card,CardContent } from "@/components/ui/card"
 import { Calendar, Clock, MoreHorizontal, CheckCircle, XCircle } from "lucide-react"
 import { format } from "date-fns"

@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button2"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogOverlay } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { FileText, Percent, Shield, Package, Calendar, User, Clock, Activity } from "lucide-react"
