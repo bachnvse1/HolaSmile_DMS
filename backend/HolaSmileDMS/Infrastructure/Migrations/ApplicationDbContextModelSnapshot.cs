@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace HDMS_API.Migrations
+namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     partial class ApplicationDbContextModelSnapshot : ModelSnapshot
@@ -247,9 +247,6 @@ namespace HDMS_API.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<int?>("TreatmentRecordID")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -261,8 +258,6 @@ namespace HDMS_API.Migrations
                     b.HasIndex("AppointmentId");
 
                     b.HasIndex("Instruc_TemplateID");
-
-                    b.HasIndex("TreatmentRecordID");
 
                     b.ToTable("Instructions");
                 });
@@ -312,21 +307,35 @@ namespace HDMS_API.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<string>("OrderCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
                     b.Property<decimal?>("PaidAmount")
                         .HasColumnType("decimal(65,30)");
 
                     b.Property<int>("PatientId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("PaymentDate")
+                    b.Property<DateTime?>("PaymentDate")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("PaymentMethod")
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
 
+                    b.Property<decimal?>("RemainingAmount")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("longtext");
+
                     b.Property<int>("TotalAmount")
                         .HasColumnType("int");
+
+                    b.Property<string>("TransactionId")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("TransactionType")
                         .HasMaxLength(255)
@@ -549,9 +558,6 @@ namespace HDMS_API.Migrations
                     b.Property<int?>("Pre_TemplateID")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TreatmentRecordID")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -563,8 +569,6 @@ namespace HDMS_API.Migrations
                     b.HasIndex("AppointmentId");
 
                     b.HasIndex("Pre_TemplateID");
-
-                    b.HasIndex("TreatmentRecordID");
 
                     b.ToTable("Prescriptions");
                 });
@@ -1277,10 +1281,6 @@ namespace HDMS_API.Migrations
                         .WithMany("Instructions")
                         .HasForeignKey("Instruc_TemplateID");
 
-                    b.HasOne("TreatmentRecord", null)
-                        .WithMany("Instructions")
-                        .HasForeignKey("TreatmentRecordID");
-
                     b.Navigation("Appointment");
 
                     b.Navigation("InstructionTemplate");
@@ -1383,10 +1383,6 @@ namespace HDMS_API.Migrations
                     b.HasOne("PrescriptionTemplate", "PrescriptionTemplate")
                         .WithMany("Prescriptions")
                         .HasForeignKey("Pre_TemplateID");
-
-                    b.HasOne("TreatmentRecord", null)
-                        .WithMany("Prescriptions")
-                        .HasForeignKey("TreatmentRecordID");
 
                     b.Navigation("Appointment");
 
@@ -1626,11 +1622,7 @@ namespace HDMS_API.Migrations
 
             modelBuilder.Entity("TreatmentRecord", b =>
                 {
-                    b.Navigation("Instructions");
-
                     b.Navigation("Invoices");
-
-                    b.Navigation("Prescriptions");
 
                     b.Navigation("TreatmentProgresses");
                 });

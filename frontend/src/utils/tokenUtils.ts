@@ -14,7 +14,7 @@ export interface DecodedToken {
   userId: string;
   username: string;
   role: string;
-  role_table_id?: string;
+  role_table_id?: string; 
   givenname: string;
   exp: number;
   iss: string;
@@ -182,6 +182,7 @@ export class TokenUtils {
     username: string | null;
     fullName: string | null;
     role: string | null;
+    role_table_id?: string | null;
     refreshToken: string | null;
     role_table_id?: string | null;
   } {
@@ -195,6 +196,7 @@ export class TokenUtils {
         username: null,
         fullName: null,
         role: null,
+        role_table_id: null,
         refreshToken
       };
     }
@@ -208,8 +210,8 @@ export class TokenUtils {
         fullName: null,
         username: null,
         role: null,
-        refreshToken,
         role_table_id: null,
+        refreshToken
       };
     }
 

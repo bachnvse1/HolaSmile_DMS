@@ -2,6 +2,7 @@
 using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Dentist.UpdateSchedule;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
@@ -13,6 +14,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
         private readonly Mock<IDentistRepository> _dentistRepoMock;
         private readonly Mock<IScheduleRepository> _scheduleRepoMock;
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
+        private readonly Mock<IOwnerRepository> _ownerRepoMock;
+        private readonly Mock<IMediator> _mediatorMock;
         private readonly EditScheduleHandle _handler;
 
         public EditScheduleHandleTests()
@@ -20,11 +23,15 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
             _dentistRepoMock = new Mock<IDentistRepository>();
             _scheduleRepoMock = new Mock<IScheduleRepository>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+            _ownerRepoMock = new Mock<IOwnerRepository>();
+            _mediatorMock = new Mock<IMediator>();
 
             _handler = new EditScheduleHandle(
-                _dentistRepoMock.Object,
+                _httpContextAccessorMock.Object,
                 _scheduleRepoMock.Object,
-                _httpContextAccessorMock.Object
+                _dentistRepoMock.Object,
+                _ownerRepoMock.Object,
+                _mediatorMock.Object
             );
         }
 

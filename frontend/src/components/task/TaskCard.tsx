@@ -6,10 +6,10 @@ import { Card,CardContent } from "@/components/ui/card"
 import { Calendar, Clock, MoreHorizontal, CheckCircle, XCircle } from "lucide-react"
 import { format } from "date-fns"
 import { vi } from "date-fns/locale"
-import type { Task } from "@/types/task" 
+import type { BasicTask } from "@/types/task" 
 
 interface TaskCardProps {
-  task: Task
+  task: BasicTask
   onToggleStatus: (taskId: number) => void
   onDelete: (taskId: number) => void
 }
