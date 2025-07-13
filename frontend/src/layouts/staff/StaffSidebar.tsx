@@ -12,7 +12,8 @@ import {
   Package,
   ChevronDown,
   ChevronRight,
-  Activity
+  Activity,
+  Pill
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 
