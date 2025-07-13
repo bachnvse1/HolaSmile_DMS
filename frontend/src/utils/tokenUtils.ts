@@ -42,11 +42,11 @@ export class TokenUtils {
       return {
         userId:
           parsedPayload[
-            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
           ],
         username:
           parsedPayload[
-            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
           ],
         role: parsedPayload[
           "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
@@ -187,7 +187,7 @@ export class TokenUtils {
   } {
     const token = localStorage.getItem("token") || localStorage.getItem("authToken");
     const refreshToken = localStorage.getItem("refreshToken");
-    
+
     if (!token) {
       return {
         token: null,

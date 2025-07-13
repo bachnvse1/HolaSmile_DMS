@@ -1,7 +1,6 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.SendNotification;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
@@ -9,19 +8,15 @@ namespace Application.Usecases.Dentist.CancelSchedule
 {
     public class CancelScheduleHandler : IRequestHandler<CancelScheduleCommand, bool>
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IScheduleRepository _scheduleRepository;
         private readonly IDentistRepository _dentistRepository;
-        private readonly IOwnerRepository _ownerRepository;
-        private readonly IMediator _mediator;
+        private readonly IScheduleRepository _scheduleRepository;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CancelScheduleHandler(IHttpContextAccessor httpContextAccessor, IScheduleRepository scheduleRepository, IDentistRepository dentistRepository, IOwnerRepository ownerRepository, IMediator mediator)
+        public CancelScheduleHandler(IDentistRepository dentistRepository, IScheduleRepository scheduleRepository, IHttpContextAccessor httpContextAccessor)
         {
-            _httpContextAccessor = httpContextAccessor;
             _dentistRepository = dentistRepository;
-            _ownerRepository = ownerRepository;
+            _httpContextAccessor = httpContextAccessor;
             _scheduleRepository = scheduleRepository;
-            _mediator = mediator;
         }
         public async Task<bool> Handle(CancelScheduleCommand request, CancellationToken cancellationToken)
         {
@@ -54,30 +49,6 @@ namespace Application.Usecases.Dentist.CancelSchedule
             if (schedule.Status == "pending")
             {
                 var Isdelete = await _scheduleRepository.DeleteSchedule(request.ScheduleId);
-
-                var owners = await _ownerRepository.GetAllOwnersAsync();
-
-                // Send notification to owner and dentist
-                try
-                {
-                    await _mediator.Send(new SendNotificationCommand(
-                          currentUserId,
-                          "Đăng ký lịch làm việc",
-                          $"Bạn đã hủy đăng ký lịch làm việc vào lúc {DateTime.Now}",
-                          "Đăng ký lịch làm việc",
-                          null),
-                          cancellationToken);
-
-                    var notifyOwners = owners.Select(async o =>
-                    await _mediator.Send(new SendNotificationCommand(
-                          o.User.UserID,
-                          "Đăng ký lịch làm việc",
-                          $"Nha Sĩ {o.User.Fullname} đã hủy đăng ký lịch làm việc vào lúc {DateTime.Now}",
-                          "Tạo lịch khám lần đầu", null),
-                    cancellationToken));
-                    await System.Threading.Tasks.Task.WhenAll(notifyOwners);
-                }
-                catch { }
                 return Isdelete;
             }
             else

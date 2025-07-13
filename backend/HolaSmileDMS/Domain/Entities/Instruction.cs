@@ -6,7 +6,7 @@ public class Instruction
     [Key]
     public int InstructionID { get; set; }
 
-    [ForeignKey("Appointment")]
+    [ForeignKey("AppointmentId")]
     public int? AppointmentId { get; set; }
     public Appointment? Appointment { get; set; }
 

@@ -89,37 +89,21 @@ export const Navigation = () => {
       {isMenuOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
-            <button onClick={handleNavClick('#home')} className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left">
+            <button onClick={handleNavClick('#home')} className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium">
               Trang Chủ
             </button>
-            <button onClick={handleNavClick('#services')} className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left">
+            <button onClick={handleNavClick('#services')} className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium">
               Dịch Vụ
             </button>
-            <button onClick={handleNavClick('#about')} className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left">
+            <button onClick={handleNavClick('#about')} className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium">
               Về Chúng Tôi
             </button>
-            <button onClick={handleNavClick('#team')} className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left">
+            <button onClick={handleNavClick('#team')} className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium">
               Đội Ngũ
             </button>
-            <button onClick={handleNavClick('#contact')} className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left">
+            <button onClick={handleNavClick('#contact')} className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium">
               Liên Hệ
             </button>
-            
-            {/* Mobile Action Buttons */}
-            <div className="pt-4 space-y-2">
-              <button
-                onClick={() => navigate('/login')}
-                className="w-full px-3 py-2 text-sm font-medium text-gray-700 hover:text-white hover:bg-blue-600 border border-gray-300 rounded-lg transition"
-              >
-                Đăng nhập
-              </button>
-              <button
-                onClick={() => navigate('/appointment-booking')}
-                className="w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
-              >
-                Đặt lịch hẹn
-              </button>
-            </div>
           </div>
         </div>
       )}

@@ -1,3 +1,4 @@
+// ✅ ViewTreatmentProgress.tsx
 import { useEffect, useRef, useState } from "react"
 import { useParams, useNavigate, useSearchParams } from "react-router"
 import { FileText, Plus, ArrowLeft, Search } from "lucide-react"
