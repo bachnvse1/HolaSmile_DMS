@@ -64,7 +64,8 @@ public class CreateTreatmentProgressHandler : IRequestHandler<CreateTreatmentPro
         var progress = _mapper.Map<TreatmentProgress>(dto);
         progress.DentistID = _dentistRepository.GetDentistByUserIdAsync(userId).Result.DentistId;
         progress.CreatedBy = userId;
-
+        progress.CreatedAt = DateTime.Now;
+    
         await _repository.CreateAsync(progress);
         
             var patient = await _patientRepository.GetPatientByPatientIdAsync(request.ProgressDto.PatientID);
