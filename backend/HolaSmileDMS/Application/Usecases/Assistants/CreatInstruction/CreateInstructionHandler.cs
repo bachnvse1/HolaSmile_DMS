@@ -56,7 +56,7 @@ namespace Application.Usecases.Assistants.CreateInstruction
                 AppointmentId = request.AppointmentId,
                 Instruc_TemplateID = request.Instruc_TemplateID,
                 Content = request.Content,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
                 CreateBy = userId,
                 IsDeleted = false
             };
