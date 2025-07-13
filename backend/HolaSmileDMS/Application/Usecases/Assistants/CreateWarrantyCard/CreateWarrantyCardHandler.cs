@@ -47,13 +47,14 @@ namespace Application.Usecases.Assistant.CreateWarrantyCard
                 .FirstOrDefaultAsync(tr => tr.TreatmentRecordID == request.TreatmentRecordId && !tr.IsDeleted, ct)
                 ?? throw new KeyNotFoundException(MessageConstants.MSG.MSG101);
 
-            if (!string.Equals(treatmentRecord.TreatmentStatus, "completed", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(treatmentRecord.TreatmentStatus.ToLower(), "completed", StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException(MessageConstants.MSG.MSG101);
 
             var procedure = treatmentRecord.Procedure
                            ?? throw new InvalidOperationException(MessageConstants.MSG.MSG99);
 
-            if (procedure.WarrantyCardId != null)
+            var allCards = await _warrantyRepo.GetAllAsync(ct);
+            if (allCards.Any(c => c.TreatmentRecordID == treatmentRecord.TreatmentRecordID))
                 throw new InvalidOperationException(MessageConstants.MSG.MSG100);
 
             if (request.Duration <= 0)
@@ -74,7 +75,6 @@ namespace Application.Usecases.Assistant.CreateWarrantyCard
 
             var createdCard = await _warrantyRepo.CreateWarrantyCardAsync(card, ct);
 
-            procedure.WarrantyCardId = createdCard.WarrantyCardID;
             try
             {
                 var patientId = treatmentRecord.Appointment?.PatientId;

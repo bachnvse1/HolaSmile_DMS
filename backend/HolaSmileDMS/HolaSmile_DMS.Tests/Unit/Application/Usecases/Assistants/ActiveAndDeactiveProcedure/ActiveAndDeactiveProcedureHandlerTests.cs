@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants.ActiveAndDeactiveProcedure
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
 {
     public class ActiveAndDeactiveProcedureHandlerTests
     {

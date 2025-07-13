@@ -52,19 +52,20 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
   );
 
   // Get unique values for filter options
-  const uniqueTemplates = useMemo(() =>
-    [...new Set(treatmentPlans.map((plan: any) => plan.templateName))],
-    [treatmentPlans]
-  );
+  const uniqueTemplates = useMemo(() => {
+    if (!Array.isArray(treatmentPlans)) return [];
+    return [...new Set(treatmentPlans.map((plan: OrthodonticTreatmentPlan) => plan.templateName))];
+  }, [treatmentPlans]);
 
-  const uniqueDentists = useMemo(() =>
-    [...new Set(treatmentPlans.map((plan: any) => (plan as { dentistName?: string }).dentistName).filter(Boolean))],
-    [treatmentPlans]
-  );
+  const uniqueDentists = useMemo(() => {
+    if (!Array.isArray(treatmentPlans)) return [];
+    return [...new Set(treatmentPlans.map((plan: OrthodonticTreatmentPlan) => (plan as { dentistName?: string }).dentistName).filter(Boolean))];
+  }, [treatmentPlans]);
 
   // Advanced filtering logic
   const filteredPlans = useMemo(() => {
-    return treatmentPlans.filter((plan: any) => {
+    if (!Array.isArray(treatmentPlans)) return [];
+    return treatmentPlans.filter((plan: OrthodonticTreatmentPlan) => {
       // Search term filter
       const matchesSearch = plan.planTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
         plan.templateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -168,6 +169,91 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
   }
 
   if (error) {
+    // Check if it's a 404 error (no data found) - this is normal, not an error
+    const is404Error = error.message.includes('404') || error.message.includes('Not Found');
+    
+    if (is404Error) {
+      // Treat 404 as empty data, not an error
+      return (
+        <div className="container mx-auto p-6 max-w-7xl">
+          {/* Header */}
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+            <div className="flex items-center gap-4">
+              {userInfo?.role !== 'Patient' && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate('/patients')}
+                  title="Quay lại danh sách bệnh nhân"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              )}
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Kế Hoạch Điều Trị Chỉnh Nha</h1>
+                {isDentist && (
+                  <p className="text-gray-600 mt-1">Quản lý kế hoạch điều trị nha khoa cho bệnh nhân</p>
+                )}
+              </div>
+            </div>
+            {isDentist && (
+              <Button onClick={handleCreatePlan} className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Thêm Kế Hoạch Điều Trị
+              </Button>
+            )}
+          </div>
+
+          {/* Empty state for 404 */}
+          <Card>
+            <CardContent className="p-8 text-center">
+              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Chưa có kế hoạch điều trị nào
+              </h3>
+              <p className="text-gray-600 mb-4">
+                {isDentist ? 'Bắt đầu tạo kế hoạch điều trị đầu tiên cho bệnh nhân này' : 'Chưa có kế hoạch điều trị nào được tạo cho bạn'}
+              </p>
+              {isDentist && (
+                <Button onClick={handleCreatePlan}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Tạo Kế Hoạch Điều Trị
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    // Check if it's an authentication error
+    const isAuthError = error.message.includes('401') || error.message.includes('403') || 
+                       error.message.includes('Unauthorized') || error.message.includes('Forbidden');
+    
+    if (isAuthError) {
+      return (
+        <div className="container mx-auto p-6 max-w-7xl">
+          <div className="flex justify-center items-center min-h-[400px]">
+            <div className="text-center">
+              <p className="text-red-600">Phiên đăng nhập đã hết hạn hoặc không có quyền truy cập</p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  localStorage.removeItem('token');
+                  localStorage.removeItem('refreshToken');
+                  window.location.href = '/';
+                }}
+                className="mt-2"
+              >
+                Đăng nhập lại
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Other errors
     return (
       <div className="container mx-auto p-6 max-w-7xl">
         <div className="flex justify-center items-center min-h-[400px]">
@@ -179,6 +265,26 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
               className="mt-2"
             >
               Thử lại
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle case when no patient ID is available
+  if (!patientId || patientId === '0') {
+    return (
+      <div className="container mx-auto p-6 max-w-7xl">
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="text-center">
+            <p className="text-red-600">Không xác định được thông tin bệnh nhân</p>
+            <Button
+              variant="outline"
+              onClick={() => navigate('/patients')}
+              className="mt-2"
+            >
+              Quay lại danh sách bệnh nhân
             </Button>
           </div>
         </div>
@@ -351,7 +457,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Tổng Kế Hoạch</p>
-                <p className="text-2xl font-bold text-gray-900">{treatmentPlans.length}</p>
+                <p className="text-2xl font-bold text-gray-900">{Array.isArray(treatmentPlans) ? treatmentPlans.length : 0}</p>
               </div>
               <FileText className="h-8 w-8 text-blue-600" />
             </div>
@@ -376,7 +482,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Tổng Chi Phí</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(filteredPlans.reduce((sum: number, plan: any) => sum + plan.totalCost, 0))}
+                  {formatCurrency(filteredPlans.reduce((sum: number, plan: OrthodonticTreatmentPlan) => sum + plan.totalCost, 0))}
                 </p>
               </div>
               <DollarSign className="h-8 w-8 text-orange-600" />
@@ -401,23 +507,17 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
 
       {/* Treatment Plans List */}
       <div className="space-y-4">
-        {filteredPlans.length === 0 ? (
+        {!Array.isArray(treatmentPlans) || treatmentPlans.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
               <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {searchTerm || (selectedTemplate !== 'all') || (selectedDentist !== 'all') || dateRange.from || priceRange.min ?
-                  'Không tìm thấy kết quả phù hợp' :
-                  'Chưa có kế hoạch điều trị nào'
-                }
+                Chưa có kế hoạch điều trị nào
               </h3>
               <p className="text-gray-600 mb-4">
-                {searchTerm || (selectedTemplate !== 'all') || (selectedDentist !== 'all') || dateRange.from || priceRange.min ?
-                  'Thử thay đổi điều kiện tìm kiếm hoặc bộ lọc' :
-                  (isDentist ? 'Bắt đầu tạo kế hoạch điều trị đầu tiên cho bệnh nhân này' : 'Chưa có kế hoạch điều trị nào được tạo cho bệnh nhân này')
-                }
+                {isDentist ? 'Bắt đầu tạo kế hoạch điều trị đầu tiên cho bệnh nhân này' : 'Chưa có kế hoạch điều trị nào được tạo cho bệnh nhân này'}
               </p>
-              {isDentist && !searchTerm && (selectedTemplate === 'all') && (selectedDentist === 'all') && !dateRange.from && !priceRange.min && (
+              {isDentist && (
                 <Button onClick={handleCreatePlan}>
                   <Plus className="h-4 w-4 mr-2" />
                   Tạo Kế Hoạch Điều Trị
@@ -425,9 +525,24 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
               )}
             </CardContent>
           </Card>
+        ) : filteredPlans.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Không tìm thấy kết quả phù hợp
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Thử thay đổi điều kiện tìm kiếm hoặc bộ lọc
+              </p>
+              <Button variant="outline" onClick={clearFilters}>
+                Xóa bộ lọc
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
           <>
-            {paginatedPlans.map((plan: any) => (
+            {paginatedPlans.map((plan: OrthodonticTreatmentPlan) => (
               <TreatmentPlanCard
                 key={plan.planId}
                 plan={plan}

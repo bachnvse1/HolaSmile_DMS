@@ -102,6 +102,7 @@ export interface CreateOrthodonticTreatmentPlanRequest {
   consultationDate: string;
 }
 
+
 export interface UpdateOrthodonticTreatmentPlanRequest {
   planId: number;
   planTitle: string;

@@ -124,6 +124,13 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       roles: ['Assistant']
     },
     {
+      id: 'warranty',
+      label: 'Bảo Hành',
+      icon: <FileText className="h-5 w-5" />,
+      path: '/assistant/warranty-cards',
+      roles: ['Assistant']
+    },
+    {
       id: 'finance',
       label: 'Tài Chính',
       icon: <CreditCard className="h-5 w-5" />,
