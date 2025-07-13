@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { 
-  Calendar, 
-  Clock, 
-  UserCheck, 
-  MoreHorizontal, 
+import {
+  Calendar,
+  Clock,
+  UserCheck,
+  MoreHorizontal,
   Edit2,
   Trash2,
   FileText,
@@ -107,151 +107,151 @@ const RecordRow: React.FC<RecordRowProps> = ({
 
   return (
     <TooltipProvider>
-      <tr className={rowClassName}>
-        {/* Appointment Date & Time */}
-        <td className="px-6 py-4 whitespace-nowrap">
-          <div className="flex items-center gap-3">
-            <div className="flex-shrink-0">
-              <Calendar className={`h-5 w-5 ${isUpcoming ? "text-blue-500" : "text-gray-400"}`} />
+      <>
+        <tr className={rowClassName}>
+          {/* Appointment Date & Time */}
+          <td className="px-6 py-4 whitespace-nowrap">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0">
+                <Calendar className={`h-5 w-5 ${isUpcoming ? "text-blue-500" : "text-gray-400"}`} />
+              </div>
+              <div>
+                <p className="font-medium text-gray-900">
+                  {formatDateOnly(record.appointmentDate)}
+                </p>
+                <p className="text-sm text-gray-600 flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  {record.appointmentTime}
+                </p>
+                {isUpcoming && (
+                  <Badge variant="secondary" className="mt-1 text-xs">
+                    Sắp tới
+                  </Badge>
+                )}
+              </div>
             </div>
+          </td>
+
+          {/* Tooth Position & Quantity */}
+          <td className="px-6 py-4 whitespace-nowrap">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 text-blue-800 font-bold mb-1">
+                {record.toothPosition}
+              </div>
+              <p className="text-xs text-gray-600">
+                SL: {record.quantity}
+              </p>
+            </div>
+          </td>
+
+          {/* Procedure */}
+          <td className="px-6 py-4 whitespace-nowrap">
             <div>
-              <p className="font-medium text-gray-900">
-                {formatDateOnly(record.appointmentDate)}
+              <p className="font-medium text-gray-900 mb-1">
+                {record.procedureName}
               </p>
-              <p className="text-sm text-gray-600 flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                {record.appointmentTime}
+              {record.unitPrice && (
+                <p className="text-xs text-gray-500">
+                  Đơn giá: {formatCurrency(record.unitPrice)}
+                </p>
+              )}
+            </div>
+          </td>
+
+          {/* Dentist */}
+          <td className="px-6 py-4 whitespace-nowrap">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-medium">
+                {record.dentistName?.charAt(0) || "?"}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-900">
+                  {record.dentistName}
+                </p>
+              </div>
+            </div>
+          </td>
+
+          {/* Diagnosis & Symptoms */}
+          <td className="px-6 py-4 max-w-xs">
+            <div className="space-y-1">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <p className="text-gray-900 truncate cursor-help font-medium">
+                    {record.diagnosis}
+                  </p>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs">{record.diagnosis}</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <p className="text-sm text-gray-600 truncate cursor-help">
+                    {record.symptoms}
+                  </p>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs">{record.symptoms}</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </td>
+
+          {/* Amount Details */}
+          <td className="px-6 py-4 whitespace-nowrap">
+            <div className="text-right">
+              <p className="font-bold text-lg text-gray-900">
+                {formatCurrency(record.totalAmount)}
               </p>
-              {isUpcoming && (
-                <Badge variant="secondary" className="mt-1 text-xs">
-                  Sắp tới
+              {((record.discountAmount ?? 0) > 0 || (record.discountPercentage ?? 0) > 0) && (
+                <div className="text-xs text-green-600 mt-1">
+                  {(record.discountAmount ?? 0) > 0 && (
+                    <span>-{formatCurrency(record.discountAmount ?? 0)}</span>
+                  )}
+                  {(record.discountPercentage ?? 0) > 0 && (
+                    <span className="ml-1">({record.discountPercentage}%)</span>
+                  )}
+                </div>
+              )}
+            </div>
+          </td>
+
+          <td className="px-6 py-4 whitespace-nowrap">
+            <div className="space-y-1">
+              <p className="text-sm text-gray-900 flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                {formatDateOnly(record.treatmentDate)}
+              </p>
+              {record.consultantEmployeeID && (
+                <p className="text-sm text-gray-600 flex items-center gap-1">
+                  <UserCheck className="h-3 w-3" />
+                  TV: {record.consultantEmployeeID}
+                </p>
+              )}
+            </div>
+          </td>
+
+          {/* Status */}
+          <td className="px-6 py-4 whitespace-nowrap">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <Badge
+                  variant="outline"
+                  className={`${statusConfig.color} border`}
+                >
+                  {statusConfig.label}
+                </Badge>
+              </div>
+              {record.isDeleted && (
+                <Badge variant="secondary" className="text-xs">
+                  Đã xoá
                 </Badge>
               )}
             </div>
-          </div>
-        </td>
+          </td>
 
-        {/* Tooth Position & Quantity */}
-        <td className="px-6 py-4 whitespace-nowrap">
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 text-blue-800 font-bold mb-1">
-              {record.toothPosition}
-            </div>
-            <p className="text-xs text-gray-600">
-              SL: {record.quantity}
-            </p>
-          </div>
-        </td>
-
-        {/* Procedure */}
-        <td className="px-6 py-4 whitespace-nowrap">
-          <div>
-            <p className="font-medium text-gray-900 mb-1">
-              {record.procedureName}
-            </p>
-            {record.unitPrice && (
-              <p className="text-xs text-gray-500">
-                Đơn giá: {formatCurrency(record.unitPrice)}
-              </p>
-            )}
-          </div>
-        </td>
-
-        {/* Dentist */}
-        <td className="px-6 py-4 whitespace-nowrap">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-medium">
-              {record.dentistName?.charAt(0) || "?"}
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-900">
-                {record.dentistName}
-              </p>
-            </div>
-          </div>
-        </td>
-
-        {/* Diagnosis & Symptoms */}
-        <td className="px-6 py-4 max-w-xs">
-          <div className="space-y-1">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <p className="text-gray-900 truncate cursor-help font-medium">
-                  {record.diagnosis}
-                </p>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="max-w-xs">{record.diagnosis}</p>
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <p className="text-sm text-gray-600 truncate cursor-help">
-                  {record.symptoms}
-                </p>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="max-w-xs">{record.symptoms}</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </td>
-
-        {/* Amount Details */}
-        <td className="px-6 py-4 whitespace-nowrap">
-          <div className="text-right">
-            <p className="font-bold text-lg text-gray-900">
-              {formatCurrency(record.totalAmount)}
-            </p>
-            {((record.discountAmount ?? 0) > 0 || (record.discountPercentage ?? 0) > 0) && (
-              <div className="text-xs text-green-600 mt-1">
-                {(record.discountAmount ?? 0) > 0 && (
-                  <span>-{formatCurrency(record.discountAmount ?? 0)}</span>
-                )}
-                {(record.discountPercentage ?? 0) > 0 && (
-                  <span className="ml-1">({record.discountPercentage}%)</span>
-                )}
-              </div>
-            )}
-          </div>
-        </td>
-
-        <td className="px-6 py-4 whitespace-nowrap">
-          <div className="space-y-1">
-            <p className="text-sm text-gray-900 flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              {formatDateOnly(record.treatmentDate)}
-            </p>
-            {record.consultantEmployeeID && (
-              <p className="text-sm text-gray-600 flex items-center gap-1">
-                <UserCheck className="h-3 w-3" />
-                TV: {record.consultantEmployeeID}
-              </p>
-            )}
-          </div>
-        </td>
-
-        {/* Status */}
-        <td className="px-6 py-4 whitespace-nowrap">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <Badge 
-                variant="outline" 
-                className={`${statusConfig.color} border`}
-              >
-                {statusConfig.label}
-              </Badge>
-            </div>
-            {record.isDeleted && (
-              <Badge variant="secondary" className="text-xs">
-                Đã xoá
-              </Badge>
-            )}
-          </div>
-        </td>
-
-        {/* Actions - Sticky Column */}
-        {!readonly && (
+          {/* Actions - Sticky Column */}
           <td className="sticky right-0 px-6 py-4 whitespace-nowrap text-right bg-white border-l border-gray-200 shadow-[-4px_0_8px_rgba(0,0,0,0.1)] z-10">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -259,21 +259,26 @@ const RecordRow: React.FC<RecordRowProps> = ({
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
+
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={() => onEdit(record)}>
-                  <Edit2 className="h-4 w-4 mr-2" />
-                  Sửa thông tin
-                </DropdownMenuItem>
+                {!readonly && (
+                  <DropdownMenuItem onClick={() => onEdit(record)}>
+                    <Edit2 className="h-4 w-4 mr-2" />
+                    Sửa thông tin
+                  </DropdownMenuItem>
+                )}
                 
-                <DropdownMenuSeparator />
+                {!readonly && <DropdownMenuSeparator />}
                 
-                <DropdownMenuItem 
-                  onClick={() => onOpenInvoiceModal(patientId, record.treatmentRecordID)}
-                  className="text-green-600"
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  Tạo hóa đơn
-                </DropdownMenuItem>
+                {!readonly && (
+                  <DropdownMenuItem 
+                    onClick={() => onOpenInvoiceModal(patientId, record.treatmentRecordID)}
+                    className="text-green-600"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Tạo hóa đơn
+                  </DropdownMenuItem>
+                )}
                 
                 <DropdownMenuItem asChild>
                   <Link
@@ -284,70 +289,72 @@ const RecordRow: React.FC<RecordRowProps> = ({
                     Tiến độ điều trị
                   </Link>
                 </DropdownMenuItem>
+
+                {!readonly && <DropdownMenuSeparator />}
                 
-                <DropdownMenuSeparator />
-                
-                <DropdownMenuItem 
-                  onClick={handleDeleteClick}
-                  className={record.isDeleted ? "text-blue-600" : "text-red-600"}
-                >
-                  {record.isDeleted ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Khôi phục
-                    </>
-                  ) : (
-                    <>
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Xoá
-                    </>
-                  )}
-                </DropdownMenuItem>
+                {!readonly && (
+                  <DropdownMenuItem
+                    onClick={handleDeleteClick}
+                    className={record.isDeleted ? "text-blue-600" : "text-red-600"}
+                  >
+                    {record.isDeleted ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Khôi phục
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Xoá
+                      </>
+                    )}
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </td>
-        )}
-      </tr>
+        </tr>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-red-500" />
-              {record.isDeleted ? "Khôi phục hồ sơ điều trị" : "Xóa hồ sơ điều trị"}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {record.isDeleted ? (
-                <>
-                  Bạn có chắc chắn muốn khôi phục hồ sơ điều trị này không?
-                  <br />
-                  <strong>Thủ thuật:</strong> {record.procedureName}
-                  <br />
-                  <strong>Ngày điều trị:</strong> {formatDateOnly(record.treatmentDate)}
-                </>
-              ) : (
-                <>
-                  Bạn có chắc chắn muốn xóa hồ sơ điều trị này không? Hành động này có thể được hoàn tác.
-                  <br />
-                  <strong>Thủ thuật:</strong> {record.procedureName}
-                  <br />
-                  <strong>Ngày điều trị:</strong> {formatDateOnly(record.treatmentDate)}
-                </>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDelete}
-              className={record.isDeleted ? "bg-blue-600 hover:bg-blue-700" : "bg-red-600 hover:bg-red-700"}
-            >
-              {record.isDeleted ? "Khôi phục" : "Xóa"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-red-500" />
+                {record.isDeleted ? "Khôi phục hồ sơ điều trị" : "Xóa hồ sơ điều trị"}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {record.isDeleted ? (
+                  <>
+                    Bạn có chắc chắn muốn khôi phục hồ sơ điều trị này không?
+                    <br />
+                    <strong>Thủ thuật:</strong> {record.procedureName}
+                    <br />
+                    <strong>Ngày điều trị:</strong> {formatDateOnly(record.treatmentDate)}
+                  </>
+                ) : (
+                  <>
+                    Bạn có chắc chắn muốn xóa hồ sơ điều trị này không? Hành động này có thể được hoàn tác.
+                    <br />
+                    <strong>Thủ thuật:</strong> {record.procedureName}
+                    <br />
+                    <strong>Ngày điều trị:</strong> {formatDateOnly(record.treatmentDate)}
+                  </>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Hủy</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleConfirmDelete}
+                className={record.isDeleted ? "bg-blue-600 hover:bg-blue-700" : "bg-red-600 hover:bg-red-700"}
+              >
+                {record.isDeleted ? "Khôi phục" : "Xóa"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </>
     </TooltipProvider>
   );
 };

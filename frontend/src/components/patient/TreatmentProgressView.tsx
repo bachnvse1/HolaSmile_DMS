@@ -19,6 +19,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button2"
+import { useAuth } from "@/hooks/useAuth"
 
 const statusOptions = [
   { value: "pending", label: "Đã lên lịch" },
@@ -37,6 +38,8 @@ export function TreatmentProgressView({ progress }: { progress: TreatmentProgres
   const [editing, setEditing] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>()
   const [selectedTime, setSelectedTime] = useState<string>("")
+  const { role } = useAuth()
+  const isPatient = role === "Patient"
 
   const {
     register,
@@ -86,7 +89,7 @@ export function TreatmentProgressView({ progress }: { progress: TreatmentProgres
           <FileText className="h-5 w-5" /> Tiến Độ Điều Trị
         </h2>
         <div className="flex items-center gap-2">
-          {!editing && (
+          {!editing && !isPatient && (
             <button
               onClick={() => setEditing(true)}
               className="inline-flex items-center text-sm border border-gray-300 rounded px-3 py-1 hover:bg-gray-50"
@@ -122,18 +125,18 @@ export function TreatmentProgressView({ progress }: { progress: TreatmentProgres
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 border rounded-lg p-4 bg-white shadow-sm">
           <div>
             <label className="text-sm font-medium">Tên Tiến Trình</label>
-            <Input {...register("progressName")} disabled={!editing} />
+            <Input {...register("progressName")} disabled={!editing || isPatient} />
           </div>
 
           <div>
             <label className="text-sm font-medium">Nội Dung</label>
-            <textarea {...register("progressContent")} disabled={!editing} rows={editing ? 2 : 1}
+            <textarea {...register("progressContent")} disabled={!editing || isPatient} rows={editing ? 2 : 1}
               className="w-full border rounded px-3 py-2 text-sm bg-gray-50" />
           </div>
 
           <div>
             <label className="text-sm font-medium">Trạng Thái</label>
-            {editing ? (
+            {editing && !isPatient ? (
               <select {...register("status")} className="w-full border rounded px-3 py-2 text-sm">
                 {statusOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -146,18 +149,18 @@ export function TreatmentProgressView({ progress }: { progress: TreatmentProgres
 
           <div>
             <label className="text-sm font-medium">Thời Lượng (phút)</label>
-            <Input type="number" {...register("duration")} disabled={!editing} />
+            <Input type="number" {...register("duration")} disabled={!editing || isPatient} />
           </div>
 
           <div>
             <label className="text-sm font-medium">Mô Tả</label>
-            <textarea {...register("description")} disabled={!editing} rows={editing ? 2 : 1}
+            <textarea {...register("description")} disabled={!editing || isPatient} rows={editing ? 2 : 1}
               className="w-full border rounded px-3 py-2 text-sm bg-gray-50" />
           </div>
 
           <div>
             <label className="text-sm font-medium">Thời Gian Kết Thúc</label>
-            {editing ? (
+            {editing && !isPatient ? (
               <div className="grid grid-cols-1 gap-2">
                 <Popover>
                   <PopoverTrigger asChild>
@@ -191,11 +194,11 @@ export function TreatmentProgressView({ progress }: { progress: TreatmentProgres
 
           <div>
             <label className="text-sm font-medium">Ghi Chú</label>
-            <textarea {...register("note")} disabled={!editing} rows={editing ? 2 : 1}
+            <textarea {...register("note")} disabled={!editing || isPatient} rows={editing ? 2 : 1}
               className="w-full border rounded px-3 py-2 text-sm bg-yellow-50 border-yellow-200" />
           </div>
 
-          {editing && (
+          {editing && !isPatient && (
             <div className="flex gap-2 justify-end pt-2">
               <Button type="submit" disabled={isSubmitting}>
                 <Save className="w-4 h-4 mr-1" /> Lưu

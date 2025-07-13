@@ -48,11 +48,11 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
   const [selectedRecord, setSelectedRecord] = useState<TreatmentRecord | null>(null);
   const [isCreatingInvoice, setIsCreatingInvoice] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
-  
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  
+
   const [newInvoice, setNewInvoice] = useState<InvoiceFormData>({
     patientId,
     treatmentRecordId: 0,
@@ -65,7 +65,7 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
   // Group records by appointment date
   const groupedRecords = useMemo(() => {
     const groups: Record<string, GroupedRecord> = {};
-    
+
     records.forEach(record => {
       const date = formatDateOnly(record.appointmentDate);
       if (!groups[date]) {
@@ -80,7 +80,7 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
     });
 
     // Sort by date (newest first)
-    return Object.values(groups).sort((a, b) => 
+    return Object.values(groups).sort((a, b) =>
       new Date(b.date).getTime() - new Date(a.date).getTime()
     );
   }, [records]);
@@ -161,11 +161,11 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
       });
     } catch (error) {
       let errorMessage = "Đã xảy ra lỗi không xác định";
-      
+
       if (axios.isAxiosError(error)) {
         errorMessage = error.response?.data?.message || "Lỗi khi tạo hóa đơn";
       }
-      
+
       toast.error(errorMessage);
       console.error("Error creating invoice:", error);
     } finally {
@@ -184,7 +184,7 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
     const appointmentDate = new Date(date);
     const diffTime = appointmentDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 0) return { label: "Hôm nay", color: "bg-blue-100 text-blue-800" };
     if (diffDays === 1) return { label: "Ngày mai", color: "bg-green-100 text-green-800" };
     if (diffDays > 1 && diffDays <= 7) return { label: "Tuần này", color: "bg-yellow-100 text-yellow-800" };
@@ -195,11 +195,11 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
   const renderPaginationButtons = () => {
     const buttons = [];
     const maxVisibleButtons = 5;
-    
+
     // Calculate start and end page numbers
     let startPage = Math.max(1, currentPage - Math.floor(maxVisibleButtons / 2));
     let endPage = Math.min(totalPages, startPage + maxVisibleButtons - 1);
-    
+
     // Adjust start page if we're near the end
     if (endPage - startPage + 1 < maxVisibleButtons) {
       startPage = Math.max(1, endPage - maxVisibleButtons + 1);
@@ -232,7 +232,7 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
           1
         </Button>
       );
-      
+
       if (startPage > 2) {
         buttons.push(
           <span key="ellipsis1" className="px-2 py-1 text-gray-500">...</span>
@@ -262,7 +262,7 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
           <span key="ellipsis2" className="px-2 py-1 text-gray-500">...</span>
         );
       }
-      
+
       buttons.push(
         <Button
           key={totalPages}
@@ -306,7 +306,7 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
                   Tổng cộng: {records.length} điều trị ({groupedRecords.length} lịch hẹn)
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-600">Hiển thị:</span>
@@ -358,22 +358,20 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Trạng thái
                     </th>
-                    {!readonly && (
-                      <th className="sticky right-0 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 border-l border-gray-200 shadow-[-4px_0_8px_rgba(0,0,0,0.1)] z-10">
-                        Hành động
-                      </th>
-                    )}
+                    <th className="sticky right-0 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 border-l border-gray-200 shadow-[-4px_0_8px_rgba(0,0,0,0.1)] z-10">
+                      Hành động
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {paginatedGroups.map((group, groupIndex) => {
                     const appointmentStatus = getAppointmentStatus(group.date);
                     const isExpanded = expandedGroups[group.date] ?? false;
-                    
+
                     return (
                       <React.Fragment key={group.date}>
                         {/* Date Group Header Row */}
-                        <tr 
+                        <tr
                           className="bg-blue-50 border-t-2 border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors"
                           onClick={() => toggleGroupExpansion(group.date)}
                         >
@@ -407,7 +405,7 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
                             </td>
                           )}
                         </tr>
-                        
+
                         {/* Records for this date - Only show if expanded */}
                         {isExpanded && group.records.map((record) => (
                           <RecordRow
@@ -420,7 +418,7 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
                             readonly={readonly}
                           />
                         ))}
-                        
+
                         {/* Add spacing between groups (except last group) */}
                         {groupIndex < paginatedGroups.length - 1 && (
                           <tr className="bg-gray-50">
@@ -447,7 +445,7 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
                 <div className="text-sm text-gray-600">
                   Hiển thị {startIndex + 1} - {Math.min(endIndex, groupedRecords.length)} trên {groupedRecords.length} lịch hẹn
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   {renderPaginationButtons()}
                 </div>

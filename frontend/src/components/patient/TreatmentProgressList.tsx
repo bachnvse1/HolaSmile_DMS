@@ -6,6 +6,7 @@ import { Skeleton } from "../ui/skeleton"
 import { Button } from "@/components/ui/button2"
 import { Pagination } from "../ui/Pagination"
 import TaskListModal from "@/components/task/TaskListModal"
+import { useAuth } from "@/hooks/useAuth"
 
 export function TreatmentProgressList({
   data,
@@ -22,6 +23,8 @@ export function TreatmentProgressList({
   const [itemsPerPage, setItemsPerPage] = useState(3)
   const [openTaskListModal, setOpenTaskListModal] = useState(false)
   const [selectedProgressId, setSelectedProgressId] = useState<number>(0)
+  const { role } = useAuth()
+  const isPatient = role === "Patient"
 
   useEffect(() => {
     setCurrentPage(1)
@@ -120,16 +123,18 @@ export function TreatmentProgressList({
                     <Button variant="outline" size="sm" onClick={() => onViewProgress?.(item)}>
                       <Eye className="h-4 w-4 mr-1" /> Xem
                     </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedProgressId(item.treatmentProgressID)
-                        setOpenTaskListModal(true)
-                      }}
-                    >
-                      Việc đã giao
-                    </Button>
+                    {!isPatient && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedProgressId(item.treatmentProgressID)
+                          setOpenTaskListModal(true)
+                        }}
+                      >
+                        Việc đã giao
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -148,7 +153,9 @@ export function TreatmentProgressList({
         </>
       )}
 
-      <TaskListModal open={openTaskListModal} onClose={() => setOpenTaskListModal(false)} treatmentProgressID={selectedProgressId ?? undefined} />
+      {!isPatient && (
+        <TaskListModal open={openTaskListModal} onClose={() => setOpenTaskListModal(false)} treatmentProgressID={selectedProgressId ?? undefined} />
+      )}
     </div>
   )
 }
