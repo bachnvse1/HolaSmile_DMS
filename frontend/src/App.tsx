@@ -53,6 +53,8 @@ import AssignedTasks from "./pages/assistant/AssignedTasks";
 import ProcedureManagement from "./pages/proceduce/ProcedureManagement";
 import WarrantyCardManagement from "./pages/warrantyCard/WarrantyCardManagement";
 import InvoiceList from './pages/invoice/InvoiceList';
+import { AppointmentDetailsPage } from './pages/staff/AppointmentDetailsPage';
+import { PatientAppointmentDetailPage } from './pages/patient/PatientAppointmentDetailPage';
 import ThankYou from "./components/invoice/PaymentThankYou";
 import PaymentCancelled from "./components/invoice/PaymentCancel";
 
@@ -69,12 +71,24 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/learn-more" element={<LearnMorePage />} />
-                <Route path="/services/general-dentistry" element={<GeneralDentistryPage />} />
-                <Route path="/services/cosmetic-dentistry" element={<CosmeticDentistryPage />} />
+                <Route
+                    path="/services/general-dentistry"
+                    element={<GeneralDentistryPage />}
+                />
+                <Route
+                    path="/services/cosmetic-dentistry"
+                    element={<CosmeticDentistryPage />}
+                />
                 <Route path="/services/oral-surgery" element={<OralSurgeryPage />} />
-                <Route path="/services/pediatric-dentistry" element={<PediatricDentistryPage />} />
+                <Route
+                    path="/services/pediatric-dentistry"
+                    element={<PediatricDentistryPage />}
+                />
                 <Route path="/services/preventive-care" element={<PreventiveCare />} />
-                <Route path="/services/restorative-dentistry" element={<RestorativeDentistryPage />} />
+                <Route
+                    path="/services/restorative-dentistry"
+                    element={<RestorativeDentistryPage />}
+                />
                 <Route path="/appointment-booking" element={<BookAppointmentPage />} />
                 <Route path="/verify-otp" element={<VerifyOTPPage />} />
                 <Route path="/add-patient" element={<AddPatient />} />
@@ -85,9 +99,14 @@ function App() {
                 <Route path="/dashboard" element={<StaffDashboard />} />
                 <Route path="/patient/book-appointment" element={<PatientBookingPage />} />
                 <Route path="/patient/appointments" element={<PatientAppointmentsPage />} />
+                <Route path="/patient/appointments/:appointmentId" element={<PatientAppointmentDetailPage />} />
+                <Route path="/appointments/:appointmentId" element={<AppointmentDetailsPage />} />
                 <Route path="/appointments" element={<StaffAppointmentsPage />} />
                 <Route path="/schedules" element={<ScheduleManagementPage />} />
-                <Route path="/patient/view-treatment-records" element={<PatientTreatmentRecords />} />
+                <Route
+                    path="/patient/view-treatment-records"
+                    element={<PatientTreatmentRecords />}
+                />
                 <Route
                     path="/patient/view-treatment-progress/:treatmentRecordId"
                     element={<ViewTreatmentProgressPage />}
@@ -127,20 +146,34 @@ function App() {
                 />
                 <Route path="/patient/follow-up" element={<FUAppointmentPage />} />
                 <Route path="/administrator/user-list" element={<UserManagement />} />
-                <Route path="/assistant/assigned-tasks" element={<AssignedTasks />} />
-                <Route path="/proceduces" element={<ProcedureManagement />} />
-                <Route path="/assistant/warranty-cards" element={<WarrantyCardManagement />} />
-                <Route path="/prescription-templates" element={<PrescriptionTemplatesPage />} />
-                <Route path="/prescription-templates/create" element={<CreatePrescriptionTemplatePage />} />
-                <Route path="/prescription-templates/:id" element={<PrescriptionTemplateDetailPage />} />
-                <Route path="/prescription-templates/:id/edit" element={<EditPrescriptionTemplatePage />} />
+                <Route path="/patient/follow-up" element={<FUAppointmentPage />} />
+                <Route
+                    path="/prescription-templates"
+                    element={<PrescriptionTemplatesPage />}
+                />
+                <Route
+                    path="/prescription-templates/create"
+                    element={<CreatePrescriptionTemplatePage />}
+                />
+                <Route
+                    path="/prescription-templates/:id"
+                    element={<PrescriptionTemplateDetailPage />}
+                />
+                <Route
+                    path="/prescription-templates/:id/edit"
+                    element={<EditPrescriptionTemplatePage />}
+                />
                 <Route path="/inventory" element={<InventoryPage />} />
                 <Route path="/inventory/create" element={<CreateSupplyPage />} />
                 <Route path="/inventory/:supplyId" element={<SupplyDetailPage />} />
                 <Route path="/inventory/:supplyId/edit" element={<EditSupplyPage />} />
-                <Route path="/invoices" element={<InvoiceList/>}/>
+                <Route path="/administrator/user-list" element={<UserManagement />} />
+                <Route path="/assistant/assigned-tasks" element={<AssignedTasks />} />
+                <Route path="/proceduces" element={<ProcedureManagement />} />
+                <Route path="/invoices" element={<InvoiceList />} />
+                <Route path="/assistant/warranty-cards" element={<WarrantyCardManagement />} />
                 <Route path="/thank-you" element={<ThankYou />} />
-                <Route path="/cancel" element ={<PaymentCancelled />} />
+                <Route path="/cancel" element={<PaymentCancelled />} />
             </Routes>
         </>
     );
