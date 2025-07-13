@@ -3,8 +3,11 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { Invoice } from "@/types/invoice"
-import { Eye, FileText, CreditCard, Calendar, DollarSign, User } from "lucide-react"
+import { Eye, FileText, CreditCard, Calendar, DollarSign, User, Loader2 } from "lucide-react"
 import type { JSX } from "react"
+import { useState } from "react"
+import { invoiceService } from "@/services/invoiceService"
+import { useUserInfo } from "@/hooks/useUserInfo"
 
 interface InvoiceTableProps {
   displayData: Invoice[]
@@ -92,9 +95,37 @@ const InvoiceRow = ({
   getTransactionTypeBadge: (type: string) => JSX.Element
   openInvoiceDetail: (invoice: Invoice) => void
 }) => {
+  const { role } = useUserInfo()
+  const [paymentLoading, setPaymentLoading] = useState(false)
+
   const remainingAmount = (invoice.totalAmount || 0) - (invoice.paidAmount || 0)
   const paymentProgress = invoice.totalAmount ? 
     Math.round(((invoice.paidAmount || 0) / invoice.totalAmount) * 100) : 0
+
+  const handlePayment = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    
+    if (!invoice.orderCode) {
+      console.error('Order code is required for payment')
+      return
+    }
+
+    setPaymentLoading(true)
+    try {
+      const response = await invoiceService.createPaymentLink(invoice.orderCode)
+      
+      if (response.checkoutUrl) {
+        // Redirect to payment URL
+        window.location.href = response.checkoutUrl
+      } else {
+        console.error('Payment link not found in response')
+      }
+    } catch (error) {
+      console.error('Error creating payment link:', error)
+    } finally {
+      setPaymentLoading(false)
+    }
+  }
 
   return (
     <TableRow 
@@ -158,8 +189,7 @@ const InvoiceRow = ({
           variant="outline" 
           className="bg-gray-100 text-gray-800 border-gray-300 text-xs"
         >
-          <CreditCard className="h-3 w-3 mr-1" />
-          {invoice.paymentMethod}
+          {invoice.paymentMethod === "cash" ? "Tiền mặt" : "Chuyển khoản"}
         </Badge>
       </TableCell>
       
@@ -182,9 +212,24 @@ const InvoiceRow = ({
             }}
             className="text-blue-600 hover:bg-blue-50 transition-colors duration-200 group-hover:bg-blue-100"
           >
-            <Eye className="h-4 w-4 mr-1" />
-            Chi tiết
+            <Eye className="h-4 w-4" />
           </Button>
+          
+          {role === "Patient" && remainingAmount > 0 && invoice.orderCode && invoice.paymentMethod !== "cash" && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePayment}
+              disabled={paymentLoading}
+              className="text-green-600 border-green-600 hover:bg-green-50 transition-colors duration-200"
+            >
+              {paymentLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <CreditCard className="h-4 w-4" />
+              )}
+            </Button>
+          )}
         </div>
       </TableCell>
     </TableRow>

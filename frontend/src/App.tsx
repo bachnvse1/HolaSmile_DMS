@@ -53,6 +53,8 @@ import AssignedTasks from "./pages/assistant/AssignedTasks";
 import ProcedureManagement from "./pages/proceduce/ProcedureManagement";
 import WarrantyCardManagement from "./pages/warrantyCard/WarrantyCardManagement";
 import InvoiceList from './pages/invoice/InvoiceList';
+import ThankYou from "./components/invoice/PaymentThankYou";
+import PaymentCancelled from "./components/invoice/PaymentCancelled";
 
 function App() {
     return (
@@ -137,6 +139,8 @@ function App() {
                 <Route path="/inventory/:supplyId" element={<SupplyDetailPage />} />
                 <Route path="/inventory/:supplyId/edit" element={<EditSupplyPage />} />
                 <Route path="/invoices" element={<InvoiceList/>}/>
+                <Route path="/thank-you" element={<ThankYou />} />
+                <Route path="/cancel" element ={<PaymentCancelled />} />
             </Routes>
         </>
     );
