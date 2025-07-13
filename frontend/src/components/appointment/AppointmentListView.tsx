@@ -13,7 +13,6 @@ import { useForm } from "react-hook-form";
 import TreatmentModal from '../patient/TreatmentModal';
 import type { TreatmentFormData } from "@/types/treatment";
 import {formatDateVN, formatTimeVN} from '../../utils/dateUtils';
-import { useUserInfo } from '../../hooks/useUserInfo';
 
 interface AppointmentListViewProps {
   appointments: AppointmentDTO[];
