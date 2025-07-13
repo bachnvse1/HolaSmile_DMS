@@ -11,6 +11,7 @@ import type { AppointmentDTO } from '../../types/appointment';
 import { useForm } from "react-hook-form";
 import TreatmentModal from '../patient/TreatmentModal';
 import type { TreatmentFormData } from "@/types/treatment";
+import {formatDateVN, formatTimeVN} from '../../utils/dateUtils';
 
 interface AppointmentListViewProps {
   appointments: AppointmentDTO[];

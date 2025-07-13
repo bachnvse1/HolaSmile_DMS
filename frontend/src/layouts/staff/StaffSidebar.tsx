@@ -95,6 +95,27 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       roles: ['Administrator', 'Owner', 'Dentist', 'Assistant']
     },
     {
+      id: 'prescription-templates',
+      label: 'Mẫu Đơn Thuốc',
+      icon: <Pill className="h-5 w-5" />,
+      path: '/prescription-templates',
+      roles: ['Assistant']
+    },
+    {
+      id: 'assigned-tasks',
+      label: 'Công Việc Được Giao',
+      icon: <Activity className="h-5 w-5" />,
+      path: '/assistant/assigned-tasks',
+      roles: ['Assistant']
+    },
+    {
+      id: 'warranty',
+      label: 'Bảo Hành',
+      icon: <FileText className="h-5 w-5" />,
+      path: '/assistant/warranty-cards',
+      roles: ['Assistant']
+    },
+    {
       id: 'finance',
       label: 'Tài Chính',
       icon: <CreditCard className="h-5 w-5" />,
