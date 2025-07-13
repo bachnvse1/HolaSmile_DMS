@@ -2,6 +2,7 @@
 using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Owner;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
@@ -12,12 +13,22 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Owners
     {
         private readonly Mock<IScheduleRepository> _scheduleRepositoryMock;
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
+        private readonly Mock<IDentistRepository> _dentistRepoMock;
+        private readonly Mock<IOwnerRepository> _ownerRepoMock;
+        private readonly Mock<IMediator> _mediatorMock;
         private readonly ApproveScheduleHandle _handler;
         public ApproveScheduleHandleTest()
         {
             _scheduleRepositoryMock = new Mock<IScheduleRepository>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            _handler = new ApproveScheduleHandle(_scheduleRepositoryMock.Object, _httpContextAccessorMock.Object);
+            _dentistRepoMock = new Mock<IDentistRepository>();
+            _ownerRepoMock = new Mock<IOwnerRepository>();
+            _mediatorMock = new Mock<IMediator>();
+            _handler = new ApproveScheduleHandle(
+                _httpContextAccessorMock.Object,
+                _scheduleRepositoryMock.Object,
+                _mediatorMock.Object
+                );
         }
 
         private void SetupHttpContext(string role, int userId)

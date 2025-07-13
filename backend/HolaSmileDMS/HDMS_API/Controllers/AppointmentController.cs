@@ -19,6 +19,7 @@ namespace HDMS_API.Controllers
             _mediator = mediator;
         }
 
+        [Authorize]
         [HttpGet]
         [Route("listAppointment")]
         public async Task<IActionResult> GetAppointment(CancellationToken cancellationToken)
@@ -39,7 +40,7 @@ namespace HDMS_API.Controllers
             }
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpGet("{appointmentId}")]
         public async Task<IActionResult> ViewDetailAppointment([FromRoute] int appointmentId, CancellationToken cancellationToken)
         {
@@ -59,6 +60,7 @@ namespace HDMS_API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("FUappointment")]
         public async Task<IActionResult> CreateFUAppointment([FromBody] CreateFUAppointmentCommand request, CancellationToken cancellationToken)
         {
