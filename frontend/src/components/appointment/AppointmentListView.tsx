@@ -141,7 +141,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   // Handle treatment modal opening
   const handleOpenTreatmentModal = (appointment: AppointmentDTO) => {
     setSelectedAppointmentId(appointment.appointmentId);
-    setSelectedPatientId(appointment.patientId||null); // Assuming patientId exists in AppointmentDTO
+    setSelectedPatientId(appointment.patientId || null); // Assuming patientId exists in AppointmentDTO
     setShowTreatmentModal(true);
     setTreatmentToday(false);
   };
@@ -388,6 +388,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
 
                     </div>
                   </div>
+                </div>
 
                 {appointment.content && (
                   <div className="mt-4 p-4 bg-gray-50 rounded-lg border-l-4 border-blue-200">

@@ -184,7 +184,6 @@ export class TokenUtils {
     role: string | null;
     role_table_id?: string | null;
     refreshToken: string | null;
-    role_table_id?: string | null;
   } {
     const token = localStorage.getItem("token") || localStorage.getItem("authToken");
     const refreshToken = localStorage.getItem("refreshToken");
