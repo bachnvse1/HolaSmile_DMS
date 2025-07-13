@@ -546,7 +546,7 @@ export const SupplyList: React.FC = () => {
                               <span className="text-sm font-medium text-gray-900 mr-2">
                                 {supply.QuantityInStock}
                               </span>
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${stockStatus.color}`}>
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-md ${stockStatus.color}`}>
                                 {stockStatus.text}
                               </span>
                             </div>
@@ -557,7 +557,7 @@ export const SupplyList: React.FC = () => {
                                 {supply.ExpiryDate ? formatDate(supply.ExpiryDate) : ''}
                               </span>
                               {supply.ExpiryDate && (
-                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${expiryStatus.color}`}>
+                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-md ${expiryStatus.color}`}>
                                   {expiryStatus.text}
                                 </span>
                               )}
@@ -568,10 +568,10 @@ export const SupplyList: React.FC = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex flex-col gap-1">
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${stockStatus.color}`}>
+                              <span className={`inline-flex max-w-[80px] justify-center items-center text-center px-2 py-1 text-xs font-semibold rounded-md ${stockStatus.color}`}>
                                 {stockStatus.text}
                               </span>
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${expiryStatus.color}`}>
+                              <span className={`inline-flex max-w-[80px] justify-center items-center text-center px-2 py-1 text-xs font-semibold rounded-md ${expiryStatus.color}`}>
                                 {expiryStatus.text}
                               </span>
                             </div>
@@ -705,7 +705,7 @@ export const SupplyList: React.FC = () => {
                             <span className="font-medium text-gray-900">
                               {supply.QuantityInStock}
                             </span>
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${stockStatus.color}`}>
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-md ${stockStatus.color}`}>
                               {stockStatus.text}
                             </span>
                           </div>
@@ -727,7 +727,7 @@ export const SupplyList: React.FC = () => {
                             {supply.ExpiryDate ? formatDate(supply.ExpiryDate) : ''}
                           </span>
                           {supply.ExpiryDate && (
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${expiryStatus.color}`}>
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-md text-align-center ${expiryStatus.color}`}>
                               {expiryStatus.text}
                             </span>
                           )}

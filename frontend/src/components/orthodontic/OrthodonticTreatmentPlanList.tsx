@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
+// import { Slider } from '@/components/ui/slider';
 import { DateRangePicker } from '@/components/ui/date-picker';
 import { Pagination } from '@/components/ui/Pagination';
 import { useOrthodonticTreatmentPlans, useDeactivateOrthodonticTreatmentPlan } from '@/hooks/useOrthodonticTreatmentPlan';
@@ -37,7 +37,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
     to: Date | undefined;
   }>({ from: undefined, to: undefined });
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
-  const [priceSliderRange, setPriceSliderRange] = useState([0, 100000000]); // For slider
+  // const [priceSliderRange, setPriceSliderRange] = useState([0, 100000000]); // For slider
 
   const userInfo = useUserInfo();
   const isDentist = userInfo?.role === 'Dentist';
@@ -112,7 +112,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
     setSelectedDentist('all');
     setDateRange({ from: undefined, to: undefined });
     setPriceRange({ min: '', max: '' });
-    setPriceSliderRange([0, 100000000]);
+    // setPriceSliderRange([0, 100000000]);
   };
 
   const handleCreatePlan = () => {
@@ -334,7 +334,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Tìm kiếm theo tên kế hoạch, template, nội dung điều trị..."
+                placeholder="Tìm kiếm theo tên kế hoạch, tên mẫu, nội dung điều trị..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -410,7 +410,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
                 </div>
 
                 {/* Price Range Filter với Slider */}
-                <div className="md:col-span-2">
+                {/* <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-3">
                     Khoảng chi phí: {formatCurrency(priceSliderRange[0])} - {formatCurrency(priceSliderRange[1])}
                   </label>
@@ -434,7 +434,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
                       <span>100tr</span>
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Clear Filters Button */}
                 <div className="md:col-span-2 lg:col-span-4">

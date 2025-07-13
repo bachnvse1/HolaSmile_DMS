@@ -109,7 +109,7 @@ export const PrescriptionModal: React.FC<PrescriptionModalProps> = ({
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-opacity-75 backdrop-blur-sm"
+        className="absolute bg-black/20 inset-0 bg-opacity-75"
         onClick={onClose}
       />
 

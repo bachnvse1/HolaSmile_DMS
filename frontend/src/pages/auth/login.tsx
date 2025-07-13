@@ -45,7 +45,7 @@ export function Login() {
           const role = TokenUtils.getRoleFromToken(loginResult.token);
           const fullName = TokenUtils.getFullNameFromToken(loginResult.token);
           toast.success(`Đăng nhập thành công! Xin chào ${fullName}`, {
-                  position: "top-left",
+                  position: "top-right",
                   autoClose: 3000,
                 });
           if (role === "Patient") {

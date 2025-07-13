@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, User, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { Menu, User, LogOut, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { NotificationButton } from "@/components/notification/NotificationButton"; // cập nhật đúng path của bạn
 
@@ -48,7 +48,7 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSide
 
   return (
     <header 
-      className={`${isMobile ? 'relative' : 'fixed top-0 right-0'} bg-white shadow-sm border-b h-16 flex items-center justify-between px-4 sm:px-6 z-40 transition-all duration-300`}
+      className={`${isMobile ? 'relative' : 'fixed top-0 right-0'} bg-white shadow-sm border-b border-gray-300 h-16 flex items-center justify-between px-4 sm:px-6 z-40 transition-all duration-300`}
       style={!isMobile ? { left: getHeaderMargin() } : {}}
     >
       {/* Left side */}
@@ -68,9 +68,6 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSide
           <h1 className="text-lg font-semibold text-gray-900">
             Hệ Thống Quản Lý Nha Khoa
           </h1>
-          <p className="text-sm text-gray-500">
-            Chào mừng trở lại, {userInfo.name}
-          </p>
         </div>
         
         {/* Mobile title */}
@@ -87,7 +84,6 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSide
           title="Thông báo"
         >
           <NotificationButton />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
         </div>
 
         {/* User Menu */}
@@ -103,12 +99,11 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSide
               <p className="text-sm font-medium">{userInfo.name}</p>
               <p className="text-xs text-gray-500">{getRoleDisplayName(userInfo.role)}</p>
             </div>
-            <ChevronDown className="h-4 w-4 hidden sm:block" />
           </button>
 
           {isUserMenuOpen && (
-            <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 border">
-              <div className="px-4 py-3 border-b">
+            <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+              <div className="px-4 py-3 border-b border-gray-300">
                 <p className="text-sm font-medium text-gray-900">{userInfo.name}</p>
                 <p className="text-sm text-gray-500">{userInfo.email}</p>
                 <p className="text-xs text-blue-600 font-medium">{getRoleDisplayName(userInfo.role)}</p>
@@ -130,11 +125,10 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSide
                 Cài Đặt
               </button>
               
-              <hr className="my-1" />
               
               <button
                 onClick={handleLogout}
-                className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full text-left"
+                className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full text-left border-t border-gray-300"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Đăng Xuất
