@@ -306,8 +306,7 @@ export const ScheduleApproval: React.FC<{ viewOnlyApproved?: boolean }> = ({ vie
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 w-full sm:w-auto min-w-[240px]"
-            />            
-            {searchTerm && (
+            />            {searchTerm && (
               <Button
                 variant="ghost"
                 size="icon"

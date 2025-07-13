@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import {
-  Home,
-  Calendar,
-  Users,
-  FileText,
-  Settings,
-  UserCheck,
+import { 
+  Home, 
+  Calendar, 
+  Users, 
+  FileText, 
+  Settings, 
+  UserCheck, 
   TrendingUp,
   Stethoscope,
   CreditCard,
@@ -29,26 +29,12 @@ interface MenuItem {
 interface StaffSidebarProps {
   userRole: string;
   isCollapsed: boolean;
-  isMobile?: boolean;
-  onClose?: () => void;
 }
 
-export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapsed, isMobile, onClose }) => {
+export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapsed }) => {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
-
-  const handleMenuClick = (item: MenuItem) => {
-    if (item.children && item.children.length > 0) {
-      toggleExpand(item.id);
-    } else if (item.path) {
-      navigate(item.path);
-      // Close sidebar on mobile after navigation
-      if (isMobile && onClose) {
-        onClose();
-      }
-    }
-  };
 
   const menuItems: MenuItem[] = [
     {
@@ -124,6 +110,13 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       roles: ['Assistant']
     },
     {
+      id: 'warranty',
+      label: 'Bảo Hành',
+      icon: <FileText className="h-5 w-5" />,
+      path: '/assistant/warranty-cards',
+      roles: ['Assistant']
+    },
+    {
       id: 'finance',
       label: 'Tài Chính',
       icon: <CreditCard className="h-5 w-5" />,
@@ -133,8 +126,8 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           id: 'finance-invoices',
           label: 'Hóa Đơn',
           icon: <FileText className="h-4 w-4" />,
-          path: '/finance/invoices',
-          roles: ['Administrator', 'Owner', 'Receptionist']
+          path: '/invoices',
+          roles: ['Receptionist']
         },
         {
           id: 'finance-payments',
@@ -146,18 +139,11 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       ]
     },
     {
-      id: "procedures",
-      label: "Thủ Thuật",
-      icon: <Stethoscope className="h-5 w-5" />,
-      path: "/proceduces",
-      roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
-    },
-    {
       id: 'inventory',
       label: 'Kho Vật Tư',
       icon: <Package className="h-5 w-5" />,
       path: '/inventory',
-      roles: ['Administrator', 'Owner', 'Assistant', "Receptionist", 'Dentist'],
+      roles: ['Administrator', 'Owner', 'Assistant']
     },
     {
       id: 'reports',
@@ -239,9 +225,16 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
     return (
       <div key={item.id}>
         <button
-          onClick={() => handleMenuClick(item)}
-          className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-blue-50 hover:text-blue-600 transition-colors ${level > 0 ? 'pl-8' : ''
-            } ${isActive ? 'bg-blue-100 text-blue-600 border-r-2 border-blue-600' : 'text-gray-700'}`}
+          onClick={() => {
+            if (hasChildren) {
+              toggleExpand(item.id);
+            } else if (item.path) {
+              navigate(item.path);
+            }
+          }}
+          className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-blue-50 hover:text-blue-600 transition-colors ${
+            level > 0 ? 'pl-8' : ''
+          } ${isActive ? 'bg-blue-100 text-blue-600 border-r-2 border-blue-600' : 'text-gray-700'}`}
         >
           <div className="flex items-center space-x-3">
             {item.icon}
@@ -268,66 +261,25 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
   };
 
   return (
-    <>
-      {/* Mobile Overlay - Prevent interaction with content behind */}
-      {isMobile && !isCollapsed && (
-        <div
-          className="fixed inset-0 bg-opacity-30 z-20 md:hidden"
-          onClick={onClose}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div className={`
-        ${isMobile ? 'fixed left-0 top-0 z-50' : 'fixed left-0 top-0 z-30'}
-        bg-white shadow-lg transition-all duration-300 ease-in-out
-        ${isCollapsed ? (isMobile ? '-translate-x-full' : 'w-16') : 'w-64'}
-        h-screen flex flex-col
-      `}>
-        {/* Header - Fixed */}
-        <div className="p-4 border-b flex-shrink-0 h-16 shadow-sm">
-          {!isCollapsed && (
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-blue-600">HolaSmile</h2>
-              {isMobile && (
-                <button
-                  onClick={onClose}
-                  className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-                  title="Close sidebar"
-                >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                </button>
-              )}
-            </div>
-          )}
-          {isCollapsed && !isMobile && (
-            <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-              <span className="text-white font-bold text-sm">H</span>
-            </div>
-          )}
-        </div>
-
-        {/* Navigation - Scrollable */}
-        <nav
-          className="flex-1 overflow-y-auto overflow-x-hidden"
-          style={{
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-          }}
-        >
-          <div
-            style={{
-              overflowY: 'scroll',
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-            }}
-          >
-            {menuItems.map(item => renderMenuItem(item))}
+    <div className={`bg-white shadow-lg h-full transition-all duration-300 ${
+      isCollapsed ? 'w-16' : 'w-64'
+    }`}>
+      <div className="p-4 border-b">
+        {!isCollapsed && (
+          <h2 className="text-xl font-bold text-blue-600 h-8">HolaSmile</h2>
+        )}
+        {isCollapsed && (
+          <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+            <span className="text-white font-bold text-sm">H</span>
           </div>
-        </nav>
-      </div >
-    </>
+        )}
+      </div>
+
+      <nav className="flex-1 overflow-y-auto">
+        <div className="py-2">
+          {menuItems.map(item => renderMenuItem(item))}
+        </div>
+      </nav>
+    </div>
   );
 };
