@@ -6,11 +6,14 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Pagination } from '../ui/Pagination';
 import { useAuth } from '../../hooks/useAuth';
+import { useNavigate } from 'react-router';
 import { isAppointmentCancellable } from '../../utils/appointmentUtils';
 import type { AppointmentDTO } from '../../types/appointment';
 import { useForm } from "react-hook-form";
 import TreatmentModal from '../patient/TreatmentModal';
 import type { TreatmentFormData } from "@/types/treatment";
+import {formatDateVN, formatTimeVN} from '../../utils/dateUtils';
+import { useUserInfo } from '../../hooks/useUserInfo';
 
 interface AppointmentListViewProps {
   appointments: AppointmentDTO[];
@@ -18,14 +21,14 @@ interface AppointmentListViewProps {
 }
 
 export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
-  appointments,
-  onAppointmentClick
+  appointments
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'confirmed' | 'canceled'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const { role } = useAuth();
+  const navigate = useNavigate();
 
   const [showTreatmentModal, setShowTreatmentModal] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<number | null>(null);
@@ -49,19 +52,6 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
       default:
         return status;
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const formatTime = (timeString: string) => {
-    return timeString.substring(0, 5);
   };
 
   // Filter appointments
@@ -146,6 +136,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
     setTreatmentToday(false);
   };
 
+
   // Group appointments by status for summary
   const confirmedCount = filteredAppointments.filter(a => a.status === 'confirmed').length;
   const cancelledCount = filteredAppointments.filter(a => a.status === 'canceled').length;
@@ -166,70 +157,70 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-yellow-500 rounded-lg">
-                    <Calendar className="h-6 w-6 text-white" />
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="p-1.5 sm:p-2 bg-yellow-500 rounded-lg">
+                    <Calendar className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-yellow-700">Tổng lịch hẹn</p>
-                    <p className="text-2xl font-bold text-yellow-900">{filteredAppointments.length}</p>
+                    <p className="text-xs sm:text-sm font-medium text-yellow-700">Tổng lịch hẹn</p>
+                    <p className="text-lg sm:text-2xl font-bold text-yellow-900">{filteredAppointments.length}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-green-500 rounded-lg">
-                    <Calendar className="h-6 w-6 text-white" />
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="p-1.5 sm:p-2 bg-green-500 rounded-lg">
+                    <Calendar className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-green-700">Đã xác nhận</p>
-                    <p className="text-2xl font-bold text-green-900">{confirmedCount}</p>
+                    <p className="text-xs sm:text-sm font-medium text-green-700">Đã xác nhận</p>
+                    <p className="text-lg sm:text-2xl font-bold text-green-900">{confirmedCount}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="bg-gradient-to-br from-red-50 to-red-100 border-red-200">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-red-500 rounded-lg">
-                    <Calendar className="h-6 w-6 text-white" />
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="p-1.5 sm:p-2 bg-red-500 rounded-lg">
+                    <Calendar className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-red-700">Đã hủy</p>
-                    <p className="text-2xl font-bold text-red-900">{cancelledCount}</p>
+                    <p className="text-xs sm:text-sm font-medium text-red-700">Đã hủy</p>
+                    <p className="text-lg sm:text-2xl font-bold text-red-900">{cancelledCount}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-blue-400 rounded-lg">
-                    <Calendar className="h-6 w-6 text-white" />
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="p-1.5 sm:p-2 bg-blue-400 rounded-lg">
+                    <Calendar className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-blue-700">Đã đến</p>
-                    <p className="text-2xl font-bold text-blue-900">{attendedCount}</p>
+                    <p className="text-xs sm:text-sm font-medium text-blue-700">Đã đến</p>
+                    <p className="text-lg sm:text-2xl font-bold text-blue-900">{attendedCount}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-gray-500 rounded-lg">
-                    <Calendar className="h-6 w-6 text-white" />
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="p-1.5 sm:p-2 bg-gray-500 rounded-lg">
+                    <Calendar className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-700">Vắng</p>
-                    <p className="text-2xl font-bold text-gray-900">{absentedCount}</p>
+                    <p className="text-xs sm:text-sm font-medium text-gray-700">Vắng</p>
+                    <p className="text-lg sm:text-2xl font-bold text-gray-900">{absentedCount}</p>
                   </div>
                 </div>
               </CardContent>
@@ -267,68 +258,95 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
           </div>
         </CardContent>
       </Card>
-
-      <div className="space-y-4">
+      <div className="space-y-4">        
         {paginatedAppointments.length === 0 ? (
-          <Card className="p-8 text-center">
-            <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">Không có lịch hẹn nào phù hợp</p>
-          </Card>
-        ) : (
-          paginatedAppointments.map((appointment) => (
-            <Card key={appointment.appointmentId} className="hover:shadow-lg transition-shadow duration-200">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <Badge
-                      variant={
-                        appointment.status === 'confirmed'
-                          ? 'success'
-                          : appointment.status === 'canceled'
-                            ? 'destructive'
-                            : appointment.status === 'attended'
-                              ? 'info'
-                              : 'secondary'
-                      }
-                      className="text-xs font-medium"
-                    >
-                      {getStatusText(appointment.status)}
+        <Card className="p-8 text-center">
+          <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600">Không có lịch hẹn nào phù hợp</p>
+        </Card>
+      ) : (
+        paginatedAppointments.map((appointment) => (
+          <Card key={appointment.appointmentId} className="hover:shadow-lg transition-shadow duration-200">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <Badge
+                    variant={
+                      appointment.status === 'confirmed'
+                        ? 'success'
+                        : appointment.status === 'canceled'
+                          ? 'destructive'
+                          : appointment.status === 'attended'
+                            ? 'info'
+                            : 'secondary'
+                    }
+                    className="text-xs font-medium"
+                  >
+                    {getStatusText(appointment.status)}
+                  </Badge>
+                  {appointment.isNewPatient && (
+                    <Badge variant="info" className="text-xs font-medium">
+                      Bệnh nhân mới
                     </Badge>
-                    {appointment.isNewPatient && (
-                      <Badge variant="info" className="text-xs font-medium">
-                        Bệnh nhân mới
+                  )}
+                  {appointment.isExistPrescription && (
+                    <Badge variant="success" className="text-xs font-medium">
+                      Có đơn thuốc
+                    </Badge>
+                  )}
+                  {/* Show cancellation warning for Patient */}
+                  {role === 'Patient' && appointment.status === 'confirmed' &&
+                    !isAppointmentCancellable(appointment.appointmentDate, appointment.appointmentTime) && (
+                      <Badge variant="warning" className="text-xs font-medium flex items-center">
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        Không thể hủy
                       </Badge>
                     )}
-                    {/* Show cancellation warning for Patient */}
-                    {role === 'Patient' && appointment.status === 'confirmed' &&
-                      !isAppointmentCancellable(appointment.appointmentDate, appointment.appointmentTime) && (
-                        <Badge variant="warning" className="text-xs font-medium flex items-center">
-                          <AlertTriangle className="h-3 w-3 mr-1" />
-                          Không thể hủy
-                        </Badge>
-                      )}
-                  </div>
-                  <div className="flex flex-col items-end gap-2">
+                </div>
+                <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 xs:gap-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (role === 'Patient') {
+                        navigate(`/patient/appointments/${appointment.appointmentId}`);
+                      } else {
+                        navigate(`/appointments/${appointment.appointmentId}`);
+                      }
+                    }}
+                    className="flex items-center gap-2 w-full xs:w-auto"
+                  >
+                    <Eye className="h-4 w-4" />
+                    Chi tiết
+                  </Button>
+                  {role === 'Dentist' &&
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => onAppointmentClick?.(appointment)}
-                      className="flex items-center gap-2"
+                      onClick={() => {
+                        setSelectedAppointmentId(appointment.appointmentId);
+                        setShowTreatmentModal(true); 
+                        setTreatmentToday(false); 
+                      }}
+                      className="flex items-center gap-2 w-full xs:w-auto"
                     >
-                      <Eye className="h-4 w-4" />
-                      Chi tiết
+                      <FileText className="h-4 w-4" />
+                      <span className="hidden sm:inline">Tạo hồ sơ điều trị</span>
+                      <span className="sm:hidden">Tạo hồ sơ</span>
                     </Button>
-                    {role === 'Dentist' && (
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => handleOpenTreatmentModal(appointment)}
-                        className="flex items-center gap-2"
-                      >
-                        <FileText className="h-4 w-4" />
-                        Tạo hồ sơ điều trị
-                      </Button>
-                    )}
+                  }
+                </div>
+
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 bg-blue-50 rounded-lg">
+                    <User className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Bệnh nhân</p>
+                    <p className="font-semibold text-gray-900 text-sm sm:text-base">{appointment.patientName}</p>
                   </div>
                 </div>
 
@@ -342,15 +360,9 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                       <p className="font-semibold text-gray-900">{appointment.patientName}</p>
                     </div>
                   </div>
-
-                  <div className="flex items-center space-x-2">
-                    <div className="p-2 bg-green-50 rounded-lg">
-                      <User className="h-4 w-4 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 font-medium">Bác sĩ</p>
-                      <p className="font-semibold text-gray-900">{appointment.dentistName}</p>
-                    </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Bác sĩ</p>
+                    <p className="font-semibold text-gray-900 text-sm sm:text-base">{appointment.dentistName}</p>
                   </div>
 
                   <div className="flex items-center space-x-2">
@@ -367,31 +379,34 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                       </p>
                     </div>
                   </div>
-
-                  <div className="flex items-center space-x-2">
-                    <div className="p-2 bg-indigo-50 rounded-lg">
-                      <FileText className="h-4 w-4 text-indigo-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 font-medium">Loại hẹn</p>
-                      <p className="font-semibold text-gray-900">
-                        {appointment.appointmentType === 'follow-up'
-                          ? 'Tái khám'
-                          : appointment.appointmentType === 'consult'
-                            ? 'Tư vấn'
-                            : appointment.appointmentType === 'treatment'
-                              ? 'Điều trị'
-                              : appointment.appointmentType === 'first-time'
-                                ? 'Khám lần đầu'
-                                : appointment.appointmentType}
-                      </p>
-                    </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Ngày & Giờ</p>
+                    <p className="font-semibold text-gray-900 text-sm sm:text-base">
+                      {formatDateVN(appointment.appointmentDate)}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      {formatTimeVN(appointment.appointmentTime)}
+                    </p>
                   </div>
                 </div>
 
-                {appointment.content && (
-                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border-l-4 border-blue-200">
-                    <p className="text-sm text-gray-700 line-clamp-2">{appointment.content}</p>
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 bg-indigo-50 rounded-lg">
+                    <FileText className="h-4 w-4 text-indigo-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Loại hẹn</p>
+                    <p className="font-semibold text-gray-900 text-sm sm:text-base">
+                      {appointment.appointmentType === 'follow-up'
+                        ? 'Tái khám'
+                        : appointment.appointmentType === 'consult'
+                          ? 'Tư vấn'
+                          : appointment.appointmentType === 'treatment'
+                            ? 'Điều trị'
+                            : appointment.appointmentType === 'first-time'
+                              ? 'Khám lần đầu '
+                              : appointment.appointmentType}
+                    </p>
                   </div>
                 )}
 
@@ -410,7 +425,26 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
         )}
       </div>
 
-      {/* Pagination */}
+              {appointment.content && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg border-l-4 border-blue-200">
+                  <p className="text-sm text-gray-700 line-clamp-2">{appointment.content}</p>
+                </div>
+              )}
+
+              {/* Timestamp */}
+              <div className="mt-4 pt-3 border-t border-gray-100">
+                <p className="text-xs text-gray-500">
+                  Tạo lúc: {formatDateVN(appointment.createdAt)}
+                  {appointment.updatedAt && (
+                    <span> • Cập nhật: {formatDateVN(appointment.updatedAt)}</span>
+                  )}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        ))
+      )}
+      </div>      {/* Pagination */}
       {sortedAppointments.length > 0 && (
         <Card className="p-4">
           <Pagination
