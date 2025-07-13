@@ -16,8 +16,8 @@ export interface TreatmentRecord {
   toothPosition: string
   quantity: number
   unitPrice: number
-  discountAmount: number| null
-  discountPercentage: number| null
+  discountAmount: number
+  discountPercentage: number
   totalAmount: number
   consultantEmployeeID: number | null
   treatmentStatus: string

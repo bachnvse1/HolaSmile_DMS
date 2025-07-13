@@ -53,7 +53,6 @@ import UserManagement from "./pages/auth/UserManagement";
 import AssignedTasks from "./pages/assistant/AssignedTasks";
 import ProcedureManagement from "./pages/proceduce/ProcedureManagement";
 import WarrantyCardManagement from "./pages/warrantyCard/WarrantyCardManagement";
-import InvoiceList from './pages/invoice/InvoiceList';
 
 function App() {
     return (
@@ -137,7 +136,6 @@ function App() {
                 <Route path="/inventory/create" element={<CreateSupplyPage />} />
                 <Route path="/inventory/:supplyId" element={<SupplyDetailPage />} />
                 <Route path="/inventory/:supplyId/edit" element={<EditSupplyPage />} />
-                <Route path="/invoices" element={<InvoiceList/>}/>
             </Routes>
         </>
     );

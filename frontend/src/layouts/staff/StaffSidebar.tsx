@@ -140,8 +140,8 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           id: 'finance-invoices',
           label: 'Hóa Đơn',
           icon: <FileText className="h-4 w-4" />,
-          path: '/invoices',
-          roles: ['Receptionist']
+          path: '/finance/invoices',
+          roles: ['Administrator', 'Owner', 'Receptionist']
         },
         {
           id: 'finance-payments',
