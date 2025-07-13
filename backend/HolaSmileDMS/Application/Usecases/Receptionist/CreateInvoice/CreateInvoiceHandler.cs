@@ -78,7 +78,7 @@ public class CreateInvoiceHandler : IRequestHandler<CreateInvoiceCommand, string
 
         // Tính remaining & status
         var remaining = totalAmount - newTotalPaid;
-        var orderCode = $"{DateTime.Now:yyyyMMddHHmmss}{new Random().Next(100000, 999999)}";
+        var orderCode = $"{DateTime.Now:yyMMddHHmm}{new Random().Next(10, 99)}";
 
         var invoice = new Invoice
         {
