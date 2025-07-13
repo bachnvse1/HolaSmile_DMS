@@ -48,7 +48,7 @@ namespace Application.Usecases.Assistants.CreateInstruction
             {
                 var template = await _templateRepository.GetByIdAsync(request.Instruc_TemplateID.Value, cancellationToken);
                 if (template == null || template.IsDeleted)
-                    throw new Exception(MessageConstants.MSG.MSG114); // "Mẫu chỉ dẫn không tồn tại"
+                    throw new Exception(MessageConstants.MSG.MSG115); // "Mẫu chỉ dẫn không tồn tại"
             }
 
             var instruction = new Instruction
@@ -65,7 +65,7 @@ namespace Application.Usecases.Assistants.CreateInstruction
             if (!result)
                 throw new Exception(MessageConstants.MSG.MSG58); // "Có lỗi xảy ra"
 
-            return MessageConstants.MSG.MSG113; // "Tạo chỉ dẫn thành công"
+            return MessageConstants.MSG.MSG114; // "Tạo chỉ dẫn thành công"
         }
     }
 }
