@@ -17,7 +17,6 @@ import {
 import { toast } from 'react-toastify';
 import { Badge } from '@/components/ui/badge';
 import { ScheduleCalendar } from './ScheduleCalendar';
-import { getErrorMessage } from '@/utils/formatUtils';
 
 interface DentistScheduleEditorWithCalendarProps {
   dentistId?: number;
@@ -151,7 +150,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
       setScheduleToDelete(null);
       await refetch();
     } catch (error) {
-      toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi xóa lịch!');
+      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi xóa lịch!');
     }
   };
   const handleSubmit = async () => {
@@ -194,7 +193,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
       // Cập nhật lại dữ liệu
       await refetch();
     } catch (error) {
-      toast.error(getErrorMessage(error) || 'Có lỗi xảy ra!');
+      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra!');
     }
   };
   // Xử lý tạo nhiều lịch làm việc cùng lúc
@@ -243,7 +242,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
       // Cập nhật lại dữ liệu
       await refetch();
     } catch (error) {
-      toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi tạo lịch!');
+      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi tạo lịch!');
     }
   };
   // Mở dialog tạo nhiều lịch
@@ -560,7 +559,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
                 </>
               ) : (
                 <>
-                  <Trash className="h-4 w-4 mr-2 text-white" />
+                  <Trash className="h-4 w-4 mr-2" />
                   Xác nhận hủy
                 </>
               )}

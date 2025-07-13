@@ -1,4 +1,4 @@
-import { format, addDays, startOfWeek, endOfWeek, parseISO, isValid, isBefore,isEqual, isAfter, addMonths, parse } from 'date-fns';
+import { format, addDays, startOfWeek, endOfWeek, parseISO, isValid, isBefore, isAfter, addMonths, parse } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { ShiftType } from '../types/schedule';
 
@@ -74,7 +74,7 @@ export const isPastDate = (date: Date | string): boolean => {
     date = parsedDate;
   }
   
-   return isBefore(date, today) || isEqual(date, today);
+  return isBefore(date, today);
 };
 
 // Kiểm tra xem ngày có trong tương lai xa không (> 3 tháng)
@@ -102,14 +102,3 @@ export function parseLocalDate(dateString: string) {
   const [hour = 0, minute = 0, second = 0] = (timePart || '00:00:00').split(':').map(Number);
   return new Date(year, month - 1, day, hour, minute, second);
 }
-
-export const formatDateVN = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-export const formatTimeVN = (timeString: string) => timeString.substring(0, 5);

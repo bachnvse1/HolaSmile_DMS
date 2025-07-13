@@ -29,17 +29,3 @@ export const useAppointmentsByDateRange = (startDate: string, endDate: string) =
     staleTime: 2 * 60 * 1000,
   });
 };
-
-// Hook for getting single appointment detail
-export const useAppointmentDetail = (appointmentId: number) => {
-  return useQuery<AppointmentDTO>({
-    queryKey: ['appointments', 'detail', appointmentId],
-    queryFn: async () => {
-      const response = await axiosInstance.get(`/appointment/${appointmentId}`);
-      return response.data;
-    },
-    enabled: !!appointmentId,
-    refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-};

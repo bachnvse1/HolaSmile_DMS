@@ -48,4 +48,6 @@ public class TreatmentRecord
 
     public ICollection<TreatmentProgress> TreatmentProgresses { get; set; }
     public ICollection<Invoice> Invoices { get; set; }
+    public ICollection<Prescription> Prescriptions { get; set; }
+    public ICollection<Instruction> Instructions { get; set; }
 }

@@ -38,12 +38,8 @@ public class Appointment
 
     public int? CreatedBy { get; set; }
     public int? UpdatedBy { get; set; }
-    public bool IsDeleted { get; set; }
-    [NotMapped]
-    public bool IsExistPrescription { get; set; }
 
-    [NotMapped]
-    public bool IsExistInstruction { get; set; }
+    public bool IsDeleted { get; set; }
 
     public ICollection<TreatmentRecord> TreatmentRecords { get; set;}
 }

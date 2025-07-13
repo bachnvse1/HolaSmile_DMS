@@ -10,13 +10,11 @@ namespace Application.Usecases.UserCommon.ViewPatientPrescription
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IPrescriptionRepository _prescriptionRepository;
-        private readonly IPatientRepository _patientRepository;
         private readonly IDentistRepository _dentistRepository;
-        public ViewPatientPrescriptionHandler(IHttpContextAccessor httpContextAccessor, IPatientRepository patientRepository, IPrescriptionRepository prescriptionRepository, IDentistRepository dentistRepository)
+        public ViewPatientPrescriptionHandler(IHttpContextAccessor httpContextAccessor, IPrescriptionRepository prescriptionRepository, IDentistRepository dentistRepository)
         {
             _httpContextAccessor = httpContextAccessor;
             _prescriptionRepository = prescriptionRepository;
-            _patientRepository = patientRepository;
             _dentistRepository = dentistRepository;
         }
         public async Task<ViewPrescriptionDTO> Handle(ViewPatientPrescriptionCommand request, CancellationToken cancellationToken)
@@ -33,11 +31,9 @@ namespace Application.Usecases.UserCommon.ViewPatientPrescription
 
             var existPrescription = await _prescriptionRepository.GetPrescriptionByPrescriptionIdAsync(request.PrescriptionId) ?? throw new Exception(MessageConstants.MSG.MSG16);
 
-            var existPatient = await _patientRepository.GetPatientByUserIdAsync(currentUserId);
-
             if (string.Equals(currentUserRole, "patient", StringComparison.OrdinalIgnoreCase))
             {
-                if(existPatient.PatientID != existPrescription.Appointment?.PatientId)
+                if(currentUserId!= existPrescription.Appointment?.PatientId)
                 {
                     throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
                 }
@@ -47,8 +43,6 @@ namespace Application.Usecases.UserCommon.ViewPatientPrescription
 
             var result = new ViewPrescriptionDTO
             {
-                PrescriptionId = existPrescription.PrescriptionId,
-                AppointmentId = existPrescription.AppointmentId ?? 0,
                 content = existPrescription.Content,
                 CreatedAt = existPrescription.CreatedAt,
                 CreatedBy = createdByDentist.User?.Fullname ?? "Unknown Dentist",

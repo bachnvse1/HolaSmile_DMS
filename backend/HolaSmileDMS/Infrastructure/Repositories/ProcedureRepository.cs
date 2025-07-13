@@ -21,12 +21,9 @@ public class ProcedureRepository : IProcedureRepository
             .ToListAsync();
     }
 
-    public async Task<Procedure?> GetProcedureByProcedureId(int procedureId)
+    public async Task<Procedure> GetProcedureByProcedureId(int procedureId)
     {
-        var procedure = await _context.Procedures
-                      .Include(p => p.SuppliesUsed)
-                      .ThenInclude(su => su.Supplies)
-                      .FirstOrDefaultAsync(p => p.ProcedureId == procedureId);
+        var procedure = await _context.Procedures.FindAsync(procedureId);
         return procedure;
     }
 
@@ -38,6 +35,7 @@ public class ProcedureRepository : IProcedureRepository
 
     public async Task<bool> UpdateProcedureAsync(Procedure procedure)
     {
+        var existingProcedure = await _context.Procedures.FindAsync(procedure.ProcedureId);
         _context.Procedures.Update(procedure);
         return await _context.SaveChangesAsync() > 0;
     }
@@ -56,31 +54,5 @@ public class ProcedureRepository : IProcedureRepository
     {
         _context.Procedures.Update(procedure);
         return await _context.SaveChangesAsync(cancellationToken) > 0;
-    }
-
-    public async Task<bool> CreateSupplyUsed(List<SuppliesUsed> suppliesUsed)
-    {
-        _context.SuppliesUseds.AddRange(suppliesUsed);
-        return await _context.SaveChangesAsync() > 0;
-    }
-
-    public async Task<bool> DeleteSuppliesUsed(int procedureId)
-    {
-        var existing = await _context.SuppliesUseds
-            .Where(su => su.ProcedureId == procedureId)
-            .ToListAsync();
-
-        if (!existing.Any()) return true;
-
-        _context.SuppliesUseds.RemoveRange(existing);
-        return await _context.SaveChangesAsync() > 0;
-    }
-
-    public async Task<List<SuppliesUsed>> GetSuppliesUsedByProcedureId(int procedureId)
-    {
-        return await _context.SuppliesUseds
-            .Where(su => su.ProcedureId == procedureId)
-            .Include(su => su.Supplies)
-            .ToListAsync();
     }
 }

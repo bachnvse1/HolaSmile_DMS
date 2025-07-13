@@ -43,8 +43,7 @@ public class ViewListWarrantyCardsHandler : IRequestHandler<ViewListWarrantyCard
                 Status = card.Status,
                 ProcedureId = procedure?.ProcedureId,
                 ProcedureName = procedure?.ProcedureName ?? "Không xác định",
-                PatientName = patientName,
-                TreatmentRecordId = treatment.TreatmentRecordID
+                PatientName = patientName
             };
         }).ToList();
     }

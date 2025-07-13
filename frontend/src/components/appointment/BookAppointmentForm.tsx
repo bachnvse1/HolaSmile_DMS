@@ -14,7 +14,6 @@ import { TIME_SLOTS } from '../../constants/appointment';
 import type { AppointmentFormData } from '../../lib/validations/appointment';
 import type { TimeSlot, Dentist } from '../../types/appointment';
 import { toast } from 'react-toastify';
-import { getErrorMessage } from '@/utils/formatUtils';
 
 export const BookAppointmentForm = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -124,8 +123,8 @@ export const BookAppointmentForm = () => {
           autoClose: 5000,
         })
       },
-      onError: (error) => {
-        setError(getErrorMessage(error)|| 'Có lỗi xảy ra khi đặt lịch');
+      onError: (error: Error) => {
+        setError(error.message || 'Có lỗi xảy ra khi đặt lịch');
       }
     });
   };

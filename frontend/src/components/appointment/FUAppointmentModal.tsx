@@ -5,7 +5,6 @@ import axiosInstance from "@/lib/axios";
 import type { Dentist } from "@/types/appointment";
 import { ArrowLeft, Calendar } from "lucide-react";
 import { useNavigate } from "react-router";
-import { getErrorMessage } from "@/utils/formatUtils";
 interface FUAppointmentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -40,8 +39,8 @@ export const FUAppointmentModal: React.FC<FUAppointmentModalProps> = ({
       });
       toast.success("Tạo lịch tái khám thành công!");
       onClose();
-    } catch (error) {
-      toast.error(getErrorMessage(error)|| "Có lỗi xảy ra!");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Có lỗi xảy ra!");
     }
   };
 

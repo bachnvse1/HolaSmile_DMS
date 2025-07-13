@@ -1,9 +1,7 @@
 ﻿using System.Security.Claims;
-using Application.Usecases.Dentist.ManageSchedule;
 using Application.Usecases.Dentist.UpdateSchedule;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;
-using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,39 +14,28 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists
     {
         private readonly ApplicationDbContext _context;
         private readonly EditScheduleHandle _handler;
-        private readonly IMediator _mediator;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly Mock<IMediator> _mediatorMock; // 👈 để verify nếu cần
 
         public EditScheduleIntegrationTests()
         {
-            _mediatorMock = new Mock<IMediator>();
-
             var services = new ServiceCollection();
 
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseInMemoryDatabase("TestDB_CreateSchedule"));
+                options.UseInMemoryDatabase(databaseName: "TestDb_EditSchedule"));
 
             services.AddHttpContextAccessor();
 
-            // ✅ Đăng ký đúng kiểu IMediator với mock object
-            services.AddSingleton<IMediator>(_mediatorMock.Object);
-
             var provider = services.BuildServiceProvider();
-
             _context = provider.GetRequiredService<ApplicationDbContext>();
             _httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
-            _mediator = provider.GetRequiredService<IMediator>(); // sẽ lấy mock đã đăng ký
 
             SeedData();
 
             _handler = new EditScheduleHandle(
-                _httpContextAccessor,
-                new ScheduleRepository(_context),
                 new DentistRepository(_context),
-                new OwnerRepository(_context),
-                _mediator
-                );
+                new ScheduleRepository(_context),
+                _httpContextAccessor
+            );
         }
 
         private void SeedData()

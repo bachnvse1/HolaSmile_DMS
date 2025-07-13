@@ -87,7 +87,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
         public async System.Threading.Tasks.Task UTCID03_Not_Assistant_Role_Throws()
         {
             // Arrange
-            SetupHttpContext("Patient");
+            SetupHttpContext("Receptionist");
 
             // Act & Assert
             var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>

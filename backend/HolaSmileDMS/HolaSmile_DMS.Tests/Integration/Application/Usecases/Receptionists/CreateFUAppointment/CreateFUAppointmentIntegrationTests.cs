@@ -4,11 +4,9 @@ using Application.Usecases.Receptionist.CreateFUAppointment;
 using HDMS_API.Infrastructure.Persistence;
 using HDMS_API.Infrastructure.Repositories;
 using Infrastructure.Repositories;
-using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using Xunit;
 
 namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
@@ -27,7 +25,6 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
                 options.UseInMemoryDatabase("TestDb_CreateFUAppointment"));
 
             services.AddHttpContextAccessor();
-            var mockMediator = new Mock<IMediator>();
 
             var provider = services.BuildServiceProvider();
             _context = provider.GetRequiredService<ApplicationDbContext>();
@@ -39,8 +36,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
                 new AppointmentRepository(_context),
                 _httpContextAccessor,
                 new PatientRepository(_context),
-                new DentistRepository(_context),
-                mockMediator.Object
+                new DentistRepository(_context)
             );
         }
 
