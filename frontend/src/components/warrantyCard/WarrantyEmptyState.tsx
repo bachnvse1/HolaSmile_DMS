@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button2"
 import { FileText } from "lucide-react"
 
 interface WarrantyEmptyStateProps {

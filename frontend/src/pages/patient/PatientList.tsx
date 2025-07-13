@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button2"
 import { Filter, UserPlus } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import PatientTable from "@/components/patient/PatientTable"

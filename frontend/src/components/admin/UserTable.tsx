@@ -1,5 +1,5 @@
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button2"
 import { UserTableRow } from "./UserTableRow"
 import { UserTableSkeleton } from "./UserTableSkeleton"
 import type { User } from "@/types/user"

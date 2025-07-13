@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button2"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -23,8 +23,7 @@ export default function PatientTableRow({ patient, index, onEdit }: Props) {
     const navigate = useNavigate();
     return (
         <tr
-            className={`shadow-sm ${rowBg} hover:bg-gray-100 transition-colors duration-200`}
-            style={{ boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)" }}
+            className={`shadow-sm custom-row-shadow ${rowBg} hover:bg-gray-100 transition-colors duration-200`}
         >
             <td className="p-4 first:rounded-l-md">{patient.fullname}</td>
             <td className="p-4">
