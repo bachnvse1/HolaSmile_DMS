@@ -24,22 +24,15 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'confirmed' | 'canceled'>('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5); // Make it configurable
+  const [itemsPerPage, setItemsPerPage] = useState(5);
   const { role } = useAuth();
 
   const [showTreatmentModal, setShowTreatmentModal] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<number | null>(null);
+  const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null);
 
   const treatmentFormMethods = useForm<TreatmentFormData>();
   const [treatmentToday, setTreatmentToday] = useState<boolean | null>(null);
-
-
-
-  // const getStatusColor = (status: 'confirmed' | 'canceled') => {
-  //   return status === 'confirmed'
-  //     ? 'bg-green-100 text-green-800'
-  //     : 'bg-red-100 text-red-800';
-  // };
 
   const getStatusText = (
     status: 'confirmed' | 'canceled' | 'attended' | 'absented'
@@ -81,20 +74,19 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
     const matchesStatus = statusFilter === 'all' || appointment.status === statusFilter;
 
     return matchesSearch && matchesStatus;
-  });  // Sort appointments by date and time - nearest to current time first
+  });
+
+  // Sort appointments by date and time - nearest to current time first
   const sortedAppointments = [...filteredAppointments].sort((a, b) => {
     try {
-      // Parse dates more carefully
       const dateOnlyA = a.appointmentDate.split('T')[0];
       const timeOnlyA = a.appointmentTime.split('.')[0];
       const dateOnlyB = b.appointmentDate.split('T')[0];
       const timeOnlyB = b.appointmentTime.split('.')[0];
 
-      // Create datetime objects
       let dateA = new Date(`${dateOnlyA}T${timeOnlyA}`);
       let dateB = new Date(`${dateOnlyB}T${timeOnlyB}`);
 
-      // Fallback to manual parsing if ISO fails
       if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
         const [yearA, monthA, dayA] = dateOnlyA.split('-').map(Number);
         const [hourA, minuteA, secondA = 0] = timeOnlyA.split(':').map(Number);
@@ -106,17 +98,15 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
       }
 
       const now = new Date();
-      // Ưu tiên lịch tương lai lên trước
       const isAFuture = dateA >= now;
       const isBFuture = dateB >= now;
       if (isAFuture && !isBFuture) return -1;
       if (!isAFuture && isBFuture) return 1;
 
-      // Nếu cùng nhóm (đều tương lai hoặc đều quá khứ), sắp xếp gần hiện tại nhất
       return Math.abs(dateA.getTime() - now.getTime()) - Math.abs(dateB.getTime() - now.getTime());
     } catch (error) {
       console.error('Error sorting appointments:', error, { a, b });
-      return 0; // Keep original order if parsing fails
+      return 0;
     }
   });
 
@@ -125,6 +115,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedAppointments = sortedAppointments.slice(startIndex, endIndex);
+
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
@@ -136,7 +127,6 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
     }
   }, [showTreatmentModal, selectedAppointmentId, treatmentFormMethods]);
 
-
   // Handle page change
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -145,7 +135,15 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   // Handle items per page change
   const handleItemsPerPageChange = (value: number) => {
     setItemsPerPage(value);
-    setCurrentPage(1); // Reset to first page
+    setCurrentPage(1);
+  };
+
+  // Handle treatment modal opening
+  const handleOpenTreatmentModal = (appointment: AppointmentDTO) => {
+    setSelectedAppointmentId(appointment.appointmentId);
+    setSelectedPatientId(appointment.patientId||null); // Assuming patientId exists in AppointmentDTO
+    setShowTreatmentModal(true);
+    setTreatmentToday(false);
   };
 
   // Group appointments by status for summary
@@ -153,6 +151,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   const cancelledCount = filteredAppointments.filter(a => a.status === 'canceled').length;
   const attendedCount = filteredAppointments.filter(a => a.status === 'attended').length;
   const absentedCount = filteredAppointments.filter(a => a.status === 'absented').length;
+
   return (
     <div className="space-y-6">
       {/* Header & Filters */}
@@ -207,6 +206,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                 </div>
               </CardContent>
             </Card>
+
             <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
               <CardContent className="p-4">
                 <div className="flex items-center space-x-3">
@@ -385,15 +385,16 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                                 ? 'Khám lần đầu'
                                 : appointment.appointmentType}
                       </p>
+
                     </div>
                   </div>
-                </div>
 
-              {appointment.content && (
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg border-l-4 border-blue-200">
-                  <p className="text-sm text-gray-700 line-clamp-2">{appointment.content}</p>
-                </div>
-              )}
+                {appointment.content && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border-l-4 border-blue-200">
+                    <p className="text-sm text-gray-700 line-clamp-2">{appointment.content}</p>
+
+                  </div>
+                )}
 
                 {/* Timestamp */}
                 <div className="mt-4 pt-3 border-t border-gray-100">
@@ -410,6 +411,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
         )}
       </div>
 
+
       {/* Pagination */}
       {sortedAppointments.length > 0 && (
         <Card className="p-4">
@@ -423,6 +425,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
           />
         </Card>
       )}
+
       <TreatmentModal
         formMethods={treatmentFormMethods}
         isOpen={showTreatmentModal}
@@ -435,6 +438,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
         onSubmit={() => {
           setShowTreatmentModal(false);
         }}
+        patientId={selectedPatientId ?? undefined}
       />
     </div>
   );
