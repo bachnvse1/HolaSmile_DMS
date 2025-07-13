@@ -1,6 +1,7 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Receptionist.CreateFUAppointment;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using System.Security.Claims;
@@ -14,6 +15,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
     private readonly Mock<IPatientRepository> _patientRepoMock;
     private readonly Mock<IDentistRepository> _dentistRepoMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
+    private readonly Mock<IMediator> _mediatorMock;
     private readonly CreateFUAppointmentHandle _handler;
 
     public CreateFUAppointmentHandleTests()
@@ -22,11 +24,14 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
         _patientRepoMock = new Mock<IPatientRepository>();
         _dentistRepoMock = new Mock<IDentistRepository>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+        _mediatorMock = new Mock<IMediator>();
         _handler = new CreateFUAppointmentHandle(
             _appointmentRepoMock.Object,
             _httpContextAccessorMock.Object,
             _patientRepoMock.Object,
-            _dentistRepoMock.Object);
+            _dentistRepoMock.Object,
+            _mediatorMock.Object
+            );
     }
 
     private void SetupHttpContext(string role, int userId)

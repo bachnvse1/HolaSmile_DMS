@@ -260,7 +260,7 @@ export function InvoiceDetailModal({
                 label="Phương thức thanh toán"
                 value={
                   <Badge variant="outline" className="bg-white">
-                    {selectedInvoice.paymentMethod}
+                    {selectedInvoice.paymentMethod==="cash" ? "Tiền mặt" : "Chuyển khoản"}
                   </Badge>
                 }
               />

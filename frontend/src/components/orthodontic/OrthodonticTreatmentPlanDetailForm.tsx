@@ -427,7 +427,12 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
       const storageKey = mode === 'edit' ? 'editBasicPlanData' : 'basicPlanData';
       sessionStorage.removeItem(storageKey);
 
-      navigate(`/patients/${patientId}/orthodontic-treatment-plans`);
+      // Navigate based on user role
+      if (userInfo?.role === 'Patient') {
+        navigate(`/patient/orthodontic-treatment-plans`);
+      } else {
+        navigate(`/patients/${patientId}/orthodontic-treatment-plans`);
+      }
     } catch (error) {
       console.error('Error saving treatment plan:', error);
     }
@@ -442,9 +447,9 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
     if (mode === 'edit') {
       navigate(`/patients/${patientId}/orthodontic-treatment-plans/${planId}/edit`);
     } else if (userInfo?.role === 'Patient') {
+      // For Patient role, always go to patient-specific route
       navigate(`/patient/orthodontic-treatment-plans`);
-    }
-    else if (mode === 'view') {
+    } else if (mode === 'view') {
       navigate(`/patients/${patientId}/orthodontic-treatment-plans`);
     } else {
       navigate(`/patients/${patientId}/orthodontic-treatment-plans/create`);
@@ -458,7 +463,12 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
     setIsDeleting(true);
     try {
       await deactivateMutation.mutateAsync(parseInt(planId || '0'));
-      navigate(`/patients/${patientId}/orthodontic-treatment-plans`);
+      // Navigate based on user role
+      if (userInfo?.role === 'Patient') {
+        navigate(`/patient/orthodontic-treatment-plans`);
+      } else {
+        navigate(`/patients/${patientId}/orthodontic-treatment-plans`);
+      }
     } catch (error) {
       console.error('Error deleting treatment plan:', error);
     } finally {

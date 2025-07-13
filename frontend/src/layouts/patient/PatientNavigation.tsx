@@ -61,14 +61,15 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
               >
                 Lịch Hẹn
               </button>
+
               <button 
-                onClick={() => navigate('/patient/treatment-records')} 
+                onClick={() => navigate('/patient/treatment-records')}
                 className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
               >
                 Hồ Sơ 
               </button>
               <button 
-                onClick={() => navigate('/patient/orthodontic-treatment-plans')} 
+                onClick={() => navigate('/patient/orthodontic-treatment-plans')}
                 className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
               >
                 Kế Hoạch 
@@ -174,13 +175,13 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
               Lịch Hẹn
             </button>
             <button 
-              onClick={() => navigate('/patient/treatment-records')} 
+              onClick={() => navigate('/patient/treatment-records')}
               className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
             >
               Hồ Sơ 
             </button>
             <button 
-              onClick={() => navigate('/patient/orthodontic-treatment-plans')} 
+              onClick={() => navigate('/patient/orthodontic-treatment-plans')}
               className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
             >
               Kế Hoạch 

@@ -4,6 +4,7 @@ import type {
   CreateSupplyRequest,
   UpdateSupplyRequest,
 } from "@/types/supply";
+
 import type { SupplyItem } from "@/types/procedure"
 
 export const mapToSupplyItem = (supply: Supply): SupplyItem => ({
@@ -102,5 +103,4 @@ export const supplyApi = {
     return response.data;
   },
 };
-
 

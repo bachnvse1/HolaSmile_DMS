@@ -48,7 +48,7 @@ interface CreateInvoiceModalProps {
 // Constants for better maintainability
 const PAYMENT_METHODS = [
   { value: "cash", label: "Tiền mặt" },
-  { value: "PayOS", label: "PayOS" },
+  { value: "PayOS", label: "Chuyển khoản" },
 ] as const;
 
 const TRANSACTION_TYPES = [

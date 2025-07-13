@@ -59,10 +59,12 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IInvoiceRepository, InvoiceRepository>();
             services.AddScoped<IPrescriptionRepository, PrescriptionRepository>();
             services.AddScoped<IInstructionRepository, InstructionRepository>();
+            services.AddScoped<IOwnerRepository, OwnerRepository>();
             services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
             services.AddScoped<IPdfGenerator, PdfGenerator>();
             services.AddScoped<IPrinter, Printer>();
             services.AddScoped<IPrescriptionTemplateRepository, PrescriptionTemplateRepository>();
+            services.AddScoped<IInstructionTemplateRepository, InstructionTemplateRepository>();
             services.AddScoped<IPayOSService, PayOSService>();
             services.Configure<PayOSOptions>(configuration.GetSection("PayOS"));
             services.AddScoped<IPayOSConfiguration, PayOSConfiguration>();
