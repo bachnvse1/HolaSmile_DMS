@@ -88,7 +88,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
                 DentistId = 2,
                 AppointmentDate = DateTime.Today,
                 AppointmentTime = new TimeSpan(9, 0, 0),
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             });
 
             _context.TreatmentRecords.Add(new TreatmentRecord
@@ -101,7 +101,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
                 Quantity = 1,
                 UnitPrice = 500000,
                 TotalAmount = 500000,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             });
 
             _context.OrthodonticTreatmentPlans.Add(new OrthodonticTreatmentPlan

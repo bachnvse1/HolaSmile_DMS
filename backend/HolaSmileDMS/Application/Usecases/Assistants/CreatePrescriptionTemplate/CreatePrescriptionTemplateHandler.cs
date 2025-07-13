@@ -28,7 +28,7 @@ namespace Application.Usecases.Assistants.CreatePrescriptionTemplate
             {
                 PreTemplateName = request.PreTemplateName,
                 PreTemplateContext = request.PreTemplateContext,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
                 IsDeleted = false
             };
 

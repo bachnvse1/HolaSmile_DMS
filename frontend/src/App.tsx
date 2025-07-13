@@ -33,6 +33,8 @@ import { CreateOrthodonticTreatmentPlanBasicPage } from './pages/orthodontic/Cre
 import { CreateOrthodonticTreatmentPlanDetailPage } from './pages/orthodontic/CreateOrthodonticTreatmentPlanDetailPage';
 import { PatientOrthodonticListPage } from './pages/patient/PatientOrthodonticListPage';
 import { PatientOrthodonticDetailPage } from './pages/patient/PatientOrthodonticDetailPage';
+import { TreatmentRecordImagesPage } from './pages/TreatmentRecordImagesPage';
+import { OrthodonticTreatmentPlanImagesPage } from './pages/OrthodonticTreatmentPlanImagesPage';
 import { PrescriptionTemplatesPage } from './pages/prescription/PrescriptionTemplatesPage';
 import { CreatePrescriptionTemplatePage } from './pages/prescription/CreatePrescriptionTemplatePage';
 import { EditPrescriptionTemplatePage } from './pages/prescription/EditPrescriptionTemplatePage';
@@ -125,6 +127,14 @@ function App() {
           element={<OrthodonticTreatmentPlanEditDetailPage />}
         />
         <Route
+          path="/patients/:patientId/orthodontic-treatment-plans/:planId/images"
+          element={<OrthodonticTreatmentPlanImagesPage />}
+        />
+        <Route
+          path="/patients/:patientId/treatment-records/:recordId/images"
+          element={<TreatmentRecordImagesPage />}
+        />
+        <Route
           path="/patient/orthodontic-treatment-plans"
           element={<PatientOrthodonticListPage />}
         />
@@ -134,7 +144,6 @@ function App() {
         />
         <Route path="/patient/follow-up" element={<FUAppointmentPage />} />
         <Route path="/administrator/user-list" element={<UserManagement />} />
-        <Route path="/patient/follow-up" element={<FUAppointmentPage />} />
         <Route
           path="/prescription-templates"
           element={<PrescriptionTemplatesPage />}
@@ -155,9 +164,6 @@ function App() {
         <Route path="/inventory/create" element={<CreateSupplyPage />} />
         <Route path="/inventory/:supplyId" element={<SupplyDetailPage />} />
         <Route path="/inventory/:supplyId/edit" element={<EditSupplyPage />} />
-        <Route path="/administrator/user-list" element={<UserManagement />} />
-        <Route path="/assistant/assigned-tasks" element={<AssignedTasks />} />
-        <Route path="/administrator/user-list" element={<UserManagement />} />
         <Route path="/assistant/assigned-tasks" element={<AssignedTasks />} />
         <Route path="/proceduces" element={<ProcedureManagement />} />
       </Routes>

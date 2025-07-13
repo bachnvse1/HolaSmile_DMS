@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { Plus, Search, Filter, FileText, Calendar, DollarSign, ArrowLeft, Trash2 } from 'lucide-react';
+import { Plus, Search, Filter, FileText, Calendar, DollarSign, ArrowLeft, Trash2, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -130,6 +130,11 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
 
   const handleEditPlan = (planId: number) => {
     navigate(`/patients/${patientId}/orthodontic-treatment-plans/${planId}/edit`);
+  };
+
+  const handleViewPlanImages = (planId: number) => {
+    // You can navigate to a dedicated images page or open a modal
+    navigate(`/patients/${patientId}/orthodontic-treatment-plans/${planId}/images`);
   };
 
   const deactivateMutation = useDeactivateOrthodonticTreatmentPlan();
@@ -549,6 +554,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
                 onView={() => handleViewPlan(plan.planId)}
                 onEdit={() => handleEditPlan(plan.planId)}
                 onDelete={() => handleDeletePlan(plan.planId)}
+                onViewImages={() => handleViewPlanImages(plan.planId)}
               />
             ))}
 
@@ -592,9 +598,10 @@ interface TreatmentPlanCardProps {
   onView: () => void;
   onEdit: () => void;
   onDelete?: () => void;
+  onViewImages?: (planId: number) => void;
 }
 
-const TreatmentPlanCard: React.FC<TreatmentPlanCardProps> = ({ plan, onView, onEdit, onDelete }) => {
+const TreatmentPlanCard: React.FC<TreatmentPlanCardProps> = ({ plan, onView, onEdit, onDelete, onViewImages }) => {
   const userInfo = useUserInfo();
   const isDentist = userInfo?.role === 'Dentist';
   return (
@@ -652,9 +659,15 @@ const TreatmentPlanCard: React.FC<TreatmentPlanCardProps> = ({ plan, onView, onE
             <Button variant="outline" size="sm" onClick={onView}>
               Chi Tiết
             </Button>
+            {onViewImages && (
+              <Button variant="outline" size="sm" onClick={() => onViewImages(plan.planId)} className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 w-full sm:w-auto">
+                <Camera className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Ảnh</span>
+              </Button>
+            )}
             {isDentist && (
               <>
-                <Button variant="outline" size="sm" onClick={onEdit} className='text-blue-600 hover:text-blue-700 hover:bg-red-50 w-full sm:w-auto'>
+                <Button variant="outline" size="sm" onClick={onEdit} className='text-blue-600 hover:text-blue-700 hover:bg-blue-50 w-full sm:w-auto'>
                   Chỉnh Sửa
                 </Button>
                 <Button variant="outline" size="sm" onClick={onDelete} className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto">

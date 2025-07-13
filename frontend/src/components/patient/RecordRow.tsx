@@ -1,9 +1,10 @@
-import { Calendar, Clock, Edit, X, BarChart2, UserCheck } from "lucide-react"
+import { Calendar, Clock, Edit, X, BarChart2, UserCheck, Camera } from "lucide-react"
 import { Link } from "react-router"
 import { Button } from "@/components/ui/button"
 import type { TreatmentRecord } from "@/types/treatment"
 import { formatCurrency } from "@/utils/format"
 import { formatDateOnly } from "@/utils/date"
+import { useNavigate } from "react-router"
 
 interface RecordRowProps {
   record: TreatmentRecord
@@ -44,6 +45,7 @@ const getVietnameseStatus = (status: string) => {
 }
 
 const RecordRow: React.FC<RecordRowProps> = ({ record, onEdit, onToggleDelete, patientId, readonly }) => {
+  const navigate = useNavigate();
   return (
     <tr className={`hover:bg-gray-50 ${record.isDeleted ? "opacity-50 bg-gray-50" : ""}`}>
       <td className="px-6 py-4 whitespace-nowrap">
@@ -135,6 +137,13 @@ const RecordRow: React.FC<RecordRowProps> = ({ record, onEdit, onToggleDelete, p
               <X className="h-3 w-3" />
               {record.isDeleted ? "Khôi phục" : "Xoá"}
             </button>
+              <button
+                onClick={() => navigate(`/patients/${patientId}/treatment-records/${record.treatmentRecordID}/images`)}
+                className="bg-white border border-purple-300 text-purple-700 px-2 py-1 rounded-md text-sm font-medium hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-500 flex items-center gap-1"
+              >
+                <Camera className="h-3 w-3" />
+                Ảnh
+              </button>
             <Button
               asChild
               variant="outline"
