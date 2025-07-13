@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import "react-toastify/dist/ReactToastify.css"
 import PatientTreatmentRecordsSection from "@/components/patient/PatientTreatmentRecordsSection"
 import { useUserInfo } from "@/hooks/useUserInfo"
+import { Input } from "@/components/ui/input"
 
 // Types
 type Gender = "Nam" | "Nữ"
@@ -500,7 +501,7 @@ export default function ViewProfile() {
                   >
                     <Camera size={16} />
                   </label>
-                  <input
+                  <Input
                     type="file"
                     id="avatarInput"
                     accept={ACCEPTED_IMAGE_TYPES.join(",")}
