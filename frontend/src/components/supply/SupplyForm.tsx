@@ -16,6 +16,7 @@ import {
 } from '@/hooks/useSupplies';
 import { SupplyUnit } from '@/types/supply';
 import { useQueryClient } from '@tanstack/react-query';
+import { getErrorMessage } from '@/utils/formatUtils';
 
 const supplySchema = z.object({
   name: z.string().min(1, 'Tên vật tư là bắt buộc'),
@@ -80,12 +81,11 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
         }, {
           onSuccess: (data) => {
             const response = data as any;
-            toast.success(response.message ||'Tạo vật tư thành công');
+            toast.success(response.message || 'Tạo vật tư thành công');
             navigate('/inventory');
           },
-          onError: (data) => {
-            const response = data as any;
-            toast.error(response.response.data.error);
+          onError: (error) => {
+            toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi tạo vật tư');
           }
         });
       } else {
@@ -103,9 +103,8 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
             toast.success(response.message || 'Cập nhật vật tư thành công');
             navigate('/inventory');
           },
-          onError: (data) => {
-            const response = data as any;
-            toast.error(response.response.data.error || 'Có lỗi xảy ra khi cập nhật vật tư');
+          onError: (error) => {
+            toast.error(getErrorMessage(error) || `Có lỗi xảy ra khi cập nhật vật tư`);
           }
         });
       }
@@ -238,20 +237,19 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
-                  Số Lượng Trong Kho *
+                  Số Lượng Trong Kho
                 </label>
                 <Input
                   type="number"
                   min="0"
                   placeholder="0"
                   {...form.register('quantityInStock')}
-                  className="w-full"
+                  className="w-full bg-gray-50"
+                  disabled
                 />
-                {form.formState.errors.quantityInStock && (
-                  <p className="text-sm text-red-600">
-                    {form.formState.errors.quantityInStock.message}
-                  </p>
-                )}
+                <p className="text-xs text-gray-500">
+                  Số lượng chỉ có thể thay đổi thông qua nhập/xuất kho
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -295,18 +293,18 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={handleGoBack} 
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleGoBack}
             className="order-2 sm:order-1 w-full sm:w-auto"
           >
             <X className="h-4 w-4 mr-2" />
             Hủy
           </Button>
-          <Button 
-            type="submit" 
-            disabled={isLoading} 
+          <Button
+            type="submit"
+            disabled={isLoading}
             className="order-1 sm:order-2 w-full sm:w-auto"
           >
             <Save className="h-4 w-4 mr-2" />

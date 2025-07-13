@@ -1,33 +1,77 @@
 import React, { useState } from 'react';
-import { X, Calendar, Clock, User, FileText, Tag, UserCheck, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { X, Calendar, Clock, User, FileText, Tag, UserCheck, CheckCircle, XCircle, AlertTriangle, Plus, Eye } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { CancelAppointmentDialog } from './CancelAppointmentDialog';
+import { PrescriptionModal } from './PrescriptionModal';
 import { useAuth } from '../../hooks/useAuth';
+import { usePrescriptionByAppointment } from '../../hooks/usePrescription';
+import { useAppointmentDetail } from '../../hooks/useAppointments';
 import { isAppointmentCancellable, getTimeUntilAppointment } from '../../utils/appointmentUtils';
-import type { AppointmentDTO, Dentist } from '../../types/appointment';
-import { Link, useParams } from 'react-router';
+import type { Dentist } from '../../types/appointment';
+import { Link, useParams, useNavigate } from 'react-router';
 import { EditAppointmentDialog } from './EditAppointmentDialog';
 import {formatDateVN, formatTimeVN} from '../../utils/dateUtils';
 
 interface AppointmentDetailModalProps {
-  appointment: AppointmentDTO | null;
+  appointmentId: number | null;
   isOpen: boolean;
   onClose: () => void;
   dentists: Dentist[];
 }
 
 export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
-  appointment,
+  appointmentId,
   isOpen,
   onClose,
   dentists
 }) => {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const { role } = useAuth();
   const { patientId } = useParams<{ patientId: string }>();
-  if (!isOpen || !appointment) return null;
+  const navigate = useNavigate();
+  
+  // Fetch appointment details
+  const { data: appointment, isLoading: isAppointmentLoading } = useAppointmentDetail(appointmentId || 0);
+  
+  // Check if prescription exists for this appointment
+  const { data: existingPrescription, isLoading: isPrescriptionLoading } = usePrescriptionByAppointment(appointment?.appointmentId || 0);
+  
+  if (!isOpen || !appointmentId) return null;
+  
+  if (isAppointmentLoading) {
+    return (
+      <div className="fixed inset-0 z-50">
+        <div className="absolute inset-0 bg-gray-500 bg-opacity-75 backdrop-blur-sm" onClick={onClose} />
+        <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-8">
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+            <p className="mt-4 text-center text-gray-600">Đang tải thông tin lịch hẹn...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!appointment) {
+    return (
+      <div className="fixed inset-0 z-50">
+        <div className="absolute inset-0 bg-gray-500 bg-opacity-75 backdrop-blur-sm" onClick={onClose} />
+        <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-8">
+            <p className="text-center text-red-600">Không tìm thấy thông tin lịch hẹn</p>
+            <div className="mt-4 flex justify-center">
+              <Button onClick={onClose}>Đóng</Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const canCancelAppointment = role === 'Patient' &&
     appointment.status === 'confirmed' &&
@@ -82,13 +126,51 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
             <h2 className="text-2xl font-bold text-gray-900">
               Chi tiết lịch hẹn
             </h2>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              title="Đóng"
-            >
-              <X className="h-5 w-5 text-gray-500" />
-            </button>
+            <div className="flex items-center gap-3">
+              {/* Action Buttons */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate(`/patients/${patientId}/orthodontic-treatment-plans`)}
+                className="flex items-center gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                Tạo hồ sơ điều trị
+              </Button>
+              
+              <Button
+                variant={existingPrescription ? "outline" : "default"}
+                size="sm"
+                onClick={() => setShowPrescriptionModal(true)}
+                className="flex items-center gap-2"
+                disabled={isPrescriptionLoading}
+              >
+                {isPrescriptionLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                    Đang tải...
+                  </>
+                ) : existingPrescription ? (
+                  <>
+                    <Eye className="h-4 w-4" />
+                    Xem đơn thuốc
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4" />
+                    Thêm đơn thuốc
+                  </>
+                )}
+              </Button>
+              
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                title="Đóng"
+              >
+                <X className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
           </div>
 
           {/* Content */}
@@ -111,6 +193,7 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
                 <span>{statusConfig.text}</span>
               </Badge>
             </div>
+            
             {/* Patient & Dentist Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="flex items-start">
@@ -223,7 +306,7 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
               <Button
                 variant="destructive"
                 onClick={() => setShowCancelDialog(true)}
-                className="flex-1 mr-3"
+                className="flex-1 mr-3 text-whites"
               >
                 Hủy lịch hẹn
               </Button>
@@ -272,6 +355,20 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
           onSuccess={() => {
             setShowEditDialog(false);
             onClose();
+          }}
+        />
+      )}
+
+      {/* Prescription Modal */}
+      {showPrescriptionModal && (
+        <PrescriptionModal
+          appointmentId={appointmentId}
+          isOpen={showPrescriptionModal}
+          onClose={() => setShowPrescriptionModal(false)}
+          onSuccess={() => {
+            setShowPrescriptionModal(false);
+            // Force re-fetch prescription data
+            window.location.reload();
           }}
         />
       )}

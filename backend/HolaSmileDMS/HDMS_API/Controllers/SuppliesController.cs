@@ -33,16 +33,16 @@ namespace HDMS_API.Controllers
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new
                 {
-                    Message = false,
-                    Error = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
-                    Message = false,
-                    Error = "An unexpected error occurred: " + ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
         }
@@ -60,16 +60,16 @@ namespace HDMS_API.Controllers
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new
                 {
-                    Message = false,
-                    Error = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
-                    Message = false,
-                    Error = "An unexpected error occurred: " + ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
         }
@@ -91,24 +91,129 @@ namespace HDMS_API.Controllers
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new
                 {
-                    Message = false,
-                    Error = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
             catch(ArgumentException ex)
             {
                 return BadRequest(new
                 {
-                    Message = false,
-                    Error = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
-                    Message = false,
-                    Error = "An unexpected error occurred: " + ex.Message
+                    status = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPost("excel-template")]
+        public async Task<IActionResult> DownloadTemplate()
+        {
+            try
+            {
+                var bytes = await _mediator.Send(new DownloadSupplyExcelTemplateCommand());
+                return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "SupplyTemplate.xlsx");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPost("import-excel")]
+        public async Task<IActionResult> ImportSupply([FromForm] ImportSupplyFromExcelCommand command)
+        {
+            try
+            {
+                var count = await _mediator.Send(command);
+                return count > 0 ? Ok(new { Message = $"thêm mới  {count} vật tư thành công."}) : Conflict(MessageConstants.MSG.MSG58);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPost("export-excel")]
+        public async Task<IActionResult> ExportSupply()
+        {
+            try
+            {
+                var bytes = await _mediator.Send(new ExportSupplyToExcelCommand());
+                return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Supplies.xlsx");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    status = false,
+                    message = ex.Message
                 });
             }
         }
@@ -235,24 +340,24 @@ namespace HDMS_API.Controllers
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new
                 {
-                    Message = false,
-                    Error = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
             catch (ArgumentException ex)
             {
                 return BadRequest(new
                 {
-                    Message = false,
-                    Error = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
-                    Message = false,
-                    Error = "An unexpected error occurred: " + ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
         }
@@ -270,24 +375,24 @@ namespace HDMS_API.Controllers
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new
                 {
-                    Message = false,
-                    Error = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
             catch (ArgumentException ex)
             {
                 return BadRequest(new
                 {
-                    Message = false,
-                    Error = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
-                    Message = false,
-                    Error = "An unexpected error occurred: " + ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
         }

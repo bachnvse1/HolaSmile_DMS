@@ -102,8 +102,20 @@ export interface CreateOrthodonticTreatmentPlanRequest {
   consultationDate: string;
 }
 
-export interface UpdateOrthodonticTreatmentPlanRequest extends Omit<OrthodonticTreatmentPlan, 'planId' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy' | 'isDeleted'> {
+
+export interface UpdateOrthodonticTreatmentPlanRequest {
   planId: number;
+  planTitle: string;
+  templateName: string;
+  treatmentHistory: string;
+  reasonForVisit: string;
+  examinationFindings: string;
+  intraoralExam: string;
+  xRayAnalysis: string;
+  modelAnalysis: string;
+  treatmentPlanContent: string;
+  totalCost: number;
+  paymentMethod: string;
 }
 
 export enum PaymentMethod {
