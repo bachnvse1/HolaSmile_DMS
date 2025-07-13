@@ -54,7 +54,7 @@ import ProcedureManagement from "./pages/proceduce/ProcedureManagement";
 import WarrantyCardManagement from "./pages/warrantyCard/WarrantyCardManagement";
 import InvoiceList from './pages/invoice/InvoiceList';
 import ThankYou from "./components/invoice/PaymentThankYou";
-import PaymentCancelled from "./components/invoice/PaymentCancelled";
+import PaymentCancelled from "./components/invoice/PaymentCancel";
 
 function App() {
     return (
