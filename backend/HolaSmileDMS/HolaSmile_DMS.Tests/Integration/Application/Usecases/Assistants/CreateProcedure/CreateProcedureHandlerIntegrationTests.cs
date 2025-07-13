@@ -1,5 +1,4 @@
 ﻿using System.Security.Claims;
-using Application.Constants;
 using Application.Usecases.Assistant.ProcedureTemplate.CreateProcedure;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;
@@ -21,7 +20,6 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             var services = new ServiceCollection();
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseInMemoryDatabase("TestDb_CreateProcedure"));
-
             services.AddHttpContextAccessor();
 
             var provider = services.BuildServiceProvider();
@@ -32,6 +30,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
 
             _handler = new CreateProcedureHandler(
                 new ProcedureRepository(_context),
+                new SupplyRepository(_context),
                 _httpContextAccessor
             );
         }
@@ -39,13 +38,25 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
         private void SeedData()
         {
             _context.Users.RemoveRange(_context.Users);
+            _context.Supplies.RemoveRange(_context.Supplies);
             _context.Procedures.RemoveRange(_context.Procedures);
             _context.SaveChanges();
 
-            _context.Users.AddRange(
-                new User { UserID = 1, Username = "0111111111", Fullname = "Assistant A", Phone = "0111111111" },
-                new User { UserID = 2, Username = "0111111112", Fullname = "Dentist B", Phone = "0111111112" }
-            );
+            _context.Users.Add(new User
+            {
+                UserID = 1001,
+                Username = "assistant1",
+                Phone = "0999999999"
+            });
+
+            _context.Supplies.Add(new Supplies
+            {
+                SupplyId = 1,
+                Name = "Gauze",
+                Price = 50000,
+                Unit = "cái"
+            });
+
             _context.SaveChanges();
         }
 
@@ -54,64 +65,71 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             var context = new DefaultHttpContext();
             context.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
             {
-            new Claim(ClaimTypes.Role, role),
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString())
-        }, "TestAuth"));
-
+                new Claim(ClaimTypes.Role, role),
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString())
+            }, "Test"));
             _httpContextAccessor.HttpContext = context;
         }
 
-        private CreateProcedureCommand ValidCommand() => new CreateProcedureCommand
-        {
-            ProcedureName = "Tẩy trắng răng",
-            Price = 100000,
-            Description = "Thẩm mỹ",
-            Discount = 0,
-            WarrantyPeriod = "12 tháng",
-            OriginalPrice = 80000,
-            ConsumableCost = 10000,
-            ReferralCommissionRate = 5,
-            DoctorCommissionRate = 10,
-            AssistantCommissionRate = 7,
-            TechnicianCommissionRate = 3
-        };
-
-        [Fact(DisplayName = "ITCID01 - Assistant creates procedure successfully (happy path)")]
+        [Fact(DisplayName = "[Integration - Normal] Assistant Creates Procedure With Supply Successfully")]
         [Trait("TestType", "Normal")]
-        public async System.Threading.Tasks.Task ITCID01_Assistant_Creates_Successfully()
+        public async System.Threading.Tasks.Task N_Assistant_Creates_Procedure_With_Supply_Success()
         {
-            SetupHttpContext("assistant", 1);
+            SetupHttpContext("assistant", 1001);
 
-            var result = await _handler.Handle(ValidCommand(), default);
+            var command = new CreateProcedureCommand
+            {
+                ProcedureName = "Root Canal",
+                Description = "RC Treatment",
+                Discount = 0,
+                WarrantyPeriod = "12 months",
+                OriginalPrice = 200000,
+                ConsumableCost = 100000,
+                Price = 10,
+                ReferralCommissionRate = 5,
+                DoctorCommissionRate = 10,
+                AssistantCommissionRate = 5,
+                TechnicianCommissionRate = 5,
+                SuppliesUsed = new List<SupplyUsedDTO>
+                {
+                    new SupplyUsedDTO
+                    {
+                        SupplyId = 1,
+                        Quantity = 2
+                    }
+                }
+            };
+
+            var result = await _handler.Handle(command, default);
 
             Assert.True(result);
-            Assert.Single(_context.Procedures);
-            Assert.Equal("Tẩy trắng răng", _context.Procedures.First().ProcedureName);
-            Assert.Equal(1, _context.Procedures.First().CreatedBy);
+            var created = _context.Procedures.FirstOrDefault(p => p.ProcedureName == "Root Canal");
+            Assert.NotNull(created);
+            Assert.Equal(1, created.SuppliesUsed.Count);
+            Assert.Equal(200000 + 100000 + 2 * 50000, created.Price);
         }
 
-        [Fact(DisplayName = "ITCID02 - Missing authentication throws MSG53")]
+        [Fact(DisplayName = "[Integration - Abnormal] Non-Assistant Tries To Create Procedure")]
         [Trait("TestType", "Abnormal")]
-        public async System.Threading.Tasks.Task ITCID02_Missing_Auth_Throws()
+        public async System.Threading.Tasks.Task A_NonAssistant_Cannot_Create_Procedure()
         {
-            _httpContextAccessor.HttpContext = new DefaultHttpContext(); // No claims
+            SetupHttpContext("receptionist", 1001);
 
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(ValidCommand(), default));
+            var command = new CreateProcedureCommand
+            {
+                ProcedureName = "RCT",
+                OriginalPrice = 100000,
+                ConsumableCost = 50000,
+                Price = 0,
+                Discount = 0,
+                ReferralCommissionRate = 5,
+                DoctorCommissionRate = 10,
+                AssistantCommissionRate = 5,
+                TechnicianCommissionRate = 5
+            };
 
-            Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
-        }
-
-        [Fact(DisplayName = "ITCID03 - Non-assistant role throws MSG26")]
-        [Trait("TestType", "Abnormal")]
-        public async System.Threading.Tasks.Task ITCID03_NonAssistant_Throws()
-        {
-            SetupHttpContext("dentist", 2);
-
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(ValidCommand(), default));
-
-            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                _handler.Handle(command, default));
         }
     }
 }

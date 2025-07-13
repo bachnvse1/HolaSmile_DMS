@@ -14,5 +14,6 @@
         public string ProcedureName { get; set; } = "";
 
         public string? PatientName { get; set; }
+        public int? TreatmentRecordId { get; set; }
     }
 }
