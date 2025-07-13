@@ -28,6 +28,7 @@ import { PatientBookingPage } from "./pages/patient/PatientBookingPage";
 import { PatientAppointmentsPage } from "./pages/patient/PatientAppointmentsPage";
 import { StaffAppointmentsPage } from "./pages/staff/StaffAppointmentsPage";
 import ScheduleManagementPage from "./pages/staff/ScheduleManagementPage";
+import { DentistScheduleViewer } from "./components/appointment/DentistScheduleViewer";
 import PatientTreatmentRecords from "./pages/patient/PatientViewTreatmentRecord";
 import ViewTreatmentProgressPage from "./pages/patient/ViewTreatmentProgress";
 import PatientList from "./pages/patient/PatientList";
