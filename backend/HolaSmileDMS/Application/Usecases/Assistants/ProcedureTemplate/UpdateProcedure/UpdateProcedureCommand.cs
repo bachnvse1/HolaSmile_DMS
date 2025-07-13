@@ -1,5 +1,4 @@
-﻿using Application.Usecases.Assistant.ProcedureTemplate.CreateProcedure;
-using MediatR;
+﻿using MediatR;
 
 namespace Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure
 {
@@ -17,6 +16,5 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure
         public float DoctorCommissionRate { get; set; }
         public float AssistantCommissionRate { get; set; }
         public float TechnicianCommissionRate { get; set; }
-        public List<SupplyUsedDTO> SuppliesUsed { get; set; } = new List<SupplyUsedDTO>();
     }
 }

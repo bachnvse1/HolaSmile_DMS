@@ -9,12 +9,10 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure
     public class UpdateProcedureHandler : IRequestHandler<UpdateProcedureCommand, bool>
     {
         private readonly IProcedureRepository _procedureRepository;
-        private readonly ISupplyRepository _supplyRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public UpdateProcedureHandler(IProcedureRepository procedureRepository, ISupplyRepository supplyRepository, IHttpContextAccessor httpContextAccessor)
+        public UpdateProcedureHandler(IProcedureRepository procedureRepository, IHttpContextAccessor httpContextAccessor)
         {
             _procedureRepository = procedureRepository;
-            _supplyRepository = supplyRepository;
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -35,78 +33,61 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             }
 
-            var procedure = await _procedureRepository.GetProcedureByProcedureId(request.ProcedureId) ?? throw new Exception(MessageConstants.MSG.MSG16);
-
-            if (string.IsNullOrEmpty(request.ProcedureName))
-                throw new Exception(MessageConstants.MSG.MSG07);
-            if (request.Price <= 0 || request.OriginalPrice <= 0)
-                throw new Exception(MessageConstants.MSG.MSG95);
-            if (request.Discount < 0 || request.ConsumableCost < 0 || request.ReferralCommissionRate < 0 ||
-                request.DoctorCommissionRate < 0 || request.AssistantCommissionRate < 0 || request.TechnicianCommissionRate < 0)
-                throw new Exception(MessageConstants.MSG.MSG95);
-
-            decimal supplyCost = 0;
-            var existSuppliesUsed = new List<SuppliesUsed>();
-            if (request.SuppliesUsed != null)
+            var procedure = await _procedureRepository.GetProcedureByProcedureId(request.ProcedureId);
+            if (procedure == null)
             {
-                foreach (var item in request.SuppliesUsed)
-                {
-                    var supply = await _supplyRepository.GetSupplyBySupplyIdAsync(item.SupplyId);
-                    if (supply == null)
-                        throw new Exception($"Supply với ID {item.SupplyId} không tồn tại.");
-
-                    if (supply.Unit?.Trim().ToLower() == "cái")
-                    {
-                        supplyCost += supply.Price * item.Quantity;
-                    }
-
-                    existSuppliesUsed.Add(new SuppliesUsed
-                    {
-                        SupplyId = item.SupplyId,
-                        Quantity = item.Quantity
-                    });
-                }
+                throw new Exception(MessageConstants.MSG.MSG16); // "Không tìm thấy thủ thuật"
+            }
+            if (string.IsNullOrEmpty(request.ProcedureName))
+            {
+                throw new Exception(MessageConstants.MSG.MSG07);
+            }
+            if (request.Price <= 0)
+            {
+                throw new Exception(MessageConstants.MSG.MSG95);
+            }
+            if (request.Discount < 0)
+            {
+                throw new Exception(MessageConstants.MSG.MSG95);
+            }
+            if (request.OriginalPrice <= 0)
+            {
+                throw new Exception(MessageConstants.MSG.MSG95);
+            }
+            if (request.ConsumableCost < 0)
+            {
+                throw new Exception(MessageConstants.MSG.MSG95);
+            }
+            if (request.ReferralCommissionRate < 0)
+            {
+                throw new Exception(MessageConstants.MSG.MSG95);
+            }
+            if (request.DoctorCommissionRate < 0)
+            {
+                throw new Exception(MessageConstants.MSG.MSG95);
+            }
+            if (request.AssistantCommissionRate < 0)
+            {
+                throw new Exception(MessageConstants.MSG.MSG95);
+            }
+            if (request.TechnicianCommissionRate < 0)
+            {
+                throw new Exception(MessageConstants.MSG.MSG95);
             }
 
-            decimal consumableTotal = Math.Round(request.ConsumableCost + supplyCost, 2);
-            decimal priceTotal = Math.Round(request.OriginalPrice + consumableTotal, 0);
-
             procedure.ProcedureName = request.ProcedureName;
-            procedure.Price = priceTotal;
+            procedure.Price = Math.Round(request.Price);
             procedure.Description = request.Description;
             procedure.Discount = request.Discount;
             procedure.WarrantyPeriod = request.WarrantyPeriod;
             procedure.OriginalPrice = Math.Round(request.OriginalPrice,2);
-            procedure.ConsumableCost = consumableTotal;
+            procedure.ConsumableCost = Math.Round(request.ConsumableCost,2);
             procedure.ReferralCommissionRate = request.ReferralCommissionRate;
             procedure.DoctorCommissionRate = request.DoctorCommissionRate;
             procedure.AssistantCommissionRate = request.AssistantCommissionRate;
             procedure.TechnicianCommissionRate = request.TechnicianCommissionRate;
             procedure.UpdatedAt = DateTime.UtcNow;
             procedure.UpdatedBy = currentUserId;
-
-            var isDeletedSuppliesUsed = await _procedureRepository.DeleteSuppliesUsed(request.ProcedureId);
-            if (!isDeletedSuppliesUsed)
-            {
-                throw new Exception(MessageConstants.MSG.MSG58);
-            }
-
-            var suppliesUsed = request.SuppliesUsed.Select(s => new SuppliesUsed
-            {
-                SupplyId = s.SupplyId,
-                Quantity = s.Quantity,
-                ProcedureId = request.ProcedureId
-            }).ToList();
-
-            if (suppliesUsed.Count > 0)
-            {
-                var isCreatedSuppliesUsed = await _procedureRepository.CreateSupplyUsed(suppliesUsed);
-                if (!isCreatedSuppliesUsed)
-                {
-                    throw new Exception(MessageConstants.MSG.MSG58);
-                }
-            }
-
             return await _procedureRepository.UpdateProcedureAsync(procedure);
         }
     }

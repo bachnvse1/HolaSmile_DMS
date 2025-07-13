@@ -65,7 +65,7 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
                 onClick={() => navigate('/patient/treatment-records')} 
                 className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
               >
-                Hồ Sơ 
+                Hồ Sơ Y Tế
               </button>
               <button 
                 onClick={() => navigate('/patient/orthodontic-treatment-plans')} 
@@ -101,7 +101,7 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
             {/* Book Appointment Button */}
             <button
               onClick={() => navigate('/patient/book-appointment')}
-              className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition hidden lg:block"
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
             >
               Đặt Lịch Hẹn
             </button>
@@ -114,12 +114,11 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
               >
                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                   <User className="h-5 w-5 text-white" />
-                </div>
-                <div className="text-left hidden lg:block">
+                </div>                <div className="text-left">
                   <p className="text-sm font-medium">{displayName}</p>
                   <p className="text-xs text-gray-500">{displayRole}</p>
                 </div>
-                <ChevronDown className="h-4 w-4 hidden sm:block" />
+                <ChevronDown className="h-4 w-4" />
               </button>
 
               {isUserMenuOpen && (
@@ -183,13 +182,13 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
               onClick={() => navigate('/patient/treatment-records')} 
               className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
             >
-              Hồ Sơ 
+              Hồ Sơ Y Tế
             </button>
             <button 
               onClick={() => navigate('/patient/orthodontic-treatment-plans')} 
               className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
             >
-              Kế Hoạch 
+              Điều Trị
             </button>
 
             <div className="border-t pt-4">
@@ -203,15 +202,14 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
               <div className="flex items-center px-3 py-2">
                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-3">
                   <User className="h-5 w-5 text-white" />
-                </div>
-                <div>
+                </div>                <div>
                   <p className="text-sm font-medium">{displayName}</p>
-                  <p className="text-xs text-gray-500">{displayRole}</p>
+                  <p className="text-xs text-gray-500">{userInfo?.email || 'No email'}</p>
                 </div>
               </div>
 
               <button
-                onClick={() => navigate('/view-profile')}
+                onClick={() => navigate('/patient/profile')}
                 className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
               >
                 Thông Tin Cá Nhân

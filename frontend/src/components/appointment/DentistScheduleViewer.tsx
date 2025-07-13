@@ -120,7 +120,7 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
           setSelectedTimeSlot('');
           setBookingData({ medicalIssue: '', email: prefilledData?.email || '' });
         },
-        onError: (error) => {
+        onError: (error: Error) => {
          console.error('Error booking appointment:', error);
         }
       });

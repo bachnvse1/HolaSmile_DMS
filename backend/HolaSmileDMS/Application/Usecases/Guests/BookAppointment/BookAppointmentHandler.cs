@@ -114,35 +114,32 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             var isBookAppointment = await _appointmentRepository.CreateAppointmentAsync(appointment);
             var dentist = await _dentistRepository.GetDentistByDentistIdAsync(request.DentistId);
             var receptionists = await _userCommonRepository.GetAllReceptionistAsync();
-            try
-            {
-                //GỬI THÔNG BÁO CHO PATIENT
-                await _mediator.Send(new SendNotificationCommand(
-                    patient.User.UserID,
-                        "Đăng ký khám",
-                        $"Bạn đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
-                        "Tạo lịch khám lần đầu", null),
-                    cancellationToken);
 
-                //GỬI THÔNG BÁO CHO DENTIST
-                await _mediator.Send(new SendNotificationCommand(
-                    dentist.User.UserID,
-                        "Đăng ký khám",
-                        $"Bệnh nhân đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
-                        "Xoá hồ sơ",
-                        null),
-                    cancellationToken);
+            //GỬI THÔNG BÁO CHO PATIENT
+            await _mediator.Send(new SendNotificationCommand(
+                patient.User.UserID,
+                    "Đăng ký khám",
+                    $"Bạn đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
+                    "Tạo lịch khám lần đầu", null),
+                cancellationToken);
 
-                var notifyReceptionists = receptionists.Select(async r =>
-                 await _mediator.Send(new SendNotificationCommand(
-                               r.UserId,
-                               "Đăng ký khám",
-                                $"Bệnh nhân mới đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
-                                "Tạo lịch khám lần đầu", null),
-                                cancellationToken));
-                await System.Threading.Tasks.Task.WhenAll(notifyReceptionists);
-            }
-            catch { }
+            //GỬI THÔNG BÁO CHO DENTIST
+            await _mediator.Send(new SendNotificationCommand(
+                dentist.User.UserID,
+                    "Đăng ký khám",
+                    $"Bệnh nhân đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
+                    "Xoá hồ sơ",
+                    null),
+                cancellationToken);
+
+            var notifyReceptionists = receptionists.Select(async r =>
+             await _mediator.Send(new SendNotificationCommand(
+                           r.UserId,
+                           "Đăng ký khám",
+                            $"Bệnh nhân mới đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
+                            "Tạo lịch khám lần đầu", null),
+                            cancellationToken));
+            await System.Threading.Tasks.Task.WhenAll(notifyReceptionists);
 
             return isBookAppointment ? MessageConstants.MSG.MSG05 : MessageConstants.MSG.MSG58;
         }

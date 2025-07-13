@@ -130,7 +130,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
         [Fact(DisplayName = "Abnormal - UTCID03 - Role is not assistant should throw MSG26")]
         public async System.Threading.Tasks.Task UTCID03_DeactivateWarrantyCard_WrongRole_Throws()
         {
-            SetupHttpContext("Patient");
+            SetupHttpContext("Receptionist");
 
             var command = new DeactiveWarrantyCardCommand { WarrantyCardId = 1 };
 

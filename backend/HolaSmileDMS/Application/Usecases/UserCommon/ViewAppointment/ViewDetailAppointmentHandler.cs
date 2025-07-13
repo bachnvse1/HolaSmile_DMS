@@ -25,10 +25,10 @@ namespace Application.Usecases.UserCommon.ViewAppointment
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
             // Check if the user is authenticated
-            //if (currentUserRole == null)
-            //{
-            //    throw new UnauthorizedAccessException("Bạn cần đăng nhập để thực hiện thao tác này.");
-            //}
+            if (currentUserRole == null)
+            {
+                throw new UnauthorizedAccessException("Bạn cần đăng nhập để thực hiện thao tác này.");
+            }
 
             // Check if the user is a patient and has access to the appointment
             if (string.Equals(currentUserRole, "patient", StringComparison.OrdinalIgnoreCase))
@@ -48,16 +48,16 @@ namespace Application.Usecases.UserCommon.ViewAppointment
             }
 
             // Retrieve the appointment by AppointmentID
-            var appointment = await _appointmentRepository.GetDetailAppointmentByAppointmentIDAsync(request.AppointmentId);
+            var appointment = await _appointmentRepository.GetAppointmentByIdAsync(request.AppointmentId);
             if (appointment == null)
             {
                 throw new Exception("không tìm thấy dữ liệu cuộc hẹn. ");
             }
 
             // Map data
-            //var result = _mapper.Map<AppointmentDTO>(appointment);
-            //result.AppointmentId = appointment.AppointmentId;
-            return appointment;
+            var result = _mapper.Map<AppointmentDTO>(appointment);
+            result.AppointmentId = appointment.AppointmentId;
+            return result;
         }
     }
 }

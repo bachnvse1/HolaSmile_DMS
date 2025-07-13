@@ -6,7 +6,6 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Pagination } from '../ui/Pagination';
 import { useAuth } from '../../hooks/useAuth';
-import { useNavigate } from 'react-router';
 import { isAppointmentCancellable } from '../../utils/appointmentUtils';
 import type { AppointmentDTO } from '../../types/appointment';
 import { useForm } from "react-hook-form";
@@ -20,14 +19,14 @@ interface AppointmentListViewProps {
 }
 
 export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
-  appointments
+  appointments,
+  onAppointmentClick
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'confirmed' | 'canceled'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const { role } = useAuth();
-  const navigate = useNavigate();
 
   const [showTreatmentModal, setShowTreatmentModal] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<number | null>(null);
@@ -147,70 +146,70 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center space-x-2 sm:space-x-3">
-                  <div className="p-1.5 sm:p-2 bg-yellow-500 rounded-lg">
-                    <Calendar className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-yellow-500 rounded-lg">
+                    <Calendar className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-xs sm:text-sm font-medium text-yellow-700">Tổng lịch hẹn</p>
-                    <p className="text-lg sm:text-2xl font-bold text-yellow-900">{filteredAppointments.length}</p>
+                    <p className="text-sm font-medium text-yellow-700">Tổng lịch hẹn</p>
+                    <p className="text-2xl font-bold text-yellow-900">{filteredAppointments.length}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center space-x-2 sm:space-x-3">
-                  <div className="p-1.5 sm:p-2 bg-green-500 rounded-lg">
-                    <Calendar className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-green-500 rounded-lg">
+                    <Calendar className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-xs sm:text-sm font-medium text-green-700">Đã xác nhận</p>
-                    <p className="text-lg sm:text-2xl font-bold text-green-900">{confirmedCount}</p>
+                    <p className="text-sm font-medium text-green-700">Đã xác nhận</p>
+                    <p className="text-2xl font-bold text-green-900">{confirmedCount}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="bg-gradient-to-br from-red-50 to-red-100 border-red-200">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center space-x-2 sm:space-x-3">
-                  <div className="p-1.5 sm:p-2 bg-red-500 rounded-lg">
-                    <Calendar className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-red-500 rounded-lg">
+                    <Calendar className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-xs sm:text-sm font-medium text-red-700">Đã hủy</p>
-                    <p className="text-lg sm:text-2xl font-bold text-red-900">{cancelledCount}</p>
+                    <p className="text-sm font-medium text-red-700">Đã hủy</p>
+                    <p className="text-2xl font-bold text-red-900">{cancelledCount}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center space-x-2 sm:space-x-3">
-                  <div className="p-1.5 sm:p-2 bg-blue-400 rounded-lg">
-                    <Calendar className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-blue-400 rounded-lg">
+                    <Calendar className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-xs sm:text-sm font-medium text-blue-700">Đã đến</p>
-                    <p className="text-lg sm:text-2xl font-bold text-blue-900">{attendedCount}</p>
+                    <p className="text-sm font-medium text-blue-700">Đã đến</p>
+                    <p className="text-2xl font-bold text-blue-900">{attendedCount}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center space-x-2 sm:space-x-3">
-                  <div className="p-1.5 sm:p-2 bg-gray-500 rounded-lg">
-                    <Calendar className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-gray-500 rounded-lg">
+                    <Calendar className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-xs sm:text-sm font-medium text-gray-700">Vắng</p>
-                    <p className="text-lg sm:text-2xl font-bold text-gray-900">{absentedCount}</p>
+                    <p className="text-sm font-medium text-gray-700">Vắng</p>
+                    <p className="text-2xl font-bold text-gray-900">{absentedCount}</p>
                   </div>
                 </div>
               </CardContent>

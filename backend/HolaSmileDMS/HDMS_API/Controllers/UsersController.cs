@@ -150,20 +150,18 @@ namespace HDMS_API.Controllers
                 var result = await _mediator.Send(command);
                 return Ok(result);
             }
-            catch (UnauthorizedAccessException ex)
+            catch (UnauthorizedAccessException)
             {
-                // Trả về lỗi 401 Unauthorized với message chính xác từ handler
                 return Unauthorized(new
                 {
-                    message = ex.Message
+                    message = $"{MessageConstants.MSG.MSG01} || {MessageConstants.MSG.MSG72}"
                 });
             }
             catch (Exception ex)
             {
-                // Trả về lỗi 400 BadRequest nếu có lỗi hệ thống
                 return BadRequest(new
                 {
-                    message = ex.Message
+                    ex.Message
                 });
             }
         }

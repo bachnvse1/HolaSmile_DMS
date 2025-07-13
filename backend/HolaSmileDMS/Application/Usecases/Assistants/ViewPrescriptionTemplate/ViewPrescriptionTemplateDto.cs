@@ -6,7 +6,5 @@
         public string? PreTemplateName { get; set; }
         public string? PreTemplateContext { get; set; }
         public DateTime CreatedAt { get; set; }
-
-        public DateTime? UpdatedAt { get; set; }
     }
 }

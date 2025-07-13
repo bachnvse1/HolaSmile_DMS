@@ -6,7 +6,7 @@ public class Prescription
     [Key]
     public int PrescriptionId { get; set; }
 
-    [ForeignKey("Appointment")]
+    [ForeignKey("AppointmentId")]
     public int? AppointmentId { get; set; }
     public Appointment? Appointment { get; set; }
 

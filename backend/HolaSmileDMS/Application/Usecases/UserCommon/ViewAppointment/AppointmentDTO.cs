@@ -21,10 +21,6 @@ namespace Application.Usecases.UserCommon.ViewAppointment
         public DateTime? UpdatedAt { get; set; }
         public int? CreatedBy { get; set; }
         public int? UpdatedBy { get; set; }
-        public bool IsExistPrescription { get; set; }
-        public bool IsExistInstruction { get; set; }
-        public int? PrescriptionId { get; set; }
-        public int? InstructionId { get; set; }
 
 
     }

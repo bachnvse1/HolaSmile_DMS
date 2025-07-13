@@ -67,95 +67,95 @@ export const Pagination: React.FC<PaginationProps> = ({
     return null;
   }
   return (
-    <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 ${className}`}>
-      {/* LEFT: Info */}
-      <div className="text-sm text-gray-700 order-2 sm:order-1">
-        Hiển thị <span className="font-medium">{startItem}</span> đến{' '}
-        <span className="font-medium">{endItem}</span> trong tổng số{' '}
-        <span className="font-medium">{totalItems}</span> kết quả
-      </div>
+    <div className={`flex flex-col gap-4 ${className}`}>
+      {/* TOP: Info + ItemsPerPage */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="text-sm text-gray-700">
+          Hiển thị <span className="font-medium">{startItem}</span> đến{' '}
+          <span className="font-medium">{endItem}</span> trong tổng số{' '}
+          <span className="font-medium">{totalItems}</span> kết quả
+        </div>
 
-      {/* CENTER: Navigation */}
-      <div className="flex items-center justify-center space-x-2 order-1 sm:order-2">
-        {totalPages > 1 ? (
-          <>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(1)}
-              disabled={currentPage === 1}
-              className="h-8 w-8 p-0"
-              title="Trang đầu"
-            >
-              <ChevronsLeft className="h-4 w-4" />
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="h-8 w-8 p-0"
-              title="Trang trước"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-
-            <div className="flex items-center space-x-1">
-              {generatePageNumbers().map((page, index) => (
-                <React.Fragment key={index}>
-                  {page === '...' ? (
-                    <span className="px-2 py-1 text-gray-500">...</span>
-                  ) : (
-                    <Button
-                      variant={page === currentPage ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => onPageChange(page as number)}
-                      className="h-8 min-w-[32px] px-2"
-                    >
-                      {page}
-                    </Button>
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="h-8 w-8 p-0"
-              title="Trang sau"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(totalPages)}
-              disabled={currentPage === totalPages}
-              className="h-8 w-8 p-0"
-              title="Trang cuối"
-            >
-              <ChevronsRight className="h-4 w-4" />
-            </Button>
-          </>
-        ) : (
-          <div className="text-sm text-gray-600">Trang 1 / 1</div>
-        )}
-      </div>
-
-      {/* RIGHT: ItemsPerPage */}
-      {onItemsPerPageChange && (
-        <div className="order-3">
+        {onItemsPerPageChange && (
           <ItemsPerPageSelector
             itemsPerPage={itemsPerPage}
             onItemsPerPageChange={onItemsPerPageChange}
           />
+        )}
+      </div>
+
+      <div className="w-full ">
+        <div className="flex items-center space-x-2 min-w-[360px]">
+          {totalPages > 1 ? (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(1)}
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+                title="Trang đầu"
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+                title="Trang trước"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+
+              <div className="flex items-center space-x-1">
+                {generatePageNumbers().map((page, index) => (
+                  <React.Fragment key={index}>
+                    {page === '...' ? (
+                      <span className="px-2 py-1 text-gray-500">...</span>
+                    ) : (
+                      <Button
+                        variant={page === currentPage ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => onPageChange(page as number)}
+                        className="h-8 min-w-[32px] px-2"
+                      >
+                        {page}
+                      </Button>
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+                title="Trang sau"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(totalPages)}
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+                title="Trang cuối"
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            </>
+          ) : (
+            <div className="text-sm text-gray-600">Trang 1 / 1</div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   )
 

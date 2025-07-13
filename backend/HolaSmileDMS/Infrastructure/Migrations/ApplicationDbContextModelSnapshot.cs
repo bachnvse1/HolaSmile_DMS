@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Infrastructure.Migrations
+namespace HDMS_API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     partial class ApplicationDbContextModelSnapshot : ModelSnapshot
@@ -247,6 +247,9 @@ namespace Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<int?>("TreatmentRecordID")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -258,6 +261,8 @@ namespace Infrastructure.Migrations
                     b.HasIndex("AppointmentId");
 
                     b.HasIndex("Instruc_TemplateID");
+
+                    b.HasIndex("TreatmentRecordID");
 
                     b.ToTable("Instructions");
                 });
@@ -558,6 +563,9 @@ namespace Infrastructure.Migrations
                     b.Property<int?>("Pre_TemplateID")
                         .HasColumnType("int");
 
+                    b.Property<int?>("TreatmentRecordID")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -569,6 +577,8 @@ namespace Infrastructure.Migrations
                     b.HasIndex("AppointmentId");
 
                     b.HasIndex("Pre_TemplateID");
+
+                    b.HasIndex("TreatmentRecordID");
 
                     b.ToTable("Prescriptions");
                 });
@@ -1281,6 +1291,10 @@ namespace Infrastructure.Migrations
                         .WithMany("Instructions")
                         .HasForeignKey("Instruc_TemplateID");
 
+                    b.HasOne("TreatmentRecord", null)
+                        .WithMany("Instructions")
+                        .HasForeignKey("TreatmentRecordID");
+
                     b.Navigation("Appointment");
 
                     b.Navigation("InstructionTemplate");
@@ -1383,6 +1397,10 @@ namespace Infrastructure.Migrations
                     b.HasOne("PrescriptionTemplate", "PrescriptionTemplate")
                         .WithMany("Prescriptions")
                         .HasForeignKey("Pre_TemplateID");
+
+                    b.HasOne("TreatmentRecord", null)
+                        .WithMany("Prescriptions")
+                        .HasForeignKey("TreatmentRecordID");
 
                     b.Navigation("Appointment");
 
@@ -1622,7 +1640,11 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("TreatmentRecord", b =>
                 {
+                    b.Navigation("Instructions");
+
                     b.Navigation("Invoices");
+
+                    b.Navigation("Prescriptions");
 
                     b.Navigation("TreatmentProgresses");
                 });
