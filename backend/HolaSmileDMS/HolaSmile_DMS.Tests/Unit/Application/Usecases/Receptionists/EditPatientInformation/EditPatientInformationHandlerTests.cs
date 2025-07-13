@@ -13,9 +13,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
 {
     public class EditPatientInformationHandlerTests
     {
-        private readonly Mock<IUserCommonRepository> _userRepoMock = new();
         private readonly Mock<IPatientRepository> _patientRepoMock = new();
-        private readonly Mock<IMapper> _mapperMock = new();
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new();
         private readonly Mock<IMediator> _mediatorMock = new();
 
@@ -24,9 +22,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
         public EditPatientInformationHandlerTests()
         {
             _handler = new EditPatientInformationHandler(
-                _userRepoMock.Object,
                 _patientRepoMock.Object,
-                _mapperMock.Object,
                 _httpContextAccessorMock.Object,
                 _mediatorMock.Object
             );

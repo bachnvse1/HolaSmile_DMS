@@ -2,7 +2,6 @@
 using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.SendNotification;
-using AutoMapper;
 using HDMS_API.Application.Common.Helpers;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -11,21 +10,16 @@ namespace Application.Usecases.Receptionist.EditPatientInformation
 {
     public class EditPatientInformationHandler : IRequestHandler<EditPatientInformationCommand, bool>
     {
-        private readonly IUserCommonRepository _userCommonRepository;
         private readonly IPatientRepository _patientRepository;
-        private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMediator _mediator;
 
 
-        public EditPatientInformationHandler(IUserCommonRepository userCommonRepository, IPatientRepository patientRepository, IMapper mapper, IHttpContextAccessor httpContextAccessor,IMediator mediator)
+        public EditPatientInformationHandler(IPatientRepository patientRepository, IHttpContextAccessor httpContextAccessor,IMediator mediator)
         {
-            _userCommonRepository = userCommonRepository;
             _patientRepository = patientRepository;
-            _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _mediator = mediator;
-
         }
 
         public async Task<bool> Handle(EditPatientInformationCommand request, CancellationToken cancellationToken)
@@ -77,13 +71,17 @@ namespace Application.Usecases.Receptionist.EditPatientInformation
                 throw new Exception(MessageConstants.MSG.MSG31); // "Lưu dữ liệu không thành công"
             }
 
-            await _mediator.Send(new SendNotificationCommand(
-                patient.User.UserID,
-                    "Cập nhật hồ sơ bệnh nhân",
-                    $"Lễ Tân đã thay đổi hồ sơ bệnh án của bạn vào lúc {DateTime.Now}",
-                    "Cập nhật hồ sơ bệnh nhân",
-                    request.PatientID),
-                cancellationToken);
+            try
+            {
+                await _mediator.Send(new SendNotificationCommand(
+                      patient.User.UserID,
+                      "Cập nhật hồ sơ bệnh nhân",
+                      $"Lễ Tân đã thay đổi hồ sơ bệnh án của bạn vào lúc {DateTime.Now}",
+                      "Cập nhật hồ sơ bệnh nhân",
+                      request.PatientID),
+                      cancellationToken);
+            }
+            catch { }
 
             return IsUpdated;
         }
