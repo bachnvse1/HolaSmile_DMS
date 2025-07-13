@@ -25,23 +25,16 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'confirmed' | 'canceled'>('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5); // Make it configurable
+  const [itemsPerPage, setItemsPerPage] = useState(5);
   const { role } = useAuth();
   const navigate = useNavigate();
 
   const [showTreatmentModal, setShowTreatmentModal] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<number | null>(null);
+  const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null);
 
   const treatmentFormMethods = useForm<TreatmentFormData>();
   const [treatmentToday, setTreatmentToday] = useState<boolean | null>(null);
-
-
-
-  // const getStatusColor = (status: 'confirmed' | 'canceled') => {
-  //   return status === 'confirmed'
-  //     ? 'bg-green-100 text-green-800'
-  //     : 'bg-red-100 text-red-800';
-  // };
 
   const getStatusText = (
     status: 'confirmed' | 'canceled' | 'attended' | 'absented'
@@ -70,20 +63,19 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
     const matchesStatus = statusFilter === 'all' || appointment.status === statusFilter;
 
     return matchesSearch && matchesStatus;
-  });  // Sort appointments by date and time - nearest to current time first
+  });
+
+  // Sort appointments by date and time - nearest to current time first
   const sortedAppointments = [...filteredAppointments].sort((a, b) => {
     try {
-      // Parse dates more carefully
       const dateOnlyA = a.appointmentDate.split('T')[0];
       const timeOnlyA = a.appointmentTime.split('.')[0];
       const dateOnlyB = b.appointmentDate.split('T')[0];
       const timeOnlyB = b.appointmentTime.split('.')[0];
 
-      // Create datetime objects
       let dateA = new Date(`${dateOnlyA}T${timeOnlyA}`);
       let dateB = new Date(`${dateOnlyB}T${timeOnlyB}`);
 
-      // Fallback to manual parsing if ISO fails
       if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
         const [yearA, monthA, dayA] = dateOnlyA.split('-').map(Number);
         const [hourA, minuteA, secondA = 0] = timeOnlyA.split(':').map(Number);
@@ -95,17 +87,15 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
       }
 
       const now = new Date();
-      // Ưu tiên lịch tương lai lên trước
       const isAFuture = dateA >= now;
       const isBFuture = dateB >= now;
       if (isAFuture && !isBFuture) return -1;
       if (!isAFuture && isBFuture) return 1;
 
-      // Nếu cùng nhóm (đều tương lai hoặc đều quá khứ), sắp xếp gần hiện tại nhất
       return Math.abs(dateA.getTime() - now.getTime()) - Math.abs(dateB.getTime() - now.getTime());
     } catch (error) {
       console.error('Error sorting appointments:', error, { a, b });
-      return 0; // Keep original order if parsing fails
+      return 0;
     }
   });
 
@@ -114,6 +104,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedAppointments = sortedAppointments.slice(startIndex, endIndex);
+
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
@@ -125,7 +116,6 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
     }
   }, [showTreatmentModal, selectedAppointmentId, treatmentFormMethods]);
 
-
   // Handle page change
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -134,7 +124,15 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   // Handle items per page change
   const handleItemsPerPageChange = (value: number) => {
     setItemsPerPage(value);
-    setCurrentPage(1); // Reset to first page
+    setCurrentPage(1);
+  };
+
+  // Handle treatment modal opening
+  const handleOpenTreatmentModal = (appointment: AppointmentDTO) => {
+    setSelectedAppointmentId(appointment.appointmentId);
+    setSelectedPatientId(appointment.patientId ?? null);
+    setShowTreatmentModal(true);
+    setTreatmentToday(false);
   };
 
 
@@ -143,6 +141,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   const cancelledCount = filteredAppointments.filter(a => a.status === 'canceled').length;
   const attendedCount = filteredAppointments.filter(a => a.status === 'attended').length;
   const absentedCount = filteredAppointments.filter(a => a.status === 'absented').length;
+
   return (
     <div className="space-y-6">
       {/* Header & Filters */}
@@ -197,6 +196,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                 </div>
               </CardContent>
             </Card>
+
             <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
               <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center space-x-2 sm:space-x-3">
@@ -320,7 +320,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                   </Button>
                   {role === 'Dentist' &&
                     <Button
-                      variant="default"
+                      variant="outline"
                       size="sm"
                       onClick={() => {
                         setSelectedAppointmentId(appointment.appointmentId);
@@ -349,19 +349,34 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2">
-                  <div className="p-2 bg-green-50 rounded-lg">
-                    <User className="h-4 w-4 text-green-600" />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                  <div className="flex items-center space-x-2">
+                    <div className="p-2 bg-blue-50 rounded-lg">
+                      <User className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 font-medium">Bệnh nhân</p>
+                      <p className="font-semibold text-gray-900">{appointment.patientName}</p>
+                    </div>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 font-medium">Bác sĩ</p>
                     <p className="font-semibold text-gray-900 text-sm sm:text-base">{appointment.dentistName}</p>
                   </div>
-                </div>
 
-                <div className="flex items-center space-x-2">
-                  <div className="p-2 bg-purple-50 rounded-lg">
-                    <Clock className="h-4 w-4 text-purple-600" />
+                  <div className="flex items-center space-x-2">
+                    <div className="p-2 bg-purple-50 rounded-lg">
+                      <Clock className="h-4 w-4 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 font-medium">Ngày & Giờ</p>
+                      <p className="font-semibold text-gray-900">
+                        {formatDate(appointment.appointmentDate)}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {formatTime(appointment.appointmentTime)}
+                      </p>
+                    </div>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 font-medium">Ngày & Giờ</p>
@@ -392,8 +407,22 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                               : appointment.appointmentType}
                     </p>
                   </div>
+                )}
+
+                {/* Timestamp */}
+                <div className="mt-4 pt-3 border-t border-gray-100">
+                  <p className="text-xs text-gray-500">
+                    Tạo lúc: {formatDate(appointment.createdAt)}
+                    {appointment.updatedAt && (
+                      <span> • Cập nhật: {formatDate(appointment.updatedAt)}</span>
+                    )}
+                  </p>
                 </div>
-              </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
 
               {appointment.content && (
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg border-l-4 border-blue-200">
@@ -427,6 +456,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
           />
         </Card>
       )}
+
       <TreatmentModal
         formMethods={treatmentFormMethods}
         isOpen={showTreatmentModal}
@@ -439,6 +469,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
         onSubmit={() => {
           setShowTreatmentModal(false);
         }}
+        patientId={selectedPatientId ?? undefined}
       />
     </div>
   );
