@@ -39,8 +39,8 @@ export interface TreatmentFormData {
   toothPosition: string
   quantity: number
   unitPrice: number
-  discountAmount: number
-  discountPercentage: number
+  discountAmount:number| null
+  discountPercentage: number| null
   consultantEmployeeID: number
   treatmentStatus: string
   symptoms: string

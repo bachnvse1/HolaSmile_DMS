@@ -7,6 +7,7 @@ interface UserData {
   username: string | null;
   fullName: string | null;
   role: string | null;
+  roleTableId: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
 }
@@ -18,6 +19,7 @@ export const useAuth = () => {
     username: null,
     fullName: null,
     role: null,
+     roleTableId: null,
     refreshToken: null,
     isAuthenticated: false
   });
@@ -27,6 +29,7 @@ export const useAuth = () => {
     
     setUserData({
       ...data,
+      roleTableId: data.role_table_id ?? null,
       isAuthenticated: isAuth
     });
   };

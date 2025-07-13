@@ -30,6 +30,7 @@ import OrthodonticTreatmentPlanFormPage from './pages/OrthodonticTreatmentPlanFo
 import FUAppointmentPage from './pages/appointment/FUAppointmentPage';
 import UserManagement from './pages/auth/UserManagement';
 import WarrantyCardManagement from './pages/warrantyCard/WarrantyCardManagement';
+import InvoiceList from './pages/invoice/InvoiceList';
 function App() {
   return (
     <>
@@ -66,6 +67,7 @@ function App() {
         <Route path="/patient/follow-up" element={<FUAppointmentPage />} />
         <Route path="/administrator/user-list" element={<UserManagement/>}/>
         <Route path="/assistant/warranty-cards" element={<WarrantyCardManagement/>}/>
+        <Route path="/invoices" element={<InvoiceList/>}/>
       </Routes>
     </>
   );
