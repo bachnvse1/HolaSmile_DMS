@@ -4,10 +4,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace HDMS_API.Migrations
+namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -105,6 +105,19 @@ namespace HDMS_API.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "UserRoleResult",
+                columns: table => new
+                {
+                    Role = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    RoleTableId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -112,7 +125,7 @@ namespace HDMS_API.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Username = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Password = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
+                    Password = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Fullname = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -121,10 +134,9 @@ namespace HDMS_API.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     DOB = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Phone = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                    Phone = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Status = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Status = table.Column<bool>(type: "tinyint(1)", nullable: true),
                     IsVerify = table.Column<bool>(type: "tinyint(1)", nullable: true),
                     Email = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -286,16 +298,7 @@ namespace HDMS_API.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     UnderlyingConditions = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    FullName = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Gender = table.Column<bool>(type: "tinyint(1)", nullable: true),
                     UpdatedBy = table.Column<int>(type: "int", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Address = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ImageUser = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     CreatedBy = table.Column<int>(type: "int", nullable: true)
@@ -367,15 +370,16 @@ namespace HDMS_API.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     DentistId = table.Column<int>(type: "int", nullable: false),
                     WorkDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    Shift = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false)
+                    Shift = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     WeekStartDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    Status = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: true)
+                    Status = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     CreatedBy = table.Column<int>(type: "int", nullable: true),
-                    UpdatedBy = table.Column<int>(type: "int", nullable: true)
+                    UpdatedBy = table.Column<int>(type: "int", nullable: true),
+                    IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -541,6 +545,70 @@ namespace HDMS_API.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "Instructions",
+                columns: table => new
+                {
+                    InstructionID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    AppointmentId = table.Column<int>(type: "int", nullable: true),
+                    Instruc_TemplateID = table.Column<int>(type: "int", nullable: true),
+                    Content = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreateBy = table.Column<int>(type: "int", nullable: true),
+                    UpdatedBy = table.Column<int>(type: "int", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Instructions", x => x.InstructionID);
+                    table.ForeignKey(
+                        name: "FK_Instructions_Appointments_AppointmentId",
+                        column: x => x.AppointmentId,
+                        principalTable: "Appointments",
+                        principalColumn: "AppointmentId");
+                    table.ForeignKey(
+                        name: "FK_Instructions_InstructionTemplates_Instruc_TemplateID",
+                        column: x => x.Instruc_TemplateID,
+                        principalTable: "InstructionTemplates",
+                        principalColumn: "Instruc_TemplateID");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Prescriptions",
+                columns: table => new
+                {
+                    PrescriptionId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    AppointmentId = table.Column<int>(type: "int", nullable: true),
+                    Pre_TemplateID = table.Column<int>(type: "int", nullable: true),
+                    Content = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreateBy = table.Column<int>(type: "int", nullable: true),
+                    UpdatedBy = table.Column<int>(type: "int", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Prescriptions", x => x.PrescriptionId);
+                    table.ForeignKey(
+                        name: "FK_Prescriptions_Appointments_AppointmentId",
+                        column: x => x.AppointmentId,
+                        principalTable: "Appointments",
+                        principalColumn: "AppointmentId");
+                    table.ForeignKey(
+                        name: "FK_Prescriptions_PrescriptionTemplates_Pre_TemplateID",
+                        column: x => x.Pre_TemplateID,
+                        principalTable: "PrescriptionTemplates",
+                        principalColumn: "PreTemplateID");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Images",
                 columns: table => new
                 {
@@ -548,6 +616,7 @@ namespace HDMS_API.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     PatientId = table.Column<int>(type: "int", nullable: true),
                     TreatmentRecordId = table.Column<int>(type: "int", nullable: true),
+                    OrthodonticTreatmentPlanId = table.Column<int>(type: "int", nullable: true),
                     ImageURL = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Description = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
@@ -562,37 +631,15 @@ namespace HDMS_API.Migrations
                 {
                     table.PrimaryKey("PK_Images", x => x.ImageId);
                     table.ForeignKey(
+                        name: "FK_Images_OrthodonticTreatmentPlans_OrthodonticTreatmentPlanId",
+                        column: x => x.OrthodonticTreatmentPlanId,
+                        principalTable: "OrthodonticTreatmentPlans",
+                        principalColumn: "PlanId");
+                    table.ForeignKey(
                         name: "FK_Images_Patients_PatientId",
                         column: x => x.PatientId,
                         principalTable: "Patients",
                         principalColumn: "PatientID");
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "Instructions",
-                columns: table => new
-                {
-                    InstructionID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    TreatmentRecord_Id = table.Column<int>(type: "int", nullable: true),
-                    Instruc_TemplateID = table.Column<int>(type: "int", nullable: true),
-                    Content = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreateBy = table.Column<int>(type: "int", nullable: true),
-                    UpdatedBy = table.Column<int>(type: "int", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Instructions", x => x.InstructionID);
-                    table.ForeignKey(
-                        name: "FK_Instructions_InstructionTemplates_Instruc_TemplateID",
-                        column: x => x.Instruc_TemplateID,
-                        principalTable: "InstructionTemplates",
-                        principalColumn: "Instruc_TemplateID");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -609,15 +656,22 @@ namespace HDMS_API.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     TransactionType = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    PaymentDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    PaymentDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     Description = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    Status = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     PaidAmount = table.Column<decimal>(type: "decimal(65,30)", nullable: true),
+                    RemainingAmount = table.Column<decimal>(type: "decimal(65,30)", nullable: true),
                     CreatedBy = table.Column<int>(type: "int", nullable: true),
                     UpdatedBy = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    OrderCode = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TransactionId = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
@@ -628,33 +682,6 @@ namespace HDMS_API.Migrations
                         principalTable: "Patients",
                         principalColumn: "PatientID",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "Prescriptions",
-                columns: table => new
-                {
-                    PrescriptionId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    TreatmentRecord_Id = table.Column<int>(type: "int", nullable: true),
-                    Pre_TemplateID = table.Column<int>(type: "int", nullable: true),
-                    Content = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreateBy = table.Column<int>(type: "int", nullable: true),
-                    UpdatedBy = table.Column<int>(type: "int", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Prescriptions", x => x.PrescriptionId);
-                    table.ForeignKey(
-                        name: "FK_Prescriptions_PrescriptionTemplates_Pre_TemplateID",
-                        column: x => x.Pre_TemplateID,
-                        principalTable: "PrescriptionTemplates",
-                        principalColumn: "PreTemplateID");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -678,12 +705,12 @@ namespace HDMS_API.Migrations
                     DoctorCommissionRate = table.Column<float>(type: "float", nullable: true),
                     AssistantCommissionRate = table.Column<float>(type: "float", nullable: true),
                     TechnicianCommissionRate = table.Column<float>(type: "float", nullable: true),
+                    WarrantyCardId = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     CreatedBy = table.Column<int>(type: "int", nullable: true),
                     UpdatedBy = table.Column<int>(type: "int", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    TreatmentRecordID = table.Column<int>(type: "int", nullable: true)
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -696,7 +723,8 @@ namespace HDMS_API.Migrations
                 columns: table => new
                 {
                     ProcedureId = table.Column<int>(type: "int", nullable: false),
-                    SupplyId = table.Column<int>(type: "int", nullable: false)
+                    SupplyId = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -826,30 +854,24 @@ namespace HDMS_API.Migrations
                 {
                     WarrantyCardID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    TreatmentRecordID = table.Column<int>(type: "int", nullable: true),
-                    ProcedureID = table.Column<int>(type: "int", nullable: true),
                     StartDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    Term = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Duration = table.Column<int>(type: "int", nullable: true),
                     Status = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     CreateBy = table.Column<int>(type: "int", nullable: true),
-                    UpdatedBy = table.Column<int>(type: "int", nullable: true)
+                    UpdatedBy = table.Column<int>(type: "int", nullable: true),
+                    TreatmentRecordID = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_WarrantyCards", x => x.WarrantyCardID);
                     table.ForeignKey(
-                        name: "FK_WarrantyCards_Procedures_ProcedureID",
-                        column: x => x.ProcedureID,
-                        principalTable: "Procedures",
-                        principalColumn: "ProcedureId");
-                    table.ForeignKey(
                         name: "FK_WarrantyCards_TreatmentRecords_TreatmentRecordID",
                         column: x => x.TreatmentRecordID,
                         principalTable: "TreatmentRecords",
-                        principalColumn: "TreatmentRecordID");
+                        principalColumn: "TreatmentRecordID",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -865,8 +887,7 @@ namespace HDMS_API.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Description = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Status = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Status = table.Column<bool>(type: "tinyint(1)", nullable: true),
                     StartTime = table.Column<TimeSpan>(type: "time(6)", nullable: true),
                     EndTime = table.Column<TimeSpan>(type: "time(6)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
@@ -916,6 +937,11 @@ namespace HDMS_API.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Images_OrthodonticTreatmentPlanId",
+                table: "Images",
+                column: "OrthodonticTreatmentPlanId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Images_PatientId",
                 table: "Images",
                 column: "PatientId");
@@ -926,14 +952,14 @@ namespace HDMS_API.Migrations
                 column: "TreatmentRecordId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Instructions_AppointmentId",
+                table: "Instructions",
+                column: "AppointmentId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Instructions_Instruc_TemplateID",
                 table: "Instructions",
                 column: "Instruc_TemplateID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Instructions_TreatmentRecord_Id",
-                table: "Instructions",
-                column: "TreatmentRecord_Id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Invoices_PatientId",
@@ -976,19 +1002,19 @@ namespace HDMS_API.Migrations
                 column: "UserID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Prescriptions_AppointmentId",
+                table: "Prescriptions",
+                column: "AppointmentId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Prescriptions_Pre_TemplateID",
                 table: "Prescriptions",
                 column: "Pre_TemplateID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Prescriptions_TreatmentRecord_Id",
-                table: "Prescriptions",
-                column: "TreatmentRecord_Id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Procedures_TreatmentRecordID",
+                name: "IX_Procedures_WarrantyCardId",
                 table: "Procedures",
-                column: "TreatmentRecordID");
+                column: "WarrantyCardId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Receptionists_UserId",
@@ -1061,11 +1087,6 @@ namespace HDMS_API.Migrations
                 column: "ProcedureID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WarrantyCards_ProcedureID",
-                table: "WarrantyCards",
-                column: "ProcedureID");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_WarrantyCards_TreatmentRecordID",
                 table: "WarrantyCards",
                 column: "TreatmentRecordID");
@@ -1078,13 +1099,6 @@ namespace HDMS_API.Migrations
                 principalColumn: "TreatmentRecordID");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_Instructions_TreatmentRecords_TreatmentRecord_Id",
-                table: "Instructions",
-                column: "TreatmentRecord_Id",
-                principalTable: "TreatmentRecords",
-                principalColumn: "TreatmentRecordID");
-
-            migrationBuilder.AddForeignKey(
                 name: "FK_Invoices_TreatmentRecords_TreatmentRecord_Id",
                 table: "Invoices",
                 column: "TreatmentRecord_Id",
@@ -1093,18 +1107,11 @@ namespace HDMS_API.Migrations
                 onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_Prescriptions_TreatmentRecords_TreatmentRecord_Id",
-                table: "Prescriptions",
-                column: "TreatmentRecord_Id",
-                principalTable: "TreatmentRecords",
-                principalColumn: "TreatmentRecordID");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Procedures_TreatmentRecords_TreatmentRecordID",
+                name: "FK_Procedures_WarrantyCards_WarrantyCardId",
                 table: "Procedures",
-                column: "TreatmentRecordID",
-                principalTable: "TreatmentRecords",
-                principalColumn: "TreatmentRecordID");
+                column: "WarrantyCardId",
+                principalTable: "WarrantyCards",
+                principalColumn: "WarrantyCardID");
         }
 
         /// <inheritdoc />
@@ -1131,8 +1138,8 @@ namespace HDMS_API.Migrations
                 table: "Appointments");
 
             migrationBuilder.DropForeignKey(
-                name: "FK_Procedures_TreatmentRecords_TreatmentRecordID",
-                table: "Procedures");
+                name: "FK_WarrantyCards_TreatmentRecords_TreatmentRecordID",
+                table: "WarrantyCards");
 
             migrationBuilder.DropTable(
                 name: "Administrators");
@@ -1151,9 +1158,6 @@ namespace HDMS_API.Migrations
 
             migrationBuilder.DropTable(
                 name: "Notifications");
-
-            migrationBuilder.DropTable(
-                name: "OrthodonticTreatmentPlans");
 
             migrationBuilder.DropTable(
                 name: "Owners");
@@ -1180,7 +1184,10 @@ namespace HDMS_API.Migrations
                 name: "Tasks");
 
             migrationBuilder.DropTable(
-                name: "WarrantyCards");
+                name: "UserRoleResult");
+
+            migrationBuilder.DropTable(
+                name: "OrthodonticTreatmentPlans");
 
             migrationBuilder.DropTable(
                 name: "InstructionTemplates");
@@ -1220,6 +1227,9 @@ namespace HDMS_API.Migrations
 
             migrationBuilder.DropTable(
                 name: "Procedures");
+
+            migrationBuilder.DropTable(
+                name: "WarrantyCards");
         }
     }
 }
