@@ -1,4 +1,5 @@
 ﻿using Application.Constants;
+using Application.Services;
 using Application.Usecases.Patients.ViewDentalRecord;
 using Application.Usecases.Patients.ViewListPatient;
 using Application.Usecases.UserCommon.ViewListPatient;
@@ -13,10 +14,14 @@ namespace HDMS_API.Controllers
     public class PatientController : ControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly IPdfGenerator _pdfGenerator;
+        private readonly IPrinter _printer;
 
-        public PatientController(IMediator mediator)
+        public PatientController(IMediator mediator, IPdfGenerator pdfGenerator, IPrinter printer)
         {
             _mediator = mediator;
+            _pdfGenerator = pdfGenerator;
+            _printer = printer;
         }
 
         [HttpGet]
@@ -77,5 +82,17 @@ namespace HDMS_API.Controllers
             var result = await _mediator.Send(new ViewDentalExamSheetCommand(AppointmentId));
             return Ok(result);
         }
+        
+        [HttpGet("DentalRecord/Print/{AppointmentId}")]
+        [Authorize]
+        public async Task<IActionResult> PrintDentalRecord(int AppointmentId)
+        {
+            var sheet = await _mediator.Send(new ViewDentalExamSheetCommand(AppointmentId));
+            var htmlContent = _printer.RenderDentalExamSheetToHtml(sheet);
+            var pdfBytes = _pdfGenerator.GeneratePdf(htmlContent);
+    
+            return File(pdfBytes, "application/pdf", $"DentalRecord_{AppointmentId}.pdf");
+        }
+
     }
 }

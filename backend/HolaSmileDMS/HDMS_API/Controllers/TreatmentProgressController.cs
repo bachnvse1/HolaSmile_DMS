@@ -54,7 +54,7 @@ public class TreatmentProgressController : ControllerBase
         }
         catch (UnauthorizedAccessException ex)
         {
-            return Unauthorized(new { message = ex.Message });
+            return StatusCode(403, new { message = MessageConstants.MSG.MSG26 });
         }
         catch (ArgumentException ex)
         {

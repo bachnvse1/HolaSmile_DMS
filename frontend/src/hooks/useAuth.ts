@@ -19,7 +19,7 @@ export const useAuth = () => {
     username: null,
     fullName: null,
     role: null,
-     roleTableId: null,
+    roleTableId: null,
     refreshToken: null,
     isAuthenticated: false
   });

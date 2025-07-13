@@ -385,13 +385,14 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                                 ? 'Khám lần đầu'
                                 : appointment.appointmentType}
                       </p>
+
                     </div>
                   </div>
-                </div>
 
                 {appointment.content && (
                   <div className="mt-4 p-4 bg-gray-50 rounded-lg border-l-4 border-blue-200">
                     <p className="text-sm text-gray-700 line-clamp-2">{appointment.content}</p>
+
                   </div>
                 )}
 
@@ -409,6 +410,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
           ))
         )}
       </div>
+
 
       {/* Pagination */}
       {sortedAppointments.length > 0 && (

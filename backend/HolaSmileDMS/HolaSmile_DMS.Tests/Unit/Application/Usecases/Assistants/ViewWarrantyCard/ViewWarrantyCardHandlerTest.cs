@@ -96,7 +96,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
         [Fact(DisplayName = "Abnormal - UTCID03 - Role not Assistant should throw MSG26")]
         public async System.Threading.Tasks.Task UTCID03_Not_Assistant_Should_Throw()
         {
-            SetupHttpContext("Patient");
+            SetupHttpContext("Receptionist");
 
             var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
                 _handler.Handle(new ViewListWarrantyCardsCommand(), default));
