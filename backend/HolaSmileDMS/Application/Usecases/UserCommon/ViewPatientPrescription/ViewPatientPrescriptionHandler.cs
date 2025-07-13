@@ -43,7 +43,7 @@ namespace Application.Usecases.UserCommon.ViewPatientPrescription
                 }
             }
 
-            var createdByDentist = await _dentistRepository.GetDentistByDentistIdAsync(existPrescription.CreateBy);
+            var createdByDentist = await _dentistRepository.GetDentistByUserIdAsync(existPrescription.CreateBy ?? 0);
 
             var result = new ViewPrescriptionDTO
             {
