@@ -3,9 +3,8 @@ using Application.Usecases.Patients.CancelAppointment;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Application.Usecases.Receptionist.CreateFollow_UpAppointment;
+using Application.Usecases.Receptionist.CreateFUAppointment;
 using Application.Usecases.Receptionist.EditAppointment;
-using System.Reflection.Metadata;
 using Application.Constants;
 
 namespace HDMS_API.Controllers
@@ -20,6 +19,7 @@ namespace HDMS_API.Controllers
             _mediator = mediator;
         }
 
+        [Authorize]
         [HttpGet]
         [Route("listAppointment")]
         public async Task<IActionResult> GetAppointment(CancellationToken cancellationToken)
@@ -40,7 +40,7 @@ namespace HDMS_API.Controllers
             }
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpGet("{appointmentId}")]
         public async Task<IActionResult> ViewDetailAppointment([FromRoute] int appointmentId, CancellationToken cancellationToken)
         {
@@ -60,6 +60,7 @@ namespace HDMS_API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("FUappointment")]
         public async Task<IActionResult> CreateFUAppointment([FromBody] CreateFUAppointmentCommand request, CancellationToken cancellationToken)
         {

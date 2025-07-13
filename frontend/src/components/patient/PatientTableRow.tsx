@@ -10,14 +10,15 @@ import { Phone, Mail, MoreHorizontal } from "lucide-react"
 import type { Patient } from "@/types/patient"
 import { Link } from "react-router"
 import { formatDateWithDay } from "@/utils/dateUtils"
-import { useState } from "react"
 import { useNavigate } from "react-router"
+
 interface Props {
     patient: Patient
     index: number
+    onEdit: (patient: Patient) => void
 }
 
-export default function PatientTableRow({ patient, index }: Props) {
+export default function PatientTableRow({ patient, index, onEdit }: Props) {
     const rowBg = index % 2 === 0 ? "bg-white" : "bg-gray-50"
     const navigate = useNavigate();
     return (
@@ -52,7 +53,7 @@ export default function PatientTableRow({ patient, index }: Props) {
             </td>
             <td className="p-4">
                 <Button asChild variant="outline" size="sm">
-                    <Link to={`/patient/view-treatment-records?userId=${patient.userId}&patientId=${patient.patientId}`}>
+                    <Link to={`/patient/view-treatment-records?patientId=${patient.patientId}`}>
                         Xem Hồ Sơ Điều Trị
                     </Link>
                 </Button>
@@ -68,13 +69,18 @@ export default function PatientTableRow({ patient, index }: Props) {
                         <DropdownMenuItem asChild>
                             <Link to={`/patient/${patient.userId}`}>Xem Chi Tiết</Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                            <Link to={`/edit-patient/${patient.userId}`}>Chỉnh Sửa Bệnh Nhân</Link>
+                        <DropdownMenuItem onClick={() => onEdit(patient)}>
+                            Chỉnh Sửa Bệnh Nhân
                         </DropdownMenuItem>
                         <DropdownMenuItem
                             onClick={() => navigate(`/patient/follow-up?patientId=${patient.patientId}`)}
                         >
                             Tạo Lịch Tái Khám
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            onClick={() => navigate(`/patients/${patient.patientId}/orthodontic-treatment-plans`)}
+                        >
+                            Kế Hoạch Điều Trị
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

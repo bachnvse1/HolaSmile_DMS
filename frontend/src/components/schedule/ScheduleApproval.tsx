@@ -100,13 +100,15 @@ export const ScheduleApproval: React.FC<{ viewOnlyApproved?: boolean }> = ({ vie
       });
   }, [allSchedules, searchTerm]);
 
-  const handleSelectSchedule = (scheduleId: number) => {
-    if (selectedSchedules.includes(scheduleId)) {
-      // Bỏ chọn
-      setSelectedSchedules(prev => prev.filter(id => id !== scheduleId));
+  const handleSelectSchedule = (ids: number | number[]) => {
+    if (Array.isArray(ids)) {
+      setSelectedSchedules(ids); // Chọn nhanh: set toàn bộ
     } else {
-      // Chọn
-      setSelectedSchedules(prev => [...prev, scheduleId]);
+      setSelectedSchedules(prev =>
+        prev.includes(ids)
+          ? prev.filter(id => id !== ids) // Nếu đã chọn thì bỏ chọn
+          : [...prev, ids]                // Nếu chưa chọn thì thêm vào
+      );
     }
   };
 
@@ -304,7 +306,8 @@ export const ScheduleApproval: React.FC<{ viewOnlyApproved?: boolean }> = ({ vie
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 w-full sm:w-auto min-w-[240px]"
-            />            {searchTerm && (
+            />            
+            {searchTerm && (
               <Button
                 variant="ghost"
                 size="icon"

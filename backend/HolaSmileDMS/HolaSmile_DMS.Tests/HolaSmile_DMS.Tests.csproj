@@ -11,6 +11,8 @@
 
   <ItemGroup>
     <!-- Testing frameworks -->
+    <PackageReference Include="EPPlus" Version="6.0.4" />
+    <PackageReference Include="FluentAssertions" Version="8.4.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.0" />
     <PackageReference Include="xunit" Version="2.4.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
@@ -34,6 +36,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Application\Application.csproj" />
+    <ProjectReference Include="..\HDMS_API\HDMS_API.csproj" />
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
 </Project>

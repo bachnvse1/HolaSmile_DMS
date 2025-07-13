@@ -96,6 +96,11 @@ export interface AppointmentDTO {
   // Additional fields for calendar view
   patientId?: number;
   dentistId?: number;
+  // New prescription fields
+  isExistPrescription: boolean;
+  isExistInstruction: boolean;
+  prescriptionId: number | null;
+  instructionId: number | null;
 }
 
 export interface AppointmentViewProps {

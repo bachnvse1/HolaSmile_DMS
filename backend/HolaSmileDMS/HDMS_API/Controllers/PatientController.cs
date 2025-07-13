@@ -1,6 +1,8 @@
 ﻿using Application.Constants;
+using Application.Services;
+using Application.Usecases.Patients.ViewDentalRecord;
 using Application.Usecases.Patients.ViewListPatient;
-using HDMS_API.Infrastructure.Persistence;
+using Application.Usecases.UserCommon.ViewListPatient;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,11 +13,15 @@ namespace HDMS_API.Controllers
     [ApiController]
     public class PatientController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
         private readonly IMediator _mediator;
-        public PatientController(IMediator mediator)
+        private readonly IPdfGenerator _pdfGenerator;
+        private readonly IDentalExamSheetPrinter _printer;
+
+        public PatientController(IMediator mediator, IPdfGenerator pdfGenerator, IDentalExamSheetPrinter printer)
         {
             _mediator = mediator;
+            _pdfGenerator = pdfGenerator;
+            _printer = printer;
         }
 
         [HttpGet]
@@ -30,17 +36,63 @@ namespace HDMS_API.Controllers
 
                 return Ok(result);
             }
-            catch (UnauthorizedAccessException ex)
+            catch (UnauthorizedAccessException)
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new
                 {
                     message = MessageConstants.MSG.MSG26
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
             }
         }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> ViewDetailPatient(int id)
+        {
+            try
+            {
+                var result = await _mediator.Send(new ViewDetailPatientCommand { PatientId = id });
+
+                return Ok(result);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { message = MessageConstants.MSG.MSG12 }); // Không tìm thấy bệnh nhân
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    message = MessageConstants.MSG.MSG26
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
+            }
+        }
+        
+        [HttpGet("DentalRecord/{AppointmentId}")]
+        [Authorize]
+        public async Task<IActionResult> ViewDentalRecord(int AppointmentId)
+        {
+            var result = await _mediator.Send(new ViewDentalExamSheetCommand(AppointmentId));
+            return Ok(result);
+        }
+        
+        [HttpGet("DentalRecord/Print/{AppointmentId}")]
+        [Authorize]
+        public async Task<IActionResult> PrintDentalRecord(int AppointmentId)
+        {
+            var sheet = await _mediator.Send(new ViewDentalExamSheetCommand(AppointmentId));
+            var htmlContent = _printer.RenderDentalExamSheetToHtml(sheet);
+            var pdfBytes = _pdfGenerator.GeneratePdf(htmlContent);
+    
+            return File(pdfBytes, "application/pdf", $"DentalRecord_{AppointmentId}.pdf");
+        }
+
     }
 }

@@ -5,6 +5,7 @@ import axiosInstance from "@/lib/axios";
 import type { Dentist } from "@/types/appointment";
 import { ArrowLeft, Calendar } from "lucide-react";
 import { useNavigate } from "react-router";
+import { getErrorMessage } from "@/utils/formatUtils";
 interface FUAppointmentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -39,8 +40,8 @@ export const FUAppointmentModal: React.FC<FUAppointmentModalProps> = ({
       });
       toast.success("Tạo lịch tái khám thành công!");
       onClose();
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Có lỗi xảy ra!");
+    } catch (error) {
+      toast.error(getErrorMessage(error)|| "Có lỗi xảy ra!");
     }
   };
 
@@ -48,7 +49,7 @@ export const FUAppointmentModal: React.FC<FUAppointmentModalProps> = ({
     <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-3xl min-h-[80vh]">
       <div className="flex">
         <button
-          onClick={() => window.history.back()}
+          onClick={() => navigate(-1)}
           className="flex items-center px-2 py-2 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all"
         >
           <ArrowLeft className="h-5 w-5" />
