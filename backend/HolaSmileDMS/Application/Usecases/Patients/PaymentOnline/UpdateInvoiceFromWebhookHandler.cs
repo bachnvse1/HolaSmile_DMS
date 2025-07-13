@@ -49,6 +49,7 @@ public sealed class UpdateInvoiceFromWebhookHandler : IRequestHandler<UpdateInvo
             await _invoiceRepository.UpdateAsync(invoice, cancellationToken);
         }
 
+        // gửi mail // gửi notification
         return Unit.Value;
     }
 }
