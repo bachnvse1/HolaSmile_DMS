@@ -14,7 +14,7 @@ export interface DecodedToken {
   userId: string;
   username: string;
   role: string;
-  role_table_id?: string;
+  role_table_id?: string; 
   givenname: string;
   exp: number;
   iss: string;

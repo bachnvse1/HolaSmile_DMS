@@ -11,6 +11,7 @@ import type { AppointmentDTO } from '../../types/appointment';
 import { useForm } from "react-hook-form";
 import TreatmentModal from '../patient/TreatmentModal';
 import type { TreatmentFormData } from "@/types/treatment";
+import {formatDateVN, formatTimeVN} from '../../utils/dateUtils';
 
 interface AppointmentListViewProps {
   appointments: AppointmentDTO[];
@@ -49,19 +50,6 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
       default:
         return status;
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const formatTime = (timeString: string) => {
-    return timeString.substring(0, 5);
   };
 
   // Filter appointments
@@ -136,14 +124,6 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   const handleItemsPerPageChange = (value: number) => {
     setItemsPerPage(value);
     setCurrentPage(1);
-  };
-
-  // Handle treatment modal opening
-  const handleOpenTreatmentModal = (appointment: AppointmentDTO) => {
-    setSelectedAppointmentId(appointment.appointmentId);
-    setSelectedPatientId(appointment.patientId || null); // Assuming patientId exists in AppointmentDTO
-    setShowTreatmentModal(true);
-    setTreatmentToday(false);
   };
 
   // Group appointments by status for summary
@@ -267,153 +247,164 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
           </div>
         </CardContent>
       </Card>
-
-      <div className="space-y-4">
+      <div className="space-y-4">        
         {paginatedAppointments.length === 0 ? (
-          <Card className="p-8 text-center">
-            <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">Không có lịch hẹn nào phù hợp</p>
-          </Card>
-        ) : (
-          paginatedAppointments.map((appointment) => (
-            <Card key={appointment.appointmentId} className="hover:shadow-lg transition-shadow duration-200">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <Badge
-                      variant={
-                        appointment.status === 'confirmed'
-                          ? 'success'
-                          : appointment.status === 'canceled'
-                            ? 'destructive'
-                            : appointment.status === 'attended'
-                              ? 'info'
-                              : 'secondary'
-                      }
-                      className="text-xs font-medium"
-                    >
-                      {getStatusText(appointment.status)}
+        <Card className="p-8 text-center">
+          <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600">Không có lịch hẹn nào phù hợp</p>
+        </Card>
+      ) : (
+        paginatedAppointments.map((appointment) => (
+          <Card key={appointment.appointmentId} className="hover:shadow-lg transition-shadow duration-200">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <Badge
+                    variant={
+                      appointment.status === 'confirmed'
+                        ? 'success'
+                        : appointment.status === 'canceled'
+                          ? 'destructive'
+                          : appointment.status === 'attended'
+                            ? 'info'
+                            : 'secondary'
+                    }
+                    className="text-xs font-medium"
+                  >
+                    {getStatusText(appointment.status)}
+                  </Badge>
+                  {appointment.isNewPatient && (
+                    <Badge variant="info" className="text-xs font-medium">
+                      Bệnh nhân mới
                     </Badge>
-                    {appointment.isNewPatient && (
-                      <Badge variant="info" className="text-xs font-medium">
-                        Bệnh nhân mới
+                  )}
+                  {appointment.isExistPrescription && (
+                    <Badge variant="success" className="text-xs font-medium">
+                      Có đơn thuốc
+                    </Badge>
+                  )}
+                  {/* Show cancellation warning for Patient */}
+                  {role === 'Patient' && appointment.status === 'confirmed' &&
+                    !isAppointmentCancellable(appointment.appointmentDate, appointment.appointmentTime) && (
+                      <Badge variant="warning" className="text-xs font-medium flex items-center">
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        Không thể hủy
                       </Badge>
                     )}
-                    {/* Show cancellation warning for Patient */}
-                    {role === 'Patient' && appointment.status === 'confirmed' &&
-                      !isAppointmentCancellable(appointment.appointmentDate, appointment.appointmentTime) && (
-                        <Badge variant="warning" className="text-xs font-medium flex items-center">
-                          <AlertTriangle className="h-3 w-3 mr-1" />
-                          Không thể hủy
-                        </Badge>
-                      )}
-                  </div>
-                  <div className="flex flex-col items-end gap-2">
+                </div>
+                <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 xs:gap-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (role === 'Patient') {
+                        navigate(`/patient/appointments/${appointment.appointmentId}`);
+                      } else {
+                        navigate(`/appointments/${appointment.appointmentId}`);
+                      }
+                    }}
+                    className="flex items-center gap-2 w-full xs:w-auto"
+                  >
+                    <Eye className="h-4 w-4" />
+                    Chi tiết
+                  </Button>
+                  {role === 'Dentist' &&
                     <Button
-                      variant="outline"
+                      variant="default"
                       size="sm"
-                      onClick={() => onAppointmentClick?.(appointment)}
-                      className="flex items-center gap-2"
+                      onClick={() => {
+                        setSelectedAppointmentId(appointment.appointmentId);
+                        setShowTreatmentModal(true); 
+                        setTreatmentToday(false); 
+                      }}
+                      className="flex items-center gap-2 w-full xs:w-auto"
                     >
-                      <Eye className="h-4 w-4" />
-                      Chi tiết
+                      <FileText className="h-4 w-4" />
+                      <span className="hidden sm:inline">Tạo hồ sơ điều trị</span>
+                      <span className="sm:hidden">Tạo hồ sơ</span>
                     </Button>
-                    {role === 'Dentist' && (
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => handleOpenTreatmentModal(appointment)}
-                        className="flex items-center gap-2"
-                      >
-                        <FileText className="h-4 w-4" />
-                        Tạo hồ sơ điều trị
-                      </Button>
-                    )}
+                  }
+                </div>
+
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 bg-blue-50 rounded-lg">
+                    <User className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Bệnh nhân</p>
+                    <p className="font-semibold text-gray-900 text-sm sm:text-base">{appointment.patientName}</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                  <div className="flex items-center space-x-2">
-                    <div className="p-2 bg-blue-50 rounded-lg">
-                      <User className="h-4 w-4 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 font-medium">Bệnh nhân</p>
-                      <p className="font-semibold text-gray-900">{appointment.patientName}</p>
-                    </div>
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 bg-green-50 rounded-lg">
+                    <User className="h-4 w-4 text-green-600" />
                   </div>
-
-                  <div className="flex items-center space-x-2">
-                    <div className="p-2 bg-green-50 rounded-lg">
-                      <User className="h-4 w-4 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 font-medium">Bác sĩ</p>
-                      <p className="font-semibold text-gray-900">{appointment.dentistName}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <div className="p-2 bg-purple-50 rounded-lg">
-                      <Clock className="h-4 w-4 text-purple-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 font-medium">Ngày & Giờ</p>
-                      <p className="font-semibold text-gray-900">
-                        {formatDate(appointment.appointmentDate)}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {formatTime(appointment.appointmentTime)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <div className="p-2 bg-indigo-50 rounded-lg">
-                      <FileText className="h-4 w-4 text-indigo-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 font-medium">Loại hẹn</p>
-                      <p className="font-semibold text-gray-900">
-                        {appointment.appointmentType === 'follow-up'
-                          ? 'Tái khám'
-                          : appointment.appointmentType === 'consult'
-                            ? 'Tư vấn'
-                            : appointment.appointmentType === 'treatment'
-                              ? 'Điều trị'
-                              : appointment.appointmentType === 'first-time'
-                                ? 'Khám lần đầu'
-                                : appointment.appointmentType}
-                      </p>
-
-                    </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Bác sĩ</p>
+                    <p className="font-semibold text-gray-900 text-sm sm:text-base">{appointment.dentistName}</p>
                   </div>
                 </div>
+
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 bg-purple-50 rounded-lg">
+                    <Clock className="h-4 w-4 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Ngày & Giờ</p>
+                    <p className="font-semibold text-gray-900 text-sm sm:text-base">
+                      {formatDateVN(appointment.appointmentDate)}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      {formatTimeVN(appointment.appointmentTime)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 bg-indigo-50 rounded-lg">
+                    <FileText className="h-4 w-4 text-indigo-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Loại hẹn</p>
+                    <p className="font-semibold text-gray-900 text-sm sm:text-base">
+                      {appointment.appointmentType === 'follow-up'
+                        ? 'Tái khám'
+                        : appointment.appointmentType === 'consult'
+                          ? 'Tư vấn'
+                          : appointment.appointmentType === 'treatment'
+                            ? 'Điều trị'
+                            : appointment.appointmentType === 'first-time'
+                              ? 'Khám lần đầu '
+                              : appointment.appointmentType}
+                    </p>
+                  </div>
+                </div>
+              </div>
 
                 {appointment.content && (
                   <div className="mt-4 p-4 bg-gray-50 rounded-lg border-l-4 border-blue-200">
                     <p className="text-sm text-gray-700 line-clamp-2">{appointment.content}</p>
-
                   </div>
                 )}
 
-                {/* Timestamp */}
-                <div className="mt-4 pt-3 border-t border-gray-100">
-                  <p className="text-xs text-gray-500">
-                    Tạo lúc: {formatDate(appointment.createdAt)}
-                    {appointment.updatedAt && (
-                      <span> • Cập nhật: {formatDate(appointment.updatedAt)}</span>
-                    )}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
-
-
-      {/* Pagination */}
+              {/* Timestamp */}
+              <div className="mt-4 pt-3 border-t border-gray-100">
+                <p className="text-xs text-gray-500">
+                  Tạo lúc: {formatDateVN(appointment.createdAt)}
+                  {appointment.updatedAt && (
+                    <span> • Cập nhật: {formatDateVN(appointment.updatedAt)}</span>
+                  )}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        ))
+      )}
+      </div>      {/* Pagination */}
       {sortedAppointments.length > 0 && (
         <Card className="p-4">
           <Pagination

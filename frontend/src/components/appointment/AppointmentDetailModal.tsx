@@ -5,9 +5,10 @@ import { Badge } from '../ui/badge';
 import { CancelAppointmentDialog } from './CancelAppointmentDialog';
 import { useAuth } from '../../hooks/useAuth';
 import { isAppointmentCancellable, getTimeUntilAppointment } from '../../utils/appointmentUtils';
-import type { AppointmentDTO, Dentist } from '../../types/appointment';
+import type { Dentist } from '../../types/appointment';
 import { Link, useParams, useNavigate } from 'react-router';
 import { EditAppointmentDialog } from './EditAppointmentDialog';
+import {formatDateVN, formatTimeVN} from '../../utils/dateUtils';
 
 interface AppointmentDetailModalProps {
   appointment: AppointmentDTO | null;
