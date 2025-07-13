@@ -8,15 +8,10 @@ import { useAuth } from '../../hooks/useAuth';
 import { usePrescriptionByAppointment } from '../../hooks/usePrescription';
 import { useAppointmentDetail } from '../../hooks/useAppointments';
 import { isAppointmentCancellable, getTimeUntilAppointment } from '../../utils/appointmentUtils';
-import type { AppointmentDTO, Dentist } from '../../types/appointment';
+import type { Dentist } from '../../types/appointment';
 import { Link, useParams, useNavigate } from 'react-router';
 import { EditAppointmentDialog } from './EditAppointmentDialog';
 import {formatDateVN, formatTimeVN} from '../../utils/dateUtils';
-
-// Extended interface for appointment with prescription
-interface AppointmentWithPrescription extends AppointmentDTO {
-  prescriptionId?: number;
-}
 
 interface AppointmentDetailModalProps {
   appointmentId: number | null;

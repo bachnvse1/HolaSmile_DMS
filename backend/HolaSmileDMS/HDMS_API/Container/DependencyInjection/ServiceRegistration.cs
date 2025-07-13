@@ -64,6 +64,7 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IPdfGenerator, PdfGenerator>();
             services.AddScoped<IPrinter, Printer>();
             services.AddScoped<IPrescriptionTemplateRepository, PrescriptionTemplateRepository>();
+            services.AddScoped<IInstructionTemplateRepository, InstructionTemplateRepository>();
             services.AddScoped<IPayOSService, PayOSService>();
             services.Configure<PayOSOptions>(configuration.GetSection("PayOS"));
             services.AddScoped<IPayOSConfiguration, PayOSConfiguration>();
