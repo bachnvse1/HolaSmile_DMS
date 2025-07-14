@@ -194,6 +194,13 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
   const handleUpload = async () => {
     if (selectedFiles.length === 0) return;
 
+    // Validate that all images have descriptions
+    const filesWithoutDescription = selectedFiles.filter(file => !file.description.trim());
+    if (filesWithoutDescription.length > 0) {
+      toast.error(`Vui lòng nhập mô tả cho tất cả ${filesWithoutDescription.length} ảnh`);
+      return;
+    }
+
     setIsUploading(true);
     let successCount = 0;
     let errorCount = 0;
@@ -205,7 +212,7 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
           const uploadData: CreatePatientImageRequest = {
             patientId: actualPatientId,
             imageFile: fileItem.file,
-            description: fileItem.description.trim() || undefined,
+            description: fileItem.description.trim(),
             ...(treatmentRecordId && { treatmentRecordId }),
             ...(orthodonticTreatmentPlanId && { orthodonticTreatmentPlanId }),
           };
@@ -229,7 +236,6 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
       handleCloseUploadDialog();
     } catch (error) {
       console.error('Upload process error:', error);
-      toast.error('Có lỗi xảy ra trong quá trình tải lên');
     } finally {
       setIsUploading(false);
     }
@@ -325,7 +331,7 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
                   </Button>
                 </DialogTrigger>
                 <DialogContent
-                  className="max-w-4xl max-h-[90vh] overflow-y-auto"
+                  className="max-w-7xl w-[95vw] max-h-[90vh] overflow-y-auto"
                   style={{
                     animation: 'none',
                     transform: 'none',
@@ -401,38 +407,48 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
                         <h3 className="text-sm font-medium">
                           Ảnh đã chọn ({selectedFiles.length})
                         </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 max-h-96 overflow-y-auto">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-h-96 overflow-y-auto">
                           {selectedFiles.map((fileItem) => (
-                            <div key={fileItem.id} className="space-y-2 border rounded-lg p-3">
+                            <div key={fileItem.id} className="space-y-3 border rounded-lg p-4 bg-gray-50">
                               <div className="relative">
                                 <img
                                   src={URL.createObjectURL(fileItem.file)}
                                   alt="Preview"
-                                  className="w-full h-24 object-cover rounded"
+                                  className="w-full h-48 object-cover rounded-lg"
                                 />
                                 <Button
                                   size="sm"
                                   variant="destructive"
                                   onClick={() => removeSelectedImage(fileItem.id)}
-                                  className="absolute top-1 right-1 h-6 w-6 p-0"
+                                  className="absolute top-2 right-2 h-8 w-8 p-0 shadow-lg"
                                 >
                                   ×
                                 </Button>
                               </div>
-                              <div className="space-y-1">
-                                <p className="text-xs text-gray-600 truncate" title={fileItem.file.name}>
+                              <div className="space-y-2">
+                                <p className="text-sm text-gray-600 truncate font-medium" title={fileItem.file.name}>
                                   {fileItem.file.name}
                                 </p>
-                                <p className="text-xs text-green-600">
+                                <p className="text-sm text-green-600 font-semibold">
                                   {(fileItem.file.size / 1024 / 1024).toFixed(2)}MB
                                 </p>
-                                <Textarea
-                                  value={fileItem.description}
-                                  onChange={(e) => updateImageDescription(fileItem.id, e.target.value)}
-                                  placeholder="Mô tả ảnh*"
-                                  className="text-xs resize-none"
-                                  rows={2}
-                                />
+                                <div className="relative">
+                                  <Textarea
+                                    value={fileItem.description}
+                                    onChange={(e) => updateImageDescription(fileItem.id, e.target.value)}
+                                    placeholder="Mô tả ảnh (bắt buộc) *"
+                                    className={`text-sm resize-none ${
+                                      !fileItem.description.trim() 
+                                        ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                                        : 'border-green-300 focus:border-green-500 focus:ring-green-500'
+                                    }`}
+                                    rows={3}
+                                    required
+                                  />
+                                  {!fileItem.description.trim() && (
+                                    <p className="text-xs text-red-500 mt-1">Vui lòng nhập mô tả</p>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -451,7 +467,12 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
                       </Button>
                       <Button
                         onClick={handleUpload}
-                        disabled={selectedFiles.length === 0 || isUploading}
+                        disabled={selectedFiles.length === 0 || isUploading || selectedFiles.some(file => !file.description.trim())}
+                        className={`${
+                          selectedFiles.some(file => !file.description.trim()) 
+                            ? 'opacity-50 cursor-not-allowed' 
+                            : ''
+                        }`}
                       >
                         {isUploading ? (
                           <>

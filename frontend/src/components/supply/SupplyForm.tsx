@@ -237,19 +237,30 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
-                  Số Lượng Trong Kho
+                  Số Lượng Trong Kho {mode === 'create' ? '*' : ''}
                 </label>
                 <Input
                   type="number"
                   min="0"
                   placeholder="0"
                   {...form.register('quantityInStock')}
-                  className="w-full bg-gray-50"
-                  disabled
+                  className={`w-full ${mode === 'edit' ? 'bg-gray-50' : ''}`}
+                  disabled={mode === 'edit'}
                 />
-                <p className="text-xs text-gray-500">
-                  Số lượng chỉ có thể thay đổi thông qua nhập/xuất kho
-                </p>
+                {mode === 'edit' ? (
+                  <p className="text-xs text-gray-500">
+                    Số lượng chỉ có thể thay đổi thông qua nhập/xuất kho
+                  </p>
+                ) : (
+                  <p className="text-xs text-gray-500">
+                    Nhập số lượng ban đầu trong kho
+                  </p>
+                )}
+                {form.formState.errors.quantityInStock && (
+                  <p className="text-sm text-red-600">
+                    {form.formState.errors.quantityInStock.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
