@@ -42,13 +42,11 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   useEffect(() => {
     if (userId) {
       if (lastUserId && lastUserId !== userId) {
-        console.log('ListView: User changed, clearing cache:', lastUserId, '->', userId);
         queryClient.invalidateQueries({ queryKey: ['appointments'] });
       }
       setLastUserId(userId);
     }
   }, [userId, queryClient, lastUserId]);
-
 
 
   // const getStatusColor = (status: 'confirmed' | 'canceled') => {

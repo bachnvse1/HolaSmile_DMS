@@ -21,7 +21,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
   const { patientId: paramPatientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
+
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -68,7 +68,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
 
     // Listen for focus event (when user returns to this tab/window)
     window.addEventListener('focus', refetchData);
-    
+
     // Listen for visibility change (when tab becomes visible)
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
@@ -151,12 +151,6 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
     // setPriceSliderRange([0, 100000000]);
   };
 
-  const handleRefreshData = () => {
-    queryClient.invalidateQueries({
-      queryKey: ['orthodontic-treatment-plans', parseInt(patientId || '0')]
-    });
-  };
-
   const handleCreatePlan = () => {
     navigate(`/patients/${patientId}/orthodontic-treatment-plans/create`);
   };
@@ -176,8 +170,12 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
 
   const handleViewPlanImages = (planId: number) => {
     // You can navigate to a dedicated images page or open a modal
-    navigate(`/patients/${patientId}/orthodontic-treatment-plans/${planId}/images`);
-  };
+    if (userInfo.role !== 'Patient') {
+      navigate(`/patients/${patientId}/orthodontic-treatment-plans/${planId}/images`)
+    } else {
+      navigate(`/patient/orthodontic-treatment-plans/${planId}/images`);
+    }
+  }
 
   const deactivateMutation = useDeactivateOrthodonticTreatmentPlan();
 
@@ -192,12 +190,12 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
     setIsDeleting(true);
     try {
       await deactivateMutation.mutateAsync(deletingPlanId);
-      
+
       // Invalidate and refetch the treatment plans query
       await queryClient.invalidateQueries({
         queryKey: ['orthodontic-treatment-plans', parseInt(patientId || '0')]
       });
-      
+
       console.log('Successfully deleted plan and refreshed data');
     } catch (error) {
       console.error('Error deleting plan:', error);
@@ -224,7 +222,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
   if (error) {
     // Check if it's a 404 error (no data found) - this is normal, not an error
     const is404Error = error.message.includes('404') || error.message.includes('Not Found');
-    
+
     if (is404Error) {
       // Treat 404 as empty data, not an error
       return (
@@ -280,9 +278,9 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
     }
 
     // Check if it's an authentication error
-    const isAuthError = error.message.includes('401') || error.message.includes('403') || 
-                       error.message.includes('Unauthorized') || error.message.includes('Forbidden');
-    
+    const isAuthError = error.message.includes('401') || error.message.includes('403') ||
+      error.message.includes('Unauthorized') || error.message.includes('Forbidden');
+
     if (isAuthError) {
       return (
         <div className="container mx-auto p-6 max-w-7xl">

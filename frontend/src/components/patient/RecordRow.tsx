@@ -27,7 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { useNavigate } from "react-router"
+import { useUserInfo } from "@/hooks/useUserInfo";
 
 interface RecordRowProps {
   record: TreatmentRecord;
@@ -289,6 +289,16 @@ const RecordRow: React.FC<RecordRowProps> = ({
                   >
                     <TrendingUp className="h-4 w-4 mr-2" />
                     Tiến độ điều trị
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem asChild>
+                  <Link
+                    to={useUserInfo().role === "Patient" ? `/patient/treatment-records/${record.treatmentRecordID}/images` : `/patient/${patientId}/treatment-records/${record.treatmentRecordID}/images`}
+                    className="flex items-center"
+                  >
+                    <Camera className="h-4 w-4 mr-2" />
+                    Hình ảnh răng
                   </Link>
                 </DropdownMenuItem>
 

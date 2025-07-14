@@ -25,7 +25,6 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const { role } = useAuth();
-  const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -34,6 +33,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
 
   // Fetch dentist data for edit dialog
   const { dentists } = useDentistSchedule();
+  const patientId = appointment?.patientId;
 
   // Check if prescription exists for this appointment
   const { isLoading: isPrescriptionLoading } = usePrescriptionByAppointment(appointmentId);
@@ -136,7 +136,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate(`/patients/${patientId}/orthodontic-treatment-plans`)}
+              onClick={() => navigate(`/patient/view-treatment-records?${patientId}`)}
               className="flex items-center gap-2 text-xs sm:text-sm"
             >
               <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -366,5 +366,6 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
         />
       )}
     </div>
+    
   );
 };

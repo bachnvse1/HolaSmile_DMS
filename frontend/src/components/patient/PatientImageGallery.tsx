@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { 
-  Upload, 
-  Image as ImageIcon, 
-  Trash2, 
+import {
+  Upload,
+  Image as ImageIcon,
+  Trash2,
   Eye,
   Plus,
   FileImage,
@@ -14,6 +14,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { usePatientImages, useCreatePatientImage, useDeletePatientImage } from '@/hooks/usePatientImages';
+import { TokenUtils } from '@/utils/tokenUtils';
+import { useUserInfo } from '@/hooks/useUserInfo';
 import type { CreatePatientImageRequest } from '@/types/patientImage';
 import { toast } from 'react-toastify';
 
@@ -39,11 +41,21 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
   const [isCompressing, setIsCompressing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
+  const userInfo = useUserInfo();
+  const roleTableId = userInfo.roleTableId ?? TokenUtils.getRoleTableIdFromToken(localStorage.getItem('token') || '');
   const MAX_IMAGES = 10;
+
+  // Determine the actual patient ID to use
+  // For Patient role: use their own ID (roleTableId), for others: use passed patientId
+  let actualPatientId = patientId; // Default to passed patientId
+  
+  if (userInfo.role === 'Patient' && roleTableId) {
+    actualPatientId = Number(roleTableId);
+  }
 
   // Query parameters for fetching images
   const queryParams = {
-    patientId,
+    patientId: actualPatientId,
     ...(treatmentRecordId && { treatmentRecordId }),
     ...(orthodonticTreatmentPlanId && { orthodonticTreatmentPlanId }),
   };
@@ -51,7 +63,7 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
   const { data: imagesResponse, isLoading, error } = usePatientImages(queryParams);
   const createImageMutation = useCreatePatientImage();
   const deleteImageMutation = useDeletePatientImage();
-
+  console.log(`Actual Patient ID: ${actualPatientId}`)
   // Fix: Handle response that is now processed in the hook
   const images = Array.isArray(imagesResponse) ? imagesResponse : [];
 
@@ -62,7 +74,7 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
     // Check if adding these files would exceed the limit
     const currentTotal = images.length + selectedFiles.length;
     const availableSlots = MAX_IMAGES - currentTotal;
-    
+
     if (availableSlots <= 0) {
       toast.error(`Đã đạt giới hạn tối đa ${MAX_IMAGES} ảnh`);
       return;
@@ -74,7 +86,7 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
     }
 
     setIsCompressing(true);
-    
+
     // Process each file
     Promise.all(
       filesToProcess.map(async (file) => {
@@ -104,7 +116,7 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
       const validFiles = processedFiles.filter(Boolean) as { file: File; description: string; id: string }[];
       setSelectedFiles(prev => [...prev, ...validFiles]);
       setIsCompressing(false);
-      
+
       // Clear input
       event.target.value = '';
     });
@@ -122,8 +134,8 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
   };
 
   const updateImageDescription = (id: string, description: string) => {
-    setSelectedFiles(prev => 
-      prev.map(item => 
+    setSelectedFiles(prev =>
+      prev.map(item =>
         item.id === id ? { ...item, description } : item
       )
     );
@@ -135,12 +147,12 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       const img = new Image();
-      
+
       img.onload = () => {
         // Calculate new dimensions (max 1200px width/height)
         const maxSize = 1200;
         let { width, height } = img;
-        
+
         if (width > height) {
           if (width > maxSize) {
             height = (height * maxSize) / width;
@@ -152,10 +164,10 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
             height = maxSize;
           }
         }
-        
+
         canvas.width = width;
         canvas.height = height;
-        
+
         // Draw and compress
         ctx?.drawImage(img, 0, 0, width, height);
         canvas.toBlob(
@@ -174,7 +186,7 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
           0.8 // 80% quality
         );
       };
-      
+
       img.src = URL.createObjectURL(file);
     });
   };
@@ -191,7 +203,7 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
       for (const fileItem of selectedFiles) {
         try {
           const uploadData: CreatePatientImageRequest = {
-            patientId,
+            patientId: actualPatientId,
             imageFile: fileItem.file,
             description: fileItem.description.trim() || undefined,
             ...(treatmentRecordId && { treatmentRecordId }),
@@ -303,8 +315,8 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
             {!readonly && (
               <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     className="flex items-center gap-2"
                     disabled={images.length >= MAX_IMAGES}
                   >
@@ -312,7 +324,7 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
                     Thêm Ảnh ({images.length}/{MAX_IMAGES})
                   </Button>
                 </DialogTrigger>
-                <DialogContent 
+                <DialogContent
                   className="max-w-4xl max-h-[90vh] overflow-y-auto"
                   style={{
                     animation: 'none',
@@ -429,7 +441,7 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
                     )}
 
                     {/* Action Buttons */}
-                    <div className="flex justify-end gap-2 pt-4 border-t">
+                    <div className="flex justify-end gap-2 pt-4">
                       <Button
                         variant="outline"
                         onClick={handleCloseUploadDialog}
@@ -491,7 +503,7 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
                       }}
                     />
                   </div>
-                  
+
                   {/* Image overlay with actions */}
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <div className="flex gap-2">

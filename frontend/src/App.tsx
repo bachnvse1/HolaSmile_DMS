@@ -32,8 +32,8 @@ import { CreateOrthodonticTreatmentPlanBasicPage } from './pages/orthodontic/Cre
 import { CreateOrthodonticTreatmentPlanDetailPage } from './pages/orthodontic/CreateOrthodonticTreatmentPlanDetailPage';
 import { PatientOrthodonticListPage } from './pages/patient/PatientOrthodonticListPage';
 import { PatientOrthodonticDetailPage } from './pages/patient/PatientOrthodonticDetailPage';
-import { TreatmentRecordImagesPage } from './pages/TreatmentRecordImagesPage';
-import { OrthodonticTreatmentPlanImagesPage } from './pages/OrthodonticTreatmentPlanImagesPage';
+import { TreatmentRecordImagesPage } from './pages/staff/TreatmentRecordImagesPage';
+import { OrthodonticTreatmentPlanImagesPage } from './pages/staff/OrthodonticTreatmentPlanImagesPage';
 import { PrescriptionTemplatesPage } from './pages/prescription/PrescriptionTemplatesPage';
 import { CreatePrescriptionTemplatePage } from './pages/prescription/CreatePrescriptionTemplatePage';
 import { EditPrescriptionTemplatePage } from './pages/prescription/EditPrescriptionTemplatePage';
@@ -52,6 +52,8 @@ import { PatientAppointmentDetailPage } from './pages/patient/PatientAppointment
 import ThankYou from "./components/invoice/PaymentThankYou";
 import PaymentCancelled from "./components/invoice/PaymentCancel";
 import PatientTreatmentRecordsSection from "./components/patient/PatientTreatmentRecordsSection";
+import { PatientOrthodonticImagesPage } from "./pages/patient/PatientOrthodonticImagesPage";
+import { PatientTreatmentImagesPage } from "./pages/patient/PatientTreatmentImagesPage";
 
 function App() {
   return (
@@ -136,7 +138,15 @@ function App() {
           element={<OrthodonticTreatmentPlanImagesPage />}
         />
         <Route
-          path="/patients/:patientId/treatment-records/:recordId/images"
+          path="/patient/orthodontic-treatment-plans/:planId/images"
+          element={<PatientOrthodonticImagesPage />}
+        />
+        <Route
+          path="/patient/treatment-records/:recordId/images"
+          element={<PatientTreatmentImagesPage />}
+        />
+        <Route
+          path="/patient/:patientId/treatment-records/:recordId/images"
           element={<TreatmentRecordImagesPage />}
         />
         <Route
