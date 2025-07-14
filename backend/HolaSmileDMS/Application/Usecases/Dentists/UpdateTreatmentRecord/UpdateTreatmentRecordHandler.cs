@@ -24,7 +24,7 @@ namespace Application.Usecases.Dentist.UpdateTreatmentRecord
             var userId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
             if (string.IsNullOrEmpty(role) ||
-            (role != "Dentist" && role != "Receptionist"))
+            (role != "Dentist" && role != "Assistant"))
             {
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             }

@@ -75,7 +75,7 @@ namespace Application.Usecases.Assistants.CreatePatientDentalImage
                 PatientId = request.PatientId,
                 ImageURL = imageUrl,
                 Description = request.Description,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
                 CreatedBy = int.Parse(_httpContext.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0"),
                 IsDeleted = false,
                 TreatmentRecordId = request.TreatmentRecordId,

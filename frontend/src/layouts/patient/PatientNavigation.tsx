@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User, LogOut, Settings, ChevronDown, Menu, X } from 'lucide-react';
+import { User, LogOut, Settings, Menu, X } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../../hooks/useAuth';
 import { NotificationButton } from "@/components/notification/NotificationButton"; // cập nhật đúng path của bạn
@@ -39,24 +39,22 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <button onClick={() => navigate('/patient/dashboard')}>
               <h1 className="text-2xl font-bold text-blue-600 cursor-pointer">
                 HolaSmile
               </h1>
-            </button>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-4">
-              <button
-                onClick={() => navigate('/patient/dashboard')}
+              {/* <button 
+                onClick={() => navigate('/patient/dashboard')} 
                 className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
               >
                 Trang Chủ
-              </button>
-              <button
-                onClick={() => navigate('/patient/appointments')}
+              </button> */}
+              <button 
+                onClick={() => navigate('/patient/appointments')} 
                 className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
               >
                 Lịch Hẹn
@@ -114,7 +112,7 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
                   <p className="text-sm font-medium">{displayName}</p>
                   <p className="text-xs text-gray-500">{displayRole}</p>
                 </div>
-                <ChevronDown className="h-4 w-4 hidden sm:block" />
+                {/* <ChevronDown className="h-4 w-4 hidden sm:block" /> */}
               </button>
 
               {isUserMenuOpen && (
@@ -133,10 +131,10 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
                     <Settings className="h-4 w-4 mr-2" />
                     Cài Đặt
                   </button>
-                  <hr className="my-1" />
+
                   <button
                     onClick={handleLogout}
-                    className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full text-left"
+                    className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full text-left border-t border-gray-300"
                   >
                     <LogOut className="h-4 w-4 mr-2" />
                     Đăng Xuất
@@ -162,14 +160,14 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
       {isMenuOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
-            <button
-              onClick={() => navigate('/patient/dashboard')}
+            {/* <button 
+              onClick={() => navigate('/patient/dashboard')} 
               className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
             >
               Trang Chủ
-            </button>
-            <button
-              onClick={() => navigate('/patient/appointments')}
+            </button> */}
+            <button 
+              onClick={() => navigate('/patient/appointments')} 
               className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
             >
               Lịch Hẹn
@@ -186,8 +184,14 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
             >
               Kế Hoạch 
             </button>
-
-            <div className="border-t pt-4">
+            <button 
+              onClick={() => navigate('/invoices')}
+              className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
+            >
+              Hóa Đơn
+            </button>
+            
+            <div className="border-t pt-4 border-gray-300">
               <button
                 onClick={() => navigate('/patient/book-appointment')}
                 className="w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition mb-2"

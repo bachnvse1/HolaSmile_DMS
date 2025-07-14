@@ -40,8 +40,8 @@ public class CreateTreatmentProgressHandler : IRequestHandler<CreateTreatmentPro
         var userId = int.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
         var fullName = user?.FindFirst(ClaimTypes.GivenName)?.Value;
         
-        if (role != "Dentist")
-            throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Không có quyền
+        if (role != "Dentist" && role != "Assistant")
+            throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
         var dto = request.ProgressDto;
         
@@ -64,7 +64,8 @@ public class CreateTreatmentProgressHandler : IRequestHandler<CreateTreatmentPro
         var progress = _mapper.Map<TreatmentProgress>(dto);
         progress.DentistID = _dentistRepository.GetDentistByUserIdAsync(userId).Result.DentistId;
         progress.CreatedBy = userId;
-
+        progress.CreatedAt = DateTime.Now;
+    
         await _repository.CreateAsync(progress);
         
             var patient = await _patientRepository.GetPatientByPatientIdAsync(request.ProgressDto.PatientID);

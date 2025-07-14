@@ -103,20 +103,67 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
   const userInfo = useUserInfo();
   const isDentist = userInfo?.role === 'Dentist';
 
+  // Add loading state for user info
+  const [isUserInfoLoaded, setIsUserInfoLoaded] = React.useState(false);
+
+  // Wait for user info to be loaded
+  React.useEffect(() => {
+    if (userInfo && (userInfo.role === 'Patient' || userInfo.role === 'Dentist' || userInfo.role === 'Administrator')) {
+      setIsUserInfoLoaded(true);
+    } else if (!userInfo) {
+      // If no userInfo yet, check if we have a token and try to get role
+      const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+      if (token) {
+        const role = TokenUtils.getRoleFromToken(token);
+        if (role) {
+          console.log('Found role from token:', role);
+          // Set a small timeout to allow hook to load user info
+          setTimeout(() => {
+            if (!userInfo) {
+              setIsUserInfoLoaded(true); // Force loaded if we have token but no user info
+            }
+          }, 300);
+        }
+      }
+      setIsUserInfoLoaded(false);
+    }
+  }, [userInfo]);
+
   const createMutation = useCreateOrthodonticTreatmentPlan();
   const updateMutation = useUpdateOrthodonticTreatmentPlan();
   const deactivateMutation = useDeactivateOrthodonticTreatmentPlan();
+  
+  // Determine patientId based on user role
   let patientId: string | undefined = paramPatientId;
   if (userInfo?.role === 'Patient') {
     const roleTableId = userInfo.roleTableId ?? TokenUtils.getRoleTableIdFromToken(localStorage.getItem('token') || '');
     patientId = roleTableId === null ? undefined : roleTableId;
   }
 
+  // For Patient role in view mode, ensure we have the correct patientId for API calls
+  const apiPatientId = userInfo?.role === 'Patient' 
+    ? (userInfo.roleTableId ?? TokenUtils.getRoleTableIdFromToken(localStorage.getItem('token') || '') ?? '0')
+    : patientId ?? '0';
+
+  // Debug logging
+  React.useEffect(() => {
+    if (userInfo) {
+      console.log('Patient ID Debug:', {
+        mode,
+        userRole: userInfo.role,
+        paramPatientId,
+        patientId,
+        apiPatientId,
+        userRoleTableId: userInfo.roleTableId
+      });
+    }
+  }, [mode, userInfo, paramPatientId, patientId, apiPatientId]);
+
 
   // Fetch existing plan data if editing or viewing
   const { data: treatmentPlan, isLoading: isPlanLoading, error: planError } = useOrthodonticTreatmentPlan(
     parseInt(planId || '0'),
-    parseInt(patientId || '0'),
+    parseInt(apiPatientId || '0'),
     { enabled: (mode === 'edit' || mode === 'view') && !!planId }
   );
 
@@ -124,7 +171,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
   const [basicData, setBasicData] = React.useState<BasicPlanData | null>(null);
 
   // Get patient data from API
-  const { data: patientData } = usePatient(parseInt(patientId || '0'));
+  const { data: patientData } = usePatient(parseInt(apiPatientId || '0'));
 
   // Helper functions để parse data từ strings
   const parseMedicalHistory = (treatmentHistory: string) => {
@@ -427,12 +474,14 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
       const storageKey = mode === 'edit' ? 'editBasicPlanData' : 'basicPlanData';
       sessionStorage.removeItem(storageKey);
 
-      // Navigate based on user role
-      if (userInfo?.role === 'Patient') {
-        navigate(`/patient/orthodontic-treatment-plans`);
-      } else {
-        navigate(`/patients/${patientId}/orthodontic-treatment-plans`);
-      }
+      // Navigate based on user role with small delay to ensure state is updated
+      setTimeout(() => {
+        if (userInfo?.role === 'Patient') {
+          navigate(`/patient/orthodontic-treatment-plans`);
+        } else {
+          navigate(`/patients/${patientId}/orthodontic-treatment-plans`);
+        }
+      }, 100);
     } catch (error) {
       console.error('Error saving treatment plan:', error);
     }
@@ -444,9 +493,28 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
   };
 
   const handleGoBack = () => {
+    // Ensure user info is loaded before navigation
+    if (!isUserInfoLoaded || !userInfo) {
+      console.warn('User info not loaded yet, delaying navigation');
+      
+      // Fallback: try to get role from token directly
+      const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+      const roleFromToken = token ? TokenUtils.getRoleFromToken(token) : null;
+      
+      // Add a small delay and retry
+      setTimeout(() => {
+        if (userInfo?.role === 'Patient' || roleFromToken === 'Patient') {
+          navigate(`/patient/orthodontic-treatment-plans`);
+        } else {
+          navigate(`/patients/${patientId}/orthodontic-treatment-plans`);
+        }
+      }, 100);
+      return;
+    }
+
     if (mode === 'edit') {
       navigate(`/patients/${patientId}/orthodontic-treatment-plans/${planId}/edit`);
-    } else if (userInfo?.role === 'Patient') {
+    } else if (userInfo.role === 'Patient') {
       // For Patient role, always go to patient-specific route
       navigate(`/patient/orthodontic-treatment-plans`);
     } else if (mode === 'view') {
@@ -463,12 +531,14 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
     setIsDeleting(true);
     try {
       await deactivateMutation.mutateAsync(parseInt(planId || '0'));
-      // Navigate based on user role
-      if (userInfo?.role === 'Patient') {
-        navigate(`/patient/orthodontic-treatment-plans`);
-      } else {
-        navigate(`/patients/${patientId}/orthodontic-treatment-plans`);
-      }
+      // Navigate based on user role with small delay
+      setTimeout(() => {
+        if (userInfo?.role === 'Patient') {
+          navigate(`/patient/orthodontic-treatment-plans`);
+        } else {
+          navigate(`/patients/${patientId}/orthodontic-treatment-plans`);
+        }
+      }, 100);
     } catch (error) {
       console.error('Error deleting treatment plan:', error);
     } finally {
@@ -476,6 +546,21 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
       setConfirmOpen(false);
     }
   };
+
+  // Show loading screen until user info is loaded
+  if (!isUserInfoLoaded) {
+    return (
+      <div className="container mx-auto p-6 max-w-7xl">
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Đang tải thông tin người dùng...</p>
+            <p className="mt-1 text-xs text-gray-500">Mode: {mode}, Plan ID: {planId}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (mode === 'edit' && isPlanLoading) {
     return (

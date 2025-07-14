@@ -58,7 +58,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
                     Price = 10000,
                     IsDeleted = false,
                     CreatedBy = 1,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.Now
                 },
                 new Supplies
                 {
@@ -69,7 +69,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
                     Price = 5000,
                     IsDeleted = true,
                     CreatedBy = 1,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.Now
                 }
             );
 

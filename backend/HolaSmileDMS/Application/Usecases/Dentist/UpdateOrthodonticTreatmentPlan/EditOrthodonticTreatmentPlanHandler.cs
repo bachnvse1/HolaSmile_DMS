@@ -39,7 +39,7 @@ public class EditOrthodonticTreatmentPlanHandler : IRequestHandler<EditOrthodont
         if (user == null || string.IsNullOrEmpty(currentUserRole) || string.IsNullOrEmpty(currentUserIdStr))
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // "Bạn cần đăng nhập để thực hiện thao tác này"
 
-        if (currentUserRole != "Dentist")
+        if (currentUserRole != "Dentist" && currentUserRole != "Assistant")
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
 
         var currentUserId = int.Parse(currentUserIdStr);
