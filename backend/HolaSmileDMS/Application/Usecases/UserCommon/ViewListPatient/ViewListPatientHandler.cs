@@ -44,7 +44,9 @@ public class ViewListPatientHandler : IRequestHandler<ViewListPatientCommand, Li
             Gender = p.Gender,
             Phone = p.Phone,
             DOB = p.DOB,
-            Email = p.Email
+            Email = p.Email,
+            Address = p.Address,
+            UnderlyingConditions = p.UnderlyingConditions
         }).ToList();
 
         return result;
