@@ -6,13 +6,13 @@ import { ScheduleCalendar } from './ScheduleCalendar';
 import { SelectedAppointmentInfo } from './SelectedAppointmentInfo';
 import { useDentistSchedule } from '../../hooks/useDentistSchedule';
 import { useBookAppointment } from '../../hooks/useBookAppointment';
+import { useBookFUAppointment } from '../../hooks/useBookFUAppointment';
 import { toast } from 'react-toastify';
-import { TIME_SLOTS } from '../../constants/appointment';
-import { Clock } from 'lucide-react';
-import type { Dentist, TimeSlot } from '../../types/appointment';
+import type { Dentist } from '../../types/appointment';
 
 interface DentistScheduleViewerProps {
   mode: 'view' | 'book'; // view = chỉ xem, book = có thể đặt lịch
+  patientId?: number;
   prefilledData?: {
     fullName?: string;
     email?: string;
@@ -21,9 +21,10 @@ interface DentistScheduleViewerProps {
   };
 }
 
-export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({ 
+export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
   mode = 'view',
-  prefilledData 
+  prefilledData,
+  patientId
 }) => {
   const { isAuthenticated, role } = useAuth();
   const [selectedDentist, setSelectedDentist] = useState<Dentist | null>(null);
@@ -38,21 +39,20 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
   });
 
   const { dentists, isLoading, error } = useDentistSchedule();
-  const bookAppointmentMutation = useBookAppointment();
-
-  // Tạo time slots với icon cho SelectedAppointmentInfo
-  const timeSlotsWithIcons: TimeSlot[] = TIME_SLOTS.map(slot => ({
-    ...slot,
-    icon: <Clock className="h-4 w-4" />
-  }));
+  const bookAppointment = useBookAppointment();
+  const bookFUAppointment = useBookFUAppointment();
+  const bookAppointmentMutation =
+    role === "Receptionist"
+      ? bookFUAppointment
+      : bookAppointment;
 
   // Kiểm tra quyền đặt lịch
-  const canBookAppointment = mode === 'book' && (!isAuthenticated || role === 'Patient');
+  const canBookAppointment = mode === 'book' && (!isAuthenticated || role === 'Patient' || role === 'Receptionist');
 
   const handleDateSelect = (date: string, timeSlot: string) => {
     setSelectedDate(date);
     setSelectedTimeSlot(timeSlot);
-    
+
     // Chỉ set selected, không hiện modal ngay
     // Modal sẽ hiện khi user bấm "Xác nhận đặt lịch"
   };
@@ -67,41 +67,65 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
     // Tạo appointmentDate với đúng format
     const appointmentDate = new Date(selectedDate);
     let timeString = '08:00:00';
-    
+
     if (selectedTimeSlot === 'morning') {
       timeString = '08:00:00';
       appointmentDate.setHours(8, 0, 0, 0);
     } else if (selectedTimeSlot === 'afternoon') {
-      timeString = '13:00:00';
-      appointmentDate.setHours(13, 0, 0, 0);
+      timeString = '14:00:00';
+      appointmentDate.setHours(14, 0, 0, 0);
     } else if (selectedTimeSlot === 'evening') {
-      timeString = '18:00:00';
-      appointmentDate.setHours(18, 0, 0, 0);
+      timeString = '17:00:00';
+      appointmentDate.setHours(17, 0, 0, 0);
     }
 
-    const payload = {
-      FullName: prefilledData?.fullName || '',
-      Email: bookingData.email || prefilledData?.email || '',
-      PhoneNumber: prefilledData?.phoneNumber || '',
-      AppointmentDate: appointmentDate.toISOString().split('T')[0],
-      AppointmentTime: timeString,
-      MedicalIssue: bookingData.medicalIssue.trim(),
-      DentistId: selectedDentist.dentistID
-    };
+    if (role === "Receptionist") {
+      // Gọi API tạo lịch tái khám
+      const payload = {
+        patientId, // cần truyền patientId từ ngoài vào prefilledData
+        dentistId: selectedDentist.dentistID,
+        appointmentDate: appointmentDate.toISOString(),
+        appointmentTime: timeString,
+        reasonForFollowUp: bookingData.medicalIssue.trim(),
+        appointmentType: "follow-up"
+      };
+      bookAppointmentMutation.mutate(payload, {
+        onSuccess: (response) => {
+          toast.success(response.message || 'Đặt lịch tái khám thành công!');
+          setShowBookingForm(false);
+          setSelectedDate('');
+          setSelectedTimeSlot('');
+          setBookingData({ medicalIssue: '', email: prefilledData?.email || '' });
+        },
+        onError: (error: Error) => {
+          toast.error(error.message || 'Có lỗi xảy ra khi tạo lịch tái khám');
+        }
+      });
+    } else {
+      const payload = {
+        FullName: prefilledData?.fullName || '',
+        Email: bookingData.email || prefilledData?.email || '',
+        PhoneNumber: prefilledData?.phoneNumber || '',
+        AppointmentDate: `${appointmentDate.getFullYear()}-${(appointmentDate.getMonth() + 1).toString().padStart(2, '0')}-${appointmentDate.getDate().toString().padStart(2, '0')}`,
+        AppointmentTime: timeString,
+        MedicalIssue: bookingData.medicalIssue.trim(),
+        DentistId: selectedDentist.dentistID
+      };
 
-    bookAppointmentMutation.mutate(payload, {
-      onSuccess: () => {
-        toast.success('Đặt lịch thành công!');
-        setShowBookingForm(false);
-        setSelectedDate('');
-        setSelectedTimeSlot('');
-        setBookingData({ medicalIssue: '', email: prefilledData?.email || '' });
-      },
-      onError: (error: Error) => {
-        toast.error(error.message || 'Có lỗi xảy ra khi đặt lịch');
-      }
-    });
-  };
+      bookAppointmentMutation.mutate(payload, {
+        onSuccess: (response) => {
+          toast.success(response.message || 'Đặt lịch hẹn thành công!');
+          setShowBookingForm(false);
+          setSelectedDate('');
+          setSelectedTimeSlot('');
+          setBookingData({ medicalIssue: '', email: prefilledData?.email || '' });
+        },
+        onError: (error) => {
+         console.error('Error booking appointment:', error);
+        }
+      });
+    };
+  }
 
   if (isLoading) {
     return (
@@ -127,7 +151,7 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
           {mode === 'book' ? '' : 'Lịch Làm Việc Bác Sĩ'}
         </h2>
         <p className="text-gray-600">
-          {mode === 'book' 
+          {mode === 'book'
             ? ''
             : 'Xem lịch làm việc của các bác sĩ'
           }
@@ -135,7 +159,7 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
         {mode === 'book' && !canBookAppointment && (
           <div className="mt-2 flex items-center justify-center text-sm text-gray-500">
             <UserX className="h-4 w-4 mr-1" />
-            Chỉ dành cho bệnh nhân hoặc khách
+            Chỉ dành cho bệnh nhân, lễ tân hoặc khách
           </div>
         )}
       </div>
@@ -167,14 +191,13 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
             selectedDentist={selectedDentist}
             selectedDate={selectedDate}
             selectedTimeSlot={selectedTimeSlot}
-            timeSlotsWithIcons={timeSlotsWithIcons}
           />
-          
+
           {/* Action Buttons */}
           <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
               <p className="text-sm text-yellow-800">
-                <strong>Lưu ý:</strong> Vui lòng kiểm tra kỹ thông tin trước khi xác nhận. 
+                <strong>Lưu ý:</strong> Vui lòng kiểm tra kỹ thông tin trước khi xác nhận.
                 Lịch hẹn sẽ được gửi đến email và số điện thoại của bạn.
               </p>
             </div>
@@ -202,55 +225,74 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
       {showBookingForm && canBookAppointment && (
         <div className="fixed inset-0 z-50">
           {/* Backdrop overlay */}
-          <div 
-            className="fixed inset-0 bg-white bg-opacity-50 backdrop-blur-sm" 
+          <div
+            className="fixed inset-0 bg-white bg-opacity-50 backdrop-blur-sm"
             onClick={() => setShowBookingForm(false)}
           ></div>
-          
+
           {/* Modal content */}
           <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
-            <div 
+            <div
               className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-gray-200"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Hoàn tất thông tin đặt lịch</h3>
-              
-              {/* Email input if not available */}
-              {!prefilledData?.email && (
-                <div className="mb-4">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">
+                {role === "Receptionist" ? "Nhập lý do tái khám" : "Hoàn tất thông tin đặt lịch"}
+              </h3>
+
+              {role === "Receptionist" ? (
+                <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email của bạn: <span className="text-red-500">*</span>
+                    Lý do tái khám: <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="email"
-                    value={bookingData.email}
-                    onChange={(e) => setBookingData({...bookingData, email: e.target.value})}
+                  <textarea
+                    value={bookingData.medicalIssue}
+                    onChange={(e) => setBookingData({ ...bookingData, medicalIssue: e.target.value })}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="example@email.com"
+                    rows={4}
+                    placeholder="Nhập lý do tái khám..."
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Email sẽ được dùng để gửi xác nhận lịch hẹn
-                  </p>
                 </div>
+              ) : (
+                <>
+                  {/* Email input if not available */}
+                  {!prefilledData?.email && (
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email của bạn: <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        value={bookingData.email}
+                        onChange={(e) => setBookingData({ ...bookingData, email: e.target.value })}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="example@email.com"
+                        required
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Email sẽ được dùng để gửi xác nhận lịch hẹn
+                      </p>
+                    </div>
+                  )}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Vấn đề bạn gặp phải: <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      value={bookingData.medicalIssue}
+                      onChange={(e) => setBookingData({ ...bookingData, medicalIssue: e.target.value })}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      rows={4}
+                      placeholder="Mô tả chi tiết vấn đề nha khoa bạn đang gặp phải..."
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Thông tin này giúp bác sĩ chuẩn bị tốt hơn cho buổi khám
+                    </p>
+                  </div>
+                </>
               )}
-              
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Vấn đề bạn gặp phải: <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  value={bookingData.medicalIssue}
-                  onChange={(e) => setBookingData({...bookingData, medicalIssue: e.target.value})}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  rows={4}
-                  placeholder="Mô tả chi tiết vấn đề nha khoa bạn đang gặp phải..."
-                  required
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Thông tin này giúp bác sĩ chuẩn bị tốt hơn cho buổi khám
-                </p>
-              </div>
 
               <div className="flex space-x-3">
                 <button
@@ -262,9 +304,9 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
                 <button
                   onClick={handleBookAppointment}
                   disabled={
-                    bookAppointmentMutation.isPending || 
+                    bookAppointmentMutation.isPending ||
                     !bookingData.medicalIssue.trim() ||
-                    (!prefilledData?.email && !bookingData.email.trim())
+                    (role !== "Receptionist" && !prefilledData?.email && !bookingData.email.trim())
                   }
                   className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >

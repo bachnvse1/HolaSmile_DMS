@@ -25,22 +25,22 @@ export const getDatesForWeek = (weekOffset: number, startDay: number = 0): Date[
   const dates = [];
   const today = new Date();
   const start = weekOffset * 7 + startDay;
-  
+
   for (let i = start; i < start + 7; i++) {
     const date = new Date(today);
     date.setDate(today.getDate() + i);
     dates.push(date);
   }
-  
+
   return dates;
 };
 
 export const getWeekDateRange = (dates: Date[]): string => {
   if (dates.length === 0) return '';
-  
+
   const startDate = dates[0];
   const endDate = dates[dates.length - 1];
-  
+
   return `${formatDate(startDate)} - ${formatDate(endDate)}`;
 
 };
@@ -63,3 +63,28 @@ export const formatVietnameseDateWithDay = (date: Date): string => {
     month: "numeric"
   });
 };
+
+export const formatDateOnly = (dateStr: string): string => {
+  const date = new Date(dateStr)
+  return date.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  })
+}
+
+export const formatDateShort = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  })
+}
+
+export const getDaysRemaining = (endDate: string) => {
+  const end = new Date(endDate)
+  const now = new Date()
+  const diffTime = end.getTime() - now.getTime()
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  return diffDays
+}

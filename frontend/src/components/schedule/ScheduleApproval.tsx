@@ -2,127 +2,158 @@ import React, { useState } from 'react';
 import { useAllDentistSchedules, useApproveSchedules } from '../../hooks/useSchedule';
 import type { Schedule } from '../../types/schedule';
 import { ScheduleStatus, ShiftType } from '../../types/schedule';
-import { formatDateWithDay, shiftTypeToText } from '../../utils/dateUtils';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Loader2, 
-  CheckCircle2, 
+import { ScheduleCalendarApproval } from './ScheduleCalendarApproval';
+import {
+  Loader2,
+  CheckCircle2,
   XCircle,
   AlertTriangle,
+  InfoIcon,
+  Filter,
+  X,
   Search,
-  InfoIcon
 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { toast } from 'react-toastify';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-
-export const ScheduleApproval: React.FC = () => {
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+export const ScheduleApproval: React.FC<{ viewOnlyApproved?: boolean }> = ({ viewOnlyApproved }) => {
   // States
   const [selectedSchedules, setSelectedSchedules] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [approvalAction, setApprovalAction] = useState<'approve' | 'reject' | null>(null);
-  
+  const [approvalAction, setApprovalAction] = useState<'approved' | 'rejected' | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [shiftFilter, setShiftFilter] = useState<string>('all');
+  const [dateFilter, setDateFilter] = useState<string>('all')
   // Queries
-  const { 
-    data, 
-    isLoading, 
-    error 
+  const {
+    data,
+    isLoading,
+    error
   } = useAllDentistSchedules();
-  
   // Mutations
   const approveMutation = useApproveSchedules();
-  
+
+  // Gộp tất cả schedules của các bác sĩ thành một mảng
+  const allSchedules = React.useMemo(() => {
+    if (!data) return [];
+    const result = data.flatMap((dentist: any) =>
+      (dentist.schedules || []).map((sch: any) => ({
+        ...sch,
+        dentistName: dentist.dentistName,
+        dentistID: dentist.dentistID,
+      }))
+    );
+    return result;
+  }, [data]);
+
+  const isUpcoming = (dateStr: string) => new Date(dateStr) >= new Date();
+  const isPast = (dateStr: string) => new Date(dateStr) < new Date();
+
+  // Filters
+  const filteredSchedules = allSchedules.filter((schedule: Schedule) => {
+    // Nếu chỉ xem các lịch đã approved
+    if (viewOnlyApproved && schedule.status !== ScheduleStatus.Approved) return false;
+    // Status filter
+    if (!viewOnlyApproved && statusFilter !== "all" && schedule.status !== statusFilter) return false;
+    // Shift filter
+    if (shiftFilter !== 'all' && schedule.shift !== shiftFilter) return false;
+    // Search term - search by dentist name
+    if (searchTerm.trim() && schedule.dentistName) {
+      return schedule.dentistName.toLowerCase().includes(searchTerm.toLowerCase());
+    }
+    if (
+      (dateFilter === "upcoming" && (!schedule.workDate || !isUpcoming(schedule.workDate))) ||
+      (dateFilter === "past" && (!schedule.workDate || !isPast(schedule.workDate)))
+    ) return false;
+    return true;
+  });
+
+
+  // Handle filter reset
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+    setShiftFilter('all');
+    setDateFilter('all');
+  };
+
   // Lọc schedules theo trạng thái pending và theo searchTerm nếu có
   const pendingSchedules = React.useMemo(() => {
-    if (!data?.data) return [];
-    
-    return data.data
-      .filter((schedule: Schedule) => {
+    return allSchedules
+      .filter((schedule: any) => {
         // Chỉ lấy lịch đang chờ duyệt
-        if (schedule.status !== ScheduleStatus.Pending) return false;
-        
-        // Lọc theo searchTerm nếu có
-        if (searchTerm.trim()) {
-          const term = searchTerm.toLowerCase();
-          const dentistName = schedule.dentistName?.toLowerCase() || '';
-          const date = formatDateWithDay(schedule.date).toLowerCase();
-          
-          return dentistName.includes(term) || date.includes(term);
-        }
-        
-        return true;
+        return schedule.status === ScheduleStatus.Pending || schedule.status === 'pending';
       })
-      .sort((a: Schedule, b: Schedule) => {
+      .sort((a: any, b: any) => {
         // Sắp xếp theo ngày, mới nhất lên đầu
-        return new Date(a.date).getTime() - new Date(b.date).getTime();
+        return new Date(a.workDate).getTime() - new Date(b.workDate).getTime();
       });
-  }, [data, searchTerm]);
-  
-  // Handlers
-  const handleSelectAll = () => {
-    if (selectedSchedules.length === pendingSchedules.length) {
-      // Nếu đã chọn tất cả, bỏ chọn tất cả
-      setSelectedSchedules([]);
+  }, [allSchedules, searchTerm]);
+
+  const handleSelectSchedule = (ids: number | number[]) => {
+    if (Array.isArray(ids)) {
+      setSelectedSchedules(ids); // Chọn nhanh: set toàn bộ
     } else {
-      // Nếu chưa chọn tất cả, chọn tất cả
-    setSelectedSchedules(pendingSchedules.map((schedule: Schedule) => schedule.id as number));
+      setSelectedSchedules(prev =>
+        prev.includes(ids)
+          ? prev.filter(id => id !== ids) // Nếu đã chọn thì bỏ chọn
+          : [...prev, ids]                // Nếu chưa chọn thì thêm vào
+      );
     }
   };
-  
-  const handleSelectSchedule = (scheduleId: number) => {
-    if (selectedSchedules.includes(scheduleId)) {
-      // Bỏ chọn
-      setSelectedSchedules(prev => prev.filter(id => id !== scheduleId));
-    } else {
-      // Chọn
-      setSelectedSchedules(prev => [...prev, scheduleId]);
-    }
-  };
-  
+
   const openApproveDialog = () => {
     if (selectedSchedules.length === 0) {
       toast.warning('Vui lòng chọn ít nhất một lịch để phê duyệt!');
       return;
     }
-    
-    setApprovalAction('approve');
+
+    setApprovalAction('approved');
     setConfirmDialogOpen(true);
   };
-  
+
   const openRejectDialog = () => {
     if (selectedSchedules.length === 0) {
       toast.warning('Vui lòng chọn ít nhất một lịch để từ chối!');
       return;
     }
-    
-    setApprovalAction('reject');
+
+    setApprovalAction('rejected');
     setConfirmDialogOpen(true);
   };
-  
+
   const handleConfirmAction = async () => {
     if (!approvalAction) return;
-    
+
     try {
       await approveMutation.mutateAsync({
         scheduleIds: selectedSchedules,
         action: approvalAction
       });
-      
+
       toast.success(
-        approvalAction === 'approve' 
-          ? `Đã phê duyệt ${selectedSchedules.length} lịch làm việc!` 
+        approvalAction === 'approved'
+          ? `Đã phê duyệt ${selectedSchedules.length} lịch làm việc!`
           : `Đã từ chối ${selectedSchedules.length} lịch làm việc!`
       );
-      
+
       setSelectedSchedules([]);
       setConfirmDialogOpen(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra!');
     }
   };
-  
+
   // Loading state
   if (isLoading) {
     return (
@@ -132,7 +163,7 @@ export const ScheduleApproval: React.FC = () => {
       </div>
     );
   }
-  
+
   // Error state
   if (error) {
     return (
@@ -141,9 +172,9 @@ export const ScheduleApproval: React.FC = () => {
       </div>
     );
   }
-  
+
   // Không có lịch cần phê duyệt
-  if (pendingSchedules.length === 0) {
+  if (pendingSchedules.length === 0 && !viewOnlyApproved) {
     return (
       <div className="text-center py-10 bg-gray-50 rounded-lg border border-gray-200">
         <div className="flex justify-center mb-4">
@@ -154,7 +185,103 @@ export const ScheduleApproval: React.FC = () => {
       </div>
     );
   }
-  
+
+  if (viewOnlyApproved) {
+    return (
+      <div>
+        <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+              <Input
+                placeholder="Tìm theo tên bác sĩ..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 w-full sm:w-auto min-w-[240px]"
+              />
+              {searchTerm && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2.5 top-2.5 h-4 w-4 p-0 text-gray-400 hover:text-gray-600"
+                  onClick={() => setSearchTerm('')}
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowFilters(!showFilters)}
+              className={showFilters ? "bg-blue-50 text-blue-700" : ""}
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        {showFilters && (
+          <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            {showFilters && (
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex flex-wrap gap-4">
+
+                  <div className="flex-1 min-w-[150px]">
+                    <label htmlFor="shiftFilter" className="mb-1.5 block text-sm font-medium">Ca làm việc</label>
+                    <Select value={shiftFilter} onValueChange={setShiftFilter}>
+                      <SelectTrigger id="shiftFilter">
+                        <SelectValue placeholder="Chọn ca làm việc" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tất cả</SelectItem>
+                        <SelectItem value={ShiftType.Morning}>Sáng</SelectItem>
+                        <SelectItem value={ShiftType.Afternoon}>Chiều</SelectItem>
+                        <SelectItem value={ShiftType.Evening}>Tối</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex-1 min-w-[150px]">
+                    <label htmlFor="dateFilter" className="mb-1.5 block text-sm font-medium">Thời gian</label>
+                    <Select value={dateFilter} onValueChange={setDateFilter}>
+                      <SelectTrigger id="dateFilter">
+                        <SelectValue placeholder="Chọn thời gian" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tất cả</SelectItem>
+                        <SelectItem value="upcoming">Sắp tới</SelectItem>
+                        <SelectItem value="past">Đã qua</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleResetFilters}
+                    >
+                      Đặt lại
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        <div className="overflow-x-auto">
+          <ScheduleCalendarApproval
+            schedules={filteredSchedules}
+            selectedScheduleIds={[]}
+            onScheduleSelect={() => { }}
+            viewOnly
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       {/* Header with info */}
@@ -164,168 +291,159 @@ export const ScheduleApproval: React.FC = () => {
           <div>
             <h3 className="text-sm font-medium text-blue-800">Hướng dẫn phê duyệt:</h3>
             <p className="text-sm text-blue-700 mt-1">
-              Lịch sau khi được phê duyệt sẽ được hiển thị cho bệnh nhân đặt lịch. 
+              Lịch sau khi được phê duyệt sẽ được hiển thị cho bệnh nhân đặt lịch.
               Hãy kiểm tra kỹ thông tin trước khi phê duyệt.
             </p>
           </div>
         </div>
       </div>
-      
-      {/* Search and Action buttons */}
-      <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
-        {/* Search */}
-        <div className="relative flex-1">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400" />
+      <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+            <Input
+              placeholder="Tìm theo tên bác sĩ..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 w-full sm:w-auto min-w-[240px]"
+            />            
+            {searchTerm && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-2.5 top-2.5 h-4 w-4 p-0 text-gray-400 hover:text-gray-600"
+                onClick={() => setSearchTerm('')}
+                aria-label="Clear search"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            placeholder="Tìm kiếm theo tên bác sĩ hoặc ngày..."
-          />
-        </div>
-        
-        {/* Action buttons */}
-        <div className="flex space-x-3">
+
           <Button
             variant="outline"
-            className="text-red-600 border-red-200 hover:bg-red-50"
-            disabled={selectedSchedules.length === 0 || approveMutation.isPending}
-            onClick={openRejectDialog}
+            size="icon"
+            onClick={() => setShowFilters(!showFilters)}
+            className={showFilters ? "bg-blue-50 text-blue-700" : ""}
           >
-            {approveMutation.isPending && approvalAction === 'reject' ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <XCircle className="h-4 w-4 mr-2" />
-            )}
-            Từ chối ({selectedSchedules.length})
-          </Button>
-          
-          <Button
-            className="bg-green-600 hover:bg-green-700"
-            disabled={selectedSchedules.length === 0 || approveMutation.isPending}
-            onClick={openApproveDialog}
-          >
-            {approveMutation.isPending && approvalAction === 'approve' ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <CheckCircle2 className="h-4 w-4 mr-2" />
-            )}
-            Phê duyệt ({selectedSchedules.length})
+            <Filter className="h-4 w-4" />
           </Button>
         </div>
       </div>
-      
+
+      {/* Filters panel */}
+      {showFilters && (
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex flex-wrap gap-4">
+            <div className="flex-1 min-w-[150px]">
+              <label htmlFor="statusFilter" className="mb-1.5 block text-sm font-medium">Trạng thái</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger id="statusFilter">
+                  <SelectValue placeholder="Chọn trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value={ScheduleStatus.Pending}>Chờ duyệt</SelectItem>
+                  <SelectItem value={ScheduleStatus.Approved}>Đã duyệt</SelectItem>
+                  <SelectItem value={ScheduleStatus.Rejected}>Từ chối</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex-1 min-w-[150px]">
+              <label htmlFor="shiftFilter" className="mb-1.5 block text-sm font-medium">Ca làm việc</label>
+              <Select value={shiftFilter} onValueChange={setShiftFilter}>
+                <SelectTrigger id="shiftFilter">
+                  <SelectValue placeholder="Chọn ca làm việc" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value={ShiftType.Morning}>Sáng</SelectItem>
+                  <SelectItem value={ShiftType.Afternoon}>Chiều</SelectItem>
+                  <SelectItem value={ShiftType.Evening}>Tối</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex-1 min-w-[150px]">
+              <label htmlFor="dateFilter" className="mb-1.5 block text-sm font-medium">Thời gian</label>
+              <Select value={dateFilter} onValueChange={setDateFilter}>
+                <SelectTrigger id="dateFilter">
+                  <SelectValue placeholder="Chọn thời gian" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value="upcoming">Sắp tới</SelectItem>
+                  <SelectItem value="past">Đã qua</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleResetFilters}
+              >
+                Đặt lại
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Pending Schedule List */}
-      <div className="overflow-x-auto rounded-md border">
-        <table className="w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left">
-                <div className="flex items-center">
-                  <Checkbox
-                    checked={
-                      pendingSchedules.length > 0 && 
-                      selectedSchedules.length === pendingSchedules.length
-                    }
-                    onCheckedChange={handleSelectAll}
-                    id="select-all"
-                  />
-                  <label 
-                    htmlFor="select-all" 
-                    className="ml-2 text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  >
-                    Chọn tất cả
-                  </label>
-                </div>
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Bác sĩ
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Ngày
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Ca làm việc
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Trạng thái
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Ghi chú
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {pendingSchedules.map((schedule: Schedule) => (
-              <tr key={schedule.id} className={selectedSchedules.includes(schedule.id as number) ? 'bg-blue-50' : 'hover:bg-gray-50'}>
-                <td className="px-4 py-4 whitespace-nowrap">
-                  <Checkbox
-                    checked={selectedSchedules.includes(schedule.id as number)}
-                    onCheckedChange={() => handleSelectSchedule(schedule.id as number)}
-                    id={`schedule-${schedule.id}`}
-                  />
-                </td>
-                <td className="px-4 py-4 whitespace-nowrap">
-                  <div className="font-medium text-gray-900">{schedule.dentistName}</div>
-                </td>
-                <td className="px-4 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{formatDateWithDay(schedule.date)}</div>
-                </td>
-                <td className="px-4 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{shiftTypeToText(schedule.shift as ShiftType)}</div>
-                </td>
-                <td className="px-4 py-4 whitespace-nowrap">
-                  <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Chờ duyệt</Badge>
-                </td>
-                <td className="px-4 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{schedule.note || '—'}</div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="overflow-x-auto">
+        <ScheduleCalendarApproval
+          schedules={filteredSchedules}
+          selectedScheduleIds={selectedSchedules}
+          onScheduleSelect={handleSelectSchedule}
+        />
       </div>
-      
+      {/* Các nút phê duyệt/từ chối giữ nguyên */}
+      <div className="flex gap-2 mt-4">
+        <Button onClick={openApproveDialog} disabled={selectedSchedules.length === 0}>Phê duyệt</Button>
+        <Button variant="outline" onClick={openRejectDialog} disabled={selectedSchedules.length === 0}>Từ chối</Button>
+      </div>
+
+
       {/* Confirmation Dialog */}
       <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {approvalAction === 'approve' ? 'Xác nhận phê duyệt' : 'Xác nhận từ chối'}
+              {approvalAction === 'approved' ? 'Xác nhận phê duyệt' : 'Xác nhận từ chối'}
             </DialogTitle>
             <DialogDescription>
-              {approvalAction === 'approve' 
+              {approvalAction === 'approved'
                 ? `Bạn có chắc chắn muốn phê duyệt ${selectedSchedules.length} lịch làm việc đã chọn?`
                 : `Bạn có chắc chắn muốn từ chối ${selectedSchedules.length} lịch làm việc đã chọn?`}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="py-4">
             <div className="flex items-center gap-2 rounded-md bg-amber-50 p-3 text-amber-700">
               <AlertTriangle className="h-4 w-4" />
               <span className="text-sm">
-                {approvalAction === 'approve' 
-                  ? 'Lịch được phê duyệt sẽ hiển thị cho bệnh nhân đặt lịch hẹn.' 
+                {approvalAction === 'approved'
+                  ? 'Lịch được phê duyệt sẽ hiển thị cho bệnh nhân đặt lịch hẹn.'
                   : 'Lịch bị từ chối sẽ không hiển thị cho bệnh nhân và cần được tạo lại.'}
               </span>
             </div>
           </div>
-          
+
           <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setConfirmDialogOpen(false)} 
+            <Button
+              variant="outline"
+              onClick={() => setConfirmDialogOpen(false)}
               disabled={approveMutation.isPending}
             >
               Hủy
             </Button>
-            <Button 
-              variant={approvalAction === 'approve' ? 'default' : 'destructive'}
-              onClick={handleConfirmAction} 
+            <Button
+              variant={approvalAction === 'approved' ? 'default' : 'destructive'}
+              onClick={handleConfirmAction}
               disabled={approveMutation.isPending}
+              className={approvalAction === 'rejected' ? 'text-white' : ''}
             >
               {approveMutation.isPending ? (
                 <>
@@ -334,7 +452,7 @@ export const ScheduleApproval: React.FC = () => {
                 </>
               ) : (
                 <>
-                  {approvalAction === 'approve' ? (
+                  {approvalAction === 'approved' ? (
                     <>
                       <CheckCircle2 className="h-4 w-4 mr-2" />
                       Xác nhận phê duyệt

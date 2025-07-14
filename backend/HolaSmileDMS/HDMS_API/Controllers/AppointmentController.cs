@@ -3,7 +3,9 @@ using Application.Usecases.Patients.CancelAppointment;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Application.Usecases.Receptionist.CreateFollow_UpAppointment;
+using Application.Usecases.Receptionist.CreateFUAppointment;
+using Application.Usecases.Receptionist.EditAppointment;
+using Application.Constants;
 
 namespace HDMS_API.Controllers
 {
@@ -16,9 +18,10 @@ namespace HDMS_API.Controllers
         {
             _mediator = mediator;
         }
-        
+
+        [Authorize]
         [HttpGet]
-        [Route("listappointment")]
+        [Route("listAppointment")]
         public async Task<IActionResult> GetAppointment(CancellationToken cancellationToken)
         {
             try
@@ -37,7 +40,7 @@ namespace HDMS_API.Controllers
             }
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpGet("{appointmentId}")]
         public async Task<IActionResult> ViewDetailAppointment([FromRoute] int appointmentId, CancellationToken cancellationToken)
         {
@@ -57,6 +60,7 @@ namespace HDMS_API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("FUappointment")]
         public async Task<IActionResult> CreateFUAppointment([FromBody] CreateFUAppointmentCommand request, CancellationToken cancellationToken)
         {
@@ -82,13 +86,33 @@ namespace HDMS_API.Controllers
 
         [Authorize]
         [HttpPut]
-        [Route("cancelappointment/{appointmentId}")]
+        [Route("cancelAppointment/{appointmentId}")]
         public async Task<IActionResult> ViewDetailPatientAppointment([FromRoute] int appointmentId, CancellationToken cancellationToken)
-            {
+        {
             try
             {
-                var result = await _mediator.Send(new CancleAppointmentCommand(appointmentId), cancellationToken);
+                var result = await _mediator.Send(new CancelAppointmentCommand(appointmentId), cancellationToken);
                 return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ex.Message,
+                    Inner = ex.InnerException?.Message,
+                    Stack = ex.StackTrace
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPut("updateAppointment")]
+        public async Task<IActionResult> UpdateAppointment([FromBody] EditAppointmentCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var result = await _mediator.Send(request, cancellationToken);
+                return result ? Ok(MessageConstants.MSG.MSG61) : Conflict(MessageConstants.MSG.MSG58);
             }
             catch (Exception ex)
             {

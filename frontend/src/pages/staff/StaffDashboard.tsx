@@ -1,21 +1,11 @@
-import { useAuth } from '../../hooks/useAuth';
 import { Users, Calendar, TrendingUp, AlertCircle, Clock, CreditCard } from 'lucide-react';
 import { StaffLayout } from '../../layouts/staff/StaffLayout';
-
+import { useUserInfo } from '@/hooks/useUserInfo';
 export const StaffDashboard = () => {
-  const { username, role, userId } = useAuth();
-
-  // Create userInfo object for StaffLayout
-  const userInfo = {
-    id: userId || '',
-    name: username || 'User',
-    email: '', // Will be filled from API if needed
-    role: role || '',
-    avatar: undefined
-  };
+  const userInfo = useUserInfo();
 
   const getRoleSpecificStats = () => {
-    switch (role) {
+    switch (userInfo.role) {
       case 'Administrator':
       case 'Owner':
         return {
@@ -66,7 +56,7 @@ export const StaffDashboard = () => {
   };
 
   const { title, stats } = getRoleSpecificStats();
-  
+
   const getColorClasses = (color: string) => {
     const colorMap = {
       blue: 'bg-blue-100 text-blue-600',
@@ -75,7 +65,7 @@ export const StaffDashboard = () => {
       red: 'bg-red-100 text-red-600'
     };
     return colorMap[color as keyof typeof colorMap] || 'bg-gray-100 text-gray-600';
-  };  return (
+  }; return (
     <StaffLayout userInfo={userInfo}>
       <div className="space-y-6">
         <div className="bg-white rounded-lg shadow p-6">
@@ -83,7 +73,7 @@ export const StaffDashboard = () => {
             {title}
           </h1>
           <p className="text-gray-600">
-            Chào mừng trở lại, {username} - {role}
+            Chào mừng trở lại, {userInfo.name} - {userInfo.role}
           </p>
         </div>
 

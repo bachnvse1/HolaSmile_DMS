@@ -16,8 +16,8 @@ export interface TreatmentRecord {
   toothPosition: string
   quantity: number
   unitPrice: number
-  discountAmount: number
-  discountPercentage: number
+  discountAmount: number| null
+  discountPercentage: number| null
   totalAmount: number
   consultantEmployeeID: number | null
   treatmentStatus: string
@@ -33,6 +33,7 @@ export interface TreatmentRecord {
 
 export interface TreatmentFormData {
   appointmentID: number
+  treatmentToday?: boolean;
   dentistID: number
   procedureID: number
   toothPosition: string

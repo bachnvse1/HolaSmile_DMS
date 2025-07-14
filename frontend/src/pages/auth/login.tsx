@@ -43,7 +43,8 @@ export function Login() {
 
         if (loginResult.success && loginResult.token) {
           const role = TokenUtils.getRoleFromToken(loginResult.token);
-          toast.success(`Đăng nhập thành công! Xin chào ${values.email}`, {
+          const fullName = TokenUtils.getFullNameFromToken(loginResult.token);
+          toast.success(`Đăng nhập thành công! Xin chào ${fullName}`, {
                   position: "top-left",
                   autoClose: 3000,
                 });
@@ -121,11 +122,9 @@ export function Login() {
         </div>
 
         <div className="space-y-1">
-          <div className="flex justify-between items-center">
-            <label htmlFor="password" className="text-sm font-medium text-slate-300">
+          <div className="flex justify-between items-center">            <label htmlFor="password" className="text-sm font-medium text-slate-300">
               Mật khẩu
-            </label>
-            <Link type="button" className="text-sm text-blue-400 hover:underline" to={`/forgot-password`}>
+            </label>            <Link type="button" className="text-sm text-blue-400 hover:underline" to={`/forgot-password`}>
               Quên mật khẩu?
             </Link>
           </div>

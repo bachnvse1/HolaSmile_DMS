@@ -8,12 +8,12 @@ export const TIME_SLOTS = [
   { 
     label: 'Ca Chiều', 
     period: 'afternoon' as const, 
-    timeRange: '13:00 - 17:00'
+    timeRange: '14:00 - 17:00'
   },
   { 
     label: 'Ca Tối', 
     period: 'evening' as const, 
-    timeRange: '18:00 - 20:00'
+    timeRange: '17:00 - 20:00'
   },
 ] as const;
 

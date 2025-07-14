@@ -1,11 +1,12 @@
 using Application.Constants;
+using Application.Usecases.Assistants.ViewListTreatmentRecord;
 using Application.Usecases.Dentist.CreateTreatmentRecord;
 using Application.Usecases.Dentist.UpdateTreatmentRecord;
 using Application.Usecases.Patients.ViewTreatmentRecord;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+
 
 [ApiController]
 [Route("api/treatment-records")]
@@ -24,11 +25,11 @@ public class TreatmentRecordsController : ControllerBase
     /// </summary>
     [HttpGet]
     [Authorize]
-    public async Task<IActionResult> GetRecords([FromQuery] int userId, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetRecords([FromQuery] int patientId, CancellationToken cancellationToken)
     {
         try
         {
-            var result = await _mediator.Send(new ViewTreatmentRecordsCommand(userId), cancellationToken);
+            var result = await _mediator.Send(new ViewTreatmentRecordCommand(patientId), cancellationToken);
             return Ok(result);
         }
         catch (KeyNotFoundException)
@@ -46,9 +47,8 @@ public class TreatmentRecordsController : ControllerBase
         {
             return BadRequest(new
             {
-                message = MessageConstants.MSG.MSG58, // Cập nhật dữ liệu thất bại (có thể sửa thành "Lỗi khi truy vấn dữ liệu" nếu cần thêm mã riêng)
-                Inner = ex.InnerException?.Message,
-                Stack = ex.StackTrace
+                message = MessageConstants.MSG.MSG58
+
             });
         }
     }
@@ -81,7 +81,7 @@ public class TreatmentRecordsController : ControllerBase
         }
         catch (UnauthorizedAccessException)
         {
-            return Forbid(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
+            return StatusCode(403, new { message = MessageConstants.MSG.MSG26 });
         }
     }
 
@@ -101,7 +101,7 @@ public class TreatmentRecordsController : ControllerBase
         }
         catch (UnauthorizedAccessException)
         {
-            return Forbid(MessageConstants.MSG.MSG26);
+            return StatusCode(403, new { message = MessageConstants.MSG.MSG26 });
         }
         catch (Exception ex)
         {
@@ -116,9 +116,63 @@ public class TreatmentRecordsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> CreateTreatmentRecord([FromBody] CreateTreatmentRecordCommand command)
     {
-        var result = await _mediator.Send(command);
-        return Ok(new { success = true, message = result });
+        try
+        {
+            var result = await _mediator.Send(command);
+            return Ok(new { success = true, message = result });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            // Nếu không có quyền
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                success = false,
+                message = ex.Message
+            });
+        }
+        catch (ArgumentException ex)
+        {
+            // Nếu logic ném ra ArgumentException cho validate
+            return BadRequest(new
+            {
+                success = false,
+                message = ex.Message
+            });
+        }
+        catch (Exception ex)
+        {
+            // Các lỗi còn lại: vẫn trả message cụ thể thay vì để FE hiển thị mặc định
+            return BadRequest(new
+            {
+                success = false,
+                message = ex.Message ?? "Lỗi hệ thống không xác định"
+            });
+        }
     }
 
+    [HttpGet("List")]
+    [Authorize]
+    public async Task<IActionResult> GetAllTreatmentRecords()
+    {
+        try
+        {
+            var result = await _mediator.Send(new ViewListTreatmentRecordCommand());
 
+            if (result == null || !result.Any())
+                return Ok(new { message = MessageConstants.MSG.MSG16 }); // "Không có dữ liệu"
+
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                message = MessageConstants.MSG.MSG26 // "Bạn không có quyền truy cập chức năng này"
+            });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { message = MessageConstants.MSG.MSG58 }); // "Có lỗi xảy ra"
+        }
+    }
 }

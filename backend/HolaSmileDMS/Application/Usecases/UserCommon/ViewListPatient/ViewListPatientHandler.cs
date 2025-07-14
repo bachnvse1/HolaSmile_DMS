@@ -1,7 +1,7 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
 using Application.Services;
-using Application.Usecases.UserCommon.ViewListPatient;
+using Application.Usecases.Patients.ViewListPatient;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
@@ -31,12 +31,12 @@ public class ViewListPatientHandler : IRequestHandler<ViewListPatientCommand, Li
         if (userIdClaim == null || roleClaim == null)
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
-        if (roleClaim.Value == "Patient")
+        if (roleClaim.Value.Equals("patient", StringComparison.OrdinalIgnoreCase))
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
-        var rawPatients = await _repository.GetAllPatientsAsync(cancellationToken);
+        var ListPatients = await _repository.GetAllPatientsAsync(cancellationToken);
 
-        var result = rawPatients.Select(p => new ViewListPatientDto
+        var result = ListPatients.Select(p => new ViewListPatientDto
         {
             UserId = p.UserId,
             PatientId = p.PatientId,

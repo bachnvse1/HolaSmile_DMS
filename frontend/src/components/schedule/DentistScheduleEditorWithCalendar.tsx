@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
-import { useCreateSchedule, useEditSchedule, useDentistSchedule } from '../../hooks/useSchedule';
+import { useCreateSchedule, useEditSchedule, useDentistSchedule, useDeleteSchedule } from '../../hooks/useSchedule';
 import type { Schedule } from '../../types/schedule';
 import { ScheduleStatus, ShiftType } from '../../types/schedule';
 import { formatDateWithDay, shiftTypeToText, isPastDate } from '../../utils/dateUtils';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import { 
-  PlusCircle, 
-  Loader2, 
-  Edit,
+import {
+  Loader2,
   Trash,
   Check,
   X,
@@ -18,14 +16,15 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
 import { ScheduleCalendar } from './ScheduleCalendar';
+import { getErrorMessage } from '@/utils/formatUtils';
 
 interface DentistScheduleEditorWithCalendarProps {
   dentistId?: number;
 }
 
-export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWithCalendarProps> = ({ dentistId }) => {  // States
+export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWithCalendarProps> = ({ dentistId }) => {
+  // States
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedShift, setSelectedShift] = useState<ShiftType | ''>('');
   const [note, setNote] = useState('');
@@ -35,25 +34,26 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [scheduleToDelete, setScheduleToDelete] = useState<Schedule | null>(null);
   const [activeView, setActiveView] = useState<'list' | 'calendar'>('calendar');
-  const [selectedSlots, setSelectedSlots] = useState<Array<{date: string, shift: ShiftType}>>([]);
+  const [selectedSlots, setSelectedSlots] = useState<Array<{ date: string, shift: ShiftType }>>([]);
   const [isBulkCreateDialogOpen, setIsBulkCreateDialogOpen] = useState(false);
-    // Queries and mutations
+  // Queries and mutations
   const { data, isLoading, error, refetch } = useDentistSchedule(dentistId);
   const createScheduleMutation = useCreateSchedule();
   const editScheduleMutation = useEditSchedule();
-  
+  const deleteMutation = useDeleteSchedule();
+
   // Schedules data
   const schedules = data?.data || [];
-  
+
   // Handlers
-  const handleAddSchedule = () => {
-    setIsEditMode(false);
-    setSelectedDate('');
-    setSelectedShift('');
-    setNote('');
-    setIsDialogOpen(true);
-  };
-  
+  // const handleAddSchedule = () => {
+  //   setIsEditMode(false);
+  //   setSelectedDate('');
+  //   setSelectedShift('');
+  //   setNote('');
+  //   setIsDialogOpen(true);
+  // };
+
   const handleEditSchedule = (schedule: Schedule) => {
     setIsEditMode(true);
     setCurrentSchedule(schedule);
@@ -62,19 +62,34 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
     setNote(schedule.note || '');
     setIsDialogOpen(true);
   };
-  
-  const handleDeleteSchedule = (schedule: Schedule) => {
+
+  // Xử lý xóa mềm lịch (set isActive = 0)
+  const handleSoftDeleteSchedule = (schedule: Schedule) => {
+    if (!schedule.scheduleId) return;
     setScheduleToDelete(schedule);
     setDeleteDialogOpen(true);
   };
-  
+
   const handleCalendarDateSelect = (date: string, shift: ShiftType) => {
     // Kiểm tra xem có phải lịch hiện tại không
     const schedule: Schedule | undefined = schedules.find((s: Schedule) => s.date === date && s.shift === shift);
-    
+
     if (schedule) {
-      // Nếu đã có lịch, mở dialog chỉnh sửa
-      handleEditSchedule(schedule);
+      // Nếu lịch có status pending và isActive = true, thực hiện xóa mềm
+      if (schedule.status === ScheduleStatus.Pending && schedule.isActive) {
+        handleSoftDeleteSchedule(schedule);
+      }
+      // Nếu là lịch rejected, xử lý như chưa có lịch (cho phép tạo mới) 
+      else if (schedule.status === ScheduleStatus.Rejected) {
+        setIsEditMode(false);
+        setSelectedDate(date);
+        setSelectedShift(shift);
+        setNote('');
+        setIsDialogOpen(true);
+      } else {
+        // Nếu là lịch khác (approved/rejected hoặc đã bị xóa mềm), mở dialog chỉnh sửa
+        handleEditSchedule(schedule);
+      }
     } else {
       // Nếu chưa có lịch, mở dialog thêm mới
       setIsEditMode(false);
@@ -84,21 +99,35 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
       setIsDialogOpen(true);
     }
   };
-  
+
   // Xử lý khi chọn nhiều ca làm việc
   const handleCalendarSlotSelect = (date: string, shift: ShiftType) => {
     // Kiểm tra xem có phải lịch hiện tại không
     const existingSchedule = schedules.find(s => s.date === date && s.shift === shift);
-    
+
     if (existingSchedule) {
-      // Nếu đã có lịch, mở dialog chỉnh sửa
-      handleEditSchedule(existingSchedule);
+      // Nếu lịch có status pending và isActive = true, thực hiện xóa mềm
+      if (existingSchedule.status === ScheduleStatus.Pending && existingSchedule.isActive) {
+        handleSoftDeleteSchedule(existingSchedule);
+      } else if (existingSchedule.status === ScheduleStatus.Rejected) {
+        // Cho phép chọn/bỏ chọn slot như chưa có lịch
+        const isAlreadySelected = selectedSlots.some(
+          slot => slot.date === date && slot.shift === shift
+        );
+        if (isAlreadySelected) {
+          setSelectedSlots(selectedSlots.filter(
+            slot => !(slot.date === date && slot.shift === shift)
+          ));
+        } else {
+          setSelectedSlots([...selectedSlots, { date, shift }]);
+        }
+      }
     } else {
       // Nếu chưa có lịch, thêm vào danh sách đã chọn
       const isAlreadySelected = selectedSlots.some(
         slot => slot.date === date && slot.shift === shift
       );
-      
+
       if (isAlreadySelected) {
         // Nếu đã chọn, bỏ chọn
         setSelectedSlots(selectedSlots.filter(
@@ -110,35 +139,33 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
       }
     }
   };
-  
+
   const confirmDeleteSchedule = async () => {
-    if (!scheduleToDelete || !scheduleToDelete.id) return;
-    
+    if (!scheduleToDelete || !scheduleToDelete.scheduleId) return;
+
     try {
-      // Sử dụng editScheduleMutation để đánh dấu lịch là đã xóa
-      await editScheduleMutation.mutateAsync({
-        ...scheduleToDelete,
-        status: ScheduleStatus.Rejected
-      });
-      
-      toast.success('Đã xóa lịch làm việc thành công!');
+      await deleteMutation.mutateAsync(scheduleToDelete.scheduleId);
+
+      toast.success('Đã hủy lịch làm việc thành công!');
       setDeleteDialogOpen(false);
+      setScheduleToDelete(null);
+      await refetch();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi xóa lịch!');
+      toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi xóa lịch!');
     }
   };
-    const handleSubmit = async () => {
+  const handleSubmit = async () => {
     if (!selectedDate || !selectedShift || !dentistId) {
       toast.error('Vui lòng chọn đầy đủ thông tin!');
       return;
     }
-    
+
     // Kiểm tra ngày trong quá khứ
     if (isPastDate(new Date(selectedDate))) {
       toast.error('Không thể đặt lịch cho ngày trong quá khứ!');
       return;
     }
-    
+
     const scheduleData: Schedule = {
       dentistId,
       date: selectedDate,
@@ -146,7 +173,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
       status: ScheduleStatus.Pending,
       note: note.trim()
     };
-    
+
     try {
       if (isEditMode && currentSchedule?.id) {
         // Chỉnh sửa lịch
@@ -160,29 +187,27 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
         await createScheduleMutation.mutateAsync(scheduleData);
         toast.success('Thêm lịch làm việc thành công!');
       }
-      
+
       // Đóng dialog
       setIsDialogOpen(false);
-      
+
       // Cập nhật lại dữ liệu
       await refetch();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra!');
+      toast.error(getErrorMessage(error) || 'Có lỗi xảy ra!');
     }
   };
-    // Xử lý tạo nhiều lịch làm việc cùng lúc
+  // Xử lý tạo nhiều lịch làm việc cùng lúc
   const handleBulkCreateSchedules = async () => {
     if (!selectedSlots.length || !dentistId) {
       toast.error('Vui lòng chọn ít nhất một ca làm việc!');
       return;
     }
-    
+
     try {
-      // Hiển thị thông báo đang xử lý
-      toast.info(`Đang xử lý ${selectedSlots.length} lịch làm việc...`);
-      
+
       // Tạo nhiều lịch làm việc
-      const createPromises = selectedSlots.map(slot => 
+      const createPromises = selectedSlots.map(slot =>
         createScheduleMutation.mutateAsync({
           dentistId,
           date: slot.date,
@@ -191,59 +216,52 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
           note: note.trim()
         })
       );
-      
+
       const results = await Promise.allSettled(createPromises);
-      
+
       // Đếm kết quả thành công và thất bại
       let successCount = 0;
-      let errorCount = 0;
-      
+
       results.forEach(result => {
         if (result.status === 'fulfilled') {
           successCount++;
         } else {
-          errorCount++;
           console.error('Lỗi khi tạo lịch:', result.reason);
         }
       });
-      
+
       // Hiển thị thông báo kết quả
       if (successCount > 0) {
-        toast.success(`Đã tạo thành công ${successCount}/${selectedSlots.length} lịch làm việc!`);
+        toast.success(`Đã tạo lịch làm việc thành công!`);
       }
-      
-      if (errorCount > 0) {
-        toast.error(`Có ${errorCount} lịch không thể tạo. Vui lòng thử lại sau.`);
-      }
-      
+
       // Reset trạng thái
       setSelectedSlots([]);
       setIsBulkCreateDialogOpen(false);
       setNote('');
-      
+
       // Cập nhật lại dữ liệu
       await refetch();
     } catch (error) {
-      console.error('Lỗi khi tạo lịch hàng loạt:', error);
-      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi tạo lịch!');
+      toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi tạo lịch!');
     }
   };
-    // Mở dialog tạo nhiều lịch
+  // Mở dialog tạo nhiều lịch
   const handleOpenBulkCreateDialog = () => {
     if (selectedSlots.length === 0) {
       toast.info('Vui lòng chọn ít nhất một ca làm việc trên lịch!');
       return;
     }
-    
+
     setNote('');
     setIsBulkCreateDialogOpen(true);
   };
-  
+
   // Xóa tất cả các ca đã chọn
   const clearSelectedSlots = () => {
     setSelectedSlots([]);
   };
-  
+
   // Render danh sách lịch của bác sĩ
   const renderScheduleList = () => {
     if (isLoading) {
@@ -254,7 +272,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
         </div>
       );
     }
-    
+
     if (error) {
       return (
         <div className="bg-red-50 p-4 rounded-lg border border-red-100 text-red-800">
@@ -262,7 +280,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
         </div>
       );
     }
-    
+
     if (schedules.length === 0) {
       return (
         <div className="text-center py-10 bg-gray-50 rounded-lg border border-gray-200">
@@ -273,7 +291,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
         </div>
       );
     }
-    
+
     // Render badge status
     const renderStatusBadge = (status: ScheduleStatus) => {
       switch (status) {
@@ -286,7 +304,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
           return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Chờ duyệt</Badge>;
       }
     };
-    
+
     return (
       <div className="overflow-x-auto rounded-md border">
         <table className="w-full divide-y divide-gray-200">
@@ -328,28 +346,18 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
                   <div className="flex space-x-2">
                     {schedule.status !== ScheduleStatus.Approved && (
                       <>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleEditSchedule(schedule)}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <Edit className="h-4 w-4 mr-1" />
-                          Sửa
-                        </Button>
-                        
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="sm"
-                          onClick={() => handleDeleteSchedule(schedule)}
+                          onClick={() => handleSoftDeleteSchedule(schedule)}
                           className="text-red-600 hover:text-red-800"
                         >
                           <Trash className="h-4 w-4 mr-1" />
-                          Xóa
+                          Hủy
                         </Button>
                       </>
                     )}
-                    
+
                     {schedule.status === ScheduleStatus.Approved && (
                       <span className="text-xs text-gray-500 italic">Đã được duyệt</span>
                     )}
@@ -362,7 +370,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
       </div>
     );
   };
-  
+
   return (
     <div>
       {/* Header with Add button */}
@@ -391,14 +399,14 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
               Danh sách
             </Button>
           </div>
-          
-          <Button onClick={handleAddSchedule} className="flex items-center">
+
+          {/* <Button onClick={handleAddSchedule} className="flex items-center">
             <PlusCircle className="h-4 w-4 mr-2" />
             Thêm lịch làm việc
-          </Button>
+          </Button> */}
         </div>
       </div>
-        {/* Main content - Calendar or List view */}
+      {/* Main content - Calendar or List view */}
       <div className="mb-6">
         {activeView === 'calendar' ? (
           <div>
@@ -420,9 +428,9 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
                 </div>
               </div>
             )}
-            
-            <ScheduleCalendar 
-              schedules={schedules} 
+
+            <ScheduleCalendar
+              schedules={schedules}
               onDateSelect={handleCalendarDateSelect}
               onSlotSelect={handleCalendarSlotSelect}
               selectedSlots={selectedSlots}
@@ -433,19 +441,19 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
           renderScheduleList()
         )}
       </div>
-      
+
       {/* Dialog for adding/editing schedule */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{isEditMode ? 'Chỉnh sửa lịch làm việc' : 'Thêm lịch làm việc mới'}</DialogTitle>
             <DialogDescription>
-              {isEditMode 
-                ? 'Cập nhật thông tin lịch làm việc' 
+              {isEditMode
+                ? 'Cập nhật thông tin lịch làm việc'
                 : 'Đăng ký lịch làm việc mới. Lịch sẽ cần được phê duyệt bởi quản trị viên.'}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             {selectedDate && selectedShift ? (
               <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
@@ -465,8 +473,8 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
                 </div>
               </div>
             )}
-            
-            <div className="space-y-2">
+
+            {/* <div className="space-y-2">
               <label className="text-sm font-medium">Ghi chú (không bắt buộc):</label>
               <Textarea
                 value={note}
@@ -474,9 +482,9 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
                 placeholder="Thêm ghi chú nếu cần..."
                 className="min-h-[80px]"
               />
-            </div>
+            </div> */}
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               <X className="h-4 w-4 mr-2" />
@@ -498,17 +506,17 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Delete confirmation dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Xác nhận xóa lịch làm việc</DialogTitle>
+            <DialogTitle>Xác nhận hủy lịch làm việc</DialogTitle>
             <DialogDescription>
-              Bạn có chắc chắn muốn xóa lịch làm việc này không? Hành động này không thể hoàn tác.
+              Bạn có chắc chắn muốn hủy lịch làm việc này không? Hành động này không thể hoàn tác.
             </DialogDescription>
           </DialogHeader>
-          
+
           {scheduleToDelete && (
             <div className="my-4 p-4 bg-gray-50 rounded-md border border-gray-200">
               <div className="space-y-2">
@@ -529,37 +537,38 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
               </div>
             </div>
           )}
-          
+
           <div className="flex items-center gap-2 rounded-md bg-amber-50 p-3 text-amber-700 mt-2">
             <AlertCircle className="h-4 w-4" />
-            <span className="text-sm">Lịch đã được duyệt không thể xóa.</span>
+            <span className="text-sm">Lịch đã được duyệt không thể hủy.</span>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
               Hủy
             </Button>
-            <Button 
-              variant="destructive" 
-              onClick={confirmDeleteSchedule} 
-              disabled={editScheduleMutation.isPending}
+            <Button
+              variant="destructive"
+              onClick={confirmDeleteSchedule}
+              disabled={deleteMutation.isPending}
+              className='text-white'
             >
-              {editScheduleMutation.isPending ? (
+              {deleteMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Đang xử lý...
                 </>
               ) : (
                 <>
-                  <Trash className="h-4 w-4 mr-2" />
-                  Xác nhận xóa
+                  <Trash className="h-4 w-4 mr-2 text-white" />
+                  Xác nhận hủy
                 </>
               )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Bulk create dialog */}
       <Dialog open={isBulkCreateDialogOpen} onOpenChange={setIsBulkCreateDialogOpen}>
         <DialogContent>
@@ -569,7 +578,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
               Xác nhận tạo nhiều lịch làm việc cho các ca đã chọn. Lịch sẽ được tạo với trạng thái chờ duyệt.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="py-4">
             {selectedSlots.length === 0 ? (
               <div className="text-center text-sm text-gray-500 py-10">
@@ -583,7 +592,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
                 <div className="text-sm font-medium text-gray-800 mb-2">
                   Các ca làm việc đã chọn:
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
                   {selectedSlots.map((slot, index) => (
                     <div key={index} className="flex justify-between py-2 px-3 rounded-md bg-gray-50 border">
@@ -597,8 +606,8 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
               </div>
             )}
           </div>
-          
-          <div className="space-y-4 py-4">
+
+          {/* <div className="space-y-4 py-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Ghi chú cho tất cả lịch (không bắt buộc):</label>
               <Textarea
@@ -608,8 +617,8 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
                 className="min-h-[80px]"
               />
             </div>
-          </div>
-          
+          </div> */}
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsBulkCreateDialogOpen(false)}>
               <X className="h-4 w-4 mr-2" />

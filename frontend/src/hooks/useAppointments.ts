@@ -6,7 +6,7 @@ export const useAppointments = () => {
   return useQuery<AppointmentDTO[]>({
     queryKey: ['appointments'],
     queryFn: async () => {
-      const response = await axiosInstance.get('/appointment/listappointment');
+      const response = await axiosInstance.get('/appointment/listAppointment');
       return response.data;
     },
     refetchOnWindowFocus: false,
@@ -19,7 +19,7 @@ export const useAppointmentsByDateRange = (startDate: string, endDate: string) =
   return useQuery<AppointmentDTO[]>({
     queryKey: ['appointments', 'dateRange', startDate, endDate],
     queryFn: async () => {
-      const response = await axiosInstance.get('/appointment/listappointment', {
+      const response = await axiosInstance.get('/appointment/listAppointment', {
         params: { startDate, endDate }
       });
       return response.data;
@@ -27,5 +27,19 @@ export const useAppointmentsByDateRange = (startDate: string, endDate: string) =
     enabled: !!startDate && !!endDate,
     refetchOnWindowFocus: false,
     staleTime: 2 * 60 * 1000,
+  });
+};
+
+// Hook for getting single appointment detail
+export const useAppointmentDetail = (appointmentId: number) => {
+  return useQuery<AppointmentDTO>({
+    queryKey: ['appointments', 'detail', appointmentId],
+    queryFn: async () => {
+      const response = await axiosInstance.get(`/appointment/${appointmentId}`);
+      return response.data;
+    },
+    enabled: !!appointmentId,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };

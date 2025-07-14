@@ -1,20 +1,10 @@
 import { AuthGuard } from '../../components/AuthGuard';
 import { StaffLayout } from '../../layouts/staff/StaffLayout';
 import { AppointmentViewManager } from '../../components/appointment/AppointmentViewManager';
-import { useAuth } from '../../hooks/useAuth';
+import { useUserInfo } from '@/hooks/useUserInfo';
 
 export const StaffAppointmentsPage = () => {
-  const { username, role, userId } = useAuth();
-
-  // Create userInfo object for StaffLayout
-  const userInfo = {
-    id: userId || '',
-    name: username || 'User',
-    email: '', 
-    role: role || '',
-    avatar: undefined
-  };
-
+  const userInfo = useUserInfo();
   return (
     <AuthGuard requiredRoles={['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']}>
       <StaffLayout userInfo={userInfo}>

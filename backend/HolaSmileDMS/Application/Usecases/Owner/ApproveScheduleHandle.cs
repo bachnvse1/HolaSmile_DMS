@@ -1,20 +1,23 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
+using Application.Usecases.SendNotification;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
 namespace Application.Usecases.Owner
 {
-    public class AppointmentScheduleHandle : IRequestHandler<ApproveDentistScheduleCommand, string>
+    public class ApproveScheduleHandle : IRequestHandler<ApproveDentistScheduleCommand, string>
     {
-        private readonly IScheduleRepository _scheduleRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IScheduleRepository _scheduleRepository;
+        private readonly IMediator _mediator;
 
-        public AppointmentScheduleHandle(IScheduleRepository scheduleRepository, IHttpContextAccessor httpContextAccessor)
+        public ApproveScheduleHandle(IHttpContextAccessor httpContextAccessor, IScheduleRepository scheduleRepository, IMediator mediator)
         {
-            _scheduleRepository = scheduleRepository;
             _httpContextAccessor = httpContextAccessor;
+            _scheduleRepository = scheduleRepository;
+            _mediator = mediator;
         }
 
         public async Task<string> Handle(ApproveDentistScheduleCommand request, CancellationToken cancellationToken)
@@ -35,15 +38,44 @@ namespace Application.Usecases.Owner
                 {
                     throw new Exception("Chỉ có thể cập nhật lịch đang ở trạng thái pending");
                 }
-                schedule.Status = request.Action == "approve" ? "approved" : "rejected";
-                schedule.UpdatedAt = DateTime.UtcNow;
+
+                schedule.Status = request.Action == "approved" ? "approved" : "rejected";
+                schedule.UpdatedAt = DateTime.Now;
                 schedule.UpdatedBy = currentUserId;
 
                 var updated = await _scheduleRepository.UpdateScheduleAsync(schedule);
                 if (!updated)
-                    throw new Exception("Cập nhật lịch làm việc không thành công");
+                    throw new Exception(MessageConstants.MSG.MSG58);
+
+                if (request.Action == "approved")
+                {
+                    try
+                    {
+                        await _mediator.Send(new SendNotificationCommand(
+                        schedule.Dentist.User.UserID,
+                        "Đăng ký lịch làm việc",
+                        $"Bạn đã được duyệt lịch làm việc vào ngày {schedule.WorkDate.Date:dd/MM/yyyy} lúc {DateTime.Now:HH:mm}",
+                        "Đăng ký lịch làm việc",
+                        null), cancellationToken);
+                    }
+                    catch { }
+                }
+                else
+                {
+                    try
+                    {
+                        await _mediator.Send(new SendNotificationCommand(
+                        schedule.Dentist.User.UserID,
+                        "Đăng ký lịch làm việc",
+                        $"Bạn đã bị từ chối lịch làm việc vào ngày {schedule.WorkDate.Date:dd/MM/yyyy} lúc {DateTime.Now:HH:mm}",
+                        "Đăng ký lịch làm việc",
+                        null), cancellationToken);
+                    }
+                    catch { }
+                }
             }
-            return request.Action == "approve"
+
+            return request.Action == "approved"
                                      ? MessageConstants.MSG.MSG80 // approve thành công
                                      : MessageConstants.MSG.MSG81; // reject thành công
         }

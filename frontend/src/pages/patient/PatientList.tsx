@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button2"
 import { Filter, UserPlus } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import PatientTable from "@/components/patient/PatientTable"
@@ -11,6 +11,7 @@ import { useNavigate } from "react-router"
 import { useAuth } from '../../hooks/useAuth';
 import { AuthGuard } from '../../components/AuthGuard';
 import { StaffLayout } from '../../layouts/staff/StaffLayout';
+import { toast } from "react-toastify"
 
 const PAGE_SIZE = 5
 
@@ -20,30 +21,32 @@ export default function PatientList() {
   const [searchTerm, setSearchTerm] = useState("")
   const [genderFilter, setGenderFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  const { username, role, userId } = useAuth();
+  const { fullName, role, userId } = useAuth();
 
-  // Create userInfo object for StaffLayout
   const userInfo = {
     id: userId || '',
-    name: username || 'User',
+    name: fullName || 'User',
     email: '',
     role: role || '',
     avatar: undefined
   };
 
-  useEffect(() => {
-    const fetchPatients = async () => {
-      try {
-        const data = await getAllPatients()
-        console.log("Fetched patients:", data)
-        setPatients(data)
-      } catch (error) {
-        console.error("Failed to fetch patients:", error)
-      }
+  const fetchPatients = async () => {
+    try {
+      setLoading(true)
+      const data = await getAllPatients()
+      setPatients(data)
+    } catch (error: any) {
+      toast.error(error.message || "Lỗi khi tải danh sách bệnh nhân")
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchPatients()
   }, [])
 
@@ -52,7 +55,7 @@ export default function PatientList() {
       const matchesSearch =
         patient.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
         patient.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        patient.phone.includes(searchTerm)
+        patient.phone?.includes(searchTerm)
 
       const matchesGender =
         genderFilter === "all" || patient.gender === genderFilter
@@ -79,17 +82,19 @@ export default function PatientList() {
               <h1 className="text-3xl font-bold">Danh Sách Bệnh Nhân</h1>
               <p className="text-muted-foreground">Quản lý và xem tất cả hồ sơ bệnh nhân</p>
             </div>
-            <Button
-              onClick={() => navigate("/add-patient")}
-              className="flex items-center gap-2"
-            >
-              <UserPlus className="h-4 w-4" />
-              Thêm Bệnh Nhân Mới
-            </Button>
+            {role === "Receptionist" && (
+              <Button
+                onClick={() => navigate("/add-patient")}
+                className="flex items-center gap-2"
+              >
+                <UserPlus className="h-4 w-4" />
+                Thêm Bệnh Nhân Mới
+              </Button>
+            )}
           </div>
 
           <Card className="space-y-4">
-            <h3 className="text-xl font-semibold flex items-center gap-2">
+            <h3 className="px-4 pt-2 text-xl font-semibold flex items-center gap-2">
               <Filter className="h-5 w-5" />
               Bộ Lọc & Tìm Kiếm
             </h3>
@@ -101,7 +106,11 @@ export default function PatientList() {
             />
           </Card>
 
-          <PatientTable patients={paginatedPatients} />
+          {loading ? (
+            <div className="text-center py-10 text-muted-foreground">Đang tải dữ liệu...</div>
+          ) : (
+            <PatientTable patients={paginatedPatients} refetchPatients={fetchPatients} />
+          )}
 
           {filteredPatients.length > PAGE_SIZE && (
             <PaginationControls

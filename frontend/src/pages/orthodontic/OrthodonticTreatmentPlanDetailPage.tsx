@@ -1,0 +1,15 @@
+import React from 'react';
+import { OrthodonticTreatmentPlanDetailForm } from '@/components/orthodontic/OrthodonticTreatmentPlanDetailForm';
+import { useUserInfo } from '@/hooks/useUserInfo';
+import { AuthGuard } from '@/components/AuthGuard';
+import { StaffLayout } from '@/layouts/staff/StaffLayout';
+export const OrthodonticTreatmentPlanDetailPage: React.FC = () => {
+
+  return (
+    <AuthGuard requiredRoles={['Dentist', 'Assistant', 'Receptionist', 'Administrator', 'Owner']}>
+      <StaffLayout userInfo={useUserInfo()}>
+        <OrthodonticTreatmentPlanDetailForm mode="view" />
+      </StaffLayout>
+    </AuthGuard>
+  );
+};

@@ -22,7 +22,7 @@ namespace Application.Usecases.UserCommon.ViewAppointment
         }
         public async Task<List<AppointmentDTO>> Handle(ViewAppointmentCommand request, CancellationToken cancellationToken)
         {
-            var listApp = new List<Appointment>();
+            var listApp = new List<AppointmentDTO>();
             var user = _httpContextAccessor.HttpContext?.User;
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
@@ -34,7 +34,7 @@ namespace Application.Usecases.UserCommon.ViewAppointment
             }
 
             //check if patient, only view appointment of patient, else see all
-            if(string.Equals(currentUserRole,"patient",StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(currentUserRole,"patient",StringComparison.OrdinalIgnoreCase))
             {
                 listApp = await _appointmentRepository.GetAppointmentsByPatientIdAsync(currentUserId);
             }
@@ -46,14 +46,13 @@ namespace Application.Usecases.UserCommon.ViewAppointment
             {
                 listApp = await _appointmentRepository.GetAllAppointmentAsync();
             }
-            if(listApp == null)
+            if(listApp == null || listApp.Count == 0)
             {
-                throw new Exception("Không có dữ liệu");
+                throw new Exception(MessageConstants.MSG.MSG28);
             }
-
             //mapping data
-            var result = _mapper.Map<List<AppointmentDTO>>(listApp);
-            return result;
+            //var result = _mapper.Map<List<AppointmentDTO>>(listApp);
+            return listApp;
         }
     }
 }

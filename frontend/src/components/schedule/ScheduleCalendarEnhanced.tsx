@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ShiftType, ScheduleStatus } from '@/types/schedule';
 import type { Schedule } from '@/types/schedule';
 import { cn } from '@/lib/utils';
+import { isPastDate } from '@/utils/dateUtils';
 
 interface ScheduleCalendarEnhancedProps {
   schedules: Schedule[];
@@ -110,13 +111,6 @@ export const ScheduleCalendarEnhanced: React.FC<ScheduleCalendarEnhancedProps> =
     const formattedDate = formatDateForCompare(date);
     return selectedSlots.some(slot => slot.date === formattedDate && slot.shift === shift);
   };
-
-  // Kiểm tra xem ngày có phải trong quá khứ không
-  const isPastDate = (date: Date) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return date < today;
-  };
   
   // Lấy thông tin bác sĩ từ lịch
   const getDentistInfo = (date: Date, shift: ShiftType) => {
@@ -137,19 +131,16 @@ export const ScheduleCalendarEnhanced: React.FC<ScheduleCalendarEnhancedProps> =
     const dentistName = showDentistInfo ? getDentistInfo(date, shift) : null;
     
     let className = "flex flex-col items-center justify-center h-14 rounded-md text-sm font-medium transition-colors ";
-    let statusIndicator = null;
+
     
     if (scheduled) {
       // Nếu đã có lịch, hiển thị màu khác nhau dựa trên trạng thái
       if (status === ScheduleStatus.Approved) {
         className += "bg-green-100 text-green-800 ";
-        statusIndicator = <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-1.5"></span>;
       } else if (status === ScheduleStatus.Rejected) {
-        className += "bg-red-100 text-red-800 ";
-        statusIndicator = <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-1.5"></span>;
+        className += "bg-red-100 text-red-800 ";  
       } else {
         className += "bg-yellow-100 text-yellow-800 ";
-        statusIndicator = <span className="inline-block w-2 h-2 bg-yellow-500 rounded-full mr-1.5"></span>;
       }
     } else if (isPast) {
       // Ngày trong quá khứ
@@ -181,9 +172,9 @@ export const ScheduleCalendarEnhanced: React.FC<ScheduleCalendarEnhancedProps> =
     
     // Giờ làm việc của ca
     const shiftTimes = {
-      [ShiftType.Morning]: "8:00 - 12:00",
-      [ShiftType.Afternoon]: "13:00 - 17:00",
-      [ShiftType.Evening]: "18:00 - 21:00",
+      [ShiftType.Morning]: "8:00 - 11:00",
+      [ShiftType.Afternoon]: "14:00 - 17:00",
+      [ShiftType.Evening]: "17:00 - 20:00",
     };
     
     return (
@@ -204,7 +195,6 @@ export const ScheduleCalendarEnhanced: React.FC<ScheduleCalendarEnhancedProps> =
         }}
       >
         <div className="text-center">
-          {statusIndicator}
           <div className="font-medium">{shiftNames[shift]}</div>
           <div className="text-xs mt-0.5">{shiftTimes[shift]}</div>
           {showDentistInfo && dentistName && (
@@ -220,7 +210,7 @@ export const ScheduleCalendarEnhanced: React.FC<ScheduleCalendarEnhancedProps> =
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       {/* Header với điều hướng tuần */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+      <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200">
         <Button 
           variant="outline" 
           size="icon" 
@@ -231,8 +221,8 @@ export const ScheduleCalendarEnhanced: React.FC<ScheduleCalendarEnhancedProps> =
           <ChevronLeft className="h-4 w-4" />
         </Button>
         
-        <h3 className="text-lg font-medium text-gray-900">
-          {format(startDay, "d MMMM", { locale: vi })} - {format(daysOfWeek[6], "d MMMM yyyy", { locale: vi })}
+        <h3 className="text-base sm:text-lg font-medium text-gray-900 text-center px-2">
+          {format(startDay, "d MMM", { locale: vi })} - {format(daysOfWeek[6], "d MMM yyyy", { locale: vi })}
         </h3>
         
         <Button 
@@ -246,50 +236,99 @@ export const ScheduleCalendarEnhanced: React.FC<ScheduleCalendarEnhancedProps> =
         </Button>
       </div>
       
-      {/* Lịch */}
-      <div className="grid grid-cols-7 gap-1 p-4">
-        {/* Header các ngày trong tuần */}
-        {daysOfWeek.map((day, i) => (
-          <div key={`header-${i}`} className="text-center">
-            <div className="font-medium text-sm text-gray-900">
-              {format(day, "EEEE", { locale: vi })}
+      {/* Desktop Layout */}
+      <div className="hidden sm:block">
+        <div className="grid grid-cols-7 gap-1 p-4">
+          {/* Header các ngày trong tuần */}
+          {daysOfWeek.map((day, i) => (
+            <div key={`header-${i}`} className="text-center">
+              <div className="font-medium text-sm text-gray-900">
+                {format(day, "EEEE", { locale: vi })}
+              </div>
+              <div className={cn(
+                "text-xs mt-1 inline-block px-2 py-1 rounded-full",
+                format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')
+                  ? "bg-blue-100 text-blue-800"
+                  : "text-gray-500"
+              )}>
+                {format(day, "d/MM")}
+              </div>
             </div>
-            <div className={cn(
-              "text-xs mt-1 inline-block px-2 py-1 rounded-full",
-              format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')
-                ? "bg-blue-100 text-blue-800"
-                : "text-gray-500"
-            )}>
-              {format(day, "d/MM")}
+          ))}
+          
+          {/* Ca sáng */}
+          {daysOfWeek.map((day, i) => (
+            <div key={`morning-${i}`} className="pt-2">
+              {renderShift(day, ShiftType.Morning)}
+            </div>
+          ))}
+          
+          {/* Ca chiều */}
+          {daysOfWeek.map((day, i) => (
+            <div key={`afternoon-${i}`} className="pt-2">
+              {renderShift(day, ShiftType.Afternoon)}
+            </div>
+          ))}
+          
+          {/* Ca tối */}
+          {daysOfWeek.map((day, i) => (
+            <div key={`evening-${i}`} className="pt-2">
+              {renderShift(day, ShiftType.Evening)}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Mobile Layout */}
+      <div className="sm:hidden">
+        <div className="overflow-x-auto">
+          <div className="min-w-[700px] p-3">
+            <div className="grid grid-cols-7 gap-2">
+              {/* Header các ngày trong tuần */}
+              {daysOfWeek.map((day, i) => (
+                <div key={`header-${i}`} className="text-center min-w-[90px]">
+                  <div className="font-medium text-xs text-gray-900">
+                    {format(day, "EEE", { locale: vi })}
+                  </div>
+                  <div className={cn(
+                    "text-xs mt-1 inline-block px-2 py-1 rounded-full",
+                    format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')
+                      ? "bg-blue-100 text-blue-800"
+                      : "text-gray-500"
+                  )}>
+                    {format(day, "d/MM")}
+                  </div>
+                </div>
+              ))}
+              
+              {/* Ca sáng */}
+              {daysOfWeek.map((day, i) => (
+                <div key={`morning-${i}`} className="pt-2 min-w-[90px]">
+                  {renderShift(day, ShiftType.Morning)}
+                </div>
+              ))}
+              
+              {/* Ca chiều */}
+              {daysOfWeek.map((day, i) => (
+                <div key={`afternoon-${i}`} className="pt-2 min-w-[90px]">
+                  {renderShift(day, ShiftType.Afternoon)}
+                </div>
+              ))}
+              
+              {/* Ca tối */}
+              {daysOfWeek.map((day, i) => (
+                <div key={`evening-${i}`} className="pt-2 min-w-[90px]">
+                  {renderShift(day, ShiftType.Evening)}
+                </div>
+              ))}
             </div>
           </div>
-        ))}
-        
-        {/* Ca sáng */}
-        {daysOfWeek.map((day, i) => (
-          <div key={`morning-${i}`} className="pt-2">
-            {renderShift(day, ShiftType.Morning)}
-          </div>
-        ))}
-        
-        {/* Ca chiều */}
-        {daysOfWeek.map((day, i) => (
-          <div key={`afternoon-${i}`} className="pt-2">
-            {renderShift(day, ShiftType.Afternoon)}
-          </div>
-        ))}
-        
-        {/* Ca tối */}
-        {daysOfWeek.map((day, i) => (
-          <div key={`evening-${i}`} className="pt-2">
-            {renderShift(day, ShiftType.Evening)}
-          </div>
-        ))}
+        </div>
       </div>
       
       {/* Chú thích */}
-      <div className="px-4 pb-4 pt-2 border-t border-gray-200">
-        <div className="flex flex-wrap gap-3 text-xs text-gray-600">
+      <div className="px-3 sm:px-4 pb-3 sm:pb-4 pt-2 border-t border-gray-200">
+        <div className="flex flex-wrap gap-2 sm:gap-3 text-xs text-gray-600">
           <div className="flex items-center">
             <span className="inline-block w-3 h-3 bg-green-100 rounded-full mr-1"></span>
             <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-1.5"></span>

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ShiftType, ScheduleStatus } from '@/types/schedule';
 import type { Schedule } from '@/types/schedule';
 import { cn } from '@/lib/utils';
+import { isPastDate } from '@/utils/dateUtils';
 
 interface ScheduleCalendarProps {
   schedules: Schedule[];
@@ -32,7 +33,6 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
   onPreviousWeek,
   onNextWeek,
   canAddSchedule = false,
-  disablePastDates = true
 }) => {
   // State để theo dõi tuần hiện tại
   const [weekOffset, setWeekOffset] = useState(currentWeek);
@@ -105,92 +105,106 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
     return selectedSlots.some(slot => slot.date === formattedDate && slot.shift === shift);
   };
 
-  // Kiểm tra xem ngày có phải trong quá khứ không
-  const isPastDate = (date: Date) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return date < today;
-  };
     // Render giao diện ca làm việc
   const renderShift = (date: Date, shift: ShiftType) => {
+    const formattedDate = formatDateForCompare(date);
     const scheduled = isShiftScheduled(date, shift);
     const status = getShiftStatus(date, shift);
     const selected = isSelected(date, shift);
-    const isMultiSelected = isInSelectedSlots(date, shift);
-    const isPast = disablePastDates && isPastDate(date);
+    const inSelectedSlots = isInSelectedSlots(date, shift);
+    const isPast = isPastDate(date);
     
-    let className = "flex items-center justify-center h-12 rounded-md text-sm font-medium transition-colors ";
-    let statusIndicator = null;
+    // Tìm schedule để kiểm tra isActive
+    const schedule = schedules.find(
+      (s) => s.date === formattedDate && s.shift === shift
+    );
     
-    if (scheduled) {
-      // Nếu đã có lịch, hiển thị màu khác nhau dựa trên trạng thái
-      if (status === ScheduleStatus.Approved) {
-        className += "bg-green-100 text-green-800 ";
-        statusIndicator = <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-1.5"></span>;
-      } else if (status === ScheduleStatus.Rejected) {
-        className += "bg-red-100 text-red-800 ";
-        statusIndicator = <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-1.5"></span>;
-      } else {
-        className += "bg-yellow-100 text-yellow-800 ";
-        statusIndicator = <span className="inline-block w-2 h-2 bg-yellow-500 rounded-full mr-1.5"></span>;
+    // Chỉ hiển thị màu nếu schedule tồn tại và isActive = true
+    const shouldShowStatus = scheduled && schedule;
+
+    // Xác định màu nền dựa trên trạng thái
+    let bgColor = '';
+    let textColor = 'text-gray-600';
+    let borderColor = 'border-gray-200';
+    
+    if (shouldShowStatus && status) {
+      switch (status) {
+        case ScheduleStatus.Approved:
+          bgColor = 'bg-green-100';
+          textColor = 'text-green-800';
+          borderColor = 'border-green-300';
+          break;
+        case ScheduleStatus.Pending:
+          bgColor = 'bg-yellow-100';
+          textColor = 'text-yellow-800';
+          borderColor = 'border-yellow-300';
+          break;
+        case ScheduleStatus.Rejected:
+          bgColor = 'bg-red-100';
+          textColor = 'text-red-800';
+          borderColor = 'border-red-300';
+          break;
       }
-    } else if (isPast) {
-      // Ngày trong quá khứ
-      className += "bg-gray-100 text-gray-400 opacity-50 ";
-    } else if (canAddSchedule) {
-      // Nếu có thể đặt lịch và chưa có lịch
-      className += "bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-700 cursor-pointer ";
-    } else {
-      // Slot trống không thể đặt
-      className += "bg-gray-100 text-gray-400 ";
     }
-    
-    // Nếu được chọn
+
+    // Nếu được chọn trong multi-select mode
+    if (inSelectedSlots) {
+      bgColor = 'bg-purple-100';
+      textColor = 'text-purple-800';
+      borderColor = 'border-purple-300';
+    }
+
+    // Nếu được chọn (single select)
     if (selected) {
-      className += "ring-2 ring-blue-500 ";
+      borderColor = 'border-blue-500';
     }
-    
-    // Nếu được chọn trong nhiều ca
-    if (isMultiSelected) {
-      className += "ring-2 ring-purple-500 bg-purple-50 text-purple-800 ";
-    }
-    
-    // Tên hiển thị của ca
+
+    // Tên ca làm việc
     const shiftNames = {
-      [ShiftType.Morning]: "Sáng",
-      [ShiftType.Afternoon]: "Chiều",
-      [ShiftType.Evening]: "Tối",
+      morning: 'Sáng',
+      afternoon: 'Chiều', 
+      evening: 'Tối'
     };
-    
-    // Giờ làm việc của ca
+
+    // Thời gian ca làm việc
     const shiftTimes = {
-      [ShiftType.Morning]: "8:00 - 12:00",
-      [ShiftType.Afternoon]: "13:00 - 17:00",
-      [ShiftType.Evening]: "18:00 - 21:00",
+      morning: '8:00 - 11:00',
+      afternoon: '14:00 - 17:00',
+      evening: '17:00 - 20:00'
     };
-    
+
     return (
-      <div 
-        className={className}
+      <div
+        key={shift}
+        className={`
+          relative p-3 border-2 rounded-lg cursor-pointer transition-all duration-200 min-h-[70px] flex flex-col justify-center
+          ${bgColor || 'bg-gray-50'}
+          ${borderColor}
+          ${textColor}
+          ${isPast && !shouldShowStatus ? 'opacity-50 cursor-not-allowed' : ''}
+          ${canAddSchedule && !isPast ? 'hover:border-blue-400 hover:shadow-sm' : ''}
+        `}
         onClick={() => {
-          if (isPast) {
-            return; // Không cho phép chọn ngày trong quá khứ
-          }
+          if (isPast && !shouldShowStatus) return;
           
-          if (onSlotSelect && canAddSchedule) {
-            onSlotSelect(formatDateForCompare(date), shift);
-          } else if ((canAddSchedule && !scheduled) || scheduled) {
-            if (onDateSelect) {
-              onDateSelect(formatDateForCompare(date), shift);
+          if (canAddSchedule) {
+            if (onSlotSelect) {
+              onSlotSelect(formattedDate, shift);
+            } else if (onDateSelect) {
+              onDateSelect(formattedDate, shift);
             }
           }
         }}
       >
         <div className="text-center">
-          {statusIndicator}
-          <div className="font-medium">{shiftNames[shift]}</div>
-          <div className="text-xs mt-0.5">{shiftTimes[shift]}</div>
+          <div className="font-medium text-sm">
+            {shiftNames[shift]}
+          </div>
+          <div className="text-xs mt-1">
+            {shiftTimes[shift]}
+          </div>
         </div>
+
       </div>
     );
   };
@@ -198,7 +212,7 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       {/* Header với điều hướng tuần */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+      <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200">
         <Button 
           variant="outline" 
           size="icon" 
@@ -209,8 +223,8 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
           <ChevronLeft className="h-4 w-4" />
         </Button>
         
-        <h3 className="text-lg font-medium text-gray-900">
-          {format(startDay, "d MMMM", { locale: vi })} - {format(daysOfWeek[6], "d MMMM yyyy", { locale: vi })}
+        <h3 className="text-base sm:text-lg font-medium text-gray-900 text-center px-2">
+          {format(startDay, "d MMM", { locale: vi })} - {format(daysOfWeek[6], "d MMM yyyy", { locale: vi })}
         </h3>
         
         <Button 
@@ -224,50 +238,99 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
         </Button>
       </div>
       
-      {/* Lịch */}
-      <div className="grid grid-cols-7 gap-1 p-4">
-        {/* Header các ngày trong tuần */}
-        {daysOfWeek.map((day, i) => (
-          <div key={`header-${i}`} className="text-center">
-            <div className="font-medium text-sm text-gray-900">
-              {format(day, "EEEE", { locale: vi })}
+      {/* Desktop Layout */}
+      <div className="hidden sm:block">
+        <div className="grid grid-cols-7 gap-1 p-4">
+          {/* Header các ngày trong tuần */}
+          {daysOfWeek.map((day, i) => (
+            <div key={`header-${i}`} className="text-center">
+              <div className="font-medium text-sm text-gray-900">
+                {format(day, "EEEE", { locale: vi })}
+              </div>
+              <div className={cn(
+                "text-xs mt-1 inline-block px-2 py-1 rounded-full",
+                format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')
+                  ? "bg-blue-100 text-blue-800"
+                  : "text-gray-500"
+              )}>
+                {format(day, "d/MM")}
+              </div>
             </div>
-            <div className={cn(
-              "text-xs mt-1 inline-block px-2 py-1 rounded-full",
-              format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')
-                ? "bg-blue-100 text-blue-800"
-                : "text-gray-500"
-            )}>
-              {format(day, "d/MM")}
+          ))}
+          
+          {/* Ca sáng */}
+          {daysOfWeek.map((day, i) => (
+            <div key={`morning-${i}`} className="pt-2">
+              {renderShift(day, ShiftType.Morning)}
+            </div>
+          ))}
+          
+          {/* Ca chiều */}
+          {daysOfWeek.map((day, i) => (
+            <div key={`afternoon-${i}`} className="pt-2">
+              {renderShift(day, ShiftType.Afternoon)}
+            </div>
+          ))}
+          
+          {/* Ca tối */}
+          {daysOfWeek.map((day, i) => (
+            <div key={`evening-${i}`} className="pt-2">
+              {renderShift(day, ShiftType.Evening)}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Mobile Layout */}
+      <div className="sm:hidden">
+        <div className="overflow-x-auto">
+          <div className="min-w-[700px] p-3">
+            <div className="grid grid-cols-7 gap-2">
+              {/* Header các ngày trong tuần */}
+              {daysOfWeek.map((day, i) => (
+                <div key={`header-${i}`} className="text-center min-w-[90px]">
+                  <div className="font-medium text-xs text-gray-900">
+                    {format(day, "EEE", { locale: vi })}
+                  </div>
+                  <div className={cn(
+                    "text-xs mt-1 inline-block px-2 py-1 rounded-full",
+                    format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')
+                      ? "bg-blue-100 text-blue-800"
+                      : "text-gray-500"
+                  )}>
+                    {format(day, "d/MM")}
+                  </div>
+                </div>
+              ))}
+              
+              {/* Ca sáng */}
+              {daysOfWeek.map((day, i) => (
+                <div key={`morning-${i}`} className="pt-2 min-w-[90px]">
+                  {renderShift(day, ShiftType.Morning)}
+                </div>
+              ))}
+              
+              {/* Ca chiều */}
+              {daysOfWeek.map((day, i) => (
+                <div key={`afternoon-${i}`} className="pt-2 min-w-[90px]">
+                  {renderShift(day, ShiftType.Afternoon)}
+                </div>
+              ))}
+              
+              {/* Ca tối */}
+              {daysOfWeek.map((day, i) => (
+                <div key={`evening-${i}`} className="pt-2 min-w-[90px]">
+                  {renderShift(day, ShiftType.Evening)}
+                </div>
+              ))}
             </div>
           </div>
-        ))}
-        
-        {/* Ca sáng */}
-        {daysOfWeek.map((day, i) => (
-          <div key={`morning-${i}`} className="pt-2">
-            {renderShift(day, ShiftType.Morning)}
-          </div>
-        ))}
-        
-        {/* Ca chiều */}
-        {daysOfWeek.map((day, i) => (
-          <div key={`afternoon-${i}`} className="pt-2">
-            {renderShift(day, ShiftType.Afternoon)}
-          </div>
-        ))}
-        
-        {/* Ca tối */}
-        {daysOfWeek.map((day, i) => (
-          <div key={`evening-${i}`} className="pt-2">
-            {renderShift(day, ShiftType.Evening)}
-          </div>
-        ))}
+        </div>
       </div>
       
       {/* Chú thích */}
-      <div className="px-4 pb-4 pt-2 border-t border-gray-200">
-        <div className="flex flex-wrap gap-3 text-xs text-gray-600">
+      <div className="px-3 sm:px-4 pb-3 sm:pb-4 pt-2 border-t border-gray-200">
+        <div className="flex flex-wrap gap-2 sm:gap-3 text-xs text-gray-600">
           <div className="flex items-center">
             <span className="inline-block w-3 h-3 bg-green-100 rounded-full mr-1"></span>
             <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-1.5"></span>

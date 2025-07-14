@@ -47,8 +47,5 @@ public class TreatmentRecord
     public bool IsDeleted { get; set; }
 
     public ICollection<TreatmentProgress> TreatmentProgresses { get; set; }
-    public ICollection<Procedure> Procedures { get; set; }
     public ICollection<Invoice> Invoices { get; set; }
-    public ICollection<Prescription> Prescriptions { get; set; }
-    public ICollection<Instruction> Instructions { get; set; }
 }

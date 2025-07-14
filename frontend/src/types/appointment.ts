@@ -88,7 +88,7 @@ export interface AppointmentDTO {
   content: string;
   appointmentType: string;
   isNewPatient: boolean;
-  status: 'confirm' | 'canceled'; // Only 2 statuses as per backend
+  status: 'confirmed' | 'canceled' | 'attended' | 'absented'; // Only 2 statuses as per backend
   createdAt: string;
   updatedAt?: string;
   createdBy?: number;
@@ -96,6 +96,11 @@ export interface AppointmentDTO {
   // Additional fields for calendar view
   patientId?: number;
   dentistId?: number;
+  // New prescription fields
+  isExistPrescription: boolean;
+  isExistInstruction: boolean;
+  prescriptionId: number | null;
+  instructionId: number | null;
 }
 
 export interface AppointmentViewProps {
@@ -108,7 +113,7 @@ export interface CalendarAppointment {
   title: string;
   date: string;
   time: string;
-  status: 'confirm' | 'canceled';
+  status: 'confirmed' | 'canceled' | 'attended' | 'absented' ;
   type: string;
   isNewPatient: boolean;
   details: AppointmentDTO;

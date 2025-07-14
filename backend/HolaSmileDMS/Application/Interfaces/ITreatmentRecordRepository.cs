@@ -9,4 +9,10 @@ public interface ITreatmentRecordRepository
     Task<TreatmentRecord?> GetTreatmentRecordByIdAsync(int id, CancellationToken cancellationToken);
     Task<bool> UpdatedTreatmentRecordAsync(TreatmentRecord record, CancellationToken cancellationToken);
     System.Threading.Tasks.Task AddAsync(TreatmentRecord record, CancellationToken cancellationToken);
+    Task<List<TreatmentRecord>> GetTreatmentRecordsByAppointmentIdAsync(int appointmentId, CancellationToken cancellationToken = default);
+    Task<TreatmentRecord?> GetByProcedureIdAsync(int procedureId, CancellationToken cancellationToken);
+    Task<Patient?> GetPatientByPatientIdAsync(int patientId);
+    IQueryable<TreatmentRecord> Query();
+
+
 }

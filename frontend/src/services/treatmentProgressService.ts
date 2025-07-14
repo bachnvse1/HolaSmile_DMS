@@ -7,3 +7,13 @@ export const getTreatmentProgressById = async (
   const response = await axiosInstance.get(`/treatment-progress/${id}`)
   return response.data
 }
+
+export async function createTreatmentProgress(data: Omit<TreatmentProgress, "treatmentProgressID">) {
+  const response = await axiosInstance.post("/treatment-progress", data)
+  return response.data
+}
+
+export async function updateTreatmentProgress(data: TreatmentProgress) {
+  const response = await axiosInstance.put(`/treatment-progress/${data.treatmentProgressID}`, data)
+  return response.data
+}

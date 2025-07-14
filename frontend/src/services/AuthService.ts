@@ -1,13 +1,14 @@
-import axiosInstance from '../lib/axios';
-import axios from 'axios';
-import type { EnhancedUserInfo } from '../types/user.types';
-import { TokenUtils } from '../utils/tokenUtils';
+import axiosInstance from "../lib/axios";
+import axios from "axios";
+import type { EnhancedUserInfo } from "../types/user.types";
+import { TokenUtils } from "../utils/tokenUtils";
 
 export interface LoginResponse {
   success: boolean;
   token: string;
   refreshToken?: string;
   role: string;
+  patientId?: string; // Only for Patient role
 }
 
 export interface RoleRedirectMap {
@@ -17,21 +18,25 @@ export interface RoleRedirectMap {
 export class AuthService {
   // Define redirect paths for each role
   private static readonly ROLE_REDIRECTS: RoleRedirectMap = {
-    'Patient': '/patient/dashboard',
-    'Administrator': '/dashboard',
-    'Owner': '/dashboard', 
-    'Receptionist': '/dashboard',
-    'Assistant': '/dashboard',
-    'Dentist': '/dashboard'
-  };static async login(username: string, password: string): Promise<LoginResponse> {
+    Patient: "/patient/dashboard",
+    Administrator: "/dashboard",
+    Owner: "/dashboard",
+    Receptionist: "/dashboard",
+    Assistant: "/dashboard",
+    Dentist: "/dashboard",
+  };
+  static async login(
+    username: string,
+    password: string
+  ): Promise<LoginResponse> {
     try {
-      const response = await axiosInstance.post('/user/login', {
+      const response = await axiosInstance.post("/user/login", {
         username,
         password,
       });
 
       const { success, token, refreshToken, role } = response.data;
-      
+
       if (!success || !token || !role) {
         throw new Error("Thông tin đăng nhập không hợp lệ");
       }
@@ -39,29 +44,36 @@ export class AuthService {
       // Save token for normal login
       TokenUtils.saveLoginToken(token, refreshToken);
 
-      return { success, token, refreshToken, role };
+      let patientId: string | undefined;
+      if (role === "Patient") {
+        patientId = TokenUtils.getRoleTableIdFromToken(token) || undefined;
+      }
+
+      return { success, token, refreshToken, role, patientId };
     } catch (error) {
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || "Lỗi đăng nhập");
       }
       throw new Error("Lỗi không xác định");
     }
-  }  static async fetchUserProfile(): Promise<EnhancedUserInfo> {
+  }
+  static async fetchUserProfile(): Promise<EnhancedUserInfo> {
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('authToken');
-      const userId = token ? TokenUtils.getUserIdFromToken(token) : null;
-      console.log('[AuthService] Fetching user profile...');
-      const response = await axiosInstance.get(`/user/profile/${userId}`);
-      console.log('[AuthService] Profile response:', response.data);
+      console.log("[AuthService] Fetching user profile...");
+      const response = await axiosInstance.get(`/user/profile`);
+      console.log("[AuthService] Profile response:", response.data);
       return response.data;
     } catch (error) {
-      console.error('[AuthService] Profile fetch error:', error);
+      console.error("[AuthService] Profile fetch error:", error);
       if (axios.isAxiosError(error)) {
-        const errorMessage = error.response?.data?.message || error.message || "Không thể lấy thông tin người dùng";
-        console.error('[AuthService] Axios error details:', {
+        const errorMessage =
+          error.response?.data?.message ||
+          error.message ||
+          "Không thể lấy thông tin người dùng";
+        console.error("[AuthService] Axios error details:", {
           status: error.response?.status,
           statusText: error.response?.statusText,
-          data: error.response?.data
+          data: error.response?.data,
         });
         throw new Error(errorMessage);
       }
@@ -70,55 +82,68 @@ export class AuthService {
   }
 
   static getRedirectPath(role: string): string {
-    return this.ROLE_REDIRECTS[role] || '/';
-  }  static async loginWithGoogle(): Promise<void> {
-    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5135/api';
+    return this.ROLE_REDIRECTS[role] || "/";
+  }
+  static async loginWithGoogle(): Promise<void> {
+    const baseURL =
+      import.meta.env.VITE_API_BASE_URL || "http://localhost:5135/api";
     window.location.href = `${baseURL}/Auth/login-google`;
   }
 
   static logout(): void {
     TokenUtils.clearTokenData();
-  }  static saveAuthData(token: string, refreshToken?: string): void {
-    localStorage.setItem('authToken', token);
+  }
+  static saveAuthData(token: string, refreshToken?: string): void {
+    localStorage.setItem("authToken", token);
     if (refreshToken) {
-      localStorage.setItem('refreshToken', refreshToken);
+      localStorage.setItem("refreshToken", refreshToken);
     }
   }
 
-  static getAuthData(): { token: string | null; role: string | null; refreshToken: string | null } {
-    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
-    const refreshToken = localStorage.getItem('refreshToken');
+  static getAuthData(): {
+    token: string | null;
+    role: string | null;
+    refreshToken: string | null;
+  } {
+    const token =
+      localStorage.getItem("token") || localStorage.getItem("authToken");
+    const refreshToken = localStorage.getItem("refreshToken");
     const role = token ? TokenUtils.getRoleFromToken(token) : null;
-    
+
     return {
       token,
       role,
-      refreshToken
+      refreshToken,
     };
   }
 
   static async refreshToken(): Promise<{ success: boolean; token?: string }> {
     try {
-      const refreshToken = localStorage.getItem('refreshToken');
+      const refreshToken = localStorage.getItem("refreshToken");
       if (!refreshToken) {
-        throw new Error('No refresh token available');
-      }      const response = await axiosInstance.post('/auth/refresh', {
-        refreshToken
+        throw new Error("No refresh token available");
+      }
+      const response = await axiosInstance.post("/auth/refresh", {
+        refreshToken,
       });
 
       const { success, token } = response.data;
-        if (success && token) {
-        localStorage.setItem('token', token);
+      if (success && token) {
+        localStorage.setItem("token", token);
         return { success: true, token };
       }
-      
+
       return { success: false };
     } catch (error) {
-      console.error('Token refresh failed:', error);
+      console.error("Token refresh failed:", error);
       this.logout();
       return { success: false };
     }
-  }  static async makeAuthenticatedRequest(url: string, options: Record<string, unknown> = {}) {
+  }
+  static async makeAuthenticatedRequest(
+    url: string,
+    options: Record<string, unknown> = {}
+  ) {
     // Interceptor will automatically add token and handle refresh
     return axiosInstance({
       ...options,
@@ -129,11 +154,14 @@ export class AuthService {
   /**
    * Handle Google OAuth callback
    */
-  static async handleGoogleCallback(token: string, refreshToken?: string): Promise<boolean> {
+  static async handleGoogleCallback(
+    token: string,
+    refreshToken?: string
+  ): Promise<boolean> {
     try {
       return TokenUtils.saveGoogleAuthToken(token, refreshToken);
     } catch (error) {
-      console.error('Error handling Google callback:', error);
+      console.error("Error handling Google callback:", error);
       return false;
     }
   }
@@ -142,7 +170,8 @@ export class AuthService {
 // Setup axios interceptor to automatically add auth token
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+    const token =
+      localStorage.getItem("token") || localStorage.getItem("authToken");
     if (token && !config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${token}`;
     }

@@ -3,6 +3,7 @@ using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Dentist.CreateTreatmentProgress;
 using AutoMapper;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
@@ -22,7 +23,7 @@ public class CreateTreatmentProgressHandlerTests
             Status = "InProgress",
             Duration = 30,
             Description = "Chi tiết",
-            EndTime = DateTime.UtcNow.AddHours(1),
+            EndTime = DateTime.Now.AddHours(1),
             Note = "Ghi chú"
         }
     };
@@ -34,7 +35,8 @@ public class CreateTreatmentProgressHandlerTests
         var dentistRepoMock = new Mock<IDentistRepository>();
         var mapperMock = new Mock<IMapper>();
         var httpMock = new Mock<IHttpContextAccessor>();
-
+        var patientRepoMock = new Mock<IPatientRepository>();
+        var mediator = new Mock<IMediator>();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
         {
             new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
@@ -54,7 +56,7 @@ public class CreateTreatmentProgressHandlerTests
             });
 
         return (
-            new CreateTreatmentProgressHandler(repoMock.Object, httpMock.Object, mapperMock.Object, dentistRepoMock.Object),
+            new CreateTreatmentProgressHandler(repoMock.Object, httpMock.Object, mapperMock.Object, dentistRepoMock.Object, patientRepoMock.Object, mediator.Object),
             repoMock,
             dentistRepoMock
         );
@@ -69,6 +71,8 @@ public class CreateTreatmentProgressHandlerTests
         var dentistRepoMock = new Mock<IDentistRepository>();
         var mapperMock = new Mock<IMapper>();
         var httpMock = new Mock<IHttpContextAccessor>();
+        var patientRepoMock = new Mock<IPatientRepository>();
+        var mediator = new Mock<IMediator>();
 
         // Mock HttpContext với role Dentist
         var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
@@ -97,7 +101,7 @@ public class CreateTreatmentProgressHandlerTests
             repoMock.Object,
             httpMock.Object,
             mapperMock.Object,
-            dentistRepoMock.Object);
+            dentistRepoMock.Object, patientRepoMock.Object, mediator.Object);
 
         var result = await handler.Handle(cmd, default);
 
@@ -121,9 +125,11 @@ public class CreateTreatmentProgressHandlerTests
         var dentistRepoMock = new Mock<IDentistRepository>();
         var mapperMock = new Mock<IMapper>();
         var httpMock = new Mock<IHttpContextAccessor>();
+        var patientRepoMock = new Mock<IPatientRepository>();
+        var mediator = new Mock<IMediator>();
         httpMock.Setup(h => h.HttpContext).Returns((HttpContext)null!);
 
-        var handler = new CreateTreatmentProgressHandler(repoMock.Object, httpMock.Object, mapperMock.Object, dentistRepoMock.Object);
+        var handler = new CreateTreatmentProgressHandler(repoMock.Object, httpMock.Object, mapperMock.Object, dentistRepoMock.Object, patientRepoMock.Object, mediator.Object);
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() => handler.Handle(cmd, default));
     }
 
@@ -171,7 +177,7 @@ public class CreateTreatmentProgressHandlerTests
     public async System.Threading.Tasks.Task UTCID08_EndTimeInPast_ShouldThrow()
     {
         var cmd = GetValidCommand();
-        cmd.ProgressDto.EndTime = DateTime.UtcNow.AddMinutes(-10);
+        cmd.ProgressDto.EndTime = DateTime.Now.AddMinutes(-10);
         var (handler, _, _) = SetupHandler("Dentist", 1, cmd);
         var ex = await Assert.ThrowsAsync<ArgumentException>(() => handler.Handle(cmd, default));
         Assert.Contains(MessageConstants.MSG.MSG84, ex.Message);
@@ -218,7 +224,9 @@ public class CreateTreatmentProgressHandlerTests
         dentistRepoMock
             .Setup(r => r.GetDentistByUserIdAsync(1))
             .ReturnsAsync(new Dentist { DentistId = 100 });
-        var handler = new CreateTreatmentProgressHandler(repoMock.Object, httpMock.Object, mapperMock.Object, dentistRepoMock.Object);
+        var patientRepoMock = new Mock<IPatientRepository>();
+        var mediator = new Mock<IMediator>();
+        var handler = new CreateTreatmentProgressHandler(repoMock.Object, httpMock.Object, mapperMock.Object, dentistRepoMock.Object, patientRepoMock.Object, mediator.Object);
 
         var ex = await Assert.ThrowsAsync<Exception>(() => handler.Handle(cmd, default));
         Assert.Contains(MessageConstants.MSG.MSG36, ex.Message);

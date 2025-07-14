@@ -3,6 +3,8 @@ export interface JWTPayload {
   "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier": string;
   "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": string;
   "http://schemas.microsoft.com/ws/2008/06/identity/claims/role": string;
+  "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname": string;
+  "role_table_id": string;
   exp: number;
   iss: string;
   aud: string;
@@ -12,6 +14,8 @@ export interface DecodedToken {
   userId: string;
   username: string;
   role: string;
+  role_table_id?: string; 
+  givenname: string;
   exp: number;
   iss: string;
   aud: string;
@@ -47,6 +51,10 @@ export class TokenUtils {
         role: parsedPayload[
           "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
         ],
+        role_table_id: parsedPayload["role_table_id"],
+        givenname: parsedPayload[
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"
+        ],
         exp: parsedPayload.exp,
         iss: parsedPayload.iss,
         aud: parsedPayload.aud,
@@ -76,6 +84,11 @@ export class TokenUtils {
     return decoded?.role || null;
   }
 
+  static getRoleTableIdFromToken(token: string): string | null {
+    const decoded = this.decodeToken(token);
+    return decoded?.role_table_id || null;
+  }
+
   /**
    * Get user ID from token
    */
@@ -90,6 +103,11 @@ export class TokenUtils {
   static getUsernameFromToken(token: string): string | null {
     const decoded = this.decodeToken(token);
     return decoded?.username || null;
+  }
+
+  static getFullNameFromToken(token: string): string | null {
+    const decoded = this.decodeToken(token);
+    return decoded?.givenname || null;
   }
 
   /**
@@ -162,7 +180,9 @@ export class TokenUtils {
     token: string | null;
     userId: string | null;
     username: string | null;
+    fullName: string | null;
     role: string | null;
+    role_table_id?: string | null;
     refreshToken: string | null;
   } {
     const token = localStorage.getItem("token") || localStorage.getItem("authToken");
@@ -173,7 +193,9 @@ export class TokenUtils {
         token: null,
         userId: null,
         username: null,
+        fullName: null,
         role: null,
+        role_table_id: null,
         refreshToken
       };
     }
@@ -184,8 +206,10 @@ export class TokenUtils {
       return {
         token,
         userId: null,
+        fullName: null,
         username: null,
         role: null,
+        role_table_id: null,
         refreshToken
       };
     }
@@ -194,7 +218,9 @@ export class TokenUtils {
       token,
       userId: decoded.userId,
       username: decoded.username,
+      fullName: decoded.givenname,
       role: decoded.role,
+      role_table_id: decoded.role_table_id,
       refreshToken
     };
   }

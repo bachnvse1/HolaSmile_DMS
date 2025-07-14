@@ -1,7 +1,5 @@
 using Application.Usecases.UserCommon.RefreshToken;
 using Application.Constants;
-using System.Security.Claims;
-using Application.Usecases.UserCommon.ViewListPatient;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
 using HDMS_API.Application.Usecases.UserCommon.EditProfile;
@@ -45,9 +43,7 @@ namespace HDMS_API.Controllers
             {
                 return BadRequest(new
                 {
-                    ex.Message,
-                    Inner = ex.InnerException?.Message,
-                    Stack = ex.StackTrace
+                    ex.Message
                 });
             }
         }
@@ -69,9 +65,7 @@ namespace HDMS_API.Controllers
             {
                 return BadRequest(new
                 {
-                    ex.Message,
-                    Inner = ex.InnerException?.Message,
-                    Stack = ex.StackTrace
+                    ex.Message
                 });
             }
         }
@@ -90,9 +84,7 @@ namespace HDMS_API.Controllers
             {
                 return BadRequest(new
                 {
-                    ex.Message,
-                    Inner = ex.InnerException?.Message,
-                    Stack = ex.StackTrace
+                    ex.Message
                 });
             }
         }
@@ -111,9 +103,7 @@ namespace HDMS_API.Controllers
             {
                 return BadRequest(new
                 {
-                    ex.Message,
-                    Inner = ex.InnerException?.Message,
-                    Stack = ex.StackTrace
+                    ex.Message
                 });
             }
         }
@@ -130,9 +120,7 @@ namespace HDMS_API.Controllers
             {
                 return BadRequest(new
                 {
-                    ex.Message,
-                    Inner = ex.InnerException?.Message,
-                    Stack = ex.StackTrace
+                    ex.Message
                 });
             }
         }
@@ -149,9 +137,7 @@ namespace HDMS_API.Controllers
             {
                 return BadRequest(new
                 {
-                    ex.Message,
-                    Inner = ex.InnerException?.Message,
-                    Stack = ex.StackTrace
+                    ex.Message
                 });
             }
         }
@@ -164,20 +150,20 @@ namespace HDMS_API.Controllers
                 var result = await _mediator.Send(command);
                 return Ok(result);
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedAccessException ex)
             {
+                // Trả về lỗi 401 Unauthorized với message chính xác từ handler
                 return Unauthorized(new
                 {
-                    message = $"{MessageConstants.MSG.MSG01} || {MessageConstants.MSG.MSG72}"
+                    message = ex.Message
                 });
             }
             catch (Exception ex)
             {
+                // Trả về lỗi 400 BadRequest nếu có lỗi hệ thống
                 return BadRequest(new
                 {
-                    ex.Message,
-                    Inner = ex.InnerException?.Message,
-                    Stack = ex.StackTrace
+                    message = ex.Message
                 });
             }
         }

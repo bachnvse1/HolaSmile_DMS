@@ -1,4 +1,7 @@
-﻿using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
+using Application.Constants;
+using Application.Usecases.Receptionist.EditPatientInformation;
+using Application.Usecases.Dentist.ViewListReceptionistName;
+using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -37,6 +40,35 @@ namespace HDMS_API.Controllers
                     Stack = ex.StackTrace
                 });
             }
+        }
+
+        [Authorize]
+        [HttpPut("patients")]
+        public async Task<IActionResult> EditPatientInformationByReceptionist([FromBody] EditPatientInformationCommand command)
+        {
+            try
+            {
+                var result = await _mediator.Send(command);
+                return result ? Ok(MessageConstants.MSG.MSG09) : Conflict(MessageConstants.MSG.MSG58);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ex.Message,
+                    Inner = ex.InnerException?.Message,
+                    Stack = ex.StackTrace
+                });
+            }
+        }
+        /// <summary>
+        /// Get all receptionists (name + id)
+        /// </summary>
+        [HttpGet("listPatientsName")]
+        public async Task<IActionResult> listPatientsName(CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new ViewReceptionistListCommand(), cancellationToken);
+            return Ok(result);
         }
     }
 }
