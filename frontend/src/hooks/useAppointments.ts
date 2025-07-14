@@ -1,14 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
 import axiosInstance from '../lib/axios';
 import type { AppointmentDTO } from '../types/appointment';
+import { useAuth } from './useAuth';
 
 export const useAppointments = () => {
+  const { userId } = useAuth();
+  
   return useQuery<AppointmentDTO[]>({
-    queryKey: ['appointments'],
+    queryKey: ['appointments', userId],
     queryFn: async () => {
       const response = await axiosInstance.get('/appointment/listAppointment');
       return response.data;
     },
+    enabled: !!userId, 
     refetchOnWindowFocus: false,
     staleTime: 2 * 60 * 1000, // 2 minutes - appointments change frequently
     retry: 2,

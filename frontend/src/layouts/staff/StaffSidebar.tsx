@@ -56,7 +56,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       label: 'Tổng Quan',
       icon: <Home className="h-5 w-5" />,
       path: '/dashboard',
-      roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
+      roles: ['Owner']
     },
     {
       id: 'appointments',
@@ -114,7 +114,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       label: 'Mẫu Đơn Thuốc',
       icon: <Pill className="h-5 w-5" />,
       path: '/prescription-templates',
-      roles: ['Assistant']
+      roles: ['Assistant', 'Dentist']
     },
     {
       id: 'assigned-tasks',
@@ -280,12 +280,12 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       {/* Sidebar */}
       <div className={`
         ${isMobile ? 'fixed left-0 top-0 z-50' : 'fixed left-0 top-0 z-30'}
-        bg-white shadow-lg transition-all duration-300 ease-in-out
+        bg-white transition-all duration-300 ease-in-out
         ${isCollapsed ? (isMobile ? '-translate-x-full' : 'w-16') : 'w-64'}
         h-screen flex flex-col
       `}>
         {/* Header - Fixed */}
-        <div className="p-4 border-b flex-shrink-0 h-16 shadow-sm">
+        <div className="p-4 flex-shrink-0 h-16 border-b border-gray-300">
           {!isCollapsed && (
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold text-blue-600">HolaSmile</h2>

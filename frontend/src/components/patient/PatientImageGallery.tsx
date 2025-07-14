@@ -33,12 +33,13 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
   readonly = false
 }) => {
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [description, setDescription] = useState('');
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<{ file: File; description: string; id: string }[]>([]);
   const [viewImageUrl, setViewImageUrl] = useState<string | null>(null);
   const [deleteImageId, setDeleteImageId] = useState<number | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const MAX_IMAGES = 10;
 
   // Query parameters for fetching images
   const queryParams = {
@@ -55,34 +56,77 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
   const images = Array.isArray(imagesResponse) ? imagesResponse : [];
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // File size validation (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error('File quá lớn! Vui lòng chọn file nhỏ hơn 10MB.');
-        return;
-      }
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
 
-      setIsCompressing(true);
-      // Compress image before setting
-      compressImage(file).then(compressedFile => {
-        setSelectedFile(compressedFile);
-        const url = URL.createObjectURL(compressedFile);
-        setPreviewUrl(url);
-        setIsCompressing(false);
-        
-        // Show compression result
-        const originalSize = (file.size / 1024 / 1024).toFixed(2);
-        const compressedSize = (compressedFile.size / 1024 / 1024).toFixed(2);
-        console.log(`Image compressed: ${originalSize}MB → ${compressedSize}MB`);
-      }).catch(() => {
-        setIsCompressing(false);
-        // Fallback to original file if compression fails
-        setSelectedFile(file);
-        const url = URL.createObjectURL(file);
-        setPreviewUrl(url);
-      });
+    // Check if adding these files would exceed the limit
+    const currentTotal = images.length + selectedFiles.length;
+    const availableSlots = MAX_IMAGES - currentTotal;
+    
+    if (availableSlots <= 0) {
+      toast.error(`Đã đạt giới hạn tối đa ${MAX_IMAGES} ảnh`);
+      return;
     }
+
+    const filesToProcess = files.slice(0, availableSlots);
+    if (filesToProcess.length < files.length) {
+      toast.warning(`Chỉ có thể thêm ${availableSlots} ảnh nữa (tối đa ${MAX_IMAGES} ảnh)`);
+    }
+
+    setIsCompressing(true);
+    
+    // Process each file
+    Promise.all(
+      filesToProcess.map(async (file) => {
+        // File size validation (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+          toast.error(`File ${file.name} quá lớn! Vui lòng chọn file nhỏ hơn 10MB.`);
+          return null;
+        }
+
+        try {
+          const compressedFile = await compressImage(file);
+          return {
+            file: compressedFile,
+            description: '',
+            id: Math.random().toString(36).substr(2, 9), // Generate unique ID
+          };
+        } catch (error) {
+          console.error('Compression failed for', file.name, error);
+          return {
+            file,
+            description: '',
+            id: Math.random().toString(36).substr(2, 9),
+          };
+        }
+      })
+    ).then((processedFiles) => {
+      const validFiles = processedFiles.filter(Boolean) as { file: File; description: string; id: string }[];
+      setSelectedFiles(prev => [...prev, ...validFiles]);
+      setIsCompressing(false);
+      
+      // Clear input
+      event.target.value = '';
+    });
+  };
+
+  const addMoreImages = () => {
+    const input = document.getElementById('image-upload') as HTMLInputElement;
+    if (input) {
+      input.click();
+    }
+  };
+
+  const removeSelectedImage = (id: string) => {
+    setSelectedFiles(prev => prev.filter(item => item.id !== id));
+  };
+
+  const updateImageDescription = (id: string, description: string) => {
+    setSelectedFiles(prev => 
+      prev.map(item => 
+        item.id === id ? { ...item, description } : item
+      )
+    );
   };
 
   // Image compression function
@@ -136,29 +180,54 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
   };
 
   const handleUpload = async () => {
-    if (!selectedFile) return;
+    if (selectedFiles.length === 0) return;
 
-    const uploadData: CreatePatientImageRequest = {
-      patientId,
-      imageFile: selectedFile,
-      description: description.trim() || undefined,
-      ...(treatmentRecordId && { treatmentRecordId }),
-      ...(orthodonticTreatmentPlanId && { orthodonticTreatmentPlanId }),
-    };
+    setIsUploading(true);
+    let successCount = 0;
+    let errorCount = 0;
 
     try {
-      await createImageMutation.mutateAsync(uploadData);
+      // Upload each image one by one
+      for (const fileItem of selectedFiles) {
+        try {
+          const uploadData: CreatePatientImageRequest = {
+            patientId,
+            imageFile: fileItem.file,
+            description: fileItem.description.trim() || undefined,
+            ...(treatmentRecordId && { treatmentRecordId }),
+            ...(orthodonticTreatmentPlanId && { orthodonticTreatmentPlanId }),
+          };
+
+          await createImageMutation.mutateAsync(uploadData);
+          successCount++;
+        } catch (error) {
+          console.error('Upload error for file:', fileItem.file.name, error);
+          errorCount++;
+        }
+      }
+
+      // Show result
+      if (successCount > 0) {
+        toast.success(`Đã tải lên thành công ${successCount} ảnh`);
+      }
+      if (errorCount > 0) {
+        toast.error(`Có lỗi khi tải lên ${errorCount} ảnh`);
+      }
+
       handleCloseUploadDialog();
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('Upload process error:', error);
+      toast.error('Có lỗi xảy ra trong quá trình tải lên');
+    } finally {
+      setIsUploading(false);
     }
   };
 
   const handleCloseUploadDialog = () => {
     setIsUploadDialogOpen(false);
-    setSelectedFile(null);
-    setDescription('');
-    setPreviewUrl(null);
+    setSelectedFiles([]);
+    setIsCompressing(false);
+    setIsUploading(false);
   };
 
   const handleDeleteImage = async () => {
@@ -234,16 +303,28 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
             {!readonly && (
               <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="flex items-center gap-2">
+                  <Button 
+                    size="sm" 
+                    className="flex items-center gap-2"
+                    disabled={images.length >= MAX_IMAGES}
+                  >
                     <Plus className="h-4 w-4" />
-                    Thêm Ảnh
+                    Thêm Ảnh ({images.length}/{MAX_IMAGES})
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-md">
+                <DialogContent 
+                  className="max-w-4xl max-h-[90vh] overflow-y-auto"
+                  style={{
+                    animation: 'none',
+                    transform: 'none',
+                    transition: 'none'
+                  }}
+                >
                   <DialogHeader>
-                    <DialogTitle>Thêm Ảnh Mới</DialogTitle>
+                    <DialogTitle>Thêm Ảnh Mới ({images.length + selectedFiles.length}/{MAX_IMAGES})</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
+                    {/* File Input Section */}
                     <div>
                       <label className="block text-sm font-medium mb-2">
                         Chọn File Ảnh
@@ -255,6 +336,8 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
                           onChange={handleFileSelect}
                           className="hidden"
                           id="image-upload"
+                          multiple
+                          disabled={images.length + selectedFiles.length >= MAX_IMAGES}
                         />
                         <label htmlFor="image-upload" className="cursor-pointer">
                           {isCompressing ? (
@@ -264,67 +347,109 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
                                 Đang nén ảnh...
                               </p>
                             </div>
-                          ) : previewUrl ? (
-                            <div className="space-y-2">
-                              <img
-                                src={previewUrl}
-                                alt="Preview"
-                                className="max-w-full h-32 object-cover mx-auto rounded"
-                              />
-                              <p className="text-sm text-gray-600">
-                                {selectedFile?.name}
-                              </p>
-                              <p className="text-xs text-green-600">
-                                Kích thước: {selectedFile ? (selectedFile.size / 1024 / 1024).toFixed(2) : '0'}MB
-                              </p>
-                            </div>
                           ) : (
                             <div className="space-y-2">
                               <Upload className="h-8 w-8 mx-auto text-gray-400" />
                               <p className="text-sm text-gray-600">
-                                Click để chọn ảnh
+                                Click để chọn ảnh hoặc kéo thả vào đây
                               </p>
                               <p className="text-xs text-gray-500">
-                                Tối đa 10MB, sẽ tự động nén
+                                Tối đa {MAX_IMAGES} ảnh, mỗi file tối đa 10MB, sẽ tự động nén
                               </p>
+                              {images.length + selectedFiles.length >= MAX_IMAGES && (
+                                <p className="text-xs text-red-500">
+                                  Đã đạt giới hạn tối đa {MAX_IMAGES} ảnh
+                                </p>
+                              )}
                             </div>
                           )}
                         </label>
                       </div>
+
+                      {/* Add More Button */}
+                      {selectedFiles.length > 0 && images.length + selectedFiles.length < MAX_IMAGES && (
+                        <div className="mt-2 text-center">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={addMoreImages}
+                            className="flex items-center gap-2"
+                          >
+                            <Plus className="h-4 w-4" />
+                            Thêm Ảnh Khác
+                          </Button>
+                        </div>
+                      )}
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        Mô Tả (Tùy chọn)
-                      </label>
-                      <Textarea
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        placeholder="Nhập mô tả cho ảnh..."
-                        rows={3}
-                      />
-                    </div>
+                    {/* Selected Images Preview Grid */}
+                    {selectedFiles.length > 0 && (
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-medium">
+                          Ảnh đã chọn ({selectedFiles.length})
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 max-h-96 overflow-y-auto">
+                          {selectedFiles.map((fileItem) => (
+                            <div key={fileItem.id} className="space-y-2 border rounded-lg p-3">
+                              <div className="relative">
+                                <img
+                                  src={URL.createObjectURL(fileItem.file)}
+                                  alt="Preview"
+                                  className="w-full h-24 object-cover rounded"
+                                />
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => removeSelectedImage(fileItem.id)}
+                                  className="absolute top-1 right-1 h-6 w-6 p-0"
+                                >
+                                  ×
+                                </Button>
+                              </div>
+                              <div className="space-y-1">
+                                <p className="text-xs text-gray-600 truncate" title={fileItem.file.name}>
+                                  {fileItem.file.name}
+                                </p>
+                                <p className="text-xs text-green-600">
+                                  {(fileItem.file.size / 1024 / 1024).toFixed(2)}MB
+                                </p>
+                                <Textarea
+                                  value={fileItem.description}
+                                  onChange={(e) => updateImageDescription(fileItem.id, e.target.value)}
+                                  placeholder="Mô tả ảnh*"
+                                  className="text-xs resize-none"
+                                  rows={2}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                    <div className="flex justify-end gap-2 pt-4">
+                    {/* Action Buttons */}
+                    <div className="flex justify-end gap-2 pt-4 border-t">
                       <Button
                         variant="outline"
                         onClick={handleCloseUploadDialog}
+                        disabled={isUploading}
                       >
                         Hủy
                       </Button>
                       <Button
                         onClick={handleUpload}
-                        disabled={!selectedFile || createImageMutation.isPending}
+                        disabled={selectedFiles.length === 0 || isUploading}
                       >
-                        {createImageMutation.isPending ? (
+                        {isUploading ? (
                           <>
                             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Đang tải...
+                            Đang tải lên... ({selectedFiles.length} ảnh)
                           </>
                         ) : (
                           <>
                             <Upload className="h-4 w-4 mr-2" />
-                            Tải Lên
+                            Tải Lên ({selectedFiles.length} ảnh)
                           </>
                         )}
                       </Button>
@@ -352,7 +477,7 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {images.map((image) => (
                 <div key={image.imageId} className="relative group">
                   <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">

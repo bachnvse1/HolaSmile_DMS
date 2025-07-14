@@ -16,9 +16,12 @@ import type { OrthodonticTreatmentPlan } from '@/types/orthodonticTreatmentPlan'
 import { useUserInfo } from '@/hooks/useUserInfo';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { TokenUtils } from '@/utils/tokenUtils';
+import { useQueryClient } from '@tanstack/react-query';
 export const OrthodonticTreatmentPlanList: React.FC = () => {
   const { patientId: paramPatientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -50,6 +53,39 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
   const { data: treatmentPlans = [], isLoading, error } = useOrthodonticTreatmentPlans(
     parseInt(patientId || '0')
   );
+
+  // Auto-refetch data when component mounts or when returning from create/edit
+  React.useEffect(() => {
+    const refetchData = () => {
+      console.log('Refetching orthodontic treatment plans for patient:', patientId);
+      queryClient.invalidateQueries({
+        queryKey: ['orthodontic-treatment-plans', parseInt(patientId || '0')]
+      });
+    };
+
+    // Refetch immediately when component mounts
+    refetchData();
+
+    // Listen for focus event (when user returns to this tab/window)
+    window.addEventListener('focus', refetchData);
+    
+    // Listen for visibility change (when tab becomes visible)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        refetchData();
+      }
+    });
+
+    // Listen for storage changes (in case data changes from another tab)
+    window.addEventListener('storage', refetchData);
+
+    // Cleanup event listeners
+    return () => {
+      window.removeEventListener('focus', refetchData);
+      document.removeEventListener('visibilitychange', refetchData);
+      window.removeEventListener('storage', refetchData);
+    };
+  }, [patientId, queryClient]);
 
   // Get unique values for filter options
   const uniqueTemplates = useMemo(() => {
@@ -115,6 +151,12 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
     // setPriceSliderRange([0, 100000000]);
   };
 
+  const handleRefreshData = () => {
+    queryClient.invalidateQueries({
+      queryKey: ['orthodontic-treatment-plans', parseInt(patientId || '0')]
+    });
+  };
+
   const handleCreatePlan = () => {
     navigate(`/patients/${patientId}/orthodontic-treatment-plans/create`);
   };
@@ -150,7 +192,13 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
     setIsDeleting(true);
     try {
       await deactivateMutation.mutateAsync(deletingPlanId);
-      window.location.reload(); // Refresh to show updated list
+      
+      // Invalidate and refetch the treatment plans query
+      await queryClient.invalidateQueries({
+        queryKey: ['orthodontic-treatment-plans', parseInt(patientId || '0')]
+      });
+      
+      console.log('Successfully deleted plan and refreshed data');
     } catch (error) {
       console.error('Error deleting plan:', error);
     } finally {

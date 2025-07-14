@@ -10,14 +10,14 @@ export const ScheduleManagement: React.FC = () => {
   // Lấy thông tin người dùng từ TokenUtils
   const userData = TokenUtils.getUserData();
   const role = userData.role;
-  const userId = userData.userId;
+  const roleTableId = userData.role_table_id
 
   // Xác định quyền truy cập dựa trên vai trò
   const isDentist = role === 'Dentist';
   const isAdmin = role === 'Admin' || role === 'Owner';
 
   // Xác định dentistId nếu user là dentist
-  const dentistId = isDentist && userId ? Number(userId) : undefined;
+  const dentistId = isDentist && roleTableId ? Number(roleTableId) : undefined;
 
   // Các role khác chỉ xem, không cho chọn tab
   const isOther = !isDentist && !isAdmin;

@@ -12,6 +12,7 @@ import { isAppointmentCancellable, getTimeUntilAppointment } from '../../utils/a
 import { Link, useParams, useNavigate } from 'react-router';
 import { EditAppointmentDialog } from './EditAppointmentDialog';
 import { formatDateVN, formatTimeVN } from '../../utils/dateUtils';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface AppointmentDetailViewProps {
   appointmentId: number;
@@ -23,9 +24,10 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
-  const {   role } = useAuth();
+  const { role } = useAuth();
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Fetch appointment details
   const { data: appointment, isLoading: isAppointmentLoading } = useAppointmentDetail(appointmentId);
@@ -36,11 +38,26 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
   // Check if prescription exists for this appointment
   const { isLoading: isPrescriptionLoading } = usePrescriptionByAppointment(appointmentId);
 
+  // Helper function to refresh appointment data
+  const refreshAppointmentData = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: ['appointment-detail', appointmentId]
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ['prescription-by-appointment', appointmentId]
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ['appointments'] 
+      })
+    ]);
+  };
+
   const handleGoBack = () => {
     if (role === 'Patient') {
       navigate(`/patient/appointments`);
-    }else{
-      navigate('/appointments')
+    } else {
+      navigate('/appointments');
     }
   };
 
@@ -317,8 +334,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
           onClose={() => setShowCancelDialog(false)}
           onSuccess={() => {
             setShowCancelDialog(false);
-            // Refresh data
-            window.location.reload();
+            refreshAppointmentData();
           }}
         />
       )}
@@ -332,7 +348,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
           onClose={() => setShowEditDialog(false)}
           onSuccess={() => {
             setShowEditDialog(false);
-            window.location.reload();
+            refreshAppointmentData();
           }}
         />
       )}
@@ -345,7 +361,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
           onClose={() => setShowPrescriptionModal(false)}
           onSuccess={() => {
             setShowPrescriptionModal(false);
-            window.location.reload();
+            refreshAppointmentData();
           }}
         />
       )}

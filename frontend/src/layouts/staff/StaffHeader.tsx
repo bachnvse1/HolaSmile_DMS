@@ -48,7 +48,7 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSide
 
   return (
     <header 
-      className={`${isMobile ? 'relative' : 'fixed top-0 right-0'} bg-white shadow-sm border-b border-gray-300 h-16 flex items-center justify-between px-4 sm:px-6 z-40 transition-all duration-300`}
+      className={`${isMobile ? 'relative' : 'fixed top-0 right-0'} bg-white border-b border-gray-300 h-16 flex items-center justify-between px-4 sm:px-6 z-40 transition-all duration-300`}
       style={!isMobile ? { left: getHeaderMargin() } : {}}
     >
       {/* Left side */}
