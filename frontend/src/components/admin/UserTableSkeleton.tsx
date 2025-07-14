@@ -7,13 +7,13 @@ export function UserTableSkeleton() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Full Name</TableHead>
+            <TableHead>Họ và tên</TableHead>
             <TableHead>Email</TableHead>
-            <TableHead>Phone Number</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Created At</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>Số điện thoại</TableHead>
+            <TableHead>Vai trò</TableHead>
+            <TableHead>Tạo lúc</TableHead>
+            <TableHead>Trạng thái</TableHead>
+            <TableHead className="text-right">Hành động</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
