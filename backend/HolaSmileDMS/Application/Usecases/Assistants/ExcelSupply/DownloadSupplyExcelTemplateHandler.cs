@@ -6,7 +6,7 @@ using OfficeOpenXml.Style;
 using Microsoft.AspNetCore.Http;
 using Application.Interfaces;
 
-namespace Application.Usecases.Assistant.ExcelSupply
+namespace Application.Usecases.Assistants.ExcelSupply
 {
 
     public class DownloadSupplyExcelTemplateHandler : IRequestHandler<DownloadSupplyExcelTemplateCommand, byte[]>

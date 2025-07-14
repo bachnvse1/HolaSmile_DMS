@@ -6,7 +6,7 @@ using MediatR;
 using OfficeOpenXml;
 using Microsoft.AspNetCore.Http;
 
-namespace Application.Usecases.Assistant.ExcelSupply
+namespace Application.Usecases.Assistants.ExcelSupply
 {
     public class ExportSupplyToExcelHandler : IRequestHandler<ExportSupplyToExcelCommand, byte[]>
     {

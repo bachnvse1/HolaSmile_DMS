@@ -1,5 +1,5 @@
-using Application.Usecases.Dentist.CreateOrthodonticTreatmentPlan;
-using Application.Usecases.Dentist.UpdateOrthodonticTreatmentPlan;
+using Application.Usecases.Dentists.CreateOrthodonticTreatmentPlan;
+using Application.Usecases.Dentists.UpdateOrthodonticTreatmentPlan;
 using Application.Usecases.Patients.ViewAllOrthodonticTreatmentPlan;
 using Application.Usecases.Patients.ViewOrthodonticTreatmentPlan;
 using AutoMapper;
