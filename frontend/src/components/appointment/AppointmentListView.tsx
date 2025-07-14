@@ -84,20 +84,18 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
     const matchesStatus = statusFilter === 'all' || appointment.status === statusFilter;
 
     return matchesSearch && matchesStatus;
-  });  // Sort appointments by date and time - nearest to current time first
+  });  
+  // Sort appointments by date and time - nearest to current time first
   const sortedAppointments = [...filteredAppointments].sort((a, b) => {
     try {
-      // Parse dates more carefully
       const dateOnlyA = a.appointmentDate.split('T')[0];
       const timeOnlyA = a.appointmentTime.split('.')[0];
       const dateOnlyB = b.appointmentDate.split('T')[0];
       const timeOnlyB = b.appointmentTime.split('.')[0];
 
-      // Create datetime objects
       let dateA = new Date(`${dateOnlyA}T${timeOnlyA}`);
       let dateB = new Date(`${dateOnlyB}T${timeOnlyB}`);
 
-      // Fallback to manual parsing if ISO fails
       if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
         const [yearA, monthA, dayA] = dateOnlyA.split('-').map(Number);
         const [hourA, minuteA, secondA = 0] = timeOnlyA.split(':').map(Number);
@@ -109,17 +107,14 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
       }
 
       const now = new Date();
-      // Ưu tiên lịch tương lai lên trước
       const isAFuture = dateA >= now;
       const isBFuture = dateB >= now;
       if (isAFuture && !isBFuture) return -1;
       if (!isAFuture && isBFuture) return 1;
-
-      // Nếu cùng nhóm (đều tương lai hoặc đều quá khứ), sắp xếp gần hiện tại nhất
       return Math.abs(dateA.getTime() - now.getTime()) - Math.abs(dateB.getTime() - now.getTime());
     } catch (error) {
       console.error('Error sorting appointments:', error, { a, b });
-      return 0; // Keep original order if parsing fails
+      return 0;
     }
   });
 
@@ -139,7 +134,6 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
     }
   }, [showTreatmentModal, selectedAppointmentId, treatmentFormMethods]);
 
-
   // Handle page change
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -148,7 +142,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   // Handle items per page change
   const handleItemsPerPageChange = (value: number) => {
     setItemsPerPage(value);
-    setCurrentPage(1); // Reset to first page
+    setCurrentPage(1);
   };
 
 

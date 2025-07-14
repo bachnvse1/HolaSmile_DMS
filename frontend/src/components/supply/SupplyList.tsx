@@ -31,6 +31,7 @@ import {
 } from '@/hooks/useSupplies';
 import { useUserInfo } from '@/hooks/useUserInfo';
 import type { Supply } from '@/types/supply';
+import { getErrorMessage } from '@/utils/formatUtils';
 
 export const SupplyList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -120,8 +121,8 @@ export const SupplyList: React.FC = () => {
       onSuccess: () => {
         toast.success('Đã tải mẫu excel thành công');
       },
-      onError: () => {
-        toast.error('Có lỗi xảy ra khi xuất file Excel');
+      onError: (error) => {
+        toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi xuất file Excel');
       }
     });
   };
@@ -131,8 +132,8 @@ export const SupplyList: React.FC = () => {
       onSuccess: () => {
         toast.success('Đã xuất Excel thành công');
       },
-      onError: () => {
-        toast.error('Có lỗi xảy ra khi xuất file Excel');
+      onError: (error) => {
+        toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi xuất file Excel');
       }
     });
   };
@@ -168,11 +169,12 @@ export const SupplyList: React.FC = () => {
           fileInputRef.current.value = '';
         }
       },
-      onError: (error: unknown) => {
-        const errorMessage = error && typeof error === 'object' && 'response' in error
-          ? (error as { response?: { data?: { message?: string } } })?.response?.data?.message
-          : 'Có lỗi xảy ra khi import file Excel';
-        toast.error(errorMessage);
+      onError: (error) => {
+        toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi nhập file Excel');
+        // Reset file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       }
     });
   };
@@ -213,8 +215,8 @@ export const SupplyList: React.FC = () => {
         refetch();
         setConfirmModal({ isOpen: false, supply: null, action: 'delete' });
       },
-      onError: () => {
-        toast.error(`Có lỗi xảy ra khi ${actionText} vật tư`);
+      onError: (error) => {
+        toast.error(getErrorMessage(error) || `Có lỗi xảy ra khi ${actionText} vật tư`);
         setConfirmModal({ isOpen: false, supply: null, action: 'delete' });
       }
     });

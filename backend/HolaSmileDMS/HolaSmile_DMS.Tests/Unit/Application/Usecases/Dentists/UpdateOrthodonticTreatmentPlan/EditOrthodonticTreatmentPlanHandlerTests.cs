@@ -143,7 +143,7 @@ public class EditOrthodonticTreatmentPlanHandlerTests
             PlanId = 5,
             PlanTitle = "New Plan",
             TotalCost = 2000000,
-            PaymentMethod = "Chuyển khoản"
+            PaymentMethod = "PayOS"
         };
 
         var plan = new OrthodonticTreatmentPlan { PlanId = 5 };

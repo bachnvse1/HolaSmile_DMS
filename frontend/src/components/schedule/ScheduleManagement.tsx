@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { DentistScheduleEditorWithCalendar } from './DentistScheduleEditorWithCalendar';
 import { ScheduleApproval } from './ScheduleApproval';
 import { ScheduleListWithCalendar } from './ScheduleListWithCalendar';
-
 export const ScheduleManagement: React.FC = () => {
   // Lấy thông tin người dùng từ TokenUtils
   const userData = TokenUtils.getUserData();

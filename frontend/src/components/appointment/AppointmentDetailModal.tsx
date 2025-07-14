@@ -13,7 +13,6 @@ import { Link, useParams, useNavigate } from 'react-router';
 import { EditAppointmentDialog } from './EditAppointmentDialog';
 import {formatDateVN, formatTimeVN} from '../../utils/dateUtils';
 
-
 interface AppointmentDetailModalProps {
   appointmentId: number | null;
   isOpen: boolean;

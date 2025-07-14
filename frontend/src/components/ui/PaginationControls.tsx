@@ -1,4 +1,4 @@
-import { Button } from "./button"
+import { Button } from "./button2"
 
 interface PaginationControlsProps {
   currentPage: number

@@ -29,8 +29,7 @@ public class CreatePaymentLinkHandler : IRequestHandler<CreatePaymentLinkCommand
         var domain = "http://localhost:5173/";
 
         var payOS = new PayOS(_config.ClientId, _config.ApiKey, _config.ChecksumKey);
-        var rawOrderCode = invoice.OrderCode.Split('_').Last();
-        if (!long.TryParse(rawOrderCode, out var orderCode))
+        if (!long.TryParse(invoice.OrderCode, out var orderCode))
             throw new Exception("OrderCode không hợp lệ để tạo thanh toán");
         
         int amount = Convert.ToInt32(Math.Round(invoice.PaidAmount ?? 0));

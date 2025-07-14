@@ -124,6 +124,13 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       roles: ['Assistant']
     },
     {
+      id: 'warranty',
+      label: 'Bảo Hành',
+      icon: <FileText className="h-5 w-5" />,
+      path: '/assistant/warranty-cards',
+      roles: ['Assistant']
+    },
+    {
       id: 'finance',
       label: 'Tài Chính',
       icon: <CreditCard className="h-5 w-5" />,
@@ -133,8 +140,8 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           id: 'finance-invoices',
           label: 'Hóa Đơn',
           icon: <FileText className="h-4 w-4" />,
-          path: '/finance/invoices',
-          roles: ['Administrator', 'Owner', 'Receptionist']
+          path: '/invoices',
+          roles: ['Receptionist']
         },
         {
           id: 'finance-payments',

@@ -1,8 +1,10 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
+using Application.Interfaces;
 using Application.Usecases.Owner;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,8 +16,8 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Owners
     public class ApproveScheduleIntegrationTests
     {
         private readonly ApplicationDbContext _context;
-        private readonly ApproveScheduleHandle _handler;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ApproveScheduleHandle _handler;
 
         public ApproveScheduleIntegrationTests()
         {
@@ -26,16 +28,24 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Owners
 
             services.AddHttpContextAccessor();
 
+            // Đăng ký các repository cần thiết
+            services.AddScoped<IScheduleRepository, ScheduleRepository>();
+
+            // Mock Mediator nếu không cần test behavior thực sự
+            var mediatorMock = new Mock<IMediator>();
+            services.AddSingleton(mediatorMock.Object);
+
             var provider = services.BuildServiceProvider();
+
             _context = provider.GetRequiredService<ApplicationDbContext>();
             _httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
 
+            var scheduleRepo = provider.GetRequiredService<IScheduleRepository>();
+            var mediator = provider.GetRequiredService<IMediator>();
+
             SeedData();
 
-            _handler = new ApproveScheduleHandle(
-                new ScheduleRepository(_context),
-                _httpContextAccessor
-            );
+            _handler = new ApproveScheduleHandle(_httpContextAccessor, scheduleRepo, mediator);
         }
 
         private void SeedData()

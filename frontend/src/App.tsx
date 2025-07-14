@@ -1,7 +1,6 @@
 import { Route, Routes } from "react-router";
 import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; // Quan trọng!
-
+import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 
 import { Login } from './pages/auth/login';
@@ -45,9 +44,15 @@ import { EditSupplyPage } from './pages/supply/EditSupplyPage';
 import { SupplyDetailPage } from './pages/supply/SupplyDetailPage';
 import UserManagement from './pages/auth/UserManagement';
 import AssignedTasks from './pages/assistant/AssignedTasks';
+import ProcedureManagement from "./pages/proceduce/ProcedureManagement";
+import WarrantyCardManagement from "./pages/warrantyCard/WarrantyCardManagement";
+import InvoiceList from './pages/invoice/InvoiceList';
 import { AppointmentDetailsPage } from './pages/staff/AppointmentDetailsPage';
-import ProcedureManagement from './pages/proceduce/ProcedureManagement';
 import { PatientAppointmentDetailPage } from './pages/patient/PatientAppointmentDetailPage';
+import ThankYou from "./components/invoice/PaymentThankYou";
+import PaymentCancelled from "./components/invoice/PaymentCancel";
+import PatientTreatmentRecordsSection from "./components/patient/PatientTreatmentRecordsSection";
+
 function App() {
   return (
     <>
@@ -166,6 +171,11 @@ function App() {
         <Route path="/inventory/:supplyId/edit" element={<EditSupplyPage />} />
         <Route path="/assistant/assigned-tasks" element={<AssignedTasks />} />
         <Route path="/proceduces" element={<ProcedureManagement />} />
+        <Route path="/invoices" element={<InvoiceList />} />
+        <Route path="/assistant/warranty-cards" element={<WarrantyCardManagement />} />
+        <Route path="/thank-you" element={<ThankYou />} />
+        <Route path="/cancel" element={<PaymentCancelled />} />
+        <Route path="/patient/treatment-records" element={<PatientTreatmentRecordsSection />} />
       </Routes>
     </>
   );
