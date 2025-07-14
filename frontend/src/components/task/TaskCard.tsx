@@ -1,12 +1,11 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import {Badge} from "@/components/ui/badge"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button2"
-import { Card,CardContent } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Calendar, Clock, MoreHorizontal, CheckCircle, XCircle } from "lucide-react"
 import { format } from "date-fns"
 import { vi } from "date-fns/locale"
-import type { BasicTask } from "@/types/task" 
+import type { BasicTask, TaskStatus } from "@/types/task"
 
 interface TaskCardProps {
   task: BasicTask
@@ -15,16 +14,13 @@ interface TaskCardProps {
 }
 
 export function TaskCard({ task, onToggleStatus, onDelete }: TaskCardProps) {
-  const statusText = task.status ? "Hoàn thành" : "Chưa hoàn thành"
+  const statusText = task.status === "Completed" ? "Hoàn thành" : "Chưa hoàn thành"
 
-  const getStatusIcon = (status: boolean) =>
-    status ? <CheckCircle className="h-4 w-4 text-green-600" /> : <XCircle className="h-4 w-4 text-orange-600" />
+  const getStatusIcon = (status: TaskStatus) =>
+    status === "Completed" ? <CheckCircle className="h-4 w-4 text-green-600" /> : <XCircle className="h-4 w-4 text-orange-600" />
 
-  const getStatusColor = (status: boolean) =>
-    status ? "bg-green-100 text-green-800" : "bg-orange-100 text-orange-800"
-
-  const getInitials = (name: string) =>
-    name.split(" ").map((n) => n[0]).join("").toUpperCase()
+  const getStatusColor = (status: TaskStatus) =>
+    status === "Completed" ? "bg-green-100 text-green-800" : "bg-orange-100 text-orange-800"
 
   const formatDateTime = (dateString: string) => {
     try {
@@ -56,12 +52,6 @@ export function TaskCard({ task, onToggleStatus, onDelete }: TaskCardProps) {
             {/* Details */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
               <div className="flex items-center gap-2">
-                <Avatar className="h-6 w-6">
-                  <AvatarImage src="/placeholder.svg" />
-                  <AvatarFallback className="text-xs">
-                    {task.assistantName ? getInitials(task.assistantName) : "?"}
-                  </AvatarFallback>
-                </Avatar>
                 <div>
                   <p className="font-medium">{task.assistantName || "Chưa phân công"}</p>
                   <p className="text-xs text-muted-foreground">Người thực hiện</p>
@@ -97,7 +87,7 @@ export function TaskCard({ task, onToggleStatus, onDelete }: TaskCardProps) {
               <DropdownMenuItem>Xem Chi Tiết</DropdownMenuItem>
               <DropdownMenuItem>Chỉnh Sửa</DropdownMenuItem>
               <DropdownMenuItem onClick={() => onToggleStatus(task.taskId)}>
-                {task.status ? "Đánh dấu chưa hoàn thành" : "Đánh dấu hoàn thành"}
+                {task.status === "Completed" ? "Đánh dấu chưa hoàn thành" : "Đánh dấu hoàn thành"}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-red-600"
