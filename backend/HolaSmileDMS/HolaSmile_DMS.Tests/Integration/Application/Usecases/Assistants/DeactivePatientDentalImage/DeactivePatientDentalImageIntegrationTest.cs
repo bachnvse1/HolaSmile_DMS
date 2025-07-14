@@ -58,7 +58,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
                     PatientId = 10,
                     ImageURL = "https://test.com/image.jpg",
                     IsDeleted = false,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.Now
                 },
                 new Image
                 {
@@ -66,7 +66,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
                     PatientId = 10,
                     ImageURL = "https://test.com/deleted.jpg",
                     IsDeleted = true,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.Now
                 }
             );
 

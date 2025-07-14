@@ -13,6 +13,7 @@ import { useForm } from "react-hook-form";
 import TreatmentModal from '../patient/TreatmentModal';
 import type { TreatmentFormData } from "@/types/treatment";
 import {formatDateVN, formatTimeVN} from '../../utils/dateUtils';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface AppointmentListViewProps {
   appointments: AppointmentDTO[];
@@ -25,9 +26,11 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'confirmed' | 'canceled'>('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5);
-  const { role } = useAuth();
+  const [itemsPerPage, setItemsPerPage] = useState(5); // Make it configurable
+  const [lastUserId, setLastUserId] = useState<string | null>(null);
+  const { role, userId } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [showTreatmentModal, setShowTreatmentModal] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<number | null>(null);
@@ -35,6 +38,15 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   const treatmentFormMethods = useForm<TreatmentFormData>();
   const [treatmentToday, setTreatmentToday] = useState<boolean | null>(null);
 
+  // Clear cache when user changes
+  useEffect(() => {
+    if (userId) {
+      if (lastUserId && lastUserId !== userId) {
+        queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      }
+      setLastUserId(userId);
+    }
+  }, [userId, queryClient, lastUserId]);
 
 
   // const getStatusColor = (status: 'confirmed' | 'canceled') => {

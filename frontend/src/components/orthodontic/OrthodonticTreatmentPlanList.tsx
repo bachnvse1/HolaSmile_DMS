@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { Plus, Search, Filter, FileText, Calendar, DollarSign, ArrowLeft, Trash2 } from 'lucide-react';
+import { Plus, Search, Filter, FileText, Calendar, DollarSign, ArrowLeft, Trash2, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
+// import { Slider } from '@/components/ui/slider';
 import { DateRangePicker } from '@/components/ui/date-picker';
 import { Pagination } from '@/components/ui/Pagination';
 import { useOrthodonticTreatmentPlans, useDeactivateOrthodonticTreatmentPlan } from '@/hooks/useOrthodonticTreatmentPlan';
@@ -16,9 +16,12 @@ import type { OrthodonticTreatmentPlan } from '@/types/orthodonticTreatmentPlan'
 import { useUserInfo } from '@/hooks/useUserInfo';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { TokenUtils } from '@/utils/tokenUtils';
+import { useQueryClient } from '@tanstack/react-query';
 export const OrthodonticTreatmentPlanList: React.FC = () => {
   const { patientId: paramPatientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -37,7 +40,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
     to: Date | undefined;
   }>({ from: undefined, to: undefined });
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
-  const [priceSliderRange, setPriceSliderRange] = useState([0, 100000000]); // For slider
+  // const [priceSliderRange, setPriceSliderRange] = useState([0, 100000000]); // For slider
 
   const userInfo = useUserInfo();
   const isDentist = userInfo?.role === 'Dentist';
@@ -50,6 +53,39 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
   const { data: treatmentPlans = [], isLoading, error } = useOrthodonticTreatmentPlans(
     parseInt(patientId || '0')
   );
+
+  // Auto-refetch data when component mounts or when returning from create/edit
+  React.useEffect(() => {
+    const refetchData = () => {
+      console.log('Refetching orthodontic treatment plans for patient:', patientId);
+      queryClient.invalidateQueries({
+        queryKey: ['orthodontic-treatment-plans', parseInt(patientId || '0')]
+      });
+    };
+
+    // Refetch immediately when component mounts
+    refetchData();
+
+    // Listen for focus event (when user returns to this tab/window)
+    window.addEventListener('focus', refetchData);
+
+    // Listen for visibility change (when tab becomes visible)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        refetchData();
+      }
+    });
+
+    // Listen for storage changes (in case data changes from another tab)
+    window.addEventListener('storage', refetchData);
+
+    // Cleanup event listeners
+    return () => {
+      window.removeEventListener('focus', refetchData);
+      document.removeEventListener('visibilitychange', refetchData);
+      window.removeEventListener('storage', refetchData);
+    };
+  }, [patientId, queryClient]);
 
   // Get unique values for filter options
   const uniqueTemplates = useMemo(() => {
@@ -112,7 +148,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
     setSelectedDentist('all');
     setDateRange({ from: undefined, to: undefined });
     setPriceRange({ min: '', max: '' });
-    setPriceSliderRange([0, 100000000]);
+    // setPriceSliderRange([0, 100000000]);
   };
 
   const handleCreatePlan = () => {
@@ -132,6 +168,15 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
     navigate(`/patients/${patientId}/orthodontic-treatment-plans/${planId}/edit`);
   };
 
+  const handleViewPlanImages = (planId: number) => {
+    // You can navigate to a dedicated images page or open a modal
+    if (userInfo.role !== 'Patient') {
+      navigate(`/patients/${patientId}/orthodontic-treatment-plans/${planId}/images`)
+    } else {
+      navigate(`/patient/orthodontic-treatment-plans/${planId}/images`);
+    }
+  }
+
   const deactivateMutation = useDeactivateOrthodonticTreatmentPlan();
 
   const handleDeletePlan = (planId: number) => {
@@ -145,7 +190,13 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
     setIsDeleting(true);
     try {
       await deactivateMutation.mutateAsync(deletingPlanId);
-      window.location.reload(); // Refresh to show updated list
+
+      // Invalidate and refetch the treatment plans query
+      await queryClient.invalidateQueries({
+        queryKey: ['orthodontic-treatment-plans', parseInt(patientId || '0')]
+      });
+
+      console.log('Successfully deleted plan and refreshed data');
     } catch (error) {
       console.error('Error deleting plan:', error);
     } finally {
@@ -171,7 +222,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
   if (error) {
     // Check if it's a 404 error (no data found) - this is normal, not an error
     const is404Error = error.message.includes('404') || error.message.includes('Not Found');
-    
+
     if (is404Error) {
       // Treat 404 as empty data, not an error
       return (
@@ -227,9 +278,9 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
     }
 
     // Check if it's an authentication error
-    const isAuthError = error.message.includes('401') || error.message.includes('403') || 
-                       error.message.includes('Unauthorized') || error.message.includes('Forbidden');
-    
+    const isAuthError = error.message.includes('401') || error.message.includes('403') ||
+      error.message.includes('Unauthorized') || error.message.includes('Forbidden');
+
     if (isAuthError) {
       return (
         <div className="container mx-auto p-6 max-w-7xl">
@@ -329,7 +380,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Tìm kiếm theo tên kế hoạch, template, nội dung điều trị..."
+                placeholder="Tìm kiếm theo tên kế hoạch, tên mẫu, nội dung điều trị..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -405,7 +456,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
                 </div>
 
                 {/* Price Range Filter với Slider */}
-                <div className="md:col-span-2">
+                {/* <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-3">
                     Khoảng chi phí: {formatCurrency(priceSliderRange[0])} - {formatCurrency(priceSliderRange[1])}
                   </label>
@@ -429,7 +480,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
                       <span>100tr</span>
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Clear Filters Button */}
                 <div className="md:col-span-2 lg:col-span-4">
@@ -549,6 +600,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
                 onView={() => handleViewPlan(plan.planId)}
                 onEdit={() => handleEditPlan(plan.planId)}
                 onDelete={() => handleDeletePlan(plan.planId)}
+                onViewImages={() => handleViewPlanImages(plan.planId)}
               />
             ))}
 
@@ -592,9 +644,10 @@ interface TreatmentPlanCardProps {
   onView: () => void;
   onEdit: () => void;
   onDelete?: () => void;
+  onViewImages?: (planId: number) => void;
 }
 
-const TreatmentPlanCard: React.FC<TreatmentPlanCardProps> = ({ plan, onView, onEdit, onDelete }) => {
+const TreatmentPlanCard: React.FC<TreatmentPlanCardProps> = ({ plan, onView, onEdit, onDelete, onViewImages }) => {
   const userInfo = useUserInfo();
   const isDentist = userInfo?.role === 'Dentist';
   return (
@@ -652,9 +705,15 @@ const TreatmentPlanCard: React.FC<TreatmentPlanCardProps> = ({ plan, onView, onE
             <Button variant="outline" size="sm" onClick={onView}>
               Chi Tiết
             </Button>
+            {onViewImages && (
+              <Button variant="outline" size="sm" onClick={() => onViewImages(plan.planId)} className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 w-full sm:w-auto">
+                <Camera className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Ảnh</span>
+              </Button>
+            )}
             {isDentist && (
               <>
-                <Button variant="outline" size="sm" onClick={onEdit} className='text-blue-600 hover:text-blue-700 hover:bg-red-50 w-full sm:w-auto'>
+                <Button variant="outline" size="sm" onClick={onEdit} className='text-blue-600 hover:text-blue-700 hover:bg-blue-50 w-full sm:w-auto'>
                   Chỉnh Sửa
                 </Button>
                 <Button variant="outline" size="sm" onClick={onDelete} className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto">

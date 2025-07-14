@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import {
   Plus,
@@ -35,9 +35,12 @@ import { getErrorMessage } from '@/utils/formatUtils';
 
 export const SupplyList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'low-stock' | 'expiring'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     supply: Supply | null;
@@ -56,7 +59,16 @@ export const SupplyList: React.FC = () => {
   // Chỉ Administrator, Owner, Assistant có quyền edit/delete
   const canModify = ['Assistant'].includes(userRole);
 
-  const { data: supplies = [], isLoading, error, refetch } = useSupplies(searchQuery);
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300); 
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const { data: supplies = [], isLoading, error, refetch } = useSupplies(debouncedSearchQuery);
   const { data: stats, isLoading: isLoadingStats } = useSupplyStats();
   const { mutate: deactivateSupply, isPending: isDeactivating } = useDeactivateSupply();
   const { mutate: downloadExcel, isPending: isDownloadExcel } = useDownloadExcelSupplies();
@@ -84,7 +96,9 @@ export const SupplyList: React.FC = () => {
   const paginatedSupplies = filteredSupplies.slice(startIndex, endIndex);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
+    e.persist(); // Ensure event persists
+    const value = e.target.value;
+    setSearchQuery(value);
     setCurrentPage(1); // Reset to first page when searching
   };
 
@@ -124,7 +138,7 @@ export const SupplyList: React.FC = () => {
     });
   };
 
-  const handleImportExcel = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -138,10 +152,18 @@ export const SupplyList: React.FC = () => {
       return;
     }
 
-    importExcel(file, {
+    setSelectedFile(file);
+  };
+
+  const handleConfirmImport = () => {
+    if (!selectedFile) return;
+
+    importExcel(selectedFile, {
       onSuccess: () => {
         toast.success('Đã import file Excel thành công');
         refetch();
+        setShowImportModal(false);
+        setSelectedFile(null);
         // Reset file input
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
@@ -155,6 +177,14 @@ export const SupplyList: React.FC = () => {
         }
       }
     });
+  };
+
+  const handleCancelImport = () => {
+    setShowImportModal(false);
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleView = (supply: Supply) => {
@@ -271,44 +301,34 @@ export const SupplyList: React.FC = () => {
           {/* Mobile layout: 2 rows */}
           <div className="grid grid-cols-2 gap-2 sm:hidden">
             <Button
-              variant="outline"
-              onClick={handleDownloadTemplate}
-              disabled={isDownloadExcel}
-              className="text-xs"
-            >
-              <Download className="h-3 w-3 mr-1" />
-              <span>Mẫu Excel</span>
-            </Button>
-
-            <Button
-              variant="outline"
               onClick={handleExportExcel}
               disabled={isExportExcel}
-              className="text-xs"
+              className="text-xs bg-green-600 hover:bg-green-700 text-white"
             >
               <Download className="h-3 w-3 mr-1" />
               <span>Xuất Excel</span>
             </Button>
-          </div>
 
-          {canModify && (
-            <div className="grid grid-cols-2 gap-2 sm:hidden">
+            {canModify && (
               <Button
-                variant="outline"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => setShowImportModal(true)}
                 disabled={isImporting}
-                className="text-xs"
+                className="text-xs bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <Upload className="h-3 w-3 mr-1" />
                 <span>Nhập Excel</span>
               </Button>
+            )}
+          </div>
 
+          {canModify && (
+            <div className="grid grid-cols-1 gap-2 sm:hidden">
               <Button
                 onClick={() => navigate('/inventory/create')}
                 className="text-xs"
               >
                 <Plus className="h-3 w-3 mr-1" />
-                <span>Thêm Mới</span>
+                <span>Thêm Vật Tư Mới</span>
               </Button>
             </div>
           )}
@@ -316,20 +336,9 @@ export const SupplyList: React.FC = () => {
           {/* Desktop layout: Single row */}
           <div className="hidden sm:flex sm:gap-3">
             <Button
-              variant="outline"
-              onClick={handleDownloadTemplate}
-              disabled={isDownloadExcel}
-              className="text-sm"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              {isDownloadExcel ? 'Đang tải...' : 'Tải Mẫu Excel'}
-            </Button>
-
-            <Button
-              variant="outline"
               onClick={handleExportExcel}
               disabled={isExportExcel}
-              className="text-sm"
+              className="text-sm bg-green-600 hover:bg-green-700 text-white"
             >
               <Download className="h-4 w-4 mr-2" />
               {isExportExcel ? 'Đang xuất...' : 'Xuất Excel'}
@@ -338,10 +347,9 @@ export const SupplyList: React.FC = () => {
             {canModify && (
               <>
                 <Button
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => setShowImportModal(true)}
                   disabled={isImporting}
-                  className="text-sm"
+                  className="text-sm bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   <Upload className="h-4 w-4 mr-2" />
                   {isImporting ? 'Đang nhập...' : 'Nhập Excel'}
@@ -357,15 +365,6 @@ export const SupplyList: React.FC = () => {
               </>
             )}
           </div>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".xlsx,.xls"
-            onChange={handleImportExcel}
-            className="hidden"
-            title="Import Excel file"
-          />
         </div>
       </div>
 
@@ -431,10 +430,13 @@ export const SupplyList: React.FC = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
+                key="supply-search-input"
                 placeholder="Tìm kiếm theo tên vật tư..."
                 value={searchQuery}
                 onChange={handleSearch}
                 className="pl-10"
+                autoComplete="off"
+                spellCheck={false}
               />
             </div>
 
@@ -544,7 +546,7 @@ export const SupplyList: React.FC = () => {
                               <span className="text-sm font-medium text-gray-900 mr-2">
                                 {supply.QuantityInStock}
                               </span>
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${stockStatus.color}`}>
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-md ${stockStatus.color}`}>
                                 {stockStatus.text}
                               </span>
                             </div>
@@ -555,7 +557,7 @@ export const SupplyList: React.FC = () => {
                                 {supply.ExpiryDate ? formatDate(supply.ExpiryDate) : ''}
                               </span>
                               {supply.ExpiryDate && (
-                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${expiryStatus.color}`}>
+                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-md ${expiryStatus.color}`}>
                                   {expiryStatus.text}
                                 </span>
                               )}
@@ -566,10 +568,10 @@ export const SupplyList: React.FC = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex flex-col gap-1">
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${stockStatus.color}`}>
+                              <span className={`inline-flex max-w-[80px] justify-center items-center text-center px-2 py-1 text-xs font-semibold rounded-md ${stockStatus.color}`}>
                                 {stockStatus.text}
                               </span>
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${expiryStatus.color}`}>
+                              <span className={`inline-flex max-w-[80px] justify-center items-center text-center px-2 py-1 text-xs font-semibold rounded-md ${expiryStatus.color}`}>
                                 {expiryStatus.text}
                               </span>
                             </div>
@@ -703,7 +705,7 @@ export const SupplyList: React.FC = () => {
                             <span className="font-medium text-gray-900">
                               {supply.QuantityInStock}
                             </span>
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${stockStatus.color}`}>
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-md ${stockStatus.color}`}>
                               {stockStatus.text}
                             </span>
                           </div>
@@ -725,7 +727,7 @@ export const SupplyList: React.FC = () => {
                             {supply.ExpiryDate ? formatDate(supply.ExpiryDate) : ''}
                           </span>
                           {supply.ExpiryDate && (
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${expiryStatus.color}`}>
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-md text-align-center ${expiryStatus.color}`}>
                               {expiryStatus.text}
                             </span>
                           )}
@@ -769,6 +771,125 @@ export const SupplyList: React.FC = () => {
         confirmVariant={confirmModal.action === 'delete' ? 'destructive' : 'default'}
         isLoading={isDeactivating}
       />
+
+      {/* Import Excel Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 text-center">
+            <div className="fixed inset-0 bg-black opacity-50" onClick={handleCancelImport}></div>
+            
+            <div className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Nhập dữ liệu từ Excel
+                </h3>
+                <button
+                  onClick={handleCancelImport}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <span className="sr-only">Đóng</span>
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Chọn file Excel để nhập dữ liệu vật tư. File phải có định dạng .xlsx hoặc .xls
+                  </p>
+                  
+                  <div 
+                    className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
+                      selectedFile 
+                        ? 'border-green-400 bg-green-50' 
+                        : 'border-gray-300 hover:border-blue-400'
+                    }`}
+                    onClick={() => {
+                      console.log('Clicking to open file dialog');
+                      fileInputRef.current?.click();
+                    }}
+                  >
+                    {selectedFile ? (
+                      <div>
+                        <Upload className="mx-auto h-12 w-12 text-green-600" />
+                        <div className="mt-2">
+                          <span className="text-green-600 font-medium">
+                            {selectedFile.name}
+                          </span>
+                          <p className="text-gray-500 text-sm mt-1">Click để chọn file khác</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                        <div className="mt-2">
+                          <span className="text-blue-600 hover:text-blue-500 font-medium">
+                            Chọn file Excel
+                          </span>
+                          <p className="text-gray-500 text-sm mt-1">hoặc kéo thả file vào đây</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* File input with proper event handling */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={handleFileSelect}
+                    className="sr-only"
+                    title="Import Excel file"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  {selectedFile && (
+                    <Button
+                      onClick={handleConfirmImport}
+                      disabled={isImporting}
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {isImporting ? 'Đang nhập...' : 'Xác nhận nhập Excel'}
+                    </Button>
+                  )}
+                  
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={handleDownloadTemplate}
+                      disabled={isDownloadExcel}
+                      className="flex-1"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      {isDownloadExcel ? 'Đang tải...' : 'Tải mẫu Excel'}
+                    </Button>
+                    
+                    <Button
+                      variant="outline" 
+                      onClick={handleCancelImport}
+                      className="flex-1"
+                      disabled={isImporting}
+                    >
+                      Hủy
+                    </Button>
+                  </div>
+                </div>
+
+                {isImporting && (
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="text-sm text-gray-600 mt-2">Đang xử lý file...</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
