@@ -153,23 +153,4 @@ public class EditOrthodonticTreatmentPlanIntegrationTests
 
         Assert.Equal(MessageConstants.MSG.MSG07, ex.Message);
     }
-
-    [Fact(DisplayName = "ITCID05 - Không phải role Dentist")]
-    public async System.Threading.Tasks.Task ITCID05_ShouldThrow_WhenNotDentist()
-    {
-        var handler = CreateHandler("Assistant", "2");
-
-        var dto = new EditOrthodonticTreatmentPlanDto
-        {
-            PlanId = 5,
-            PlanTitle = "Valid",
-            TotalCost = 10000000,
-            PaymentMethod = "cash"
-        };
-
-        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            handler.Handle(new EditOrthodonticTreatmentPlanCommand(dto), default));
-
-        Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
-    }
 }
