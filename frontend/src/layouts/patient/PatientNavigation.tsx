@@ -39,11 +39,9 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <button onClick={() => navigate('/patient/dashboard')}>
               <h1 className="text-2xl font-bold text-blue-600 cursor-pointer">
                 HolaSmile
               </h1>
-            </button>
           </div>
 
           {/* Desktop Navigation */}

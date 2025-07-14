@@ -53,8 +53,8 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSide
     >
       {/* Left side */}
       <div className="flex items-center space-x-2 sm:space-x-4">
-        {/* Show menu button on mobile when sidebar is closed, or always on desktop */}
-        {(isMobile && !isSidebarOpen) || !isMobile ? (
+        {/* Show menu button only on mobile */}
+        {isMobile && (
           <button
             onClick={onToggleSidebar}
             className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100"
@@ -62,7 +62,7 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSide
           >
             <Menu className="h-5 w-5" />
           </button>
-        ) : null}
+        )}
         
         <div className="hidden sm:block">
           <h1 className="text-lg font-semibold text-gray-900">

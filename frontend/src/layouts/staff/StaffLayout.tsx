@@ -68,6 +68,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children, userInfo }) 
         isCollapsed={isSidebarCollapsed}
         isMobile={isMobile}
         onClose={closeSidebar}
+        onToggle={toggleSidebar}
       />
 
       {/* Main Content Area - No margin, header will handle its own positioning */}
