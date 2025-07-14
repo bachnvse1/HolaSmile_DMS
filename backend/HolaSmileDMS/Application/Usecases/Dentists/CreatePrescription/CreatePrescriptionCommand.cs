@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Application.Usecases.Dentist.CreatePrescription
+namespace Application.Usecases.Dentists.CreatePrescription
 {
     public class CreatePrescriptionCommand : IRequest<bool>
     {

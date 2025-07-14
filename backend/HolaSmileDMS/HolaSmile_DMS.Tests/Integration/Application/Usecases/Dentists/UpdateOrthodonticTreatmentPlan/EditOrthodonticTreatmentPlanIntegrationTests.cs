@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Application.Common.Mappings;
 using Application.Constants;
-using Application.Usecases.Dentist.UpdateOrthodonticTreatmentPlan;
+using Application.Usecases.Dentists.UpdateOrthodonticTreatmentPlan;
 using AutoMapper;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;

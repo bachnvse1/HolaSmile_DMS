@@ -60,7 +60,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
                     PreTemplateID = 1,
                     PreTemplateName = "Template A",
                     PreTemplateContext = "Content A",
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.Now,
                     IsDeleted = false
                 },
                 new PrescriptionTemplate
@@ -68,7 +68,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
                     PreTemplateID = 2,
                     PreTemplateName = "Template B",
                     PreTemplateContext = "Content B",
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.Now,
                     IsDeleted = true
                 }
             );

@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Application.Usecases.Assistant.ExcelSupply
+namespace Application.Usecases.Assistants.ExcelSupply
 {
     public class ExportSupplyToExcelCommand : IRequest<byte[]>
     {

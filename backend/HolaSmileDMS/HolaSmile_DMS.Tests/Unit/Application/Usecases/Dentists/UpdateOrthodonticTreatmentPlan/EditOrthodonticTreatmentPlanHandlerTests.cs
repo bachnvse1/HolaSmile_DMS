@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.Dentist.UpdateOrthodonticTreatmentPlan;
+using Application.Usecases.Dentists.UpdateOrthodonticTreatmentPlan;
 using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Http;

@@ -4,7 +4,7 @@ using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
-namespace Application.Usecases.Dentist.EditPrescription
+namespace Application.Usecases.Dentists.EditPrescription
 {
     public class EditPrescriptionHandler : IRequestHandler<EditPrescriptionCommand, bool>
     {

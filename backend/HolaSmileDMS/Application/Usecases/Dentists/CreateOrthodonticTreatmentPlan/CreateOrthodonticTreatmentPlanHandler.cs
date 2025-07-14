@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using Application.Usecases.SendNotification;
 
-namespace Application.Usecases.Dentist.CreateOrthodonticTreatmentPlan;
+namespace Application.Usecases.Dentists.CreateOrthodonticTreatmentPlan;
 
 public class CreateOrthodonticTreatmentPlanHandler : IRequestHandler<CreateOrthodonticTreatmentPlanCommand, string>
 {

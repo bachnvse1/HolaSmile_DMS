@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace Application.Usecases.Dentist.DeactiveOrthodonticTreatmentPlan;
+namespace Application.Usecases.Dentists.DeactiveOrthodonticTreatmentPlan;
 
 public class DeactiveOrthodonticTreatmentPlanCommand : IRequest<string>
 {
