@@ -109,7 +109,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
 
             var result = await _handler.Handle(command, default);
 
-            Assert.Equal(MessageConstants.MSG.MSG113, result);
+            Assert.Equal(MessageConstants.MSG.MSG114, result);
             Assert.Single(_context.Instructions.Where(x => !x.IsDeleted));
         }
 
@@ -164,7 +164,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             var ex = await Assert.ThrowsAsync<Exception>(() =>
                 _handler.Handle(command, default));
 
-            Assert.Equal(MessageConstants.MSG.MSG114, ex.Message);
+            Assert.Equal(MessageConstants.MSG.MSG115, ex.Message);
         }
 
         [Fact(DisplayName = "UTCID05 - Appointment không tồn tại => MSG107")]
