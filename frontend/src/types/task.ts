@@ -2,7 +2,7 @@ export interface BasicTask {
     taskId: number
     progressName: string
     description: string
-    status: boolean
+    status: TaskStatus
     startTime: string
     endTime: string
     assistantId?: number
