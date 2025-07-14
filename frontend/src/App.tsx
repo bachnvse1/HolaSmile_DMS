@@ -57,6 +57,7 @@ import { AppointmentDetailsPage } from './pages/staff/AppointmentDetailsPage';
 import { PatientAppointmentDetailPage } from './pages/patient/PatientAppointmentDetailPage';
 import ThankYou from "./components/invoice/PaymentThankYou";
 import PaymentCancelled from "./components/invoice/PaymentCancel";
+import PatientTreatmentRecordsSection from "./components/patient/PatientTreatmentRecordsSection";
 
 function App() {
     return (
@@ -174,6 +175,7 @@ function App() {
                 <Route path="/assistant/warranty-cards" element={<WarrantyCardManagement />} />
                 <Route path="/thank-you" element={<ThankYou />} />
                 <Route path="/cancel" element={<PaymentCancelled />} />
+                <Route path="/patient/treatment-records" element={<PatientTreatmentRecordsSection/>} />
             </Routes>
         </>
     );

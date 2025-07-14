@@ -32,7 +32,7 @@ export default function UserManagement() {
             setUsers(data)
         } catch (err) {
             console.error("Error fetching users", err)
-            toast.error("Failed to fetch users")
+            toast.error("Không thể tải danh sách người dùng")
         } finally {
             setIsLoading(false)
         }
@@ -41,10 +41,10 @@ export default function UserManagement() {
     const handleToggleUserStatus = async (userId: number) => {
         try {
             await userService.toggleStatus(userId)
-            toast.success("User status updated")
+            toast.success("Cập nhật trạng thái người dùng thành công")
             await fetchUsers()
         } catch (error: any) {
-            const message = error?.response?.data?.message || "Failed to update user status"
+            const message = error?.response?.data?.message || "Không thể cập nhật trạng thái người dùng"
             toast.error(message)
         }
     }
@@ -62,7 +62,7 @@ export default function UserManagement() {
     const { fullName, userId, role } = useAuth()
     const userInfo = {
         id: userId || '',
-        name: fullName || 'User',
+        name: fullName || 'Người dùng',
         email: '',
         role: role || '',
         avatar: undefined
@@ -74,8 +74,8 @@ export default function UserManagement() {
                 <div className="container mx-auto p-6 space-y-6">
                     <div className="flex justify-between items-center">
                         <div>
-                            <h1 className="text-3xl font-bold">User Management</h1>
-                            <p className="text-muted-foreground">Manage users, roles, and permissions</p>
+                            <h1 className="text-3xl font-bold">Quản lý người dùng</h1>
+                            <p className="text-muted-foreground">Quản lý người dùng, vai trò và phân quyền</p>
                         </div>
 
                         <CreateUserModal

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useForm } from "react-hook-form"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Camera, User, Mail, Phone, MapPin, Calendar, Users, ArrowLeft, Edit3, Save, X } from "lucide-react"
@@ -9,8 +9,6 @@ import { TokenUtils } from "@/utils/tokenUtils"
 import { getDateString } from "@/utils/date"
 import { Skeleton } from "@/components/ui/skeleton"
 import "react-toastify/dist/ReactToastify.css"
-import PatientTreatmentRecordsSection from "@/components/patient/PatientTreatmentRecordsSection"
-import { useUserInfo } from "@/hooks/useUserInfo"
 import { Input } from "@/components/ui/input"
 
 // Types
@@ -25,11 +23,6 @@ interface FormValues {
   address: string
   dob: string
   gender: Gender
-}
-
-interface DecodedToken {
-  userId?: string
-  role?: string
 }
 
 interface ApiResponse {
@@ -215,17 +208,6 @@ export default function ViewProfile() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   const { isValidToken, token } = useTokenValidation()
-  const userInfo = useUserInfo()
-
-  // Memoize decoded token to avoid repeated calculations
-  const decodedToken = useMemo((): DecodedToken | null => {
-    if (!token) return null
-    try {
-      return TokenUtils.decodeToken(token)
-    } catch {
-      return null
-    }
-  }, [token])
 
   const {
     register,
@@ -528,15 +510,6 @@ export default function ViewProfile() {
             )}
           </div>
         </form>
-
-        {/* Patient Treatment Records */}
-        {decodedToken?.role === "Patient" && userInfo?.roleTableId && (
-          <div className="mt-12">
-            <PatientTreatmentRecordsSection 
-              patientId={Number(userInfo.roleTableId)} 
-            />
-          </div>
-        )}
       </div>
     </div>
   )

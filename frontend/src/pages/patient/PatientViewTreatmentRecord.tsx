@@ -114,8 +114,8 @@ const PatientTreatmentRecords: React.FC = () => {
       toothPosition: record.toothPosition,
       quantity: record.quantity,
       unitPrice: record.unitPrice,
-      discountAmount: record.discountAmount,
-      discountPercentage: record.discountPercentage,
+      discountAmount: record.discountAmount ?? undefined,
+      discountPercentage: record.discountPercentage ?? undefined,
       consultantEmployeeID: record.consultantEmployeeID ?? 0,
       treatmentStatus: record.treatmentStatus,
       symptoms: record.symptoms,
@@ -165,6 +165,7 @@ const PatientTreatmentRecords: React.FC = () => {
                   onEdit={handleEditRecord}
                   onToggleDelete={handleToggleDelete}
                   patientId={patientId}
+                  patientName={""}
                 />
               </div>
             </div>
