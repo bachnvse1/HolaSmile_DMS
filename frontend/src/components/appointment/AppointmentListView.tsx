@@ -438,7 +438,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
         isOpen={showTreatmentModal}
         isEditing={false}
         onClose={() => setShowTreatmentModal(false)}
-        updatedBy={0}
+        updatedBy={ Number(userId) }
         appointmentId={selectedAppointmentId ?? undefined}
         treatmentToday={treatmentToday ?? undefined}
         defaultStatus="in-progress"
