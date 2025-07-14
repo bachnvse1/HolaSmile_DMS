@@ -93,13 +93,13 @@ namespace Application.Usecases.Dentist.ManageSchedule
             // Send notification to owner and dentist
             try
             {
-                await _mediator.Send(new SendNotificationCommand(
-                      currentUserId,
-                      "Đăng ký lịch làm việc",
-                      $"Bạn đã đăng ký lịch làm việc vào lúc {DateTime.Now}",
-                      "Đăng ký lịch làm việc",
-                      null),
-                      cancellationToken);
+                //await _mediator.Send(new SendNotificationCommand(
+                //      currentUserId,
+                //      "Đăng ký lịch làm việc",
+                //      $"Bạn đã đăng ký lịch làm việc vào lúc {DateTime.Now}",
+                //      "Đăng ký lịch làm việc",
+                //      null),
+                //      cancellationToken);
 
                 var notifyOwners = owners.Select(async o =>
                 await _mediator.Send(new SendNotificationCommand(
