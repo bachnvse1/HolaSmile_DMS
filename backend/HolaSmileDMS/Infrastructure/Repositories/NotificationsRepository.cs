@@ -39,9 +39,12 @@ namespace Infrastructure.Repositories
 
         public async System.Threading.Tasks.Task MarkAsSentAsync(int id, CancellationToken ct)
         {
-            await _context.Notifications
-                .Where(x => x.NotificationId == id)
-                .ExecuteUpdateAsync(s => s.SetProperty(p => p.IsRead, p => p.IsRead), ct);
+            var notification = await _context.Notifications.FirstOrDefaultAsync(n => n.NotificationId == id, ct);
+            if (notification != null)
+            {
+                notification.IsRead = true;
+                await _context.SaveChangesAsync(ct);
+            }
         }
 
         /// <summary>
