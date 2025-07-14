@@ -39,8 +39,8 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
             var currentUserId = int.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
             var role = user.FindFirstValue(ClaimTypes.Role);
             var fullName = user?.FindFirst(ClaimTypes.GivenName)?.Value;
-            if (role != "Dentist")
-                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Không có quyền truy cập
+            if (role != "Dentist" && role != "Assistant")
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             
             var appointment = await _appointmentRepository.GetAppointmentByIdAsync(request.AppointmentId);
             // Validate IDs
