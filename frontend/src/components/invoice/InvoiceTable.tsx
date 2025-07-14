@@ -141,9 +141,6 @@ const InvoiceRow = ({
             <div className="text-sm font-medium text-gray-900 truncate">
               {invoice.patientName}
             </div>
-            <div className="text-xs text-gray-500 truncate">
-              ID: {invoice.patientId}
-            </div>
           </div>
         </div>
       </TableCell>

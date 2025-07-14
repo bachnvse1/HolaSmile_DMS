@@ -1,5 +1,3 @@
-// Enhanced InvoiceList.tsx with improved filtering logic
-
 import { useEffect, useState, useCallback, useMemo } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -21,7 +19,6 @@ import { AuthGuard } from "@/components/AuthGuard"
 import { StaffLayout } from "@/layouts/staff"
 import { PatientLayout } from "@/layouts/patient"
 
-// Constants
 const INVOICE_STATUS_CONFIG = {
     pending: { label: "Chờ thanh toán", variant: "secondary" as const },
     paid: { label: "Đã thanh toán", variant: "default" as const },
@@ -50,7 +47,15 @@ interface PaginationState {
     totalItems: number
 }
 
-// Enhanced filtering utilities
+interface TreatmentRecordStats {
+    treatmentRecordId: number
+    totalAmount: number
+    paidAmount: number
+    remainingAmount: number
+    isFullyPaid: boolean
+    hasPendingInvoices: boolean
+}
+
 class InvoiceFilterManager {
     private static instance: InvoiceFilterManager
     private debounceTimer: NodeJS.Timeout | null = null
@@ -62,15 +67,12 @@ class InvoiceFilterManager {
         return InvoiceFilterManager.instance
     }
 
-    // Client-side filtering for better performance
     applyFilters(invoices: Invoice[], filters: InvoiceFilters): Invoice[] {
         return invoices.filter(invoice => {
-            // Status filter
             if (filters.status && filters.status !== "all" && invoice.status !== filters.status) {
                 return false
             }
 
-            // Date range filter
             if (filters.fromDate || filters.toDate) {
                 const invoiceDate = new Date(invoice.createdAt)
                 
@@ -87,7 +89,6 @@ class InvoiceFilterManager {
                 }
             }
 
-            // Patient filter
             if (filters.patientId && invoice.patientId.toString() !== filters.patientId) {
                 return false
             }
@@ -96,7 +97,6 @@ class InvoiceFilterManager {
         })
     }
 
-    // Debounced filter execution
     debounceFilter(callback: () => void, delay: number = DEBOUNCE_DELAY): void {
         if (this.debounceTimer) {
             clearTimeout(this.debounceTimer)
@@ -104,11 +104,9 @@ class InvoiceFilterManager {
         this.debounceTimer = setTimeout(callback, delay)
     }
 
-    // Validate filters before applying
     validateFilters(filters: InvoiceFilters): { isValid: boolean; errors: string[] } {
         const errors: string[] = []
 
-        // Date validation
         if (filters.fromDate && filters.toDate) {
             const fromDate = new Date(filters.fromDate)
             const toDate = new Date(filters.toDate)
@@ -123,7 +121,6 @@ class InvoiceFilterManager {
             }
         }
 
-        // Patient ID validation
         if (filters.patientId && isNaN(Number(filters.patientId))) {
             errors.push("ID bệnh nhân không hợp lệ")
         }
@@ -131,7 +128,6 @@ class InvoiceFilterManager {
         return { isValid: errors.length === 0, errors }
     }
 
-    // Get filter summary for display
     getFilterSummary(filters: InvoiceFilters, patientList: Patient[]): string[] {
         const summary: string[] = []
         
@@ -156,11 +152,9 @@ class InvoiceFilterManager {
         return summary
     }
 
-    // Smart filter suggestions based on data
     getSuggestedFilters(invoices: Invoice[]): Partial<InvoiceFilters>[] {
         const suggestions: Partial<InvoiceFilters>[] = []
         
-        // Most common patient suggestions
         const patientCounts = invoices.reduce((acc, invoice) => {
             acc[invoice.patientId] = (acc[invoice.patientId] || 0) + 1
             return acc
@@ -173,7 +167,6 @@ class InvoiceFilterManager {
         
         suggestions.push(...topPatients)
         
-        // Recent date ranges
         const today = new Date().toISOString().split('T')[0]
         const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
         
@@ -198,7 +191,6 @@ export default function InvoiceList() {
     const userInfo = useUserInfo()
     const filterManager = useMemo(() => InvoiceFilterManager.getInstance(), [])
 
-    // State management
     const [filters, setFilters] = useState<InvoiceFilters>({
         status: "",
         fromDate: "",
@@ -217,7 +209,6 @@ export default function InvoiceList() {
     const [isInitialized, setIsInitialized] = useState(false)
     const [filterErrors, setFilterErrors] = useState<string[]>([])
 
-    // Pagination state
     const [pagination, setPagination] = useState<PaginationState>({
         currentPage: 1,
         pageSize: DEFAULT_PAGE_SIZE,
@@ -225,12 +216,42 @@ export default function InvoiceList() {
         totalItems: 0,
     })
 
-    // Memoized values
     const isPatient = useMemo(() => userInfo?.role === "Patient", [userInfo?.role])
     const isReceptionist = useMemo(() => userInfo?.role === "Receptionist", [userInfo?.role])
     const hidePatientSelect = useMemo(() => isPatient, [isPatient])
 
-    // Initialize patient-specific filters
+    const treatmentRecordStats = useMemo(() => {
+        const stats = new Map<number, TreatmentRecordStats>()
+        
+        allInvoices.forEach(invoice => {
+            const treatmentId = invoice.treatmentRecordId
+            if (!stats.has(treatmentId)) {
+                stats.set(treatmentId, {
+                    treatmentRecordId: treatmentId,
+                    totalAmount: 0,
+                    paidAmount: 0,
+                    remainingAmount: 0,
+                    isFullyPaid: false,
+                    hasPendingInvoices: false
+                })
+            }
+            
+            const stat = stats.get(treatmentId)!
+            stat.totalAmount += invoice.totalAmount || 0
+            stat.paidAmount += invoice.paidAmount || 0
+            if (invoice.status === 'pending') {
+                stat.hasPendingInvoices = true
+            }
+        })
+        
+        stats.forEach(stat => {
+            stat.remainingAmount = stat.totalAmount - stat.paidAmount
+            stat.isFullyPaid = stat.remainingAmount <= 0
+        })
+        
+        return Array.from(stats.values())
+    }, [allInvoices])
+
     useEffect(() => {
         if (isPatient && userInfo?.roleTableId) {
             setFilters(prev => ({ 
@@ -240,7 +261,6 @@ export default function InvoiceList() {
         }
     }, [isPatient, userInfo?.roleTableId])
 
-    // Fetch initial data
     useEffect(() => {
         if (!userInfo?.role || isInitialized) return
         
@@ -248,29 +268,24 @@ export default function InvoiceList() {
         setIsInitialized(true)
     }, [userInfo?.role, isInitialized])
 
-    // Apply filters whenever filters or data change
     useEffect(() => {
         applyFiltersWithDebounce()
     }, [filters, allInvoices])
 
-    // Update pagination when filtered data changes
     useEffect(() => {
         updatePagination()
     }, [filteredInvoices, pagination.pageSize])
 
-    // Update paginated data when pagination changes
     useEffect(() => {
         updatePaginatedData()
     }, [filteredInvoices, pagination.currentPage, pagination.pageSize])
 
-    // Cleanup on unmount
     useEffect(() => {
         return () => {
             filterManager.cleanup()
         }
     }, [filterManager])
 
-    // Enhanced data fetching with better error handling
     const fetchInitialData = useCallback(async () => {
         if (!userInfo?.role) return
 
@@ -301,21 +316,17 @@ export default function InvoiceList() {
         }
     }, [userInfo?.role, userInfo?.roleTableId, isPatient, isReceptionist])
 
-    // Debounced filter application
     const applyFiltersWithDebounce = useCallback(() => {
         filterManager.debounceFilter(() => {
             setIsFilterLoading(true)
             
-            // Validate filters
             const validation = filterManager.validateFilters(filters)
             setFilterErrors(validation.errors)
             
             if (validation.isValid) {
-                // Apply client-side filtering
                 const filtered = filterManager.applyFilters(allInvoices, filters)
                 setFilteredInvoices(filtered)
                 
-                // Reset to first page when filters change
                 setPagination(prev => ({ ...prev, currentPage: 1 }))
             }
             
@@ -323,12 +334,10 @@ export default function InvoiceList() {
         })
     }, [filters, allInvoices, filterManager])
 
-    // Enhanced filter change handler
     const handleFilterChange = useCallback((key: string, value: string) => {
         setFilters(prev => {
             const newFilters = { ...prev, [key]: value }
             
-            // Maintain patient filter for patient users
             if (isPatient && userInfo?.roleTableId) {
                 newFilters.patientId = userInfo.roleTableId.toString()
             }
@@ -337,7 +346,6 @@ export default function InvoiceList() {
         })
     }, [isPatient, userInfo?.roleTableId])
 
-    // Enhanced clear filters function
     const clearFilters = useCallback(() => {
         const emptyFilters: InvoiceFilters = {
             status: "",
@@ -352,7 +360,6 @@ export default function InvoiceList() {
         setPagination(prev => ({ ...prev, currentPage: 1 }))
     }, [isPatient, userInfo?.roleTableId])
 
-    // Pagination utilities
     const updatePagination = useCallback(() => {
         const totalItems = filteredInvoices.length
         const totalPages = Math.ceil(totalItems / pagination.pageSize)
@@ -386,7 +393,6 @@ export default function InvoiceList() {
         }))
     }, [])
 
-    // Utility functions
     const formatCurrency = useCallback((amount: number | null): string => {
         if (amount === null || amount === undefined) return "N/A"
         return new Intl.NumberFormat("vi-VN", {
@@ -429,26 +435,38 @@ export default function InvoiceList() {
         setIsDetailOpen(true)
     }, [])
 
-    // Enhanced invoice statistics
     const invoiceStats = useMemo(() => {
-        const stats = {
-            total: allInvoices.length,
-            displayed: filteredInvoices.length,
-            pending: filteredInvoices.filter(invoice => invoice.status === 'pending').length,
-            paid: filteredInvoices.filter(invoice => invoice.status === 'paid').length,
-            totalAmount: filteredInvoices.reduce((sum, invoice) => sum + (invoice.totalAmount || 0), 0),
-            paidAmount: filteredInvoices.reduce((sum, invoice) => sum + (invoice.paidAmount || 0), 0),
-            filterSummary: filterManager.getFilterSummary(filters, patientList),
-        }
+        const totalInvoices = allInvoices.length
+        const displayedInvoices = filteredInvoices.length
+        
+        const pendingInvoices = filteredInvoices.filter(invoice => invoice.status === 'pending').length
+        const paidInvoices = filteredInvoices.filter(invoice => invoice.status === 'paid').length
+        
+        const totalTreatmentAmount = treatmentRecordStats.reduce((sum, stat) => sum + stat.totalAmount, 0)
+        const totalPaidAmount = treatmentRecordStats.reduce((sum, stat) => sum + stat.paidAmount, 0)
+        const totalRemainingAmount = treatmentRecordStats.reduce((sum, stat) => sum + stat.remainingAmount, 0)
+        
+        const fullyPaidTreatments = treatmentRecordStats.filter(stat => stat.isFullyPaid).length
+        const totalTreatments = treatmentRecordStats.length
+        
+        const completionRate = totalTreatmentAmount > 0 ? 
+            Math.round(((totalTreatmentAmount - totalRemainingAmount) / totalTreatmentAmount) * 100) : 0
         
         return {
-            ...stats,
-            pendingAmount: stats.totalAmount - stats.paidAmount,
-            completionRate: stats.total > 0 ? Math.round((stats.paid / stats.total) * 100) : 0,
+            total: totalInvoices,
+            displayed: displayedInvoices,
+            pending: pendingInvoices,
+            paid: paidInvoices,
+            totalAmount: totalTreatmentAmount,
+            paidAmount: totalPaidAmount,
+            pendingAmount: totalRemainingAmount,
+            completionRate,
+            filterSummary: filterManager.getFilterSummary(filters, patientList),
+            totalTreatments,
+            fullyPaidTreatments
         }
-    }, [allInvoices, filteredInvoices, filters, patientList, filterManager])
+    }, [allInvoices, filteredInvoices, treatmentRecordStats, filters, patientList, filterManager])
 
-    // Enhanced pagination component
     const PaginationComponent = useMemo(() => {
         if (pagination.totalPages <= 1) return null
 
@@ -545,7 +563,6 @@ export default function InvoiceList() {
         )
     }, [pagination, handlePageChange, handlePageSizeChange])
 
-    // Enhanced main content component
     const InvoicePageContent = useMemo(() => (
         <Card className="w-full max-w-7xl mx-auto my-8 shadow-lg rounded-lg">
             <CardHeader className="flex flex-row items-center justify-between p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
@@ -577,7 +594,6 @@ export default function InvoiceList() {
             </CardHeader>
 
             <CardContent className="p-6">
-                {/* Error display */}
                 {filterErrors.length > 0 && (
                     <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
                         <div className="text-red-700 text-sm">
