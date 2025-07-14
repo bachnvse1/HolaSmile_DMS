@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace Application.Usecases.Dentist.UpdateOrthodonticTreatmentPlan;
+namespace Application.Usecases.Dentists.UpdateOrthodonticTreatmentPlan;
 
 public class EditOrthodonticTreatmentPlanCommand : IRequest<string>
 {
