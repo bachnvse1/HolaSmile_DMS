@@ -2,7 +2,7 @@
 using Application.Usecases.Assistant.CreateSupply;
 using Application.Usecases.Assistant.DeleteAndUndeleteSupply;
 using Application.Usecases.Assistant.EditSupply;
-using Application.Usecases.Assistant.ExcelSupply;
+using Application.Usecases.Assistants.ExcelSupply;
 using Application.Usecases.UserCommon.ViewSupplies;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

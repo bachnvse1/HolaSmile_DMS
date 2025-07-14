@@ -4,7 +4,7 @@ using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
-namespace Application.Usecases.Dentist.DeactiveOrthodonticTreatmentPlan;
+namespace Application.Usecases.Dentists.DeactiveOrthodonticTreatmentPlan;
 
 public class DeactiveOrthodonticTreatmentPlanHandler : IRequestHandler<DeactiveOrthodonticTreatmentPlanCommand, string>
 {
@@ -34,10 +34,10 @@ public class DeactiveOrthodonticTreatmentPlanHandler : IRequestHandler<DeactiveO
         var plan = await _repo.GetPlanByPlanIdAsync(request.PlanId, cancellationToken);
         if (plan == null)
             throw new KeyNotFoundException("Không tìm thấy kế hoạch điều trị");
-        
+
         if (plan.DentistId != int.Parse(dentistIdClaim))
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
-        
+
         plan.IsDeleted = true;
         plan.UpdatedAt = DateTime.Now;
         plan.UpdatedBy = int.Parse(userIdStr);

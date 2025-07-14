@@ -1,6 +1,6 @@
 using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.Dentist.CreateOrthodonticTreatmentPlan;
+using Application.Usecases.Dentists.CreateOrthodonticTreatmentPlan;
 using Xunit;
 using Moq;
 using System.Security.Claims;

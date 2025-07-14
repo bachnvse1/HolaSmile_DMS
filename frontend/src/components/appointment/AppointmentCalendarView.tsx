@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Calendar, User, FileText, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router';
 import { isAppointmentCancellable } from '../../utils/appointmentUtils';
 import type { AppointmentDTO, CalendarAppointment } from '../../types/appointment';
 import {isToday} from '../../utils/date.ts';
+import { useQueryClient } from '@tanstack/react-query';
 interface AppointmentCalendarViewProps {
   appointments: AppointmentDTO[];
   onAppointmentClick?: (appointment: AppointmentDTO) => void;
@@ -16,14 +17,25 @@ interface AppointmentCalendarViewProps {
 
 export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = ({
   appointments,
-  onAppointmentClick
 }) => {
   const [currentWeek, setCurrentWeek] = useState(0);
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const { role } = useAuth();
+  const [lastUserId, setLastUserId] = useState<string | null>(null);
+  const { role, userId } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (userId) {
+      if (lastUserId && lastUserId !== userId) {
+        console.log('CalendarView: User changed, clearing cache:', lastUserId, '->', userId);
+        queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      }
+      setLastUserId(userId);
+    }
+  }, [userId, queryClient, lastUserId]);
   // Generate week dates starting from today
   const getWeekDates = (weekOffset: number) => {
     const today = new Date();

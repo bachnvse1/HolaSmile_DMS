@@ -30,7 +30,7 @@ namespace Application.Usecases.Assistants.DeactivePatientDentalImage
                 throw new KeyNotFoundException("Không tìm thấy ảnh hoặc ảnh đã bị xoá.");
 
             image.IsDeleted = true;
-            image.UpdatedAt = DateTime.UtcNow;
+            image.UpdatedAt = DateTime.Now;
             image.UpdatedBy = userId;
 
             var success = await _imageRepo.UpdateAsync(image);

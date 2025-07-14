@@ -45,14 +45,17 @@ export function Login() {
           const role = TokenUtils.getRoleFromToken(loginResult.token);
           const fullName = TokenUtils.getFullNameFromToken(loginResult.token);
           toast.success(`Đăng nhập thành công! Xin chào ${fullName}`, {
-                  position: "top-left",
-                  autoClose: 3000,
-                });
+            position: "top-right",
+            autoClose: 3000,
+          });
           if (role === "Patient") {
-            navigate("/patient/dashboard");
-          } else if (role && ["Administrator", "Owner", "Receptionist", "Assistant", "Dentist"].includes(role)) {
+            navigate("/patient/appointments");
+          } else if (role && ["Administrator", "Receptionist", "Assistant", "Dentist"].includes(role)) {
+            navigate("/appointments");
+          } else if (role === "Owner") {
             navigate("/dashboard");
-          } else {
+          }
+          else {
             navigate("/");
           }
 
@@ -104,11 +107,10 @@ export function Login() {
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               placeholder="Email hoặc số điện thoại"
-              className={`w-full pl-10 pr-3 py-2 rounded-md bg-slate-700/50 text-white placeholder:text-slate-400 border focus:outline-none ${
-                formik.touched.email && formik.errors.email
+              className={`w-full pl-10 pr-3 py-2 rounded-md bg-slate-700/50 text-white placeholder:text-slate-400 border focus:outline-none ${formik.touched.email && formik.errors.email
                   ? "border-red-500 focus:ring-1 focus:ring-red-500"
                   : "border-slate-600 focus:ring-1 focus:ring-blue-500"
-              }`}
+                }`}
             />
             {formik.touched.email && formik.errors.email && (
               <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500" size={16} />
@@ -123,8 +125,8 @@ export function Login() {
 
         <div className="space-y-1">
           <div className="flex justify-between items-center">            <label htmlFor="password" className="text-sm font-medium text-slate-300">
-              Mật khẩu
-            </label>            <Link type="button" className="text-sm text-blue-400 hover:underline" to={`/forgot-password`}>
+            Mật khẩu
+          </label>            <Link type="button" className="text-sm text-blue-400 hover:underline" to={`/forgot-password`}>
               Quên mật khẩu?
             </Link>
           </div>
@@ -138,11 +140,10 @@ export function Login() {
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               placeholder="Mật khẩu"
-              className={`w-full pl-10 pr-10 py-2 rounded-md bg-slate-700/50 text-white placeholder:text-slate-400 border focus:outline-none ${
-                formik.touched.password && formik.errors.password
+              className={`w-full pl-10 pr-10 py-2 rounded-md bg-slate-700/50 text-white placeholder:text-slate-400 border focus:outline-none ${formik.touched.password && formik.errors.password
                   ? "border-red-500 focus:ring-1 focus:ring-red-500"
                   : "border-slate-600 focus:ring-1 focus:ring-blue-500"
-              }`}
+                }`}
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-2 items-center">
               <button

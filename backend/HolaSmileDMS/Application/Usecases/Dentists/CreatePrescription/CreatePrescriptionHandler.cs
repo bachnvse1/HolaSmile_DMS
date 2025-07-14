@@ -4,7 +4,7 @@ using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
-namespace Application.Usecases.Dentist.CreatePrescription
+namespace Application.Usecases.Dentists.CreatePrescription
 {
     public class CreatePrescriptionHandler : IRequestHandler<CreatePrescriptionCommand, bool>
     {
@@ -38,7 +38,7 @@ namespace Application.Usecases.Dentist.CreatePrescription
             var existApp = await _appointmentRepository.GetAppointmentByIdAsync(request.AppointmentId) ?? throw new Exception(MessageConstants.MSG.MSG28);
 
             var existPrescription = await _prescriptionRepository.GetPrescriptionByAppointmentIdAsync(request.AppointmentId);
-            if (existPrescription != null) throw new Exception(MessageConstants.MSG.MSG108); 
+            if (existPrescription != null) throw new Exception(MessageConstants.MSG.MSG108);
 
             if (string.IsNullOrEmpty(request.contents.Trim())) throw new ArgumentException(MessageConstants.MSG.MSG07);  // "Vui lòng nhập thông tin bắt buộc"
 

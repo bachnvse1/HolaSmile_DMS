@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using Application.Constants;
-using Application.Usecases.Dentist.DeactiveOrthodonticTreatmentPlan;
+using Application.Usecases.Dentists.DeactiveOrthodonticTreatmentPlan;
 using AutoMapper;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;

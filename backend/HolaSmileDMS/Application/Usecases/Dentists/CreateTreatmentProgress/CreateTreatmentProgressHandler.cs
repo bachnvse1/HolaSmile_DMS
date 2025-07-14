@@ -62,7 +62,7 @@ public class CreateTreatmentProgressHandler : IRequestHandler<CreateTreatmentPro
 
         // ✅ Mapping và tạo dữ liệu
         var progress = _mapper.Map<TreatmentProgress>(dto);
-        progress.DentistID = _dentistRepository.GetDentistByUserIdAsync(userId).Result.DentistId;
+        progress.DentistID = request.ProgressDto.DentistID;
         progress.CreatedBy = userId;
         progress.CreatedAt = DateTime.Now;
     
