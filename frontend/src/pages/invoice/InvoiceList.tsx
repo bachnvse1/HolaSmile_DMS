@@ -47,15 +47,6 @@ interface PaginationState {
     totalItems: number
 }
 
-interface TreatmentRecordStats {
-    treatmentRecordId: number
-    totalAmount: number
-    paidAmount: number
-    remainingAmount: number
-    isFullyPaid: boolean
-    hasPendingInvoices: boolean
-}
-
 class InvoiceFilterManager {
     private static instance: InvoiceFilterManager
     private debounceTimer: NodeJS.Timeout | null = null
@@ -75,13 +66,13 @@ class InvoiceFilterManager {
 
             if (filters.fromDate || filters.toDate) {
                 const invoiceDate = new Date(invoice.createdAt)
-                
+
                 if (filters.fromDate) {
                     const fromDate = new Date(filters.fromDate)
                     fromDate.setHours(0, 0, 0, 0)
                     if (invoiceDate < fromDate) return false
                 }
-                
+
                 if (filters.toDate) {
                     const toDate = new Date(filters.toDate)
                     toDate.setHours(23, 59, 59, 999)
@@ -110,11 +101,11 @@ class InvoiceFilterManager {
         if (filters.fromDate && filters.toDate) {
             const fromDate = new Date(filters.fromDate)
             const toDate = new Date(filters.toDate)
-            
+
             if (fromDate > toDate) {
                 errors.push("Ngày bắt đầu phải trước ngày kết thúc")
             }
-            
+
             const today = new Date()
             if (fromDate > today) {
                 errors.push("Ngày bắt đầu không được vượt quá ngày hiện tại")
@@ -130,52 +121,52 @@ class InvoiceFilterManager {
 
     getFilterSummary(filters: InvoiceFilters, patientList: Patient[]): string[] {
         const summary: string[] = []
-        
+
         if (filters.status && filters.status !== "all") {
             const statusLabel = INVOICE_STATUS_CONFIG[filters.status as keyof typeof INVOICE_STATUS_CONFIG]?.label
             if (statusLabel) summary.push(`Trạng thái: ${statusLabel}`)
         }
-        
+
         if (filters.fromDate) {
             summary.push(`Từ: ${new Date(filters.fromDate).toLocaleDateString("vi-VN")}`)
         }
-        
+
         if (filters.toDate) {
             summary.push(`Đến: ${new Date(filters.toDate).toLocaleDateString("vi-VN")}`)
         }
-        
+
         if (filters.patientId) {
             const patient = patientList.find(p => p.patientId.toString() === filters.patientId)
             if (patient) summary.push(`Bệnh nhân: ${patient.fullname}`)
         }
-        
+
         return summary
     }
 
     getSuggestedFilters(invoices: Invoice[]): Partial<InvoiceFilters>[] {
         const suggestions: Partial<InvoiceFilters>[] = []
-        
+
         const patientCounts = invoices.reduce((acc, invoice) => {
             acc[invoice.patientId] = (acc[invoice.patientId] || 0) + 1
             return acc
         }, {} as Record<number, number>)
-        
+
         const topPatients = Object.entries(patientCounts)
-            .sort(([,a], [,b]) => b - a)
+            .sort(([, a], [, b]) => b - a)
             .slice(0, 3)
             .map(([patientId]) => ({ patientId }))
-        
+
         suggestions.push(...topPatients)
-        
+
         const today = new Date().toISOString().split('T')[0]
         const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-        
+
         suggestions.push(
             { fromDate: lastWeek, toDate: today },
             { status: "pending" },
             { status: "paid" }
         )
-        
+
         return suggestions
     }
 
@@ -220,50 +211,18 @@ export default function InvoiceList() {
     const isReceptionist = useMemo(() => userInfo?.role === "Receptionist", [userInfo?.role])
     const hidePatientSelect = useMemo(() => isPatient, [isPatient])
 
-    const treatmentRecordStats = useMemo(() => {
-        const stats = new Map<number, TreatmentRecordStats>()
-        
-        allInvoices.forEach(invoice => {
-            const treatmentId = invoice.treatmentRecordId
-            if (!stats.has(treatmentId)) {
-                stats.set(treatmentId, {
-                    treatmentRecordId: treatmentId,
-                    totalAmount: 0,
-                    paidAmount: 0,
-                    remainingAmount: 0,
-                    isFullyPaid: false,
-                    hasPendingInvoices: false
-                })
-            }
-            
-            const stat = stats.get(treatmentId)!
-            stat.totalAmount += invoice.totalAmount || 0
-            stat.paidAmount += invoice.paidAmount || 0
-            if (invoice.status === 'pending') {
-                stat.hasPendingInvoices = true
-            }
-        })
-        
-        stats.forEach(stat => {
-            stat.remainingAmount = stat.totalAmount - stat.paidAmount
-            stat.isFullyPaid = stat.remainingAmount <= 0
-        })
-        
-        return Array.from(stats.values())
-    }, [allInvoices])
-
     useEffect(() => {
         if (isPatient && userInfo?.roleTableId) {
-            setFilters(prev => ({ 
-                ...prev, 
-                patientId: userInfo.roleTableId.toString() 
+            setFilters(prev => ({
+                ...prev,
+                patientId: userInfo.roleTableId.toString()
             }))
         }
     }, [isPatient, userInfo?.roleTableId])
 
     useEffect(() => {
         if (!userInfo?.role || isInitialized) return
-        
+
         fetchInitialData()
         setIsInitialized(true)
     }, [userInfo?.role, isInitialized])
@@ -292,8 +251,8 @@ export default function InvoiceList() {
         setIsLoading(true)
         try {
             if (isPatient && userInfo.roleTableId) {
-                const invoices = await invoiceService.getInvoices({ 
-                    patientId: userInfo.roleTableId 
+                const invoices = await invoiceService.getInvoices({
+                    patientId: userInfo.roleTableId
                 })
                 setAllInvoices(invoices)
             } else if (isReceptionist) {
@@ -308,7 +267,7 @@ export default function InvoiceList() {
             const errorMessage = axios.isAxiosError(error)
                 ? error.response?.data?.message || "Không thể tải dữ liệu"
                 : "Lỗi không xác định"
-            
+
             toast.error(errorMessage)
             console.error("Error fetching initial data:", error)
         } finally {
@@ -319,17 +278,17 @@ export default function InvoiceList() {
     const applyFiltersWithDebounce = useCallback(() => {
         filterManager.debounceFilter(() => {
             setIsFilterLoading(true)
-            
+
             const validation = filterManager.validateFilters(filters)
             setFilterErrors(validation.errors)
-            
+
             if (validation.isValid) {
                 const filtered = filterManager.applyFilters(allInvoices, filters)
                 setFilteredInvoices(filtered)
-                
+
                 setPagination(prev => ({ ...prev, currentPage: 1 }))
             }
-            
+
             setIsFilterLoading(false)
         })
     }, [filters, allInvoices, filterManager])
@@ -337,11 +296,11 @@ export default function InvoiceList() {
     const handleFilterChange = useCallback((key: string, value: string) => {
         setFilters(prev => {
             const newFilters = { ...prev, [key]: value }
-            
+
             if (isPatient && userInfo?.roleTableId) {
                 newFilters.patientId = userInfo.roleTableId.toString()
             }
-            
+
             return newFilters
         })
     }, [isPatient, userInfo?.roleTableId])
@@ -351,10 +310,10 @@ export default function InvoiceList() {
             status: "",
             fromDate: "",
             toDate: "",
-            patientId: isPatient && userInfo?.roleTableId ? 
+            patientId: isPatient && userInfo?.roleTableId ?
                 userInfo.roleTableId.toString() : "",
         }
-        
+
         setFilters(emptyFilters)
         setFilterErrors([])
         setPagination(prev => ({ ...prev, currentPage: 1 }))
@@ -363,7 +322,7 @@ export default function InvoiceList() {
     const updatePagination = useCallback(() => {
         const totalItems = filteredInvoices.length
         const totalPages = Math.ceil(totalItems / pagination.pageSize)
-        
+
         setPagination(prev => ({
             ...prev,
             totalItems,
@@ -403,7 +362,7 @@ export default function InvoiceList() {
 
     const formatDate = useCallback((dateString: string | null): string => {
         if (!dateString) return "Chưa thanh toán"
-        
+
         try {
             return new Date(dateString).toLocaleDateString("vi-VN", {
                 year: "numeric",
@@ -419,14 +378,14 @@ export default function InvoiceList() {
     }, [])
 
     const getStatusBadge = useCallback((status: string) => {
-        const config = INVOICE_STATUS_CONFIG[status as keyof typeof INVOICE_STATUS_CONFIG] || 
-                     INVOICE_STATUS_CONFIG.pending
+        const config = INVOICE_STATUS_CONFIG[status as keyof typeof INVOICE_STATUS_CONFIG] ||
+            INVOICE_STATUS_CONFIG.pending
         return <Badge variant={config.variant}>{config.label}</Badge>
     }, [])
 
     const getTransactionTypeBadge = useCallback((type: string) => {
-        const config = TRANSACTION_TYPE_CONFIG[type as keyof typeof TRANSACTION_TYPE_CONFIG] || 
-                     TRANSACTION_TYPE_CONFIG.partial
+        const config = TRANSACTION_TYPE_CONFIG[type as keyof typeof TRANSACTION_TYPE_CONFIG] ||
+            TRANSACTION_TYPE_CONFIG.partial
         return <Badge variant={config.variant}>{config.label}</Badge>
     }, [])
 
@@ -438,20 +397,37 @@ export default function InvoiceList() {
     const invoiceStats = useMemo(() => {
         const totalInvoices = allInvoices.length
         const displayedInvoices = filteredInvoices.length
-        
+
         const pendingInvoices = filteredInvoices.filter(invoice => invoice.status === 'pending').length
         const paidInvoices = filteredInvoices.filter(invoice => invoice.status === 'paid').length
-        
-        const totalTreatmentAmount = treatmentRecordStats.reduce((sum, stat) => sum + stat.totalAmount, 0)
-        const totalPaidAmount = treatmentRecordStats.reduce((sum, stat) => sum + stat.paidAmount, 0)
-        const totalRemainingAmount = treatmentRecordStats.reduce((sum, stat) => sum + stat.remainingAmount, 0)
-        
-        const fullyPaidTreatments = treatmentRecordStats.filter(stat => stat.isFullyPaid).length
-        const totalTreatments = treatmentRecordStats.length
-        
-        const completionRate = totalTreatmentAmount > 0 ? 
-            Math.round(((totalTreatmentAmount - totalRemainingAmount) / totalTreatmentAmount) * 100) : 0
-        
+
+        // Gom invoice theo treatmentRecordId
+        const grouped = new Map<number, { totalAmount: number, paidAmount: number }>()
+
+        allInvoices.forEach(inv => {
+            const id = inv.treatmentRecordId
+            const prev = grouped.get(id) || { totalAmount: 0, paidAmount: 0 }
+
+            if (!grouped.has(id)) {
+                prev.totalAmount = inv.totalAmount || 0
+            }
+
+            prev.paidAmount += inv.paidAmount || 0
+            grouped.set(id, prev)
+        })
+
+        const treatmentStats = Array.from(grouped.values())
+        const totalTreatmentAmount = treatmentStats.reduce((sum, t) => sum + t.totalAmount, 0)
+        const totalPaidAmount = treatmentStats.reduce((sum, t) => sum + t.paidAmount, 0)
+        const totalRemainingAmount = totalTreatmentAmount - totalPaidAmount
+
+        const fullyPaidTreatments = treatmentStats.filter(t => t.paidAmount >= t.totalAmount).length
+        const totalTreatments = treatmentStats.length
+
+        const completionRate = totalTreatmentAmount > 0
+            ? Number(((totalPaidAmount / totalTreatmentAmount) * 100).toFixed(2))
+            : 0
+
         return {
             total: totalInvoices,
             displayed: displayedInvoices,
@@ -465,7 +441,8 @@ export default function InvoiceList() {
             totalTreatments,
             fullyPaidTreatments
         }
-    }, [allInvoices, filteredInvoices, treatmentRecordStats, filters, patientList, filterManager])
+    }, [allInvoices, filteredInvoices, filters, patientList, filterManager])
+
 
     const PaginationComponent = useMemo(() => {
         if (pagination.totalPages <= 1) return null
@@ -514,7 +491,7 @@ export default function InvoiceList() {
                     >
                         <ChevronLeft className="w-4 h-4" />
                     </Button>
-                    
+
                     <div className="flex items-center gap-1">
                         {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
                             let pageNumber
@@ -581,7 +558,7 @@ export default function InvoiceList() {
                         </span>
                     </div>
                     <div className="text-sm text-gray-600">
-                        Đã thanh toán: <span className="font-semibold text-blue-600">
+                        Đã lên hóa đơn: <span className="font-semibold text-blue-600">
                             {formatCurrency(invoiceStats.paidAmount)}
                         </span>
                     </div>
@@ -612,7 +589,7 @@ export default function InvoiceList() {
                     hidePatientSelect={hidePatientSelect}
                     isLoading={isLoading || isFilterLoading}
                 />
-                
+
                 <div className="mb-4 flex justify-between items-center">
                     <div className="text-sm text-gray-600 font-medium">
                         Tổng số {invoiceStats.total} hóa đơn, hiển thị {invoiceStats.displayed} hóa đơn
