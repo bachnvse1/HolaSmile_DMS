@@ -25,6 +25,22 @@ export const invoiceService = {
   async createPaymentLink(orderCode: string): Promise<any> {
     const response = await axiosInstance.post("/payment/create-link", { orderCode })
     return response.data
+  },
+
+  async printInvoice(invoiceId: number): Promise<Blob> {
+    try {
+      const response = await axiosInstance.get(`/invoice/print/${invoiceId}`,
+        {
+          headers: {
+            'Accept': 'application/pdf',
+          },
+          responseType: 'blob',
+        }
+      )
+      return response.data
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Lỗi khi in hóa đơn");
+    }
   }
 
 }
