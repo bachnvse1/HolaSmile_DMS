@@ -14,7 +14,6 @@ import {
   ChevronRight,
   Activity,
   Pill,
-  Menu,
   ChevronLeft
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
@@ -102,22 +101,22 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           path: '/patients',
           roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
         },
-        {
-          id: 'patients-records',
-          label: 'Hồ Sơ Y Tế',
-          icon: <FileText className="h-4 w-4" />,
-          path: '/patients/records',
-          roles: ['Administrator', 'Owner', 'Assistant', 'Dentist']
-        }
+        // {
+        //   id: 'patients-records',
+        //   label: 'Hồ Sơ Y Tế',
+        //   icon: <FileText className="h-4 w-4" />,
+        //   path: '/patients/records',
+        //   roles: ['Administrator', 'Owner', 'Assistant', 'Dentist']
+        // }
       ]
     },
-    {
-      id: 'treatments',
-      label: 'Điều Trị',
-      icon: <Stethoscope className="h-5 w-5" />,
-      path: '/treatments',
-      roles: ['Administrator', 'Owner', 'Dentist', 'Assistant']
-    },
+    // {
+    //   id: 'treatments',
+    //   label: 'Điều Trị',
+    //   icon: <Stethoscope className="h-5 w-5" />,
+    //   path: '/treatments',
+    //   roles: ['Administrator', 'Owner', 'Dentist', 'Assistant']
+    // },
     {
       id: 'prescription-templates',
       label: 'Mẫu Đơn Thuốc',
@@ -175,28 +174,28 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       path: '/inventory',
       roles: ['Administrator', 'Owner', 'Assistant', "Receptionist", 'Dentist'],
     },
-    {
-      id: 'reports',
-      label: 'Báo Cáo',
-      icon: <TrendingUp className="h-5 w-5" />,
-      roles: ['Administrator', 'Owner'],
-      children: [
-        {
-          id: 'reports-revenue',
-          label: 'Doanh Thu',
-          icon: <TrendingUp className="h-4 w-4" />,
-          path: '/reports/revenue',
-          roles: ['Administrator', 'Owner']
-        },
-        {
-          id: 'reports-patients',
-          label: 'Bệnh Nhân',
-          icon: <Activity className="h-4 w-4" />,
-          path: '/reports/patients',
-          roles: ['Administrator', 'Owner']
-        }
-      ]
-    },
+    // {
+    //   id: 'reports',
+    //   label: 'Báo Cáo',
+    //   icon: <TrendingUp className="h-5 w-5" />,
+    //   roles: ['Administrator', 'Owner'],
+    //   children: [
+    //     {
+    //       id: 'reports-revenue',
+    //       label: 'Doanh Thu',
+    //       icon: <TrendingUp className="h-4 w-4" />,
+    //       path: '/reports/revenue',
+    //       roles: ['Administrator', 'Owner']
+    //     },
+    //     {
+    //       id: 'reports-patients',
+    //       label: 'Bệnh Nhân',
+    //       icon: <Activity className="h-4 w-4" />,
+    //       path: '/reports/patients',
+    //       roles: ['Administrator', 'Owner']
+    //     }
+    //   ]
+    // },
     {
       id: 'staff-management',
       label: 'Quản Lý Người Dùng',
