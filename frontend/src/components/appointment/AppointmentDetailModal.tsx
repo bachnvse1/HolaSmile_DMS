@@ -9,9 +9,14 @@ import { usePrescriptionByAppointment } from '../../hooks/usePrescription';
 import { useAppointmentDetail } from '../../hooks/useAppointments';
 import { isAppointmentCancellable, getTimeUntilAppointment } from '../../utils/appointmentUtils';
 import type { Dentist } from '../../types/appointment';
-import { Link, useParams, useNavigate } from 'react-router';
+import { Link, useParams } from 'react-router';
 import { EditAppointmentDialog } from './EditAppointmentDialog';
-import {formatDateVN, formatTimeVN} from '../../utils/dateUtils';
+import { formatDateVN, formatTimeVN } from '../../utils/dateUtils';
+import TreatmentModal from '../patient/TreatmentModal';
+import { useForm } from 'react-hook-form';
+import type { TreatmentFormData } from '@/types/treatment';
+import { useUserInfo } from '@/hooks/useUserInfo';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface AppointmentDetailModalProps {
   appointmentId: number | null;
@@ -29,18 +34,38 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
+  const [showTreatmentModal, setShowTreatmentModal] = useState(false);
   const { role } = useAuth();
   const { patientId } = useParams<{ patientId: string }>();
-  const navigate = useNavigate();
-  
+  const userInfo = useUserInfo();
+  const queryClient = useQueryClient();
+
+  const treatmentFormMethods = useForm<TreatmentFormData>({});
+  const [treatmentToday, setTreatmentToday] = useState<boolean | null>(null);
+
   // Fetch appointment details
   const { data: appointment, isLoading: isAppointmentLoading } = useAppointmentDetail(appointmentId || 0);
-  
+
   // Check if prescription exists for this appointment
   const { data: existingPrescription, isLoading: isPrescriptionLoading } = usePrescriptionByAppointment(appointment?.appointmentId || 0);
-  
+
+  // Helper function to refresh data
+  const refreshData = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: ['appointment-detail', appointmentId]
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ['prescription-by-appointment', appointmentId]
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ['appointments']
+      })
+    ]);
+  };
+
   if (!isOpen || !appointmentId) return null;
-  
+
   if (isAppointmentLoading) {
     return (
       <div className="fixed inset-0 z-50">
@@ -56,7 +81,7 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
       </div>
     );
   }
-  
+
   if (!appointment) {
     return (
       <div className="fixed inset-0 z-50">
@@ -110,6 +135,15 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
 
   const statusConfig = getStatusConfig(appointment.status);
 
+  const handleTreatmentSubmit = async () => {
+    try {
+      await refreshData();
+      setShowTreatmentModal(false);
+    } catch (error) {
+      console.error('Error handling treatment submit:', error);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
@@ -131,13 +165,16 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => navigate(`/patients/${patientId}/orthodontic-treatment-plans`)}
+                onClick={() => {
+                  setShowTreatmentModal(true);
+                  setTreatmentToday(false);
+                }}
                 className="flex items-center gap-2"
               >
                 <FileText className="h-4 w-4" />
                 Tạo hồ sơ điều trị
               </Button>
-              
+
               <Button
                 variant={existingPrescription ? "outline" : "default"}
                 size="sm"
@@ -162,7 +199,7 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
                   </>
                 )}
               </Button>
-              
+
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -193,7 +230,7 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
                 <span>{statusConfig.text}</span>
               </Badge>
             </div>
-            
+
             {/* Patient & Dentist Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="flex items-start">
@@ -306,7 +343,7 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
               <Button
                 variant="destructive"
                 onClick={() => setShowCancelDialog(true)}
-                className="flex-1 mr-3 text-whites"
+                className="flex-1 mr-3 text-white"
               >
                 Hủy lịch hẹn
               </Button>
@@ -367,9 +404,25 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
           onClose={() => setShowPrescriptionModal(false)}
           onSuccess={() => {
             setShowPrescriptionModal(false);
-            // Force re-fetch prescription data
-            window.location.reload();
+            refreshData();
           }}
+        />
+      )}
+
+      {/* Treatment Modal */}
+      {showTreatmentModal && (
+        <TreatmentModal
+          formMethods={treatmentFormMethods}
+          isOpen={showTreatmentModal}
+          isEditing={false}
+          treatmentToday={treatmentToday ?? undefined}
+          onClose={() => setShowTreatmentModal(false)}
+          updatedBy={Number(userInfo.id)}
+          appointmentId={appointmentId}
+          defaultStatus="in-progress"
+          onSubmit={handleTreatmentSubmit}
+          keepOpenAfterCreate={false}
+          patientId={Number(appointment.patientId)}
         />
       )}
     </div>

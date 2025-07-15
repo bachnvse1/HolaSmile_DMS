@@ -32,7 +32,7 @@ namespace Application.Usecases.Assistants.UpdatePrescriptionTemplate
 
             existing.PreTemplateName = request.PreTemplateName;
             existing.PreTemplateContext = request.PreTemplateContext;
-            existing.UpdatedAt = DateTime.UtcNow;
+            existing.UpdatedAt = DateTime.Now;
 
             var success = await _repository.UpdateAsync(existing, cancellationToken);
             if (!success)

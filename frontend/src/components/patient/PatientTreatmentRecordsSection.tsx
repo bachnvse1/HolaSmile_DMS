@@ -5,12 +5,13 @@ import SummaryStats from "./SummaryStats"
 import TreatmentTable from "./TreatmentTable"
 import { getTreatmentRecordsByPatientId } from "@/services/treatmentService"
 import type { FilterFormData, TreatmentRecord } from "@/types/treatment"
+import { useUserInfo } from "@/hooks/useUserInfo"
+import { AuthGuard } from "../AuthGuard"
+import { PatientLayout } from "@/layouts/patient"
 
-interface Props {
-  patientId: number
-}
-
-export default function PatientTreatmentRecordsSection({ patientId }: Props) {
+export default function PatientTreatmentRecordsSection() {
+  const userInfo = useUserInfo()
+  const patientId = userInfo?.roleTableId || ""
   const { register, watch } = useForm<FilterFormData>({
     defaultValues: {
       searchTerm: "",
@@ -28,7 +29,7 @@ export default function PatientTreatmentRecordsSection({ patientId }: Props) {
   useEffect(() => {
     const fetchRecords = async () => {
       try {
-        const data = await getTreatmentRecordsByPatientId(patientId)
+        const data = await getTreatmentRecordsByPatientId(Number(patientId))
         setRecords(data)
       } catch (error) {
         console.error("Error fetching treatment records:", error)
@@ -56,17 +57,22 @@ export default function PatientTreatmentRecordsSection({ patientId }: Props) {
   })
 
   return (
-    <div className="mt-12 space-y-6">
-      <h2 className="text-xl font-semibold text-gray-800">Hồ sơ điều trị nha khoa</h2>
-      <FilterBar register={register} />
-      <TreatmentTable
-        records={filteredRecords}
-        patientId={patientId}
-        readonly 
-        onEdit={() => {}} 
-        onToggleDelete={() => Promise.resolve()} 
-      />
-      <SummaryStats records={records} />
-    </div>
+    <AuthGuard requiredRoles={['Patient']}>
+      <PatientLayout userInfo={userInfo}>
+        <div className="mt-12 space-y-6">
+          <h2 className="text-xl font-semibold text-gray-800">Hồ sơ điều trị nha khoa</h2>
+          <FilterBar register={register} />
+          <TreatmentTable
+            records={filteredRecords}
+            patientId={Number(patientId)}
+            patientName={userInfo?.name || ""}
+            readonly
+            onEdit={() => { }}
+            onToggleDelete={() => Promise.resolve()}
+          />
+          <SummaryStats records={records} />
+        </div>
+      </PatientLayout>
+    </AuthGuard>
   )
 }

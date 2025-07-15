@@ -214,7 +214,7 @@ export const SupplyDetail: React.FC = () => {
                   <p className="text-base sm:text-lg font-semibold text-gray-900">
                     {supply.QuantityInStock}
                   </p>
-                  <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${stockStatus.color} w-fit`}>
+                  <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-md ${stockStatus.color} w-fit`}>
                     <stockStatus.icon className="h-4 w-4 mr-1" />
                     {stockStatus.text}
                   </span>
@@ -249,7 +249,7 @@ export const SupplyDetail: React.FC = () => {
                 </div>
 
                 <div className="flex items-center">
-                  <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${expiryStatus.color}`}>
+                  <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-md ${expiryStatus.color}`}>
                     {expiryStatus.text}
                   </span>
                 </div>

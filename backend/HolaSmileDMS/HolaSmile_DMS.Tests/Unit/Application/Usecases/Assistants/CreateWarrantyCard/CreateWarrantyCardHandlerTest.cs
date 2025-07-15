@@ -175,9 +175,10 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
         [Fact(DisplayName = "Abnormal - UTCID06 - Procedure already has warranty throws MSG100")]
         public async System.Threading.Tasks.Task UTCID06_Procedure_Already_Has_Warranty()
         {
+            // Arrange
             SetupHttpContext("Assistant");
 
-            var procedure = new Procedure { ProcedureId = 3, WarrantyCardId = 99 };
+            var procedure = new Procedure { ProcedureId = 3 };
             _context.Procedures.Add(procedure);
 
             var appointment = new Appointment { AppointmentId = 3, PatientId = 1 };
@@ -194,13 +195,29 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             };
             _context.TreatmentRecords.Add(tr);
 
+            var existingWarranty = new WarrantyCard
+            {
+                WarrantyCardID = 99,
+                TreatmentRecordID = 3, // Gắn đúng với treatment
+                StartDate = DateTime.Now,
+                EndDate = DateTime.Now.AddMonths(12),
+                Duration = 12,
+                Status = true,
+                CreateBy = 1
+            };
+            _context.WarrantyCards.Add(existingWarranty);
+
             await _context.SaveChangesAsync();
 
+            var command = new CreateWarrantyCardCommand { TreatmentRecordId = 3, Duration = 12 };
+
+            // Act + Assert
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                _handler.Handle(new CreateWarrantyCardCommand { TreatmentRecordId = 3, Duration = 12 }, default));
+                _handler.Handle(command, default));
 
             Assert.Equal(MessageConstants.MSG.MSG100, ex.Message);
         }
+
 
         [Fact(DisplayName = "Abnormal - UTCID07 - Duration <= 0 throws MSG98")]
         public async System.Threading.Tasks.Task UTCID07_Duration_Zero_Throws()

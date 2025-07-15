@@ -106,7 +106,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
 
             var result = await handler.Handle(command, CancellationToken.None);
 
-            result.Should().Be(MessageConstants.MSG.MSG113);
+            result.Should().Be(MessageConstants.MSG.MSG114);
         }
     }
 }

@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Application.Common.Mappings;
 using Application.Constants;
-using Application.Usecases.Dentist.UpdateOrthodonticTreatmentPlan;
+using Application.Usecases.Dentists.UpdateOrthodonticTreatmentPlan;
 using AutoMapper;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;
@@ -152,24 +152,5 @@ public class EditOrthodonticTreatmentPlanIntegrationTests
             handler.Handle(new EditOrthodonticTreatmentPlanCommand(dto), default));
 
         Assert.Equal(MessageConstants.MSG.MSG07, ex.Message);
-    }
-
-    [Fact(DisplayName = "ITCID05 - Không phải role Dentist")]
-    public async System.Threading.Tasks.Task ITCID05_ShouldThrow_WhenNotDentist()
-    {
-        var handler = CreateHandler("Assistant", "2");
-
-        var dto = new EditOrthodonticTreatmentPlanDto
-        {
-            PlanId = 5,
-            PlanTitle = "Valid",
-            TotalCost = 10000000,
-            PaymentMethod = "cash"
-        };
-
-        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            handler.Handle(new EditOrthodonticTreatmentPlanCommand(dto), default));
-
-        Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
     }
 }

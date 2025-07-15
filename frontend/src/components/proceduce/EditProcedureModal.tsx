@@ -6,7 +6,7 @@ import {
     DialogOverlay,
     DialogDescription,
 } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button2"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -15,6 +15,7 @@ import { Edit, Percent, Package, Trash2, AlertCircle, Loader2, Calculator } from
 import { SupplySearch } from "./SupplySearch"
 import { ConfirmModal } from "../common/ConfirmModal"
 import type { Procedure, ProcedureUpdateForm, Supply, SupplyItem } from "@/types/procedure"
+import { supplyApi, mapToSupplyItem } from "@/services/supplyApi"
 import React from "react"
 import { Badge } from "../ui/badge"
 
@@ -64,6 +65,28 @@ export function EditProcedureModal({
     const [isSubmitting, setIsSubmitting] = React.useState(false)
     const [autoCalculatePrice, setAutoCalculatePrice] = React.useState(true)
     const [isConfirmOpen, setIsConfirmOpen] = React.useState(false)
+    const [supplyItems, setSupplyItems] = React.useState<SupplyItem[]>([])
+    const [isLoadingSupplies, setIsLoadingSupplies] = React.useState(false)
+    const [estimatedCost, setEstimatedCost] = React.useState(0)
+
+    // Load all supply items when modal opens
+    React.useEffect(() => {
+        if (isOpen && supplyItems.length === 0) {
+            const fetchSupplyItems = async () => {
+                setIsLoadingSupplies(true)
+                try {
+                    const data = await supplyApi.getSupplies()
+                    const mapped = data.map(mapToSupplyItem)
+                    setSupplyItems(mapped)
+                } catch (error) {
+                    console.error("Lỗi khi tải danh sách vật tư:", error)
+                } finally {
+                    setIsLoadingSupplies(false)
+                }
+            }
+            fetchSupplyItems()
+        }
+    }, [isOpen, supplyItems.length])
 
     React.useEffect(() => {
         if (procedure) {
@@ -72,7 +95,7 @@ export function EditProcedureModal({
                 procedureName: procedure.procedureName,
                 price: procedure.price,
                 description: procedure.description,
-                discount: procedure.discount,
+                discount: procedure.discount ?? 0,
                 warrantyPeriod: procedure.warrantyPeriod,
                 originalPrice: procedure.originalPrice,
                 consumableCost: procedure.consumableCost,
@@ -83,16 +106,36 @@ export function EditProcedureModal({
                 suppliesUsed: procedure.suppliesUsed || [],
             })
             setErrors({})
+
+            const totalCost = calculateTotalSupplyCost(procedure.suppliesUsed || [])
+            setEstimatedCost(procedure.consumableCost - totalCost)
         }
     }, [procedure])
+
+    const calculateTotalSupplyCost = React.useCallback((supplies: Supply[] = []): number => {
+        return supplies.reduce((total, supply) => {
+            const supplyItem = supplyItems.find(item => item.id === supply.supplyId)
+            if (supplyItem) {
+                return total + (supplyItem.price * supply.quantity)
+            }
+            return total
+        }, 0)
+    }, [supplyItems])
+
+
+    React.useEffect(() => {
+        setForm(prev => ({ ...prev, consumableCost: estimatedCost + calculateTotalSupplyCost(form.suppliesUsed) }));
+    }, [estimatedCost, calculateTotalSupplyCost, form.suppliesUsed])
 
     React.useEffect(() => {
         if (autoCalculatePrice && form.originalPrice > 0) {
             const discountAmount = form.originalPrice * (form.discount / 100)
-            const calculatedPrice = form.originalPrice - discountAmount
+            const calculatedPrice = form.originalPrice - discountAmount + form.consumableCost
             setForm(prev => ({ ...prev, price: Math.max(0, calculatedPrice) }))
         }
-    }, [form.originalPrice, form.discount, autoCalculatePrice])
+    }, [form.originalPrice, form.discount, autoCalculatePrice, form.consumableCost])
+
+
 
     const updateForm = React.useCallback((field: keyof ProcedureUpdateForm, value: string | number | Supply[]) => {
         setForm((prev) => ({ ...prev, [field]: value }))
@@ -122,7 +165,7 @@ export function EditProcedureModal({
 
         if (form.price <= 0) {
             newErrors.price = "Giá bán phải lớn hơn 0"
-        } else if (form.price > form.originalPrice) {
+        } else if (form.price > (form.originalPrice + form.consumableCost)) {
             newErrors.price = "Giá bán không được lớn hơn giá gốc"
         }
 
@@ -154,7 +197,7 @@ export function EditProcedureModal({
         })
 
         if (autoCalculatePrice) {
-            const expectedPrice = form.originalPrice * (1 - form.discount / 100)
+            const expectedPrice = form.originalPrice * (1 - form.discount / 100) + form.consumableCost
             if (Math.abs(form.price - expectedPrice) > 0.01) {
                 newErrors.price = "Giá bán không khớp với giá gốc và giảm giá"
             }
@@ -217,7 +260,11 @@ export function EditProcedureModal({
         if (!procedure) return
         setIsSubmitting(true)
         try {
-            await onSave(procedure.procedureId, form)
+            const finalForm = {
+                ...form,
+                consumableCost: estimatedCost,
+            }
+            await onSave(procedure.procedureId, finalForm)
             onOpenChange(false)
         } catch (error) {
             setErrors({
@@ -235,11 +282,18 @@ export function EditProcedureModal({
         setErrors({})
     }
 
+    const formatCurrency = (amount: number) =>
+        new Intl.NumberFormat("vi-VN", {
+            style: "currency",
+            currency: "VND",
+        }).format(amount)
+
     if (!procedure) return null
 
     const currentSupplies = form.suppliesUsed || []
     const totalCommission = form.doctorCommissionRate + form.assistantCommissionRate +
         form.technicianCommissionRate + form.referralCommissionRate
+    const totalSupplyCost = calculateTotalSupplyCost(currentSupplies)
 
     return (
         <>
@@ -259,6 +313,14 @@ export function EditProcedureModal({
                         <Alert variant="destructive">
                             <AlertCircle className="h-4 w-4" />
                             <AlertDescription>{errors.general}</AlertDescription>
+                        </Alert>
+                    )}
+
+                    {/* Loading supplies indicator */}
+                    {isLoadingSupplies && (
+                        <Alert>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <AlertDescription>Đang tải thông tin vật tư...</AlertDescription>
                         </Alert>
                     )}
 
@@ -379,16 +441,34 @@ export function EditProcedureModal({
                                 </div>
                             </div>
 
+                            <div className="space-y-2">
+                                <Label htmlFor="consumableCost">Chi Phí Khấu Hao(VNĐ)</Label>
+                                <Input
+                                    id="consumableCost"
+                                    type="number"
+                                    min="0"
+                                    step="1000"
+                                    value={form.consumableCost}
+                                    placeholder="0"
+                                    disabled={true}
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    Chi phí khấu hao cho thủ thuật này
+                                </p>
+                            </div>
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="consumableCost">Chi Phí Vật Tư (VNĐ)</Label>
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor="estimatedCost">Chi Phí Ước Tính (VNĐ)</Label>
+                                    </div>
                                     <Input
-                                        id="consumableCost"
+                                        id="estimatedCost"
                                         type="number"
                                         min="0"
                                         step="1000"
-                                        value={form.consumableCost}
-                                        onChange={(e) => updateForm("consumableCost", Number.parseFloat(e.target.value) || 0)}
+                                        value={estimatedCost}
+                                        onChange={(e) => setEstimatedCost(Number.parseFloat(e.target.value) || 0)}
                                         placeholder="0"
                                         disabled={isSubmitting}
                                         className={errors.consumableCost ? "border-destructive" : ""}
@@ -404,8 +484,9 @@ export function EditProcedureModal({
                                         id="warrantyPeriod"
                                         value={form.warrantyPeriod}
                                         onChange={(e) => updateForm("warrantyPeriod", e.target.value)}
-                                        placeholder="6 months"
+                                        placeholder="6 tháng"
                                         disabled={isSubmitting}
+                                        maxLength={3}
                                     />
                                 </div>
                             </div>
@@ -507,7 +588,12 @@ export function EditProcedureModal({
                                         </Badge>
                                     )}
                                 </h3>
-                                <div className="flex gap-2">
+                                <div className="flex items-center gap-2">
+                                    {totalSupplyCost > 0 && (
+                                        <Badge variant="outline" className="text-green-600">
+                                            Tổng: {formatCurrency(totalSupplyCost)}
+                                        </Badge>
+                                    )}
                                     <SupplySearch
                                         onSelectSupply={addSupplyFromSearch}
                                         selectedSupplies={currentSupplies}
@@ -536,40 +622,55 @@ export function EditProcedureModal({
                                 </div>
                             ) : (
                                 <div className="space-y-3">
-                                    {currentSupplies.map((supply, index) => (
-                                        <div key={`${supply.supplyId}-${index}`} className="flex gap-4 items-center p-4 border rounded-lg bg-muted/20">
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2">
-                                                    <h4 className="font-medium">{supply.supplyName}</h4>
+                                    {currentSupplies.map((supply, index) => {
+                                        const supplyItem = supplyItems.find(item => item.id === supply.supplyId)
+                                        const itemCost = supplyItem ? supplyItem.price * supply.quantity : 0
+
+                                        return (
+                                            <div key={`${supply.supplyId}-${index}`} className="flex gap-4 items-center p-4 border rounded-lg bg-muted/20">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <h4 className="font-medium">{supply.supplyName}</h4>
+                                                        {supplyItem && (
+                                                            <Badge variant="outline" className="text-xs">
+                                                                {formatCurrency(supplyItem.price)}/{supplyItem.unit}
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+                                                    {itemCost > 0 && (
+                                                        <p className="text-sm text-green-600 font-medium">
+                                                            Thành tiền: {formatCurrency(itemCost)}
+                                                        </p>
+                                                    )}
                                                 </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <Label htmlFor={`quantity-${index}`} className="text-sm">
-                                                    Số lượng:
-                                                </Label>
-                                                <Input
-                                                    id={`quantity-${index}`}
-                                                    type="number"
-                                                    min="1"
-                                                    step="1"
-                                                    value={supply.quantity}
-                                                    onChange={(e) => updateSupplyQuantity(index, Number.parseFloat(e.target.value) || 0)}
+                                                <div className="flex items-center gap-2">
+                                                    <Label htmlFor={`quantity-${index}`} className="text-sm">
+                                                        Số lượng:
+                                                    </Label>
+                                                    <Input
+                                                        id={`quantity-${index}`}
+                                                        type="number"
+                                                        min="1"
+                                                        step="1"
+                                                        value={supply.quantity}
+                                                        onChange={(e) => updateSupplyQuantity(index, Number.parseFloat(e.target.value) || 0)}
+                                                        disabled={isSubmitting}
+                                                        className="w-20"
+                                                    />
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => removeSupply(index)}
                                                     disabled={isSubmitting}
-                                                    className="w-20"
-                                                />
+                                                    className="text-destructive hover:text-destructive"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
                                             </div>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => removeSupply(index)}
-                                                disabled={isSubmitting}
-                                                className="text-destructive hover:text-destructive"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    ))}
+                                        )
+                                    })}
                                 </div>
                             )}
                         </div>

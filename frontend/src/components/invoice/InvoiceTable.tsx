@@ -1,10 +1,13 @@
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button2"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { Invoice } from "@/types/invoice"
-import { Eye, FileText, CreditCard, Calendar, DollarSign, User } from "lucide-react"
+import { Eye, FileText, CreditCard, Calendar, DollarSign, User, Loader2 } from "lucide-react"
 import type { JSX } from "react"
+import { useState } from "react"
+import { invoiceService } from "@/services/invoiceService"
+import { useUserInfo } from "@/hooks/useUserInfo"
 
 interface InvoiceTableProps {
   displayData: Invoice[]
@@ -69,7 +72,7 @@ const EmptyState = () => (
             Không tìm thấy hóa đơn
           </h3>
           <p className="text-sm text-gray-500 max-w-sm">
-            Không có hóa đơn nào phù hợp với bộ lọc hiện tại. 
+            Không có hóa đơn nào phù hợp với bộ lọc hiện tại.
             Hãy thử điều chỉnh bộ lọc hoặc tạo hóa đơn mới.
           </p>
         </div>
@@ -79,25 +82,61 @@ const EmptyState = () => (
 )
 
 // Enhanced invoice row component
-const InvoiceRow = ({ 
-  invoice, 
-  formatCurrency, 
-  getStatusBadge, 
-  getTransactionTypeBadge, 
-  openInvoiceDetail 
+const InvoiceRow = ({
+  invoice,
+  displayData,
+  formatCurrency,
+  getStatusBadge,
+  getTransactionTypeBadge,
+  openInvoiceDetail
 }: {
   invoice: Invoice
+  displayData: Invoice[]
   formatCurrency: (amount: number | null) => string
   getStatusBadge: (status: string) => JSX.Element
   getTransactionTypeBadge: (type: string) => JSX.Element
   openInvoiceDetail: (invoice: Invoice) => void
 }) => {
-  const remainingAmount = (invoice.totalAmount || 0) - (invoice.paidAmount || 0)
-  const paymentProgress = invoice.totalAmount ? 
-    Math.round(((invoice.paidAmount || 0) / invoice.totalAmount) * 100) : 0
+  const { role } = useUserInfo()
+  const [paymentLoading, setPaymentLoading] = useState(false)
+
+  const totalPaidForTreatment = displayData
+    .filter(inv => inv.treatmentRecordId === invoice.treatmentRecordId)
+    .reduce((sum, inv) => sum + (inv.paidAmount || 0), 0)
+
+  const remainingAmount = (invoice.totalAmount || 0) - totalPaidForTreatment
+
+  const paymentProgress = invoice.totalAmount
+    ? Number((totalPaidForTreatment / invoice.totalAmount * 100).toFixed(2))
+    : 0
+
+  const handlePayment = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+
+    if (!invoice.orderCode) {
+      console.error('Order code is required for payment')
+      return
+    }
+
+    setPaymentLoading(true)
+    try {
+      const response = await invoiceService.createPaymentLink(invoice.orderCode)
+
+      if (response.checkoutUrl) {
+        // Redirect to payment URL
+        window.location.href = response.checkoutUrl
+      } else {
+        console.error('Payment link not found in response')
+      }
+    } catch (error) {
+      console.error('Error creating payment link:', error)
+    } finally {
+      setPaymentLoading(false)
+    }
+  }
 
   return (
-    <TableRow 
+    <TableRow
       className="hover:bg-gray-50 transition-colors duration-200 cursor-pointer group"
       onClick={() => openInvoiceDetail(invoice)}
     >
@@ -110,13 +149,10 @@ const InvoiceRow = ({
             <div className="text-sm font-medium text-gray-900 truncate">
               {invoice.patientName}
             </div>
-            <div className="text-xs text-gray-500 truncate">
-              ID: {invoice.patientId}
-            </div>
           </div>
         </div>
       </TableCell>
-      
+
       <TableCell className="px-6 py-4">
         <div className="text-right">
           <div className="text-sm font-semibold text-green-700">
@@ -128,7 +164,7 @@ const InvoiceRow = ({
           </div>
         </div>
       </TableCell>
-      
+
       <TableCell className="px-6 py-4">
         <div className="text-right">
           <div className="text-sm text-gray-700">
@@ -139,7 +175,7 @@ const InvoiceRow = ({
           </div>
         </div>
       </TableCell>
-      
+
       <TableCell className="px-6 py-4">
         <div className="text-right">
           <div className={`text-sm ${remainingAmount > 0 ? 'text-red-600 font-medium' : 'text-gray-700'}`}>
@@ -152,25 +188,24 @@ const InvoiceRow = ({
           )}
         </div>
       </TableCell>
-      
+
       <TableCell className="px-6 py-4">
-        <Badge 
-          variant="outline" 
+        <Badge
+          variant="outline"
           className="bg-gray-100 text-gray-800 border-gray-300 text-xs"
         >
-          <CreditCard className="h-3 w-3 mr-1" />
-          {invoice.paymentMethod}
+          {invoice.paymentMethod === "cash" ? "Tiền mặt" : "Chuyển khoản"}
         </Badge>
       </TableCell>
-      
+
       <TableCell className="px-6 py-4">
         {getTransactionTypeBadge(invoice.transactionType)}
       </TableCell>
-      
+
       <TableCell className="px-6 py-4">
         {getStatusBadge(invoice.status)}
       </TableCell>
-      
+
       <TableCell className="px-6 py-4">
         <div className="flex items-center justify-center space-x-2">
           <Button
@@ -182,9 +217,24 @@ const InvoiceRow = ({
             }}
             className="text-blue-600 hover:bg-blue-50 transition-colors duration-200 group-hover:bg-blue-100"
           >
-            <Eye className="h-4 w-4 mr-1" />
-            Chi tiết
+            <Eye className="h-4 w-4" />
           </Button>
+
+          {role === "Patient" && remainingAmount > 0 && invoice.orderCode && invoice.paymentMethod !== "cash" && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePayment}
+              disabled={paymentLoading}
+              className="text-green-600 border-green-600 hover:bg-green-50 transition-colors duration-200"
+            >
+              {paymentLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <CreditCard className="h-4 w-4" />
+              )}
+            </Button>
+          )}
         </div>
       </TableCell>
     </TableRow>
@@ -230,7 +280,7 @@ export function InvoiceTable({
               <TableHead className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <div className="flex items-center justify-end space-x-2">
                   <CreditCard className="h-4 w-4" />
-                  <span>Đã thanh toán</span>
+                  <span>Thanh toán</span>
                 </div>
               </TableHead>
               <TableHead className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -263,6 +313,7 @@ export function InvoiceTable({
                 <InvoiceRow
                   key={invoice.invoiceId}
                   invoice={invoice}
+                  displayData={displayData}
                   formatCurrency={formatCurrency}
                   getStatusBadge={getStatusBadge}
                   getTransactionTypeBadge={getTransactionTypeBadge}
@@ -277,17 +328,20 @@ export function InvoiceTable({
       {/* Table footer with summary */}
       {!isLoading && displayData.length > 0 && (
         <div className="bg-gray-50 border-t border-gray-200 px-6 py-3">
-          <div className="flex justify-between items-center text-sm text-gray-600">
+          <div className="flex justify-between items-centuer text-sm text-gray-600">
             <span>Tổng cộng: {displayData.length} hóa đơn</span>
             <div className="flex space-x-6">
               <span>
                 Tổng giá trị: {formatCurrency(
-                  displayData.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0)
+                  Array.from(new Map(displayData.map(inv => [inv.treatmentRecordId, inv])).values())
+                    .reduce((sum, inv) => sum + (inv.totalAmount || 0), 0)
                 )}
               </span>
               <span>
                 Đã thu: {formatCurrency(
-                  displayData.reduce((sum, inv) => sum + (inv.paidAmount || 0), 0)
+                  displayData
+                    .filter(inv => inv.status === "paid" || inv.status === "completed")
+                    .reduce((sum, inv) => sum + (inv.paidAmount || 0), 0)
                 )}
               </span>
             </div>

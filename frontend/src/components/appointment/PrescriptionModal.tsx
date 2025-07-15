@@ -77,24 +77,32 @@ export const PrescriptionModal: React.FC<PrescriptionModalProps> = ({
   // Handle form submission
   const onSubmit = async (data: PrescriptionFormData) => {
     try {
+      let success = false;
+      
       if (isEditing && existingPrescription) {
         const updateData: UpdatePrescriptionRequest = {
-          prescriptionId: existingPrescription.prescriptionId, // Use correct prescriptionId
+          prescriptionId: existingPrescription.prescriptionId,
           contents: data.content,
         };
         await updateMutation.mutateAsync(updateData);
-        // toast.success('Cập nhật đơn thuốc thành công!');
+        success = true;
       } else {
         const createData: CreatePrescriptionRequest = {
           appointmentId: appointmentId,
           contents: data.content,
         };
         await createMutation.mutateAsync(createData);
-        // toast.success('Tạo đơn thuốc thành công!');
+        success = true;
       }
       
-      onSuccess?.();
-      onClose();
+      if (success) {
+        // Small delay to allow toast to be visible before refreshing data
+        setTimeout(() => {
+          onSuccess?.();
+          onClose();
+        }, 500); // 800ms delay for better user experience
+      }
+      
     } catch (error) {
       console.error('Error saving prescription:', error);
       toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi lưu đơn thuốc. Vui lòng thử lại!');
@@ -109,7 +117,7 @@ export const PrescriptionModal: React.FC<PrescriptionModalProps> = ({
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-opacity-75 backdrop-blur-sm"
+        className="absolute bg-black/20 inset-0 bg-opacity-75"
         onClick={onClose}
       />
 

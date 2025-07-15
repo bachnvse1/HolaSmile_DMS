@@ -231,6 +231,10 @@ export class TokenUtils {
     localStorage.removeItem("token");        // Normal login
     localStorage.removeItem("authToken");    // Google OAuth
     localStorage.removeItem("refreshToken");
+    localStorage.removeItem("role");
+    localStorage.removeItem("avatar");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("username");
   }
 
   /**

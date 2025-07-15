@@ -1,6 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -110,4 +110,7 @@
   --sidebar-ring: oklch(0.488 0.243 264.376);
 }
 
+body {
+  font-family: 'Inter', sans-serif;
+}
 

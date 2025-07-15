@@ -6,7 +6,7 @@ import {
   DialogTrigger,
   DialogOverlay,
 } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button2"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -232,7 +232,7 @@ export function CreateProcedureModal({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="consumableCost">Chi Phí Vật Tư (VNĐ)</Label>
+                  <Label htmlFor="consumableCost">Chi Phí Ước Tính (VNĐ)</Label>
                   <Input
                     id="consumableCost"
                     type="number"
@@ -257,7 +257,7 @@ export function CreateProcedureModal({
                     value={form.warrantyPeriod}
                     onChange={(e) => updateForm("warrantyPeriod", e.target.value)}
                     placeholder="6 tháng"
-                    maxLength={100}
+                    maxLength={3}
                   />
                 </div>
               </div>

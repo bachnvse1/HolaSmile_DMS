@@ -38,8 +38,8 @@ interface TreatmentModalProps {
   defaultStatus?: string;
   treatmentToday?: boolean;
   onSubmit?: (data: TreatmentFormData) => void;
-  keepOpenAfterCreate?: boolean; 
-  patientId?: number; 
+  keepOpenAfterCreate?: boolean;
+  patientId?: number;
 }
 
 const TreatmentModal: React.FC<TreatmentModalProps> = ({
@@ -52,7 +52,7 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
   appointmentId,
   defaultStatus,
   onSubmit,
-  keepOpenAfterCreate = true, // Default to true for continuous creation
+  keepOpenAfterCreate = true,
   patientId,
 }) => {
   const {
@@ -96,7 +96,7 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
   const handleInternalSubmit = async (data: TreatmentFormData) => {
     try {
       setIsSubmitting(true);
-      
+
       if (isEditing) {
         // Editing mode - update and close
         const result: { message?: string } = await updateTreatmentRecord(recordId!, data, totalAmount, updatedBy);
@@ -107,7 +107,7 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
       } else {
         // Creating mode - create and stay open
         const result: { message?: string; recordId?: number } = await createTreatmentRecord(
-          { ...data},
+          { ...data },
           totalAmount,
           updatedBy
         );
@@ -126,24 +126,24 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
 
         setCreatedRecords(prev => [...prev, newRecord]);
         toast.success(result.message || "Tạo mới thành công");
-        
+
         // Reset form for next entry but keep some values
         const dentistId = selectedDentistId;
         const treatmentDate = watch("treatmentDate");
         const appointmentID = watch("appointmentID");
         const treatmentStatus = watch("treatmentStatus");
-        
+
         reset();
-        
+
         // Restore some values
         setValue("dentistID", dentistId);
         setValue("treatmentDate", treatmentDate);
         setValue("appointmentID", appointmentID);
         setValue("treatmentStatus", treatmentStatus);
-        
+
         // Clear procedure selection
         setSelectedProcedure(null);
-        
+
         // Only call onSubmit if we should close after create
         if (!keepOpenAfterCreate && onSubmit) {
           onSubmit(data);
@@ -161,8 +161,19 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
     onClose();
   };
 
+  const handleComplete = () => {
+    if (onSubmit && createdRecords.length > 0) {
+      onSubmit(formMethods.getValues());
+    }
+    handleClose();
+
+    if (patientId && patientId > 0) {
+      window.location.href = `/patient/view-treatment-records?patientId=${patientId}`;
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/20 bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto border border-gray-200">
         <div className="p-6 border-b border-gray-200 flex items-center justify-between">
           <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
@@ -174,7 +185,7 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
               </span>
             )}
           </h3>
-          <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 focus:outline-none">
+          <button onClick={handleClose} title="Đóng" className="text-gray-400 hover:text-gray-600 focus:outline-none">
             <X className="h-6 w-6" />
           </button>
         </div>
@@ -280,7 +291,7 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Giảm trực tiếp</label>
                     <input
-                      {...register("discountAmount", {min: { value: 0, message: "Phải lớn hơn bằng 0" }, valueAsNumber: true })}
+                      {...register("discountAmount", { min: { value: 0, message: "Phải lớn hơn bằng 0" }, valueAsNumber: true })}
                       type="number"
                       step="0.01"
                       className="w-full border border-gray-300 rounded-md px-3 py-2"
@@ -290,7 +301,7 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Giảm (%)</label>
                     <input
-                      {...register("discountPercentage", {min: { value: 0, message: "Phải lớn hơn bằng 0" }, valueAsNumber: true })}
+                      {...register("discountPercentage", { min: { value: 0, message: "Phải lớn hơn bằng 0" }, valueAsNumber: true })}
                       type="number"
                       step="0.1"
                       max={100}
@@ -334,27 +345,19 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                 >
                   {isEditing ? "Huỷ" : "Đóng"}
                 </button>
-                
+
                 {/* Show "Hoàn tất" button if we have created records */}
                 {!isEditing && createdRecords.length > 0 && (
                   <button
                     type="button"
-                    onClick={() => {
-                      if (onSubmit && createdRecords.length > 0) {
-                        onSubmit(formMethods.getValues());
-                      }
-                      handleClose();
-                      if (patientId) {
-                        window.location.href = `/patient/view-treatment-records?patientId=${patientId}`;
-                      }
-                    }}
+                    onClick={handleComplete}
                     disabled={isSubmitting}
                     className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
                   >
                     Hoàn tất ({createdRecords.length})
                   </button>
                 )}
-                
+
                 <button
                   type="submit"
                   disabled={isSubmitting}
