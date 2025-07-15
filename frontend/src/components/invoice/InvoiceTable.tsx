@@ -8,11 +8,11 @@ import {
   FileText, 
   CreditCard, 
   Calendar, 
-  User, 
   MoreHorizontal, 
   Printer,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Users
 } from "lucide-react"
 import type { JSX } from "react"
 import { useState } from "react"
@@ -41,13 +41,38 @@ interface GroupedInvoice {
   invoices: Invoice[]
 }
 
+// Patient group structure
+interface PatientGroup {
+  patientName: string
+  totalAmount: number
+  paidAmount: number
+  remainingAmount: number
+  paymentProgress: number
+  treatmentRecords: GroupedInvoice[]
+}
+
 // Loading skeleton component
 const TableSkeleton = () => (
   <>
     {Array.from({ length: 3 }).map((_, index) => (
       <div key={index} className="border-b border-gray-200">
-        {/* Group header skeleton */}
-        <div className="bg-gray-50 p-4 animate-pulse">
+        {/* Patient group header skeleton */}
+        <div className="bg-blue-100 p-4 animate-pulse">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Skeleton className="h-4 w-4" />
+              <Skeleton className="h-5 w-32" />
+            </div>
+            <div className="flex items-center space-x-8">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-4 w-20" />
+            </div>
+          </div>
+        </div>
+        
+        {/* Treatment record header skeleton */}
+        <div className="bg-gray-50 p-4 animate-pulse ml-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Skeleton className="h-4 w-4" />
@@ -63,7 +88,7 @@ const TableSkeleton = () => (
         
         {/* Invoice rows skeleton */}
         {Array.from({ length: 2 }).map((_, rowIndex) => (
-          <div key={rowIndex} className="p-4 animate-pulse">
+          <div key={rowIndex} className="p-4 animate-pulse ml-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <Skeleton className="h-4 w-4" />
@@ -275,7 +300,7 @@ const InvoiceRow = ({
   }
 
   return (
-    <div className="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0">
+    <div className="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 ml-8">
       <div className="flex items-center space-x-3">
         <div className="w-4 h-4"></div> {/* Spacer for alignment */}
         <div className="text-sm text-gray-600">
@@ -293,7 +318,7 @@ const InvoiceRow = ({
         </div>
         
         <div className="text-sm text-gray-700 w-24 text-right">
-          {formatCurrency((invoice.totalAmount || 0) - (invoice.paidAmount || 0))}
+          {formatCurrency(groupData.remainingAmount)}
         </div>
         
         <div className="w-20">
@@ -329,8 +354,8 @@ const InvoiceRow = ({
   )
 }
 
-// Group header component
-const GroupHeader = ({
+// Treatment record header component
+const TreatmentRecordHeader = ({
   group,
   isExpanded,
   onToggle,
@@ -345,7 +370,7 @@ const GroupHeader = ({
 }) => {
   return (
     <div 
-      className="bg-blue-50 p-4 cursor-pointer hover:bg-blue-100 transition-colors"
+      className="bg-blue-50 p-4 cursor-pointer hover:bg-blue-100 transition-colors ml-4"
       onClick={onToggle}
     >
       <div className="flex items-center justify-between">
@@ -363,12 +388,6 @@ const GroupHeader = ({
               Hồ sơ điều trị: {group.treatmentRecordId}
             </span>
           </div>
-          <div className="flex items-center space-x-2">
-            <User className="h-4 w-4 text-gray-600" />
-            <span className="text-sm font-medium text-gray-900">
-              {group.patientName}
-            </span>
-          </div>
         </div>
         
         <div className="flex items-center space-x-8">
@@ -384,7 +403,7 @@ const GroupHeader = ({
               {formatCurrency(group.paidAmount)}
             </div>
             <div className="text-xs text-gray-500">
-              {group.paymentProgress}% hoàn thành
+              {group.paymentProgress.toFixed(1)}% hoàn thành
             </div>
           </div>
           
@@ -411,6 +430,80 @@ const GroupHeader = ({
   )
 }
 
+// Patient group header component
+const PatientGroupHeader = ({
+  patientGroup,
+  isExpanded,
+  onToggle,
+  formatCurrency
+}: {
+  patientGroup: PatientGroup
+  isExpanded: boolean
+  onToggle: () => void
+  formatCurrency: (amount: number | null) => string
+}) => {
+  return (
+    <div 
+      className="bg-blue-100 p-4 cursor-pointer hover:bg-blue-200 transition-colors border-b border-blue-200"
+      onClick={onToggle}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center">
+            {isExpanded ? (
+              <ChevronDown className="h-5 w-5 text-blue-700" />
+            ) : (
+              <ChevronRight className="h-5 w-5 text-blue-700" />
+            )}
+          </div>
+          <div className="flex items-center space-x-3">
+            <Users className="h-5 w-5 text-blue-700" />
+            <span className="text-base font-semibold text-blue-900">
+              {patientGroup.patientName}
+            </span>
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-8">
+          <div className="text-right">
+            <div className="text-sm font-semibold text-gray-900">
+              {formatCurrency(patientGroup.totalAmount)}
+            </div>
+            <div className="text-xs text-gray-500">Tổng tiền</div>
+          </div>
+          
+          <div className="text-right">
+            <div className="text-sm font-medium text-green-600">
+              {formatCurrency(patientGroup.paidAmount)}
+            </div>
+            <div className="text-xs text-gray-500">
+              {patientGroup.paymentProgress.toFixed(2)}% hoàn thành
+            </div>
+          </div>
+          
+          <div className="text-right">
+            <div className={`text-sm font-medium ${patientGroup.remainingAmount > 0 ? 'text-red-600' : 'text-gray-700'}`}>
+              {formatCurrency(patientGroup.remainingAmount)}
+            </div>
+            <div className="text-xs text-gray-500">
+              {patientGroup.remainingAmount > 0 ? 'Chưa thanh toán' : 'Hoàn tất'}
+            </div>
+          </div>
+          
+          <div className="text-right">
+            <div className="text-sm font-medium text-gray-700">
+              {patientGroup.treatmentRecords.length} hồ sơ
+            </div>
+            <div className="text-xs text-gray-500">
+              {patientGroup.treatmentRecords.reduce((sum, record) => sum + record.invoices.length, 0)} hóa đơn
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // Main component
 export function InvoiceTable({
   displayData,
@@ -421,10 +514,11 @@ export function InvoiceTable({
   openInvoiceDetail,
   isLoading = false,
 }: InvoiceTableProps) {
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
+  const [expandedPatients, setExpandedPatients] = useState<Set<string>>(new Set())
+  const [expandedTreatments, setExpandedTreatments] = useState<Set<string>>(new Set())
 
-  // Group invoices by treatmentRecordId
-  const groupedData = displayData.reduce((acc, invoice) => {
+  // Group invoices by treatmentRecordId first
+  const treatmentGroups = displayData.reduce((acc, invoice) => {
     const treatmentId = invoice.treatmentRecordId
     if (!acc[treatmentId]) {
       acc[treatmentId] = {
@@ -445,7 +539,7 @@ export function InvoiceTable({
     const totalAmount = Math.max(...groupInvoices.map(inv => inv.totalAmount || 0))
     const paidAmount = groupInvoices.reduce((sum, inv) => sum + (inv.paidAmount || 0), 0)
     const remainingAmount = totalAmount - paidAmount
-    const paymentProgress = totalAmount > 0 ? Math.round((paidAmount / totalAmount) * 100) : 0
+    const paymentProgress = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0
     
     acc[treatmentId].totalAmount = totalAmount
     acc[treatmentId].paidAmount = paidAmount
@@ -455,16 +549,57 @@ export function InvoiceTable({
     return acc
   }, {} as Record<string, GroupedInvoice>)
 
-  const groups = Object.values(groupedData)
+  // Group treatment records by patient
+  const patientGroups = Object.values(treatmentGroups).reduce((acc, treatmentGroup) => {
+    const patientName = treatmentGroup.patientName
+    if (!acc[patientName]) {
+      acc[patientName] = {
+        patientName,
+        totalAmount: 0,
+        paidAmount: 0,
+        remainingAmount: 0,
+        paymentProgress: 0,
+        treatmentRecords: []
+      }
+    }
+    
+    acc[patientName].treatmentRecords.push(treatmentGroup)
+    
+    // Calculate totals for the patient
+    const patientTreatments = acc[patientName].treatmentRecords
+    const totalAmount = patientTreatments.reduce((sum, record) => sum + record.totalAmount, 0)
+    const paidAmount = patientTreatments.reduce((sum, record) => sum + record.paidAmount, 0)
+    const remainingAmount = totalAmount - paidAmount
+    const paymentProgress = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0
+    
+    acc[patientName].totalAmount = totalAmount
+    acc[patientName].paidAmount = paidAmount
+    acc[patientName].remainingAmount = remainingAmount
+    acc[patientName].paymentProgress = paymentProgress
+    
+    return acc
+  }, {} as Record<string, PatientGroup>)
 
-  const toggleGroup = (treatmentId: string) => {
-    const newExpanded = new Set(expandedGroups)
+  const patients = Object.values(patientGroups)
+
+  const togglePatient = (patientName: string) => {
+    const newExpanded = new Set(expandedPatients)
+    if (newExpanded.has(patientName)) {
+      newExpanded.delete(patientName)
+    } else {
+      newExpanded.add(patientName)
+    }
+    setExpandedPatients(newExpanded)
+  }
+
+  const toggleTreatment = (treatmentId: string) => {
+    const newExpanded = new Set(expandedTreatments)
     if (newExpanded.has(treatmentId)) {
       newExpanded.delete(treatmentId)
     } else {
       newExpanded.add(treatmentId)
     }
-    setExpandedGroups(newExpanded)
+    setExpandedTreatments(newExpanded)
   }
 
   if (isLoading) {
@@ -486,53 +621,67 @@ export function InvoiceTable({
   return (
     <div className="relative overflow-hidden border border-gray-200 rounded-lg shadow-sm bg-white">
       <div className="divide-y divide-gray-200">
-        {groups.map((group) => (
-          <div key={group.treatmentRecordId}>
-            <GroupHeader
-              group={group}
-              isExpanded={expandedGroups.has(group.treatmentRecordId)}
-              onToggle={() => toggleGroup(group.treatmentRecordId)}
+        {patients.map((patientGroup) => (
+          <div key={patientGroup.patientName}>
+            <PatientGroupHeader
+              patientGroup={patientGroup}
+              isExpanded={expandedPatients.has(patientGroup.patientName)}
+              onToggle={() => togglePatient(patientGroup.patientName)}
               formatCurrency={formatCurrency}
-              formatDate={formatDate}
             />
             
-            {expandedGroups.has(group.treatmentRecordId) && (
+            {expandedPatients.has(patientGroup.patientName) && (
               <div className="bg-white">
-                {/* Sub-header for invoice details */}
-                <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
-                  <div className="flex items-center justify-between text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-4"></div>
-                      <span>Ngày tạo</span>
-                      <span>Mã hóa đơn</span>
-                    </div>
-                    <div className="flex items-center space-x-8">
-                      <div className="w-24 text-right">Tổng tiền</div>
-                      <div className="w-24 text-right">Thanh toán</div>
-                      <div className="w-24 text-right">Còn lại</div>
-                      <div className="w-20">Phương thức</div>
-                      <div className="w-24">Loại giao dịch</div>
-                      <div className="w-20">Trạng thái</div>
-                      <div className="w-12 text-center">Thao tác</div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Invoice rows */}
-                <div className="divide-y divide-gray-100">
-                  {group.invoices.map((invoice) => (
-                    <InvoiceRow
-                      key={invoice.invoiceId}
-                      invoice={invoice}
-                      groupData={group}
+                {patientGroup.treatmentRecords.map((treatmentGroup) => (
+                  <div key={treatmentGroup.treatmentRecordId}>
+                    <TreatmentRecordHeader
+                      group={treatmentGroup}
+                      isExpanded={expandedTreatments.has(treatmentGroup.treatmentRecordId)}
+                      onToggle={() => toggleTreatment(treatmentGroup.treatmentRecordId)}
                       formatCurrency={formatCurrency}
                       formatDate={formatDate}
-                      getStatusBadge={getStatusBadge}
-                      getTransactionTypeBadge={getTransactionTypeBadge}
-                      openInvoiceDetail={openInvoiceDetail}
                     />
-                  ))}
-                </div>
+                    
+                    {expandedTreatments.has(treatmentGroup.treatmentRecordId) && (
+                      <div className="bg-white">
+                        {/* Sub-header for invoice details */}
+                        <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 ml-8">
+                          <div className="flex items-center justify-between text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-4"></div>
+                              <span>Ngày tạo</span>
+                            </div>
+                            <div className="flex items-center space-x-8">
+                              <div className="w-24 text-right">Tổng tiền</div>
+                              <div className="w-24 text-right">Thanh toán</div>
+                              <div className="w-24 text-right">Còn lại</div>
+                              <div className="w-20">Phương thức</div>
+                              <div className="w-24">Loại giao dịch</div>
+                              <div className="w-20">Trạng thái</div>
+                              <div className="w-12 text-center">Thao tác</div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Invoice rows */}
+                        <div className="divide-y divide-gray-100">
+                          {treatmentGroup.invoices.map((invoice) => (
+                            <InvoiceRow
+                              key={invoice.invoiceId}
+                              invoice={invoice}
+                              groupData={treatmentGroup}
+                              formatCurrency={formatCurrency}
+                              formatDate={formatDate}
+                              getStatusBadge={getStatusBadge}
+                              getTransactionTypeBadge={getTransactionTypeBadge}
+                              openInvoiceDetail={openInvoiceDetail}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -542,21 +691,23 @@ export function InvoiceTable({
       {/* Table footer with summary */}
       <div className="bg-gray-50 border-t border-gray-200 px-6 py-3">
         <div className="flex justify-between items-center text-sm text-gray-600">
-          <span>Tổng cộng: {groups.length} hồ sơ điều trị ({displayData.length} hóa đơn)</span>
+          <span>
+            Tổng cộng: {patients.length} bệnh nhân ({Object.values(treatmentGroups).length} hồ sơ điều trị, {displayData.length} hóa đơn)
+          </span>
           <div className="flex space-x-6">
             <span>
               Tổng giá trị: {formatCurrency(
-                groups.reduce((sum, group) => sum + group.totalAmount, 0)
+                patients.reduce((sum, patient) => sum + patient.totalAmount, 0)
               )}
             </span>
             <span>
               Đã thu: {formatCurrency(
-                groups.reduce((sum, group) => sum + group.paidAmount, 0)
+                patients.reduce((sum, patient) => sum + patient.paidAmount, 0)
               )}
             </span>
             <span>
               Còn lại: {formatCurrency(
-                groups.reduce((sum, group) => sum + group.remainingAmount, 0)
+                patients.reduce((sum, patient) => sum + patient.remainingAmount, 0)
               )}
             </span>
           </div>
