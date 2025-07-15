@@ -25,6 +25,11 @@ export const invoiceService = {
   async createPaymentLink(orderCode: string): Promise<any> {
     const response = await axiosInstance.post("/payment/create-link", { orderCode })
     return response.data
+  },
+
+  async printInvoice(invoiceId: number): Promise<string> {
+    const response = await axiosInstance.get(`/invoice/print/${invoiceId}`)
+    return response.data
   }
 
 }
