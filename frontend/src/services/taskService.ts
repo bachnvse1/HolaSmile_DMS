@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/axios"
-import type { TaskAssignment } from "@/types/task"
+import type { BasicTask, TaskAssignment } from "@/types/task"
 import type { Task } from "@/types/task"
 
 export const assignTaskApi = async (data: TaskAssignment) => {
@@ -32,4 +32,9 @@ export const taskService = {
     const res = await axiosInstance.put(`/task/tasks/${taskId}/status`, isCompleted,)
     return res.data
   },
+}
+
+export const getAllTasks = async (): Promise<BasicTask[]> => {
+  const response = await axiosInstance.get("/task")
+  return response.data
 }
