@@ -27,9 +27,20 @@ export const invoiceService = {
     return response.data
   },
 
-  async printInvoice(invoiceId: number): Promise<string> {
-    const response = await axiosInstance.get(`/invoice/print/${invoiceId}`)
-    return response.data
+  async printInvoice(invoiceId: number): Promise<Blob> {
+    try {
+      const response = await axiosInstance.get(`/invoice/print/${invoiceId}`,
+        {
+          headers: {
+            'Accept': 'application/pdf',
+          },
+          responseType: 'blob',
+        }
+      )
+      return response.data
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Lỗi khi in hóa đơn");
+    }
   }
 
 }
