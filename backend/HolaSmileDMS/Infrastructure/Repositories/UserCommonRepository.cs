@@ -10,6 +10,7 @@ using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using HDMS_API.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
@@ -21,12 +22,22 @@ namespace HDMS_API.Infrastructure.Repositories
         private readonly ApplicationDbContext _context;
         private readonly IEmailService _emailService;
         private readonly IMemoryCache _memoryCache;
+        private UserCommonRepository userCommonRepository;
+        private IHttpContextAccessor httpContextAccessor;
+
         public UserCommonRepository(ApplicationDbContext context, IEmailService emailService, IMemoryCache memoryCache)
         {
             _context = context;
             _emailService = emailService;
             _memoryCache = memoryCache;
         }
+
+        public UserCommonRepository(UserCommonRepository userCommonRepository, IHttpContextAccessor httpContextAccessor)
+        {
+            this.userCommonRepository = userCommonRepository;
+            this.httpContextAccessor = httpContextAccessor;
+        }
+
         public async Task<User> CreatePatientAccountAsync(CreatePatientDto dto, string password)
         {
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);

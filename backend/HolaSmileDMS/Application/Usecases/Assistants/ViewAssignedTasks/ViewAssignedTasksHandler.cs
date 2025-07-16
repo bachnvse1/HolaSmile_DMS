@@ -27,7 +27,7 @@ namespace Application.Usecases.Assistant.ViewAssignedTasks
             var role = user.FindFirst(ClaimTypes.Role)?.Value;
             var assistantIdClaim = user.FindFirst("role_table_id")?.Value;
 
-            if (role != "Assistant" || string.IsNullOrEmpty(assistantIdClaim))
+            if (role != "Assistant" && role != "Dentist" || string.IsNullOrEmpty(assistantIdClaim))
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
             int assistantId = int.Parse(assistantIdClaim);

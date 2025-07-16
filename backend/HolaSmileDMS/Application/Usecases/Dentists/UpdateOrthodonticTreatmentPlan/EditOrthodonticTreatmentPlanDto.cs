@@ -1,4 +1,4 @@
-namespace Application.Usecases.Dentist.UpdateOrthodonticTreatmentPlan;
+namespace Application.Usecases.Dentists.UpdateOrthodonticTreatmentPlan;
 
 public class EditOrthodonticTreatmentPlanDto
 {

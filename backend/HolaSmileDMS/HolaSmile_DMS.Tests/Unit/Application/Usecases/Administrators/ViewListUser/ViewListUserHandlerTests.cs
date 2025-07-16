@@ -2,6 +2,7 @@
 using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Administrator.ViewListUser;
+using Application.Usecases.Dentist.ViewDentistSchedule;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
@@ -65,8 +66,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Administrators
             SetupHttpContext("administrator", 1);
             _userCommonRepositoryMock.Setup(r => r.GetAllUserAsync()).ReturnsAsync(new List<ViewListUserDTO>());
 
-            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(new ViewListUserCommand(), default));
-            Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
+            var result = await _handler.Handle(new ViewListUserCommand(), default);
+            Assert.NotNull(result);
+            Assert.Empty(result);
         }
     }
 }

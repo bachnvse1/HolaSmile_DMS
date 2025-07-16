@@ -6,7 +6,7 @@ using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
-namespace Application.Usecases.Dentist.UpdateOrthodonticTreatmentPlan;
+namespace Application.Usecases.Dentists.UpdateOrthodonticTreatmentPlan;
 
 public class EditOrthodonticTreatmentPlanHandler : IRequestHandler<EditOrthodonticTreatmentPlanCommand, string>
 {
@@ -39,7 +39,7 @@ public class EditOrthodonticTreatmentPlanHandler : IRequestHandler<EditOrthodont
         if (user == null || string.IsNullOrEmpty(currentUserRole) || string.IsNullOrEmpty(currentUserIdStr))
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // "Bạn cần đăng nhập để thực hiện thao tác này"
 
-        if (currentUserRole != "Dentist")
+        if (currentUserRole != "Dentist" && currentUserRole != "Assistant")
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
 
         var currentUserId = int.Parse(currentUserIdStr);
@@ -66,7 +66,7 @@ public class EditOrthodonticTreatmentPlanHandler : IRequestHandler<EditOrthodont
 
         // ✅ Lưu thay đổi
         await _repo.UpdateAsync(plan);
-        
+
         int userIdNotification = plan.PatientId;
         if (userIdNotification > 0)
         {

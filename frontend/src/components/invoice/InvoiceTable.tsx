@@ -84,12 +84,14 @@ const EmptyState = () => (
 // Enhanced invoice row component
 const InvoiceRow = ({
   invoice,
+  displayData,
   formatCurrency,
   getStatusBadge,
   getTransactionTypeBadge,
   openInvoiceDetail
 }: {
   invoice: Invoice
+  displayData: Invoice[]
   formatCurrency: (amount: number | null) => string
   getStatusBadge: (status: string) => JSX.Element
   getTransactionTypeBadge: (type: string) => JSX.Element
@@ -98,9 +100,15 @@ const InvoiceRow = ({
   const { role } = useUserInfo()
   const [paymentLoading, setPaymentLoading] = useState(false)
 
-  const remainingAmount = (invoice.totalAmount || 0) - (invoice.paidAmount || 0)
-  const paymentProgress = invoice.totalAmount ?
-    Math.round(((invoice.paidAmount || 0) / invoice.totalAmount) * 100) : 0
+  const totalPaidForTreatment = displayData
+    .filter(inv => inv.treatmentRecordId === invoice.treatmentRecordId)
+    .reduce((sum, inv) => sum + (inv.paidAmount || 0), 0)
+
+  const remainingAmount = (invoice.totalAmount || 0) - totalPaidForTreatment
+
+  const paymentProgress = invoice.totalAmount
+    ? Number((totalPaidForTreatment / invoice.totalAmount * 100).toFixed(2))
+    : 0
 
   const handlePayment = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -140,9 +148,6 @@ const InvoiceRow = ({
           <div className="min-w-0 flex-1">
             <div className="text-sm font-medium text-gray-900 truncate">
               {invoice.patientName}
-            </div>
-            <div className="text-xs text-gray-500 truncate">
-              ID: {invoice.patientId}
             </div>
           </div>
         </div>
@@ -308,6 +313,7 @@ export function InvoiceTable({
                 <InvoiceRow
                   key={invoice.invoiceId}
                   invoice={invoice}
+                  displayData={displayData}
                   formatCurrency={formatCurrency}
                   getStatusBadge={getStatusBadge}
                   getTransactionTypeBadge={getTransactionTypeBadge}
@@ -322,12 +328,13 @@ export function InvoiceTable({
       {/* Table footer with summary */}
       {!isLoading && displayData.length > 0 && (
         <div className="bg-gray-50 border-t border-gray-200 px-6 py-3">
-          <div className="flex justify-between items-center text-sm text-gray-600">
+          <div className="flex justify-between items-centuer text-sm text-gray-600">
             <span>Tổng cộng: {displayData.length} hóa đơn</span>
             <div className="flex space-x-6">
               <span>
                 Tổng giá trị: {formatCurrency(
-                  displayData.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0)
+                  Array.from(new Map(displayData.map(inv => [inv.treatmentRecordId, inv])).values())
+                    .reduce((sum, inv) => sum + (inv.totalAmount || 0), 0)
                 )}
               </span>
               <span>

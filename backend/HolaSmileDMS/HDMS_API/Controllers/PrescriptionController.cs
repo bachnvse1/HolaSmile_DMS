@@ -1,6 +1,6 @@
 ﻿using Application.Constants;
-using Application.Usecases.Dentist.CreatePrescription;
-using Application.Usecases.Dentist.EditPrescription;
+using Application.Usecases.Dentists.CreatePrescription;
+using Application.Usecases.Dentists.EditPrescription;
 using Application.Usecases.UserCommon.ViewPatientPrescription;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

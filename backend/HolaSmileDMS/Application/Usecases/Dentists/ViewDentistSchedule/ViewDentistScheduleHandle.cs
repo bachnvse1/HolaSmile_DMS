@@ -44,6 +44,10 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
             {
                 schedules = await _scheduleRepository.GetDentistApprovedSchedulesByDentistIdAsync(request.DentistId);
             }
+            if (schedules == null || !schedules.Any())
+            {
+                schedules = new List<Schedule>();
+            }
 
             var result = schedules.GroupBy(s => s.DentistId)
                 .Select(g => new DentistScheduleDTO
