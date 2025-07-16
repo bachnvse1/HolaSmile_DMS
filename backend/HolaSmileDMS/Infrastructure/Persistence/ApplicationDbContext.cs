@@ -1,4 +1,5 @@
-﻿using HDMS_API.Application.Usecases.UserCommon.Login;
+﻿using Domain.Entities;
+using HDMS_API.Application.Usecases.UserCommon.Login;
 using Microsoft.EntityFrameworkCore;
 
 namespace HDMS_API.Infrastructure.Persistence
@@ -37,6 +38,8 @@ namespace HDMS_API.Infrastructure.Persistence
         public DbSet<TreatmentRecord> TreatmentRecords { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<WarrantyCard> WarrantyCards { get; set; }
+        
+        public DbSet<ChatMessage> ChatMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
