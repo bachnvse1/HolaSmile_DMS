@@ -10,7 +10,6 @@ using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using HDMS_API.Infrastructure.Persistence;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
@@ -22,8 +21,6 @@ namespace HDMS_API.Infrastructure.Repositories
         private readonly ApplicationDbContext _context;
         private readonly IEmailService _emailService;
         private readonly IMemoryCache _memoryCache;
-        private UserCommonRepository userCommonRepository;
-        private IHttpContextAccessor httpContextAccessor;
 
         public UserCommonRepository(ApplicationDbContext context, IEmailService emailService, IMemoryCache memoryCache)
         {
@@ -32,11 +29,6 @@ namespace HDMS_API.Infrastructure.Repositories
             _memoryCache = memoryCache;
         }
 
-        public UserCommonRepository(UserCommonRepository userCommonRepository, IHttpContextAccessor httpContextAccessor)
-        {
-            this.userCommonRepository = userCommonRepository;
-            this.httpContextAccessor = httpContextAccessor;
-        }
 
         public async Task<User> CreatePatientAccountAsync(CreatePatientDto dto, string password)
         {
@@ -382,7 +374,7 @@ namespace HDMS_API.Infrastructure.Repositories
             }
             return await _context.SaveChangesAsync() > 0;
         }
-        public async Task<bool> UpdateUserStatusAsync(int userId)
+        public async Task<bool> UpdateUserStatusAsync(int userId, int updatedBy)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId);
             if (user == null)
@@ -390,9 +382,10 @@ namespace HDMS_API.Infrastructure.Repositories
                 return false;
             }
             user.Status = !user.Status; // Đảo ngược trạng thái
+            user.UpdatedAt = DateTime.Now;
+            user.UpdatedBy = updatedBy;
             _context.Users.Update(user);
-            await _context.SaveChangesAsync();
-            return true;
+            return await _context.SaveChangesAsync() > 0;
         }
         
         public async Task<int?> GetUserIdByRoleTableIdAsync(string role, int id)
@@ -432,6 +425,5 @@ namespace HDMS_API.Infrastructure.Repositories
                 _ => null
             };
         }
-
     }
 }

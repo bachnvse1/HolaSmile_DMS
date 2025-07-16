@@ -21,7 +21,12 @@ namespace Application.Usecases.Assistant.CreateSupply
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-            if(!string.Equals(currentUserRole, "assistant", StringComparison.OrdinalIgnoreCase))
+            if (currentUserRole == null)
+            {
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // "Bạn cần đăng nhập..."
+            }
+
+            if (!string.Equals(currentUserRole, "assistant", StringComparison.OrdinalIgnoreCase))
             {
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Bạn không có quyền truy cập chức năng này
             }

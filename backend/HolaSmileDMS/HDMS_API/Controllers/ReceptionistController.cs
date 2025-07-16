@@ -64,6 +64,8 @@ namespace HDMS_API.Controllers
         /// <summary>
         /// Get all receptionists (name + id)
         /// </summary>
+        /// 
+        [Authorize]
         [HttpGet("listPatientsName")]
         public async Task<IActionResult> listPatientsName(CancellationToken cancellationToken)
         {

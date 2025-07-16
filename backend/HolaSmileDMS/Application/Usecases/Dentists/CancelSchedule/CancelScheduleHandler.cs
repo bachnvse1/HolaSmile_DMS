@@ -30,6 +30,11 @@ namespace Application.Usecases.Dentist.CancelSchedule
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
+            if (currentUserRole == null)
+            {
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // "Bạn cần đăng nhập..."
+            }
+
             // Giải mã ScheduleId và lấy lịch làm việc
             var schedule = await _scheduleRepository.GetScheduleByIdAsync(request.ScheduleId);
             if (schedule == null)
@@ -53,7 +58,7 @@ namespace Application.Usecases.Dentist.CancelSchedule
             // Nếu lịch chưa được Owner duyệt ,cập nhật lịch thẳng
             if (schedule.Status == "pending")
             {
-                var Isdelete = await _scheduleRepository.DeleteSchedule(request.ScheduleId);
+                var Isdelete = await _scheduleRepository.DeleteSchedule(request.ScheduleId, currentUserId);
 
                 var owners = await _ownerRepository.GetAllOwnersAsync();
 

@@ -9,12 +9,14 @@ namespace Application.Usecases.UserCommon.ViewAppointment
     public class ViewDetailAppointmentHandler : IRequestHandler<ViewDetailAppointmentCommand, AppointmentDTO>
     {
         private readonly IAppointmentRepository _appointmentRepository;
+        private readonly IUserCommonRepository _userCommonRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;
 
-        public ViewDetailAppointmentHandler(IAppointmentRepository appointmentRepository, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+        public ViewDetailAppointmentHandler(IAppointmentRepository appointmentRepository, IUserCommonRepository userCommonRepository, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
             _appointmentRepository = appointmentRepository;
+            _userCommonRepository = userCommonRepository;
             _httpContextAccessor = httpContextAccessor;
             _mapper = mapper;
         }
@@ -25,7 +27,7 @@ namespace Application.Usecases.UserCommon.ViewAppointment
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
             // Check if the user is authenticated
-            //if (currentUserRole == null)
+            //if (currentUserRole == null)      
             //{
             //    throw new UnauthorizedAccessException("Bạn cần đăng nhập để thực hiện thao tác này.");
             //}
@@ -54,6 +56,11 @@ namespace Application.Usecases.UserCommon.ViewAppointment
                 throw new Exception("không tìm thấy dữ liệu cuộc hẹn. ");
             }
 
+            var createdby = await _userCommonRepository.GetByIdAsync(Int32.Parse(appointment.CreatedBy), cancellationToken);
+            var updatedby = await _userCommonRepository.GetByIdAsync(Int32.Parse(appointment.UpdatedBy), cancellationToken);
+
+            appointment.CreatedBy = createdby != null ? createdby.Fullname : "";
+            appointment.UpdatedBy = updatedby != null ? updatedby.Fullname : "";
             // Map data
             //var result = _mapper.Map<AppointmentDTO>(appointment);
             //result.AppointmentId = appointment.AppointmentId;
