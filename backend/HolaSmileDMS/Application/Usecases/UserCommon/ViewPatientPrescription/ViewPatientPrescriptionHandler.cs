@@ -56,6 +56,7 @@ namespace Application.Usecases.UserCommon.ViewPatientPrescription
                 content = existPrescription.Content,
                 CreatedAt = existPrescription.CreatedAt,
                 CreatedBy = createdByDentist.User?.Fullname ?? "Unknown Dentist",
+                UpdateBy = createdByDentist.User?.Fullname ?? "Unknown Dentist"
             };
             return result;
         }

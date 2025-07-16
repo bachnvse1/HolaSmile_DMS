@@ -49,7 +49,7 @@ namespace HDMS_API.Controllers
         }
 
 
-
+        [Authorize]
         [HttpPut("profile")]
         public async Task<IActionResult> EditProfile([FromBody] EditProfileCommand command,
             CancellationToken cancellationToken)
