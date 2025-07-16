@@ -43,7 +43,11 @@ namespace Application.Usecases.UserCommon.ViewPatientPrescription
                 }
             }
 
-            var createdByDentist = await _dentistRepository.GetDentistByUserIdAsync(existPrescription.CreateBy ?? 0);
+            var createdByDentist = await _dentistRepository.GetDentistByUserIdAsync(existPrescription.CreateBy);
+            if(createdByDentist == null)
+            {
+                throw new Exception(MessageConstants.MSG.MSG16); // "Không có dữ liệu phù hợp"
+            }
 
             var result = new ViewPrescriptionDTO
             {

@@ -17,7 +17,7 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
             var schedules = await _scheduleRepository.GetAllAvailableDentistSchedulesAsync(3);
             if (schedules == null || schedules.Count == 0)
             {
-                throw new Exception(MessageConstants.MSG.MSG16);
+                schedules = new List<Schedule>();
             }
 
             var result = schedules

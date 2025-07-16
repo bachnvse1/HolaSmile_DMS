@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
+using Application.Usecases.Dentist.ViewDentistSchedule;
 using Application.Usecases.UserCommon.ViewSupplies;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
@@ -100,8 +101,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
             _supplyRepositoryMock.Setup(r => r.GetAllSuppliesAsync()).ReturnsAsync(new List<Supplies>());
             // Mapper không cần setup vì không tới bước đó
 
-            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(new ViewListSuppliesCommand(), default));
-            Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
+            var result = await _handler.Handle(new ViewListSuppliesCommand(), default);
+            Assert.NotNull(result);
+            Assert.Empty(result);
         }
     }
 }
