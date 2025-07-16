@@ -20,75 +20,9 @@ import {
   mapModelAnalysis,
   mapCostItemsToString,
   mapCostItemsToTotalCost,
+  type DetailFormData,
+  type BasicPlanData
 } from '@/utils/orthodonticMapping';
-import type { BasicPlanData } from '@/utils/orthodonticMapping';
-
-
-interface DetailFormData {
-  // Tiểu sử y khoa
-  medicalHistory: {
-    benhtim: boolean;
-    tieuduong: boolean;
-    thankinh: boolean;
-    benhtruyen: boolean;
-    caohuyetap: boolean;
-    loangxuong: boolean;
-    benhngan: boolean;
-    chaymausau: boolean;
-  };
-
-  // Lý do đến khám
-  reasonForVisit: string;
-
-  // Khám ngoài mặt
-  faceShape: string;
-  frontView: string;
-  sideView: string;
-  smileArc: string;
-  smileLine: string;
-  midline: string;
-
-  // Khám chức năng
-  openBite: string;
-  crossBite: string;
-  tongueThrunt: string;
-
-  // Khám trong miệng
-  intraoralExam: string;
-
-  // Phân tích phim
-  boneAnalysis: string;
-  sideViewAnalysis: string;
-  apicalSclerosis: string;
-
-  // Phân tích mẫu hàm
-  overjet: string;
-  overbite: string;
-  midlineAnalysis: string;
-  crossbite: string;
-  openbite: string;
-  archForm: string;
-  molarRelation: string;
-  r3Relation: string;
-  r6Relation: string;
-
-  // Nội dung và kế hoạch điều trị
-  treatmentPlanContent: string;
-
-
-  // Chi phí chi tiết
-  costItems: {
-    khophang: string;
-    xquang: string;
-    minivis: string;
-    maccai: string;
-    chupcam: string;
-    nongham: string;
-  };
-
-  otherCost: string;
-  paymentMethod: string;
-}
 
 interface OrthodonticTreatmentPlanDetailFormProps {
   mode?: 'create' | 'edit' | 'view';
@@ -280,22 +214,27 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
 
     if (match) {
       const costDetails = match[1];
-      const extractCost = (text: string, pattern: string) => {
-        const regex = new RegExp(`${pattern}[:\\s]*([0-9,\\.\\s]+)`, 'i');
-        const costMatch = text.match(regex);
-        return costMatch ? costMatch[1].trim() : '';
+      const extractCost = (text: string, patterns: string[]) => {
+        for (const pattern of patterns) {
+          const regex = new RegExp(`${pattern}[:\\s]*([0-9,\\.\\s]+)`, 'i');
+          const costMatch = text.match(regex);
+          if (costMatch && costMatch[1].trim()) {
+            return costMatch[1].trim();
+          }
+        }
+        return '';
       };
 
       const costItems = {
-        khophang: extractCost(costDetails, 'khớp hàng'),
-        xquang: extractCost(costDetails, 'x-quang'),
-        minivis: extractCost(costDetails, 'minivis'),
-        maccai: extractCost(costDetails, 'mắc cài'),
-        chupcam: extractCost(costDetails, 'chụp cằm'),
-        nongham: extractCost(costDetails, 'nong hàm'),
+        khophang: extractCost(costDetails, ['khớp hàng', 'kho phang']),
+        xquang: extractCost(costDetails, ['x-quang', 'xquang']),
+        minivis: extractCost(costDetails, ['minivis']),
+        maccai: extractCost(costDetails, ['mắc cài', 'mac cai']),
+        chupcam: extractCost(costDetails, ['chụp cằm', 'chup cam']),
+        nongham: extractCost(costDetails, ['nong hàm', 'nong ham']),
       };
 
-      const otherCost = extractCost(costDetails, 'khác');
+      const otherCost = extractCost(costDetails, ['khác', 'chi phí khác', 'phí khác']);
       const cleanPaymentMethod = paymentMethod.replace(costDetailsRegex, '').trim();
 
       return { costItems, otherCost, cleanPaymentMethod };
