@@ -27,10 +27,6 @@ namespace HDMS_API.Controllers
             try
             {
                 var result = await _mediator.Send(new ViewListWarrantyCardsCommand());
-
-                if (result == null || !result.Any())
-                    return Ok(new { message = MessageConstants.MSG.MSG16 });
-
                 return Ok(result);
             }
             catch (UnauthorizedAccessException)
