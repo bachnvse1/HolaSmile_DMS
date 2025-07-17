@@ -5,10 +5,12 @@ namespace Domain.Entities
     public class ProcedureDiscountProgram
     {
         // Khóa ngoại đến Procedure
+        [ForeignKey("Procedure")]
         public int ProcedureId { get; set; }
         public Procedure Procedure { get; set; }
 
         // Khóa ngoại đến DiscountProgram
+        [ForeignKey("DiscountProgram")]
         public int DiscountProgramId { get; set; }
         public DiscountProgram DiscountProgram { get; set; }
 
@@ -16,5 +18,4 @@ namespace Domain.Entities
         [Column(TypeName = "decimal(18,2)")]
         public decimal DiscountAmount { get; set; }
     }
-
 }

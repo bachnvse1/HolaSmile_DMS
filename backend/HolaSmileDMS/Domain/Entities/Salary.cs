@@ -13,6 +13,7 @@ public class Salary
     public int SalaryMonth { get; set; }
     public int SalaryYear { get; set; }
 
+    [Column(TypeName = "decimal(18,2)")]
     public decimal TotalSalary { get; set; }
 
     public DateTime CreatedAt { get; set; }

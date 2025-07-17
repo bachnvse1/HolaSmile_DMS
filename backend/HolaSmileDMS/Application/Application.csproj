@@ -49,7 +49,6 @@
 
 	</ItemGroup>
 	<ItemGroup>
-	  <Folder Include="Usecases\SendMessage\" />
 	  <Folder Include="Usecases\UserCommon\ViewMessage\" />
 	</ItemGroup>
 </Project>

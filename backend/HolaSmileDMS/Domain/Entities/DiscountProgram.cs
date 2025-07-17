@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Entities
 {
-    [Table("DiscountProgram")]
     public class DiscountProgram
     {
         [Key]

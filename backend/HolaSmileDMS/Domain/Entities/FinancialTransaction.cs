@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities;
 
-[Table("FinancialTransactions")]
 public class FinancialTransaction
 {
     [Key]
@@ -15,7 +14,7 @@ public class FinancialTransaction
     [Required]
     public int InvoiceId { get; set; }
 
-    [ForeignKey(nameof(InvoiceId))]
+    [ForeignKey("InvoiceId")]
     public Invoice Invoice { get; set; }
 
     [Column(TypeName = "nvarchar(200)")]

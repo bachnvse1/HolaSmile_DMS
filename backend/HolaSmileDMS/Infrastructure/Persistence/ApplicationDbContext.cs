@@ -38,22 +38,35 @@ namespace HDMS_API.Infrastructure.Persistence
         public DbSet<TreatmentRecord> TreatmentRecords { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<WarrantyCard> WarrantyCards { get; set; }
-        
         public DbSet<ChatMessage> ChatMessages { get; set; }
+
+        // Add these DbSets
+        public DbSet<FinancialTransaction> FinancialTransactions { get; set; }
+        public DbSet<SuppliesTransaction> SuppliesTransactions { get; set; }
+        public DbSet<DiscountProgram> DiscountPrograms { get; set; }
+        public DbSet<ProcedureDiscountProgram> ProcedureDiscountPrograms { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Cấu hình composite key cho bảng trung gian MaintenanceSupply
+            // Composite key for MaintenanceSupply
             modelBuilder.Entity<MaintenanceSupply>()
                 .HasKey(ms => new { ms.SupplyId, ms.MaintenanceId });
-            // Cấu hình composite key cho bảng trung gian SuppliesUsed
+
+            // Composite key for SuppliesUsed
             modelBuilder.Entity<SuppliesUsed>()
                 .HasKey(su => new { su.ProcedureId, su.SupplyId });
 
+            // Composite key for ProcedureDiscountProgram
+            modelBuilder.Entity<ProcedureDiscountProgram>()
+                .HasKey(pdp => new { pdp.ProcedureId, pdp.DiscountProgramId });
+            
+            // Composite key for SuppliesTransaction
+            modelBuilder.Entity<SuppliesTransaction>()
+                .HasKey(st => new { st.SupplyId, st.FinancialTransactionsID });
+
             modelBuilder.Entity<UserRoleResult>().HasNoKey();
-            base.OnModelCreating(modelBuilder);
         }
     }
 }
