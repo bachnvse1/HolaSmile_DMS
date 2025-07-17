@@ -30,7 +30,7 @@ namespace Application.Usecases.Administrator.ViewListUser
             var listUsers = await _userCommonRepository.GetAllUserAsync();
             if(listUsers == null || !listUsers.Any())
             {
-                throw new Exception(MessageConstants.MSG.MSG16);
+                listUsers = new List<ViewListUserDTO>();
             }
             return listUsers;
         }

@@ -43,7 +43,7 @@ namespace Infrastructure.Repositories
             return dentists;
         }
         
-        public async Task<Dentist?> GetDentistByUserIdAsync(int userID)
+        public async Task<Dentist?> GetDentistByUserIdAsync(int? userID)
         {
             var dentist = await _context.Dentists
                 .Include(d => d.User)

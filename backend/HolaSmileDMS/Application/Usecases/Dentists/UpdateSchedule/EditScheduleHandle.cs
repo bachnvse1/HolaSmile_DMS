@@ -76,7 +76,7 @@ namespace Application.Usecases.Dentist.UpdateSchedule
                 if (isDuplicate.Status == "rejected")
                 {
                     // xóa mềm lịch bị từ chối cũ
-                    await _scheduleRepository.DeleteSchedule(isDuplicate.ScheduleId);
+                    await _scheduleRepository.DeleteSchedule(isDuplicate.ScheduleId, currentUserId);
                 }
                 else
                 {

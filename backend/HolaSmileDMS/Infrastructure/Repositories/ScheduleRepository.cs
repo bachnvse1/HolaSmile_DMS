@@ -92,17 +92,18 @@ namespace Infrastructure.Repositories
             return schedule;
         }
 
-        public async Task<bool> DeleteSchedule(int scheduleId)
+        public async Task<bool> DeleteSchedule(int scheduleId, int updateBy)
         {
            var schedule = await _context.Schedules.FindAsync(scheduleId);
             if (schedule == null)
             {
                 return false; 
             }
-            schedule.IsActive = false; 
+            schedule.IsActive = false;
+            schedule.UpdatedAt = DateTime.Now;
+            schedule.UpdatedBy = updateBy;
             _context.Schedules.Update(schedule);
-            await _context.SaveChangesAsync();
-            return true; 
+            return await _context.SaveChangesAsync() >0; 
         }
 
         public async Task<List<Schedule>> GetAllAvailableDentistSchedulesAsync(int maxPerSlot)

@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Application.Common.Mappings;
 using Application.Constants;
+using Application.Usecases.Dentist.ViewDentistSchedule;
 using Application.Usecases.UserCommon.ViewSupplies;
 using AutoMapper;
 using HDMS_API.Infrastructure.Persistence;
@@ -121,9 +122,8 @@ public class ViewListSuppliesIntegrationTests
         _context.SaveChanges();
         SetupHttpContext("assistant", 777);
 
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _handler.Handle(new ViewListSuppliesCommand(), default));
-
-        Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
+        var result = await _handler.Handle(new ViewListSuppliesCommand(), default);
+        Assert.NotNull(result);
+        Assert.Empty(result);
     }
 }

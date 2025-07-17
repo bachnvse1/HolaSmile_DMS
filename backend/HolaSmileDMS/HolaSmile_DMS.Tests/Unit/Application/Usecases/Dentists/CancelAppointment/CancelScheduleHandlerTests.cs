@@ -54,7 +54,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
 
             _scheduleRepoMock.Setup(r => r.GetScheduleByIdAsync(1)).ReturnsAsync(schedule);
             _dentistRepoMock.Setup(r => r.GetDentistByUserIdAsync(10)).ReturnsAsync(dentist);
-            _scheduleRepoMock.Setup(r => r.DeleteSchedule(1)).ReturnsAsync(true);
+            _scheduleRepoMock.Setup(r => r.DeleteSchedule(1,10)).ReturnsAsync(true);
 
             var command = new CancelScheduleCommand { ScheduleId = 1 };
             var result = await _handler.Handle(command, default);
@@ -129,7 +129,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
 
             _scheduleRepoMock.Setup(r => r.GetScheduleByIdAsync(1)).ReturnsAsync(schedule);
             _dentistRepoMock.Setup(r => r.GetDentistByUserIdAsync(10)).ReturnsAsync(dentist);
-            _scheduleRepoMock.Setup(r => r.DeleteSchedule(1)).ReturnsAsync(false);
+            _scheduleRepoMock.Setup(r => r.DeleteSchedule(1, 10)).ReturnsAsync(false);
 
             var command = new CancelScheduleCommand { ScheduleId = 1 };
             var result = await _handler.Handle(command, default);

@@ -44,11 +44,10 @@ namespace Application.Usecases.UserCommon.ViewSupplies
 
             if (listSupplies == null || !listSupplies.Any())
             {
-                throw new Exception(MessageConstants.MSG.MSG16); // Không tìm thấy vật tư
+                listSupplies = new List<Supplies>();
             }
-            var suppliesDTOs = _mapper.Map<List<SuppliesDTO>>(listSupplies);
 
-            return suppliesDTOs;
+            return _mapper.Map<List<SuppliesDTO>>(listSupplies) ?? new List<SuppliesDTO>();
         }
     }
 }

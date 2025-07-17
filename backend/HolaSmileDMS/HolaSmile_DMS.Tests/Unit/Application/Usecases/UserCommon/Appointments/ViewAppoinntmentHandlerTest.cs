@@ -2,6 +2,7 @@
 using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.UserCommon.ViewAppointment;
+using Application.Usecases.UserCommon.ViewSupplies;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
@@ -103,10 +104,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
             SetupHttpContext("receptionist", 99);
             _appointmentRepoMock.Setup(r => r.GetAllAppointmentAsync()).ReturnsAsync(new List<AppointmentDTO>());
 
-            var exception = await Assert.ThrowsAsync<Exception>(() =>
-                _handler.Handle(new ViewAppointmentCommand(), CancellationToken.None));
-
-            Assert.Equal(MessageConstants.MSG.MSG28, exception.Message);
+            var result = await _handler.Handle(new ViewAppointmentCommand(), default);
+            Assert.NotNull(result);
+            Assert.Empty(result);
         }
 
         [Fact(DisplayName = "[UTCID06] Null list throws exception MSG28")]
@@ -115,10 +115,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
             SetupHttpContext("dentist", 20);
             _appointmentRepoMock.Setup(r => r.GetAppointmentsByDentistIdAsync(20)).ReturnsAsync((List<AppointmentDTO>)null);
 
-            var exception = await Assert.ThrowsAsync<Exception>(() =>
-                _handler.Handle(new ViewAppointmentCommand(), CancellationToken.None));
-
-            Assert.Equal(MessageConstants.MSG.MSG28, exception.Message);
+            var result = await _handler.Handle(new ViewAppointmentCommand(), default);
+            Assert.NotNull(result);
+            Assert.Empty(result);
         }
     }
 }

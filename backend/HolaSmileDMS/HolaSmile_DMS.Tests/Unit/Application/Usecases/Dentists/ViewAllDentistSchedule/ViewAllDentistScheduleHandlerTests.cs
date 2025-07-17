@@ -99,8 +99,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
 
             var cmd = new ViewAllDentistScheduleCommand();
 
-            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(cmd, default));
-            Assert.Equal(MessageConstants.MSG.MSG28, ex.Message);
+            var result = await _handler.Handle(new ViewAllDentistScheduleCommand(), default);
+            Assert.NotNull(result);
+            Assert.Empty(result);
         }
 
         // 🔴 Abnormal: Role hợp lệ nhưng repo trả về null
@@ -112,8 +113,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
 
             var cmd = new ViewAllDentistScheduleCommand();
 
-            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(cmd, default));
-            Assert.Equal(MessageConstants.MSG.MSG28, ex.Message);
+            var result = await _handler.Handle(new ViewAllDentistScheduleCommand(), default);
+            Assert.NotNull(result);
+            Assert.Empty(result);
         }
     }
 }

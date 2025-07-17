@@ -3,6 +3,7 @@ using Application.Usecases.Dentists.CreatePrescription;
 using Application.Usecases.Dentists.EditPrescription;
 using Application.Usecases.UserCommon.ViewPatientPrescription;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HDMS_API.Controllers
@@ -18,6 +19,7 @@ namespace HDMS_API.Controllers
             _mediator = mediator;
         }
 
+        [Authorize]
         [HttpGet("{prescriptionId:int}")]
         public async Task<IActionResult> GetPrescriptions([FromRoute] int prescriptionId)
         {
@@ -44,6 +46,7 @@ namespace HDMS_API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("create")]
         public async Task<IActionResult> CreatePrescription([FromBody] CreatePrescriptionCommand command)
         {
@@ -72,6 +75,7 @@ namespace HDMS_API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("edit")]
         public async Task<IActionResult> EditPrescription([FromBody] EditPrescriptionCommand command)
         {
