@@ -51,6 +51,17 @@ namespace Application.Usecases.Assistant.CreateSupply
             {
                 throw new ArgumentException(MessageConstants.MSG.MSG96); // Ngày hết hạn không được trước ngày hiện tại
             }
+
+            var existSupply = await _supplyRepository.GetExistSupply(request.SupplyName, request.Price, request.ExpiryDate);
+            if (existSupply != null)
+            {
+                existSupply.QuantityInStock += request.QuantityInStock;
+                existSupply.UpdatedAt = DateTime.Now;
+                existSupply.UpdatedBy = currentUserId;
+                var isUpdated = await _supplyRepository.EditSupplyAsync(existSupply);
+                return isUpdated;
+            }
+
             var newSupply = new Supplies
             {
                 Name = request.SupplyName.Trim(),
