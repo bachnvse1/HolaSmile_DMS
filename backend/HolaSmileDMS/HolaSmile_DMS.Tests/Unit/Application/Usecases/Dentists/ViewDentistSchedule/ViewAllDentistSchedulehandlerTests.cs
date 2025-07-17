@@ -108,10 +108,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
             _scheduleRepoMock.Setup(r => r.GetAllDentistSchedulesAsync()).ReturnsAsync(new List<Schedule>());
 
             // Act & Assert
-            var ex = await Assert.ThrowsAsync<Exception>(() =>
-                _handler.Handle(new ViewAllDentistScheduleCommand(), CancellationToken.None));
-
-            Assert.Equal(MessageConstants.MSG.MSG28, ex.Message);
+            var result = await _handler.Handle(new ViewAllDentistScheduleCommand(), default);
+            Assert.NotNull(result);
+            Assert.Empty(result);
         }
     }
 }

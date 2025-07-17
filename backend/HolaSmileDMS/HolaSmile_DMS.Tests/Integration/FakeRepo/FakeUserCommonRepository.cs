@@ -116,4 +116,9 @@ public class FakeUserCommonRepository : IUserCommonRepository
     {
         throw new NotImplementedException();
     }
+
+    public Task<bool> UpdateUserStatusAsync(int userId, int updatedBy)
+    {
+        throw new NotImplementedException();
+    }
 }

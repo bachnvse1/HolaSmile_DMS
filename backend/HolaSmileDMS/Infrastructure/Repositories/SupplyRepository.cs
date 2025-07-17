@@ -19,6 +19,13 @@ namespace Infrastructure.Repositories
             return true; // Return true if creation is successful
         }
 
+        public async Task<Supplies> GetExistSupply(string? supplyName, decimal price, DateTime? experydate)
+        {
+            var supply = await _context.Supplies
+                .FirstOrDefaultAsync(s => s.Name == supplyName && s.Price == price && s.ExpiryDate == experydate);
+            return supply; // Return true if creation is successful
+        }
+
         public async Task<Supplies> GetSupplyBySupplyIdAsync(int supplyId)
         {
              var supply = await _context.Supplies.FirstOrDefaultAsync(s => s.SupplyId == supplyId);

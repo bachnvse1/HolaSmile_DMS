@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Application.Common.Mappings;
 using Application.Constants;
+using Application.Usecases.Dentist.ViewDentistSchedule;
 using Application.Usecases.UserCommon.ViewAppointment;
 using AutoMapper;
 using HDMS_API.Infrastructure.Persistence;
@@ -143,8 +144,9 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.UserCommon
         public async System.Threading.Tasks.Task ITCID04_Patient_Has_No_Appointments()
         {
             SetupHttpContext("patient", 999);
-            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(new ViewAppointmentCommand(), default));
-            Assert.Equal(MessageConstants.MSG.MSG28, ex.Message);
+            var result = await _handler.Handle(new ViewAppointmentCommand(), default);
+            Assert.NotNull(result);
+            Assert.Empty(result);
         }
     }
 }

@@ -120,7 +120,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             var command = new CreateSupplyCommand();
 
             var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
+            Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
         }
 
         [Fact(DisplayName = "Error - UTCID09 - Repository returns false")]

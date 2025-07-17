@@ -144,7 +144,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
             _scheduleRepoMock.Setup(r => r.CheckDulplicateScheduleAsync(dentistId, scheduleDate, "morning", 0))
                 .ReturnsAsync(new Schedule { Status = "rejected", ScheduleId = 99 });
 
-            _scheduleRepoMock.Setup(r => r.DeleteSchedule(99)).ReturnsAsync(true);
+            _scheduleRepoMock.Setup(r => r.DeleteSchedule(99, 1)).ReturnsAsync(true);
             _scheduleRepoMock.Setup(r => r.RegisterScheduleByDentist(It.IsAny<Schedule>()))
                 .ReturnsAsync(true);
 

@@ -46,13 +46,9 @@ namespace Application.Usecases.UserCommon.ViewAppointment
             {
                 listApp = await _appointmentRepository.GetAllAppointmentAsync();
             }
-            if(listApp == null || listApp.Count == 0)
-            {
-                throw new Exception(MessageConstants.MSG.MSG28);
-            }
             //mapping data
             //var result = _mapper.Map<List<AppointmentDTO>>(listApp);
-            return listApp;
+            return listApp ?? new List<AppointmentDTO>();
         }
     }
 }

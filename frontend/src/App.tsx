@@ -54,7 +54,7 @@ import PaymentCancelled from "./components/invoice/PaymentCancel";
 import PatientTreatmentRecordsSection from "./components/patient/PatientTreatmentRecordsSection";
 import { PatientOrthodonticImagesPage } from "./pages/patient/PatientOrthodonticImagesPage";
 import { PatientTreatmentImagesPage } from "./pages/patient/PatientTreatmentImagesPage";
-
+import ChatBox from "./components/chatbox/ChatBox";
 function App() {
   return (
     <>
@@ -187,6 +187,10 @@ function App() {
         <Route path="/cancel" element={<PaymentCancelled />} />
         <Route path="/patient/treatment-records" element={<PatientTreatmentRecordsSection />} />
       </Routes>
+            {/* ChatBox lơ lửng ở mọi trang */}
+      <div style={{position: "fixed", bottom: 24, right: 24, zIndex: 1000, width: 350}}>
+        <ChatBox />
+      </div>
     </>
   );
 }

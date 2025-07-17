@@ -39,7 +39,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             SupplyId = 1,
             SupplyName = "Gloves",
             Unit = "Box",
-            QuantityInStock = 10,
             Price = 15.5m,
             ExpiryDate = DateTime.Now.AddDays(30)
         };
@@ -92,16 +91,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             Assert.Equal("Vui lòng nhập thông tin bắt buộc", ex.Message);
         }
 
-        [Fact(DisplayName = "Invalid - UTCID05 - QuantityInStock < 0")]
-        public async System.Threading.Tasks.Task UTCID05_QuantityNegative_ThrowsException()
-        {
-            SetupHttpContext("assistant", "1");
-            var command = CreateValidCommand();
-            command.QuantityInStock = -1;
-
-            var ex = await Assert.ThrowsAsync<ArgumentException>(() => _handler.Handle(command, default));
-            Assert.Equal("Số lượng trong kho không được nhỏ hơn 0", ex.Message);
-        }
 
         [Fact(DisplayName = "Invalid - UTCID06 - Price <= 0")]
         public async System.Threading.Tasks.Task UTCID06_PriceInvalid_ThrowsException()
@@ -160,7 +149,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
                 SupplyId = 999,
                 SupplyName = "Mask",
                 Unit = "Box",
-                QuantityInStock = 10,
                 Price = 1000,
                 ExpiryDate = DateTime.Now.AddDays(1)
             };

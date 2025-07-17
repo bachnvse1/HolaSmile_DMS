@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
+using Application.Usecases.Dentist.ViewDentistSchedule;
 using Application.Usecases.UserCommon.ViewProcedures;
 using AutoMapper;
 using HDMS_API.Infrastructure.Persistence;
@@ -131,9 +132,8 @@ public class ViewListProcedureHandlerIntegrationTests
 
         SetupHttpContext("assistant", 1);
 
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _handler.Handle(new ViewListProcedureCommand(), default));
-
-        Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
+        var result = await _handler.Handle(new ViewListProcedureCommand(), default);
+        Assert.NotNull(result);
+        Assert.Empty(result);
     }
 }
