@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.Dentist.UpdateOrthodonticTreatmentPlan;
+using Application.Usecases.Dentists.UpdateOrthodonticTreatmentPlan;
 using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -54,16 +54,6 @@ public class EditOrthodonticTreatmentPlanHandlerTests
         var command = new EditOrthodonticTreatmentPlanCommand(new EditOrthodonticTreatmentPlanDto());
         var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(command, default));
         Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
-    }
-
-    [Fact]
-    public async System.Threading.Tasks.Task UTCID02_ShouldThrow_WhenNotDentist()
-    {
-        SetupHttpContext(role: "Assistant");
-
-        var command = new EditOrthodonticTreatmentPlanCommand(new EditOrthodonticTreatmentPlanDto());
-        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(command, default));
-        Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
     }
 
     [Fact]

@@ -13,7 +13,8 @@ import {
   ChevronDown,
   ChevronRight,
   Activity,
-  Pill
+  Pill,
+  ChevronLeft
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 
@@ -31,9 +32,10 @@ interface StaffSidebarProps {
   isCollapsed: boolean;
   isMobile?: boolean;
   onClose?: () => void;
+  onToggle?: () => void;
 }
 
-export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapsed, isMobile, onClose }) => {
+export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapsed, isMobile, onClose, onToggle }) => {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
@@ -50,13 +52,19 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
     }
   };
 
+  const handleLogoClick = () => {
+    if (!isMobile && onToggle) {
+      onToggle();
+    }
+  };
+
   const menuItems: MenuItem[] = [
     {
       id: 'dashboard',
       label: 'Tổng Quan',
       icon: <Home className="h-5 w-5" />,
       path: '/dashboard',
-      roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
+      roles: ['Owner']
     },
     {
       id: 'appointments',
@@ -93,28 +101,28 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           path: '/patients',
           roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
         },
-        {
-          id: 'patients-records',
-          label: 'Hồ Sơ Y Tế',
-          icon: <FileText className="h-4 w-4" />,
-          path: '/patients/records',
-          roles: ['Administrator', 'Owner', 'Assistant', 'Dentist']
-        }
+        // {
+        //   id: 'patients-records',
+        //   label: 'Hồ Sơ Y Tế',
+        //   icon: <FileText className="h-4 w-4" />,
+        //   path: '/patients/records',
+        //   roles: ['Administrator', 'Owner', 'Assistant', 'Dentist']
+        // }
       ]
     },
-    {
-      id: 'treatments',
-      label: 'Điều Trị',
-      icon: <Stethoscope className="h-5 w-5" />,
-      path: '/treatments',
-      roles: ['Administrator', 'Owner', 'Dentist', 'Assistant']
-    },
+    // {
+    //   id: 'treatments',
+    //   label: 'Điều Trị',
+    //   icon: <Stethoscope className="h-5 w-5" />,
+    //   path: '/treatments',
+    //   roles: ['Administrator', 'Owner', 'Dentist', 'Assistant']
+    // },
     {
       id: 'prescription-templates',
       label: 'Mẫu Đơn Thuốc',
       icon: <Pill className="h-5 w-5" />,
       path: '/prescription-templates',
-      roles: ['Assistant']
+      roles: ['Assistant', 'Dentist']
     },
     {
       id: 'assigned-tasks',
@@ -166,28 +174,28 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       path: '/inventory',
       roles: ['Administrator', 'Owner', 'Assistant', "Receptionist", 'Dentist'],
     },
-    {
-      id: 'reports',
-      label: 'Báo Cáo',
-      icon: <TrendingUp className="h-5 w-5" />,
-      roles: ['Administrator', 'Owner'],
-      children: [
-        {
-          id: 'reports-revenue',
-          label: 'Doanh Thu',
-          icon: <TrendingUp className="h-4 w-4" />,
-          path: '/reports/revenue',
-          roles: ['Administrator', 'Owner']
-        },
-        {
-          id: 'reports-patients',
-          label: 'Bệnh Nhân',
-          icon: <Activity className="h-4 w-4" />,
-          path: '/reports/patients',
-          roles: ['Administrator', 'Owner']
-        }
-      ]
-    },
+    // {
+    //   id: 'reports',
+    //   label: 'Báo Cáo',
+    //   icon: <TrendingUp className="h-5 w-5" />,
+    //   roles: ['Administrator', 'Owner'],
+    //   children: [
+    //     {
+    //       id: 'reports-revenue',
+    //       label: 'Doanh Thu',
+    //       icon: <TrendingUp className="h-4 w-4" />,
+    //       path: '/reports/revenue',
+    //       roles: ['Administrator', 'Owner']
+    //     },
+    //     {
+    //       id: 'reports-patients',
+    //       label: 'Bệnh Nhân',
+    //       icon: <Activity className="h-4 w-4" />,
+    //       path: '/reports/patients',
+    //       roles: ['Administrator', 'Owner']
+    //     }
+    //   ]
+    // },
     {
       id: 'staff-management',
       label: 'Quản Lý Người Dùng',
@@ -287,30 +295,47 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       {/* Sidebar */}
       <div className={`
         ${isMobile ? 'fixed left-0 top-0 z-50' : 'fixed left-0 top-0 z-30'}
-        bg-white shadow-lg transition-all duration-300 ease-in-out
+        bg-white transition-all duration-300 ease-in-out
         ${isCollapsed ? (isMobile ? '-translate-x-full' : 'w-16') : 'w-64'}
         h-screen flex flex-col
       `}>
         {/* Header - Fixed */}
-        <div className="p-4 border-b flex-shrink-0 h-16 shadow-sm">
+        <div className="p-4 flex-shrink-0 h-16 border-b border-gray-300">
           {!isCollapsed && (
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-blue-600">HolaSmile</h2>
-              {isMobile && (
-                <button
-                  onClick={onClose}
-                  className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-                  title="Close sidebar"
-                >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                </button>
-              )}
+              <h2 className="text-xl font-bold text-blue-600 cursor-pointer" onClick={handleLogoClick}>
+                HolaSmile
+              </h2>
+              <div className="flex items-center space-x-2">
+                {isMobile && (
+                  <button
+                    onClick={onClose}
+                    className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                    title="Close sidebar"
+                  >
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+                {!isMobile && onToggle && (
+                  <button
+                    onClick={onToggle}
+                    className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                    title="Collapse sidebar"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                )}
+              </div>
             </div>
           )}
           {isCollapsed && !isMobile && (
-            <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+            <div 
+              className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center cursor-pointer hover:bg-blue-700 transition-colors"
+              onClick={handleLogoClick}
+              title="Expand sidebar"
+            >
               <span className="text-white font-bold text-sm">H</span>
             </div>
           )}
@@ -332,6 +357,17 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
             }}
           >
             {menuItems.map(item => renderMenuItem(item))}
+            
+            {/* Expand button when collapsed (non-mobile) */}
+            {isCollapsed && !isMobile && onToggle && (
+              <button
+                onClick={onToggle}
+                className="w-full flex items-center justify-center px-4 py-3 pl-3 text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                title="Expand sidebar"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            )}
           </div>
         </nav>
       </div >

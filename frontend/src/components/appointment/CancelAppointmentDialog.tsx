@@ -47,7 +47,7 @@ export const CancelAppointmentDialog: React.FC<CancelAppointmentDialogProps> = (
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-opacity-90 backdrop-blur-sm"
+        className="absolute bg-black/20 inset-0 bg-opacity-90"
         onClick={onClose}
       />
 

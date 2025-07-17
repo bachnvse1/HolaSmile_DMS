@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.Dentist.DeactiveOrthodonticTreatmentPlan;
+using Application.Usecases.Dentists.DeactiveOrthodonticTreatmentPlan;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;

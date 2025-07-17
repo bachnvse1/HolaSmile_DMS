@@ -29,7 +29,7 @@ namespace Application.Usecases.Assistants.DeactivePrescriptionTemplate
                 throw new KeyNotFoundException(MessageConstants.MSG.MSG110); // Không tìm thấy
 
             template.IsDeleted = true;
-            template.UpdatedAt = DateTime.UtcNow;
+            template.UpdatedAt = DateTime.Now;
 
             var result = await _repository.UpdateAsync(template, cancellationToken);
 

@@ -9,8 +9,7 @@ export const ScheduleManagement: React.FC = () => {
   // Lấy thông tin người dùng từ TokenUtils
   const userData = TokenUtils.getUserData();
   const role = userData.role;
-  const userId = userData.userId;
-  const roleTableId = userData.role_table_id;
+  const roleTableId = userData.role_table_id
 
   // Xác định quyền truy cập dựa trên vai trò
   const isDentist = role === 'Dentist';

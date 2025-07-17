@@ -5,7 +5,7 @@ using Moq;
 using System.Security.Claims;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants.ViewPresciptionTemplate
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
 {
     public class ViewPrescriptionTemplateHandlerTests
     {
@@ -83,7 +83,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants.ViewPrescipti
         public async System.Threading.Tasks.Task UTCID03_Role_Not_Assistant_Should_Throw()
         {
             // Arrange
-            SetupHttpContext("Receptionist");
+            SetupHttpContext("Patient");
 
             // Act & Assert
             var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>

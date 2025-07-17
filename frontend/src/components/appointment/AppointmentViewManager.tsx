@@ -1,34 +1,39 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { List, Calendar, RotateCcw, AlertCircle } from 'lucide-react';
 import { useAppointments } from '../../hooks/useAppointments';
 import { AppointmentListView } from './AppointmentListView';
 import { AppointmentCalendarView } from './AppointmentCalendarView';
-import { AppointmentDetailModal } from './AppointmentDetailModal';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import type { AppointmentDTO } from '../../types/appointment';
-import { useDentistSchedules } from '@/hooks/useDentistSchedules';
-import { mapBackendScheduleToFrontend } from '@/utils/schedule';
+import { useAuth } from '../../hooks/useAuth';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const AppointmentViewManager = () => {
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
-  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentDTO | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [lastUserId, setLastUserId] = useState<string | null>(null);
 
+  const { userId } = useAuth();
+  const queryClient = useQueryClient();
   const { data: appointments, isLoading, error, refetch } = useAppointments();
-  const { data: dentistsRaw } = useDentistSchedules();
-  const dentists = mapBackendScheduleToFrontend(dentistsRaw || []);
-  const handleAppointmentClick = (appointment: AppointmentDTO) => {
-    setSelectedAppointment(appointment);
-    setIsModalOpen(true);
-  };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedAppointment(null);
-    refetch();
-  };
+  // Clear cache when user changes (not on first mount)
+  useEffect(() => {
+    if (userId) {
+      if (lastUserId && lastUserId !== userId) {
+        // User has changed, clear cache
+        console.log('User changed, clearing cache:', lastUserId, '->', userId);
+        queryClient.clear(); // Clear all cache
+        
+        // Force refetch after clearing cache
+        setTimeout(() => {
+          refetch();
+        }, 50);
+      }
+      // Update last user ID
+      setLastUserId(userId);
+    }
+  }, [userId, queryClient, refetch, lastUserId]);
 
   const handleRefresh = () => {
     refetch();
@@ -43,6 +48,34 @@ export const AppointmentViewManager = () => {
     );
   }
   if (error) {
+    // Kiểm tra xem có phải lỗi 400 (không có dữ liệu) không
+    const errorWithResponse = error as { response?: { status?: number } };
+    const isNoDataError = errorWithResponse?.response?.status === 400 || 
+                          error?.message?.includes('400') ||
+                          error?.message?.includes('No data found');
+    
+    if (isNoDataError) {
+      return (
+        <div className="text-center py-12">
+          <Card className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-md mx-auto">
+            <CardContent className="p-6">
+              <Calendar className="h-12 w-12 text-blue-500 mx-auto mb-4" />
+              <p className="text-blue-600 mb-4">Hiện tại chưa có lịch hẹn nào</p>
+              <p className="text-sm text-gray-600 mb-4">Danh sách lịch hẹn trống hoặc chưa có dữ liệu</p>
+              <Button
+                onClick={handleRefresh}
+                variant="outline"
+                className="w-full"
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Làm mới
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
     return (
       <div className="text-center py-12">
         <Card className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
@@ -55,6 +88,29 @@ export const AppointmentViewManager = () => {
               className="w-full"
             >
               Thử lại
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Kiểm tra nếu danh sách appointments rỗng
+  if (appointments && appointments.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <Card className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-md mx-auto">
+          <CardContent className="p-6">
+            <Calendar className="h-12 w-12 text-blue-500 mx-auto mb-4" />
+            <p className="text-blue-600 mb-4">Hiện tại chưa có lịch hẹn nào</p>
+            <p className="text-sm text-gray-600 mb-4">Chưa có lịch hẹn nào được tạo trong hệ thống</p>
+            <Button
+              onClick={handleRefresh}
+              variant="outline"
+              className="w-full"
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Làm mới
             </Button>
           </CardContent>
         </Card>
@@ -110,22 +166,20 @@ export const AppointmentViewManager = () => {
       {viewMode === 'list' ? (
         <AppointmentListView
           appointments={appointments || []}
-          onAppointmentClick={handleAppointmentClick}
         />
       ) : (
         <AppointmentCalendarView
           appointments={appointments || []}
-          onAppointmentClick={handleAppointmentClick}
         />
       )}
 
       {/* Detail Modal */}
-      <AppointmentDetailModal
+      {/* <AppointmentDetailModal
         appointment={selectedAppointment}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         dentists={dentists}
-      />
+      /> */}
     </div>
   );
 };

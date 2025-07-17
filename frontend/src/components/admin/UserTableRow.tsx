@@ -31,6 +31,25 @@ export function UserTableRow({ user, index, onToggleStatus }: UserTableRowProps)
         }
     }
 
+    const getRoleDisplayName = (role: string) => {
+        switch (role) {
+            case "Administrator":
+                return "Quản trị viên"
+            case "Receptionist":
+                return "Lễ tân"
+            case "Patient":
+                return "Bệnh nhân"
+            case "Dentist":
+                return "Bác sĩ nha khoa"
+            case "Assistant":
+                return "Trợ lý"
+            case "Owner":
+                return "Chủ sở hữu"
+            default:
+                return role
+        }
+    }
+
     return (
         <TableRow className={`border-b border-gray-300 ${index % 2 === 0 ? 'bg-gray-100' : 'bg-white'}`}>
             <TableCell className="font-medium">{user.fullName}</TableCell>
@@ -38,24 +57,24 @@ export function UserTableRow({ user, index, onToggleStatus }: UserTableRowProps)
             <TableCell>{user.phoneNumber}</TableCell>
             <TableCell>
                 <Badge variant={getRoleBadgeVariant(user.role)} className={user.role !== 'Patient' ? 'border border-gray-400' : ''}>
-                    {user.role}
+                    {getRoleDisplayName(user.role)}
                 </Badge>
             </TableCell>
             <TableCell>{formatDate(user.createdAt)}</TableCell>
             <TableCell>
-                <Badge variant={user.status ? "default" : "destructive" }>{user.status ? "Active" : "Banned"}</Badge>
+                <Badge variant={user.status ? "default" : "destructive"}>{user.status ? "Đang hoạt động" : "Đã cấm"}</Badge>
             </TableCell>
             <TableCell className="text-right">
                 <Button variant={user.status ? "default" : "destructive"} size="sm" onClick={() => onToggleStatus(Number(user.userId))}>
                     {user.status ? (
                         <>
-                            <UserCheck className="w-4 h-4 mr-1" />
-                            Ban
+                            <Ban className="w-4 h-4 mr-1" />
+                            Cấm
                         </>
                     ) : (
                         <>
-                            <Ban className="w-4 h-4 mr-1" />
-                            Unban
+                            <UserCheck className="w-4 h-4 mr-1" />
+                            Bỏ cấm
                         </>
                     )}
                 </Button>

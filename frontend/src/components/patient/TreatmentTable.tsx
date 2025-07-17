@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { FileText, Calendar, ChevronDown, ChevronRight, ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
+import { FileText, Calendar, ChevronDown, ChevronRight, ChevronLeft, ChevronRight as ChevronRightIcon, Printer } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { Button } from "@/components/ui/button2";
@@ -9,6 +9,7 @@ import RecordRow from "./RecordRow";
 import { formatDateOnly } from "@/utils/date";
 import { CreateInvoiceModal } from "../invoice/CreateInvoiceModal";
 import { invoiceService } from "@/services/invoiceService";
+import { printDentalRecord } from "@/services/treatmentService";
 
 interface TreatmentTableProps {
   records: TreatmentRecord[];
@@ -32,6 +33,7 @@ interface GroupedRecord {
   date: string;
   records: TreatmentRecord[];
   totalAmount: number;
+  appointmentId: number;
 }
 
 const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50, 100];
@@ -48,6 +50,7 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
   const [selectedRecord, setSelectedRecord] = useState<TreatmentRecord | null>(null);
   const [isCreatingInvoice, setIsCreatingInvoice] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+  const [printingGroups, setPrintingGroups] = useState<Record<string, boolean>>({});
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -73,6 +76,7 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
           date,
           records: [],
           totalAmount: 0,
+          appointmentId: record.appointmentID,
         };
       }
       groups[date].records.push(record);
@@ -107,6 +111,59 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
       ...prev,
       [date]: !prev[date]
     }));
+  };
+
+  const handlePrintDentalRecord = async (appointmentId: number, date: string) => {
+    setPrintingGroups(prev => ({ ...prev, [date]: true }));
+
+    try {
+      // Gọi API để lấy PDF blob
+      const pdfBlob = await printDentalRecord(appointmentId);
+
+      // Tạo URL từ blob
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+
+      // Tạo cửa sổ mới để hiển thị PDF
+      const printWindow = window.open(pdfUrl, '_blank', 'width=800,height=600');
+
+      if (printWindow) {
+        // Đợi PDF load xong rồi tự động in
+        printWindow.addEventListener('load', () => {
+          printWindow.print();
+          
+          // Cleanup URL sau khi in
+          printWindow.addEventListener('afterprint', () => {
+            URL.revokeObjectURL(pdfUrl);
+            printWindow.close();
+          });
+        });
+
+        // Fallback nếu load event không fire
+        setTimeout(() => {
+          if (!printWindow.closed) {
+            printWindow.print();
+          }
+        }, 1000);
+      } else {
+        // Nếu không thể mở popup, tự động tải xuống
+        const link = document.createElement('a');
+        link.href = pdfUrl;
+        link.download = `Ho_so_dieu_tri_${appointmentId}_${date}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(pdfUrl);
+        
+        toast.info("Không thể mở cửa sổ in. File PDF đã được tải xuống.");
+      }
+
+      toast.success("Đã tạo hồ sơ điều trị để in");
+    } catch (error: any) {
+      console.error("Error printing dental record:", error);
+      toast.error(error.message || "Không thể in hồ sơ điều trị");
+    } finally {
+      setPrintingGroups(prev => ({ ...prev, [date]: false }));
+    }
   };
 
   const handleOpenInvoiceModal = (patientId: number, treatmentRecordId: number) => {
@@ -367,17 +424,18 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
                   {paginatedGroups.map((group, groupIndex) => {
                     const appointmentStatus = getAppointmentStatus(group.date);
                     const isExpanded = expandedGroups[group.date] ?? false;
+                    const isPrinting = printingGroups[group.date] ?? false;
 
                     return (
                       <React.Fragment key={group.date}>
                         {/* Date Group Header Row */}
-                        <tr
-                          className="bg-blue-50 border-t-2 border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors"
-                          onClick={() => toggleGroupExpansion(group.date)}
-                        >
+                        <tr className="bg-blue-50 border-t-2 border-blue-200">
                           <td colSpan={readonly ? 8 : 8} className="px-6 py-4">
                             <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
+                              <div
+                                className="flex items-center gap-3 cursor-pointer hover:bg-blue-100 transition-colors rounded px-2 py-1"
+                                onClick={() => toggleGroupExpansion(group.date)}
+                              >
                                 {isExpanded ? (
                                   <ChevronDown className="h-4 w-4 text-blue-600" />
                                 ) : (
@@ -393,8 +451,21 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
                                   </div>
                                 )}
                               </div>
-                              <div className="text-sm text-blue-700">
-                                {group.records.length} điều trị
+                              <div className="flex items-center gap-3">
+                                <div className="text-sm text-blue-700">
+                                  {group.records.length} điều trị
+                                </div>
+                                {/* Nút in hồ sơ điều trị */}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handlePrintDentalRecord(group.appointmentId, group.date)}
+                                  disabled={isPrinting}
+                                  className="flex items-center gap-2 text-blue-600 border-blue-200 hover:bg-blue-50"
+                                >
+                                  <Printer className="h-4 w-4" />
+                                  {isPrinting ? "Đang in..." : "In hồ sơ"}
+                                </Button>
                               </div>
                             </div>
                           </td>

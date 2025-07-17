@@ -31,7 +31,6 @@ namespace HDMS_API.Infrastructure.Repositories
             if (appointment == null)
                 return null;
 
-            // Vì là quan hệ 1-1 nên dùng FirstOrDefault là đủ, không cần Distinct
             var prescription = await _context.Prescriptions
                 .FirstOrDefaultAsync(p => p.AppointmentId == appointmentId);
 
@@ -49,6 +48,7 @@ namespace HDMS_API.Infrastructure.Repositories
                 Content = appointment.Content,
                 AppointmentType = appointment.AppointmentType,
                 IsNewPatient = appointment.IsNewPatient,
+                patientId = appointment.Patient.PatientID,
                 Status = appointment.Status,
                 CreatedAt = appointment.CreatedAt,
                 UpdatedAt = appointment.UpdatedAt,
@@ -98,6 +98,7 @@ namespace HDMS_API.Infrastructure.Repositories
                     Content = app.Content,
                     AppointmentType = app.AppointmentType,
                     IsNewPatient = app.IsNewPatient,
+                    patientId = app.Patient.PatientID,
                     Status = app.Status,
                     CreatedAt = app.CreatedAt,
                     UpdatedAt = app.UpdatedAt,
@@ -147,6 +148,7 @@ namespace HDMS_API.Infrastructure.Repositories
                     Content = app.Content,
                     AppointmentType = app.AppointmentType,
                     IsNewPatient = app.IsNewPatient,
+                    patientId = app.Patient.PatientID,
                     Status = app.Status,
                     CreatedAt = app.CreatedAt,
                     UpdatedAt = app.UpdatedAt,
@@ -197,6 +199,7 @@ namespace HDMS_API.Infrastructure.Repositories
                     Content = app.Content,
                     AppointmentType = app.AppointmentType,
                     IsNewPatient = app.IsNewPatient,
+                    patientId = app.Patient.PatientID,
                     Status = app.Status,
                     CreatedAt = app.CreatedAt,
                     UpdatedAt = app.UpdatedAt,

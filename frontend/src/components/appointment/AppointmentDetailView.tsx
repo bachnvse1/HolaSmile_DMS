@@ -9,9 +9,14 @@ import { usePrescriptionByAppointment } from '../../hooks/usePrescription';
 import { useAppointmentDetail } from '../../hooks/useAppointments';
 import { useDentistSchedule } from '../../hooks/useDentistSchedule';
 import { isAppointmentCancellable, getTimeUntilAppointment } from '../../utils/appointmentUtils';
-import { Link, useParams, useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { EditAppointmentDialog } from './EditAppointmentDialog';
 import { formatDateVN, formatTimeVN } from '../../utils/dateUtils';
+import { useQueryClient } from '@tanstack/react-query';
+import TreatmentModal from '../patient/TreatmentModal';
+import type { TreatmentFormData } from '@/types/treatment';
+import { useForm } from 'react-hook-form';
+import { useUserInfo } from '@/hooks/useUserInfo';
 
 interface AppointmentDetailViewProps {
   appointmentId: number;
@@ -23,25 +28,50 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
-  const {   role } = useAuth();
-  const { patientId } = useParams<{ patientId: string }>();
+  const [showTreatmentModal, setShowTreatmentModal] = useState(false);
+  const userInfo = useUserInfo();
+  const { role } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const treatmentFormMethods = useForm<TreatmentFormData>({});
+  const [treatmentToday, setTreatmentToday] = useState<boolean | null>(null);
 
   // Fetch appointment details
   const { data: appointment, isLoading: isAppointmentLoading } = useAppointmentDetail(appointmentId);
 
   // Fetch dentist data for edit dialog
   const { dentists } = useDentistSchedule();
+  const patientId = appointment?.patientId;
 
   // Check if prescription exists for this appointment
   const { isLoading: isPrescriptionLoading } = usePrescriptionByAppointment(appointmentId);
 
+  // Helper function to refresh appointment data
+  const refreshAppointmentData = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: ['appointment-detail', appointmentId]
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ['prescription-by-appointment', appointmentId]
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ['appointments']
+      })
+    ]);
+  };
+
   const handleGoBack = () => {
     if (role === 'Patient') {
       navigate(`/patient/appointments`);
-    }else{
-      navigate('/appointments')
+    } else {
+      navigate('/appointments');
     }
+  };
+
+  const handleTreatmentSubmit = () => {
+    setShowTreatmentModal(false);
   };
 
   if (isAppointmentLoading) {
@@ -112,14 +142,17 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
             Chi tiết lịch hẹn
           </h2>
         </div>
-        
+
         {/* Action Buttons - Dentist có full quyền, Patient chỉ xem đơn thuốc */}
         <div className="flex items-center gap-2 sm:gap-3">
           {role === 'Dentist' && (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate(`/patients/${patientId}/orthodontic-treatment-plans`)}
+              onClick={() => {
+                setShowTreatmentModal(true);
+                setTreatmentToday(false);
+              }}
               className="flex items-center gap-2 text-xs sm:text-sm"
             >
               <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -317,8 +350,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
           onClose={() => setShowCancelDialog(false)}
           onSuccess={() => {
             setShowCancelDialog(false);
-            // Refresh data
-            window.location.reload();
+            refreshAppointmentData();
           }}
         />
       )}
@@ -332,7 +364,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
           onClose={() => setShowEditDialog(false)}
           onSuccess={() => {
             setShowEditDialog(false);
-            window.location.reload();
+            refreshAppointmentData();
           }}
         />
       )}
@@ -345,10 +377,28 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
           onClose={() => setShowPrescriptionModal(false)}
           onSuccess={() => {
             setShowPrescriptionModal(false);
-            window.location.reload();
+            refreshAppointmentData();
           }}
         />
       )}
+
+      {/* Treatment Modal */}
+      {showTreatmentModal && (
+        <TreatmentModal
+          formMethods={treatmentFormMethods}
+          isOpen={showTreatmentModal}
+          isEditing={false}
+          treatmentToday={treatmentToday ?? undefined}
+          onClose={() => setShowTreatmentModal(false)}
+          updatedBy={Number(userInfo.id)}
+          appointmentId={appointmentId}
+          defaultStatus="in-progress"
+          onSubmit={handleTreatmentSubmit}
+          keepOpenAfterCreate={false}
+          patientId={Number(appointment.patientId)}
+        />
+      )}
     </div>
+
   );
 };

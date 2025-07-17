@@ -16,6 +16,7 @@ namespace Application.Usecases.UserCommon.ViewAppointment
         public string Content { get; set; }
         public string AppointmentType { get; set; }
         public bool IsNewPatient { get; set; }
+        public int? patientId { get; set; }
         public string Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }

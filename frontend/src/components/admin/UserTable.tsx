@@ -22,13 +22,13 @@ export function UserTable({ users, onToggleStatus, onClearFilters, isLoading }: 
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Full Name</TableHead>
+                            <TableHead>Họ và tên</TableHead>
                             <TableHead>Email</TableHead>
-                            <TableHead>Phone Number</TableHead>
-                            <TableHead>Role</TableHead>
-                            <TableHead>Created At</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                            <TableHead>Số điện thoại</TableHead>
+                            <TableHead>Vai trò</TableHead>
+                            <TableHead>Ngày tạo</TableHead>
+                            <TableHead>Trạng thái</TableHead>
+                            <TableHead className="text-right">Thao tác</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -41,9 +41,9 @@ export function UserTable({ users, onToggleStatus, onClearFilters, isLoading }: 
 
             {users.length === 0 && (
                 <div className="text-center py-12">
-                    <p className="text-muted-foreground">No users found. Create your first user to get started.</p>
+                    <p className="text-muted-foreground">Không tìm thấy người dùng nào. Tạo người dùng đầu tiên để bắt đầu.</p>
                     <Button variant="outline" className="mt-2 bg-transparent" onClick={onClearFilters}>
-                        Clear Filters
+                        Xóa bộ lọc
                     </Button>
                 </div>
             )}
