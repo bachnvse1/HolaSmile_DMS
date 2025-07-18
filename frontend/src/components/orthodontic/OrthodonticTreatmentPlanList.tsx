@@ -664,11 +664,11 @@ const TreatmentPlanCard: React.FC<TreatmentPlanCardProps> = ({ plan, onView, onE
               </Badge>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
-              <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+              {/* <div>
                 <p className="font-medium">Ngày tạo:</p>
                 <p>{formatDate(new Date(plan.createdAt), 'dd/MM/yyyy HH:mm:ss')}</p>
-              </div>
+              </div> */}
               <div>
                 <p className="font-medium">Bác sĩ phụ trách:</p>
                 <p>
@@ -685,6 +685,12 @@ const TreatmentPlanCard: React.FC<TreatmentPlanCardProps> = ({ plan, onView, onE
 
             <div className="mt-3 space-y-2">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className='text-sm text-blue-800 font-medium mb-1'>Lý do khám: </p>
+                <div className="text-sm text-black-700 leading-relaxed">
+                  <p className="line-clamp-3 break-words overflow-hidden whitespace-pre-wrap">
+                   {plan.reasonForVisit || 'Chưa có thông tin'}
+                  </p>
+                </div>
                 <p className="text-sm text-blue-800 font-medium mb-1">Nội dung điều trị:</p>
                 <div className="text-sm text-black-700 leading-relaxed">
                   <p className="line-clamp-3 break-words overflow-hidden whitespace-pre-wrap">
@@ -695,7 +701,8 @@ const TreatmentPlanCard: React.FC<TreatmentPlanCardProps> = ({ plan, onView, onE
 
               <div>
                 <p className="text-sm text-gray-600 line-clamp-2 break-words">
-                  <span className="font-medium">Lý do khám:</span> {plan.reasonForVisit || 'Chưa có thông tin'}
+                  <p className="font-medium">Ngày tạo:</p>
+                  <p>{formatDate(new Date(plan.createdAt), 'dd/MM/yyyy HH:mm:ss')}</p>
                 </p>
               </div>
             </div>

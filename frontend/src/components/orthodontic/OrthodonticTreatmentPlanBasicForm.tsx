@@ -25,7 +25,7 @@ export const OrthodonticTreatmentPlanBasicForm: React.FC<OrthodonticTreatmentPla
   // Dynamic schema based on mode
   const basicPlanSchema = React.useMemo(() => z.object({
     planTitle: z.string().min(1, 'Tên kế hoạch là bắt buộc'),
-    templateName: z.string().min(1, 'Template là bắt buộc'),
+    templateName: z.string().min(1, 'Tên mẫu là bắt buộc'),
     dentistId: mode === 'edit' ? z.coerce.number().optional() : z.coerce.number().min(1, 'Bác sĩ phụ trách là bắt buộc'),
     consultationDate: z.string().min(1, 'Ngày tư vấn là bắt buộc'),
   }), [mode]);

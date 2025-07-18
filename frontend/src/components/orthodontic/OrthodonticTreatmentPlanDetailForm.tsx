@@ -623,6 +623,9 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
                 <span className="font-medium">Ngày tư vấn:</span> {basicData?.consultationDate || 'Chưa xác định'}
               </div> */}
               <div>
+                <span className="font-medium">Giới tính:</span> {patientData?.gender === true ? 'Nam' : 'Nữ'}
+              </div>
+              <div>
                 <span className="font-medium">Bác sĩ phụ trách:</span> {
                   mode === 'view' && treatmentPlan && (treatmentPlan as { dentistName?: string }).dentistName ||
                   basicData?.dentistName ||
