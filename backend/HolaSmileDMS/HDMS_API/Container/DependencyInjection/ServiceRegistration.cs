@@ -70,6 +70,7 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IPayOSConfiguration, PayOSConfiguration>();
             services.AddScoped<ICloudinaryService, CloudinaryService>();
             services.AddScoped<IImageRepository, ImageRepository>();
+            services.AddScoped<ITransactionRepository, TransactionRepository>();
 
 
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";

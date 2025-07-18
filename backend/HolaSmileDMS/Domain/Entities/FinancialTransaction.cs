@@ -11,11 +11,10 @@ public class FinancialTransaction
     /// <summary>
     /// Liên kết 1-1 với Invoice (bắt buộc)
     /// </summary>
-    [Required]
-    public int InvoiceId { get; set; }
+    public int? InvoiceId { get; set; }
 
     [ForeignKey("InvoiceId")]
-    public Invoice Invoice { get; set; }
+    public Invoice? Invoice { get; set; }
 
     [Column(TypeName = "nvarchar(200)")]
     public string TransactionDate { get; set; } = string.Empty;

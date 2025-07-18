@@ -4,7 +4,6 @@ using MediatR;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using Microsoft.AspNetCore.Http;
-using Application.Interfaces;
 
 namespace Application.Usecases.Assistants.ExcelSupply
 {
