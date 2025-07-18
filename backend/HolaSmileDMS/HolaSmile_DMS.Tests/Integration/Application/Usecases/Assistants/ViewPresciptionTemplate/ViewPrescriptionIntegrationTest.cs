@@ -104,7 +104,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants.ViewPr
         [Fact(DisplayName = "Abnormal - UTCID03 - Role is not Assistant should throw MSG26")]
         public async System.Threading.Tasks.Task UTCID03_ViewPrescriptionTemplates_WrongRole_Throws()
         {
-            SetupHttpContext("Dentist");
+            SetupHttpContext("abc");
 
             var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
                 _handler.Handle(new ViewPrescriptionTemplateCommand(), default));

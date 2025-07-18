@@ -41,7 +41,7 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
 
             if(schedules == null || !schedules.Any())
             {
-                throw new Exception(MessageConstants.MSG.MSG28);
+                schedules = new List<Schedule>();
             }
 
             var result = schedules

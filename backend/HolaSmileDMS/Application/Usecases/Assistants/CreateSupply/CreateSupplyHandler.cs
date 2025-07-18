@@ -21,7 +21,12 @@ namespace Application.Usecases.Assistant.CreateSupply
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-            if(!string.Equals(currentUserRole, "assistant", StringComparison.OrdinalIgnoreCase))
+            if (currentUserRole == null)
+            {
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // "Bạn cần đăng nhập..."
+            }
+
+            if (!string.Equals(currentUserRole, "assistant", StringComparison.OrdinalIgnoreCase))
             {
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Bạn không có quyền truy cập chức năng này
             }
@@ -46,6 +51,17 @@ namespace Application.Usecases.Assistant.CreateSupply
             {
                 throw new ArgumentException(MessageConstants.MSG.MSG96); // Ngày hết hạn không được trước ngày hiện tại
             }
+
+            var existSupply = await _supplyRepository.GetExistSupply(request.SupplyName, request.Price, request.ExpiryDate);
+            if (existSupply != null)
+            {
+                existSupply.QuantityInStock += request.QuantityInStock;
+                existSupply.UpdatedAt = DateTime.Now;
+                existSupply.UpdatedBy = currentUserId;
+                var isUpdated = await _supplyRepository.EditSupplyAsync(existSupply);
+                return isUpdated;
+            }
+
             var newSupply = new Supplies
             {
                 Name = request.SupplyName.Trim(),

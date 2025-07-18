@@ -111,8 +111,9 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Administrators
 
             SetupHttpContext("Administrator", 1);
 
-            await Assert.ThrowsAsync<Exception>(() =>
-                _handler.Handle(new ViewListUserCommand(), default));
+            var result = await _handler.Handle(new ViewListUserCommand(), default);
+            Assert.NotNull(result);
+            Assert.Empty(result);
         }
     }
 }

@@ -12,13 +12,15 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
     {
         private readonly IDentistRepository _dentistRepository;
         private readonly IScheduleRepository _scheduleRepository;
+        private readonly IUserCommonRepository _userCommonRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;
 
-        public ViewDetailScheduleHandle(IDentistRepository dentistRepository, IMapper mapper, IScheduleRepository scheduleRepository, IHttpContextAccessor httpContextAccessor)
+        public ViewDetailScheduleHandle(IDentistRepository dentistRepository, IMapper mapper, IScheduleRepository scheduleRepository, IUserCommonRepository userCommonRepository, IHttpContextAccessor httpContextAccessor)
         {
             _dentistRepository = dentistRepository;
             _httpContextAccessor = httpContextAccessor;
+            _userCommonRepository = userCommonRepository;
             _scheduleRepository = scheduleRepository;
             _mapper = mapper;
         }
@@ -43,7 +45,13 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
                     throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập..."
             }
 
-            return _mapper.Map<ScheduleDTO>(schedule);
+            var createdby = await _userCommonRepository.GetByIdAsync(schedule.CreatedBy, cancellationToken);
+            var updatedby = await _userCommonRepository.GetByIdAsync(schedule.UpdatedBy, cancellationToken);
+
+            var result = _mapper.Map<ScheduleDTO>(schedule);
+            result.createdBy = createdby?.Fullname ?? "";
+            result.updatedBy = updatedby?.Fullname ?? "";
+            return result;
         }
 
     }

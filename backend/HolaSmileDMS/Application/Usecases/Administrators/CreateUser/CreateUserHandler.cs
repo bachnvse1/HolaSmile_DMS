@@ -2,7 +2,6 @@
 using Application.Constants;
 using Application.Interfaces;
 using HDMS_API.Application.Common.Helpers;
-using Humanizer;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
@@ -23,6 +22,11 @@ namespace Application.Usecases.Administrator.CreateUser
             var user = _httpContextAccessor.HttpContext?.User;
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+
+            if (currentUserRole == null)
+            {
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // "Bạn cần đăng nhập..."
+            }
 
             if (!string.Equals(currentUserRole, "administrator", StringComparison.OrdinalIgnoreCase))
             {

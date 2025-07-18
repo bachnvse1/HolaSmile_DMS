@@ -123,6 +123,162 @@ namespace Infrastructure.Migrations
                     b.ToTable("Dentists");
                 });
 
+            modelBuilder.Entity("Domain.Entities.ChatMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ReceiverId")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("SenderId")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ChatMessages");
+                });
+
+            modelBuilder.Entity("Domain.Entities.DiscountProgram", b =>
+                {
+                    b.Property<int>("DiscountProgramID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DiscountProgramName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("InvoiceId")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDelete")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int");
+
+                    b.HasKey("DiscountProgramID");
+
+                    b.ToTable("DiscountPrograms");
+                });
+
+            modelBuilder.Entity("Domain.Entities.FinancialTransaction", b =>
+                {
+                    b.Property<int>("TransactionID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("InvoiceId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDelete")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("PaymentMethod")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("TransactionDate")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("TransactionType")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int");
+
+                    b.HasKey("TransactionID");
+
+                    b.HasIndex("InvoiceId");
+
+                    b.ToTable("FinancialTransactions");
+                });
+
+            modelBuilder.Entity("Domain.Entities.ProcedureDiscountProgram", b =>
+                {
+                    b.Property<int>("ProcedureId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DiscountProgramId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("ProcedureId", "DiscountProgramId");
+
+                    b.HasIndex("DiscountProgramId");
+
+                    b.ToTable("ProcedureDiscountPrograms");
+                });
+
+            modelBuilder.Entity("Domain.Entities.SuppliesTransaction", b =>
+                {
+                    b.Property<int>("SupplyId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FinancialTransactionsID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("SupplyId", "FinancialTransactionsID");
+
+                    b.HasIndex("FinancialTransactionsID");
+
+                    b.ToTable("SuppliesTransactions");
+                });
+
             modelBuilder.Entity("EquipmentMaintenance", b =>
                 {
                     b.Property<int>("MaintenanceId")
@@ -312,7 +468,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("varchar(100)");
 
                     b.Property<decimal?>("PaidAmount")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("PatientId")
                         .HasColumnType("int");
@@ -325,7 +481,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("varchar(255)");
 
                     b.Property<decimal?>("RemainingAmount")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Status")
                         .HasColumnType("longtext");
@@ -610,7 +766,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("float");
 
                     b.Property<decimal?>("ConsumableCost")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
@@ -632,10 +788,10 @@ namespace Infrastructure.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<decimal?>("OriginalPrice")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("ProcedureName")
                         .HasMaxLength(200)
@@ -743,7 +899,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("TotalSalary")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
@@ -768,7 +924,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("ComponentType")
                         .HasMaxLength(50)
@@ -871,7 +1027,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("varchar(200)");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("QuantityInStock")
                         .HasColumnType("int");
@@ -1169,6 +1325,9 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("CreateAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<int?>("CreateBy")
                         .HasColumnType("int");
 
@@ -1177,6 +1336,9 @@ namespace Infrastructure.Migrations
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsDelete")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime(6)");
@@ -1248,6 +1410,55 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Entities.FinancialTransaction", b =>
+                {
+                    b.HasOne("Invoice", "Invoice")
+                        .WithMany()
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Invoice");
+                });
+
+            modelBuilder.Entity("Domain.Entities.ProcedureDiscountProgram", b =>
+                {
+                    b.HasOne("Domain.Entities.DiscountProgram", "DiscountProgram")
+                        .WithMany("ProcedureDiscountPrograms")
+                        .HasForeignKey("DiscountProgramId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Procedure", "Procedure")
+                        .WithMany()
+                        .HasForeignKey("ProcedureId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DiscountProgram");
+
+                    b.Navigation("Procedure");
+                });
+
+            modelBuilder.Entity("Domain.Entities.SuppliesTransaction", b =>
+                {
+                    b.HasOne("Domain.Entities.FinancialTransaction", "FinancialTransaction")
+                        .WithMany("SuppliesTransactions")
+                        .HasForeignKey("FinancialTransactionsID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Supplies", "Supplies")
+                        .WithMany()
+                        .HasForeignKey("SupplyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FinancialTransaction");
+
+                    b.Navigation("Supplies");
                 });
 
             modelBuilder.Entity("Image", b =>
@@ -1571,6 +1782,16 @@ namespace Infrastructure.Migrations
                     b.Navigation("TreatmentProgresses");
 
                     b.Navigation("TreatmentRecords");
+                });
+
+            modelBuilder.Entity("Domain.Entities.DiscountProgram", b =>
+                {
+                    b.Navigation("ProcedureDiscountPrograms");
+                });
+
+            modelBuilder.Entity("Domain.Entities.FinancialTransaction", b =>
+                {
+                    b.Navigation("SuppliesTransactions");
                 });
 
             modelBuilder.Entity("EquipmentMaintenance", b =>

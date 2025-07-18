@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
+using Application.Usecases.Administrator.ViewListUser;
 using Application.Usecases.Dentist.ViewDentistSchedule;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;
@@ -118,10 +119,9 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.UserCommon
 
             SetupHttpContext("Owner", 999);
 
-            var ex = await Assert.ThrowsAsync<Exception>(() =>
-                _handler.Handle(new ViewAllDentistScheduleCommand(), default));
-
-            Assert.Equal(MessageConstants.MSG.MSG28, ex.Message);
+            var result = await _handler.Handle(new ViewAllDentistScheduleCommand(), default);
+            Assert.NotNull(result);
+            Assert.Empty(result);
         }
     }
 

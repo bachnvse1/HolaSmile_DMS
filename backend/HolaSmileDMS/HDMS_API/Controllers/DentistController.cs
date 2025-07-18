@@ -1,6 +1,7 @@
 ﻿using Application.Usecases.Dentist.ViewDentistSchedule;
 using Application.Usecases.Dentist.ViewListDentistName;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,6 +20,8 @@ namespace HDMS_API.Controllers
         /// <summary>
         /// Get all active dentists (not deleted)
         /// </summary>
+        ///
+        [Authorize]
         [HttpGet("getAllDentistsName")]
         public async Task<IActionResult> GetAllDentistsName(CancellationToken cancellationToken)
         {

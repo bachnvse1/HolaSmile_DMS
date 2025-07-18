@@ -80,6 +80,25 @@ namespace HDMS_API.Controllers
         }
 
         [Authorize]
+        [HttpGet("{scheduleId}")]
+        public async Task<IActionResult> ViewDetailDentistSchedule([FromRoute] int scheduleId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var result = await _mediator.Send(new ViewDetailScheduleCommand(scheduleId));
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = ex.Message,
+                });
+            }
+        }
+
+        [Authorize]
         [HttpPost("dentist/create")]
         public async Task<IActionResult> CreateSchedule([FromBody] CreateScheduleCommand command, CancellationToken cancellationToken)
         {
