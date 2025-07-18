@@ -40,4 +40,8 @@
 		<PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
 
 	</ItemGroup>
+	<ItemGroup>
+	  <Compile Remove="Migrations\20250717172217_addNewEntity.cs" />
+	  <Compile Remove="Migrations\20250717172217_addNewEntity.Designer.cs" />
+	</ItemGroup>
 </Project>

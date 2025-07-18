@@ -11,6 +11,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
     public class ViewDetailAppointmentHandlerTests
     {
         private readonly Mock<IAppointmentRepository> _appointmentRepoMock;
+        private readonly Mock<IUserCommonRepository> _userCommonRepoMock;
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly ViewDetailAppointmentHandler _handler;
@@ -19,9 +20,11 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
         {
             _appointmentRepoMock = new Mock<IAppointmentRepository>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+            _userCommonRepoMock = new Mock<IUserCommonRepository>();
             _mapperMock = new Mock<IMapper>();
             _handler = new ViewDetailAppointmentHandler(
                 _appointmentRepoMock.Object,
+                _userCommonRepoMock.Object,
                 _mapperMock.Object,
                 _httpContextAccessorMock.Object
             );
@@ -52,10 +55,69 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
                 .Setup(r => r.CheckPatientAppointmentByUserIdAsync(appointmentId, patientId))
                 .ReturnsAsync(true);
 
-            var appointment = new AppointmentDTO { AppointmentId = appointmentId };
+            // Fake CreatedBy / UpdatedBy as string userId
+            var appointment = new AppointmentDTO
+            {
+                AppointmentId = appointmentId,
+                CreatedBy = "2",
+                UpdatedBy = "3"
+            };
+
             _appointmentRepoMock
                 .Setup(r => r.GetDetailAppointmentByAppointmentIDAsync(appointmentId))
                 .ReturnsAsync(appointment);
+
+            // Mock created user
+            _userCommonRepoMock
+                .Setup(r => r.GetByIdAsync(2, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new User { UserID = 2,Phone ="0999999999", Fullname = "Alice Created" });
+
+            // Mock updated user
+            _userCommonRepoMock
+                .Setup(r => r.GetByIdAsync(3, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new User { UserID = 3, Phone = "0999999998", Fullname = "Bob Updated" });
+
+            var command = new ViewDetailAppointmentCommand(appointmentId);
+
+            // Act
+            var result = await _handler.Handle(command, default);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(appointmentId, result.AppointmentId);
+            Assert.Equal("Alice Created", result.CreatedBy);
+        }
+
+
+        [Fact(DisplayName = "UTCID02 - Dentist can view own appointment")]
+        public async System.Threading.Tasks.Task Dentist_Can_View_Appointment()
+        {
+            // Arrange
+            int dentistId = 2, appointmentId = 11;
+            SetupHttpContext("dentist", dentistId);
+
+            _appointmentRepoMock
+                .Setup(r => r.CheckDentistAppointmentByUserIdAsync(appointmentId, dentistId))
+                .ReturnsAsync(true);
+
+            var appointment = new AppointmentDTO
+            {
+                AppointmentId = appointmentId,
+                CreatedBy = "4",
+                UpdatedBy = "5"
+            };
+
+            _appointmentRepoMock
+                .Setup(r => r.GetDetailAppointmentByAppointmentIDAsync(appointmentId))
+                .ReturnsAsync(appointment);
+
+            _userCommonRepoMock
+                .Setup(r => r.GetByIdAsync(4, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new User { UserID = 4, Fullname = "Dr. Created" });
+
+            _userCommonRepoMock
+                .Setup(r => r.GetByIdAsync(5, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new User { UserID = 5, Fullname = "Dr. Updated" });
 
             var command = new ViewDetailAppointmentCommand(appointmentId);
 
@@ -67,27 +129,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
             Assert.Equal(appointmentId, result.AppointmentId);
         }
 
-        [Fact(DisplayName = "UTCID02 - Dentist can view own appointment")]
-        public async System.Threading.Tasks.Task Dentist_Can_View_Appointment()
-        {
-            int dentistId = 2, appointmentId = 11;
-            SetupHttpContext("dentist", dentistId);
-
-            _appointmentRepoMock
-                .Setup(r => r.CheckDentistAppointmentByUserIdAsync(appointmentId, dentistId))
-                .ReturnsAsync(true);
-
-            var appointment = new AppointmentDTO { AppointmentId = appointmentId };
-            _appointmentRepoMock
-                .Setup(r => r.GetDetailAppointmentByAppointmentIDAsync(appointmentId))
-                .ReturnsAsync(appointment);
-
-            var command = new ViewDetailAppointmentCommand(appointmentId);
-            var result = await _handler.Handle(command, default);
-
-            Assert.NotNull(result);
-            Assert.Equal(appointmentId, result.AppointmentId);
-        }
 
         [Fact(DisplayName = "UTCID03 - Patient accesses unauthorized appointment throws exception")]
         public async System.Threading.Tasks.Task Patient_Access_Unauthorized_Throws()

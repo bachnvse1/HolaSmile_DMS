@@ -86,7 +86,6 @@ public class EditSupplyIntegrationTests
             SupplyId = 1,
             SupplyName = "Gauze Updated",
             Unit = "box",
-            QuantityInStock = 200,
             Price = 55,
             ExpiryDate = DateTime.Today.AddMonths(12)
         };
@@ -96,7 +95,6 @@ public class EditSupplyIntegrationTests
         Assert.True(result);
         var updated = _context.Supplies.Find(1);
         Assert.Equal("Gauze Updated", updated.Name);
-        Assert.Equal(200, updated.QuantityInStock);
         Assert.Equal(55, updated.Price);
     }
 
@@ -111,7 +109,6 @@ public class EditSupplyIntegrationTests
             SupplyId = 999, // Not exist
             SupplyName = "Test",
             Unit = "box",
-            QuantityInStock = 10,
             Price = 100,
             ExpiryDate = DateTime.Today.AddMonths(1)
         };
@@ -130,7 +127,6 @@ public class EditSupplyIntegrationTests
             SupplyId = 1,
             SupplyName = "Invalid",
             Unit = "box",
-            QuantityInStock = 100,
             Price = 99,
             ExpiryDate = DateTime.Today.AddMonths(1)
         };

@@ -57,10 +57,14 @@ namespace Application.Usecases.UserCommon.ViewAppointment
             }
 
             var createdby = await _userCommonRepository.GetByIdAsync(Int32.Parse(appointment.CreatedBy), cancellationToken);
-            var updatedby = await _userCommonRepository.GetByIdAsync(Int32.Parse(appointment.UpdatedBy), cancellationToken);
+            if(appointment.UpdatedBy != "")
+            {
+                var updatedby = await _userCommonRepository.GetByIdAsync(Int32.Parse(appointment.UpdatedBy), cancellationToken);
+                appointment.UpdatedBy = updatedby != null ? updatedby.Fullname : "";
+            }
 
             appointment.CreatedBy = createdby != null ? createdby.Fullname : "";
-            appointment.UpdatedBy = updatedby != null ? updatedby.Fullname : "";
+            appointment.UpdatedBy = "";
             // Map data
             //var result = _mapper.Map<AppointmentDTO>(appointment);
             //result.AppointmentId = appointment.AppointmentId;

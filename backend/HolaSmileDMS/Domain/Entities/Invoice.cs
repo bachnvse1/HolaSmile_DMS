@@ -28,8 +28,13 @@
         public string? Description { get; set; }
         
         public string? Status { get; set; }
+        
+        
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? PaidAmount { get; set; }
         
+        
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? RemainingAmount { get; set; }
 
         public int? CreatedBy { get; set; }

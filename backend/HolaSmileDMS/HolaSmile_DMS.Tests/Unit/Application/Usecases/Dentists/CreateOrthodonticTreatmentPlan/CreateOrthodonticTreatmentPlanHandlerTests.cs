@@ -13,6 +13,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists;
 public class CreateOrthodonticTreatmentPlanHandlerTests
 {
     private readonly Mock<IOrthodonticTreatmentPlanRepository> _repoMock = new();
+    private readonly Mock<IPatientRepository> _patientRepoMock = new();
     private readonly Mock<IHttpContextAccessor> _contextMock = new();
     private readonly Mock<IMapper> _mapperMock = new();
     private readonly Mock<IMediator> _mediaMock = new();
@@ -31,6 +32,7 @@ public class CreateOrthodonticTreatmentPlanHandlerTests
 
         return new CreateOrthodonticTreatmentPlanHandler(
             _repoMock.Object,
+            _patientRepoMock.Object,
             _contextMock.Object,
             _mapperMock.Object,
             _mediaMock.Object);
@@ -61,7 +63,7 @@ public class CreateOrthodonticTreatmentPlanHandlerTests
     public async System.Threading.Tasks.Task NullUser_ShouldThrowUnauthorized()
     {
         _contextMock.Setup(x => x.HttpContext).Returns<HttpContext>(null);
-        var handler = new CreateOrthodonticTreatmentPlanHandler(_repoMock.Object, _contextMock.Object, _mapperMock.Object, _mediaMock.Object);
+        var handler = new CreateOrthodonticTreatmentPlanHandler(_repoMock.Object, _patientRepoMock.Object, _contextMock.Object, _mapperMock.Object, _mediaMock.Object);
 
         var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             handler.Handle(new CreateOrthodonticTreatmentPlanCommand(), CancellationToken.None));

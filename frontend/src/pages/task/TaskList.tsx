@@ -6,6 +6,7 @@ import { AssignTaskModal } from "@/components/task/AssignTaskModal"
 import type { BasicTask } from "@/types/task"
 import { getAllTasks } from "@/services/taskService"
 import { getAllAssistants } from "@/services/assistantService"
+import { toast } from "react-toastify"
 
 export default function TaskList({ treatmentProgressID }: { treatmentProgressID: number }) {
   const [taskList, setTaskList] = useState<BasicTask[]>([])
@@ -16,17 +17,30 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [tasks, assistantList] = await Promise.all([
+        const [rawTasks, rawAssistants] = await Promise.all([
           getAllTasks(),
           getAllAssistants(),
         ])
-        setTaskList(tasks)
-        setAssistants(assistantList)
-      } catch (error) {
-        console.error("Lỗi khi tải dữ liệu:", error)
+
+        const tasks = rawTasks as any
+        const assistantList = rawAssistants as any
+
+        if (Array.isArray(tasks)) {
+          setTaskList(tasks)
+        } else {
+          toast.warning(tasks?.message || "Không thể tải danh sách nhiệm vụ")
+          setTaskList([])
+        }
+
+        if (Array.isArray(assistantList)) {
+          setAssistants(assistantList)
+        } else {
+          toast.warning(assistantList?.message || "Không thể tải danh sách trợ lý")
+          setAssistants([])
+        }
+      } catch (error: any) {
       }
     }
-
     fetchData()
   }, [])
 
@@ -57,7 +71,7 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
           <p className="text-muted-foreground">Quản lý và theo dõi các nhiệm vụ được phân công</p>
         </div>
         <AssignTaskModal
-          onTaskAssign={() => {}}
+          onTaskAssign={() => { }}
           treatmentProgressID={treatmentProgressID}
           assistants={assistants}
         />
@@ -77,8 +91,8 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
           <TaskCard
             key={task.taskId}
             task={task}
-            onToggleStatus={() => {}}
-            onDelete={() => {}}
+            onToggleStatus={() => { }}
+            onDelete={() => { }}
           />
         ))}
 

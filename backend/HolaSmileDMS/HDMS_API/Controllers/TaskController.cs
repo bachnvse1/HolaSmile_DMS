@@ -26,10 +26,6 @@ namespace HDMS_API.Controllers
             try
             {
                 var result = await _mediator.Send(new ViewAssignedTasksCommand());
-
-                if (result == null || !result.Any())
-                    return Ok(new { message = MessageConstants.MSG.MSG16 }); // "Không có dữ liệu phù hợp"
-
                 return Ok(result);
             }
             catch (UnauthorizedAccessException)
