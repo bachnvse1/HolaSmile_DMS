@@ -43,4 +43,10 @@ public class InstructionRepository : IInstructionRepository
         return await _context.Instructions
             .FirstOrDefaultAsync(i => i.InstructionID == instructionId && !i.IsDeleted, ct);
     }
+    public async Task<bool> UpdateAsync(Instruction instruction, CancellationToken ct = default)
+    {
+        _context.Instructions.Update(instruction);
+        var result = await _context.SaveChangesAsync(ct);
+        return result > 0;
+    }
 }
