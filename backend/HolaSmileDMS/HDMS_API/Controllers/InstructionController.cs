@@ -1,4 +1,5 @@
 ﻿using Application.Usecases.Assistants.CreateInstruction;
+using Application.Usecases.Assistants.DeactiveInstruction;
 using Application.Usecases.Assistants.UpdateInstruction;
 using Application.Usecases.Patients.ViewInstruction;
 using MediatR;
@@ -68,6 +69,29 @@ namespace HDMS_API.Controllers
         [HttpPut("update")]
         [Authorize(Roles = "Assistant,Dentist")]
         public async Task<IActionResult> UpdateInstruction([FromBody] UpdateInstructionCommand command)
+        {
+            try
+            {
+                var result = await _mediator.Send(command);
+                return Ok(new { message = result });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPut("deactive")]
+        [Authorize(Roles = "Assistant,Dentist")]
+        public async Task<IActionResult> DeactiveInstruction([FromBody] DeactiveInstructionCommand command)
         {
             try
             {
