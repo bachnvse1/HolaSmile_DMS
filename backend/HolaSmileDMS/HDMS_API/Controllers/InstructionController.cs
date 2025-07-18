@@ -1,4 +1,5 @@
 ﻿using Application.Usecases.Assistants.CreateInstruction;
+using Application.Usecases.Assistants.UpdateInstruction;
 using Application.Usecases.Patients.ViewInstruction;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -61,6 +62,28 @@ namespace HDMS_API.Controllers
             catch (Exception ex)
             {
                 // Trả về 400 với message từ Handler (hoặc lỗi hệ thống)
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        [HttpPut("update")]
+        [Authorize(Roles = "Assistant,Dentist")]
+        public async Task<IActionResult> UpdateInstruction([FromBody] UpdateInstructionCommand command)
+        {
+            try
+            {
+                var result = await _mediator.Send(command);
+                return Ok(new { message = result });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
                 return BadRequest(new { message = ex.Message });
             }
         }
