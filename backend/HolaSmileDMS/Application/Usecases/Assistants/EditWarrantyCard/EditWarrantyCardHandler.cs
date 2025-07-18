@@ -35,9 +35,8 @@ namespace Application.Usecases.Assistant.EditWarrantyCard
             if (card == null)
                 throw new KeyNotFoundException(MessageConstants.MSG.MSG102);
 
-            // Validate Duration (thay vì Term)
             if (!request.Duration.HasValue || request.Duration <= 0)
-                throw new FormatException(MessageConstants.MSG.MSG98); // "Định dạng kỳ hạn không hợp lệ"
+                throw new ArgumentException(MessageConstants.MSG.MSG98);
 
             card.Duration = request.Duration;
             card.EndDate = card.StartDate.AddMonths(request.Duration.Value); // Tính lại ngày kết thúc
