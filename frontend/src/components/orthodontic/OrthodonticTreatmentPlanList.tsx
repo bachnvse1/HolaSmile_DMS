@@ -43,7 +43,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
   // const [priceSliderRange, setPriceSliderRange] = useState([0, 100000000]); // For slider
 
   const userInfo = useUserInfo();
-  const isDentist = userInfo?.role === 'Dentist';
+  const isEditable = userInfo?.role === 'Dentist' || userInfo?.role === 'Assistant';
   let patientId: string | undefined = paramPatientId;
   if (userInfo?.role === 'Patient') {
     const roleTableId = userInfo.roleTableId ?? TokenUtils.getRoleTableIdFromToken(localStorage.getItem('token') || '');
@@ -242,12 +242,12 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
               )}
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Kế Hoạch Điều Trị Chỉnh Nha</h1>
-                {isDentist && (
+                {isEditable && (
                   <p className="text-gray-600 mt-1">Quản lý kế hoạch điều trị nha khoa cho bệnh nhân</p>
                 )}
               </div>
             </div>
-            {isDentist && (
+            {isEditable && (
               <Button onClick={handleCreatePlan} className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
                 Thêm Kế Hoạch Điều Trị
@@ -263,9 +263,9 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
                 Chưa có kế hoạch điều trị nào
               </h3>
               <p className="text-gray-600 mb-4">
-                {isDentist ? 'Bắt đầu tạo kế hoạch điều trị đầu tiên cho bệnh nhân này' : 'Chưa có kế hoạch điều trị nào được tạo cho bạn'}
+                {isEditable ? 'Bắt đầu tạo kế hoạch điều trị đầu tiên cho bệnh nhân này' : 'Chưa có kế hoạch điều trị nào được tạo cho bạn'}
               </p>
-              {isDentist && (
+              {isEditable && (
                 <Button onClick={handleCreatePlan}>
                   <Plus className="h-4 w-4 mr-2" />
                   Tạo Kế Hoạch Điều Trị
@@ -360,12 +360,12 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
           )}
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Kế Hoạch Điều Trị Chỉnh Nha</h1>
-            {isDentist && (
+            {isEditable && (
               <p className="text-gray-600 mt-1">Quản lý kế hoạch điều trị nha khoa cho bệnh nhân</p>
             )}
           </div>
         </div>
-        {isDentist && (
+        {isEditable && (
           <Button onClick={handleCreatePlan} className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
             Thêm Kế Hoạch Điều Trị
@@ -566,9 +566,9 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
                 Chưa có kế hoạch điều trị nào
               </h3>
               <p className="text-gray-600 mb-4">
-                {isDentist ? 'Bắt đầu tạo kế hoạch điều trị đầu tiên cho bệnh nhân này' : 'Chưa có kế hoạch điều trị nào được tạo cho bệnh nhân này'}
+                {isEditable ? 'Bắt đầu tạo kế hoạch điều trị đầu tiên cho bệnh nhân này' : 'Chưa có kế hoạch điều trị nào được tạo cho bệnh nhân này'}
               </p>
-              {isDentist && (
+              {isEditable && (
                 <Button onClick={handleCreatePlan}>
                   <Plus className="h-4 w-4 mr-2" />
                   Tạo Kế Hoạch Điều Trị
@@ -649,7 +649,7 @@ interface TreatmentPlanCardProps {
 
 const TreatmentPlanCard: React.FC<TreatmentPlanCardProps> = ({ plan, onView, onEdit, onDelete, onViewImages }) => {
   const userInfo = useUserInfo();
-  const isDentist = userInfo?.role === 'Dentist';
+  const isEditable = userInfo?.role === 'Dentist' || userInfo?.role === 'Assistant';
   return (
     <Card className="hover:shadow-md transition-shadow duration-200">
       <CardContent className="p-6">
@@ -700,10 +700,10 @@ const TreatmentPlanCard: React.FC<TreatmentPlanCardProps> = ({ plan, onView, onE
               </div>
 
               <div>
-                <p className="text-sm text-gray-600 line-clamp-2 break-words">
+                <div className="text-sm text-gray-600 line-clamp-2 break-words">
                   <p className="font-medium">Ngày tạo:</p>
                   <p>{formatDate(new Date(plan.createdAt), 'dd/MM/yyyy HH:mm:ss')}</p>
-                </p>
+                </div>
               </div>
             </div>
           </div>
@@ -718,7 +718,7 @@ const TreatmentPlanCard: React.FC<TreatmentPlanCardProps> = ({ plan, onView, onE
                 <span className="hidden sm:inline">Ảnh</span>
               </Button>
             )}
-            {isDentist && (
+            {isEditable && (
               <>
                 <Button variant="outline" size="sm" onClick={onEdit} className='text-blue-600 hover:text-blue-700 hover:bg-blue-50 w-full sm:w-auto'>
                   Chỉnh Sửa

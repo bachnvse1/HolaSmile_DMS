@@ -35,14 +35,15 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
   const navigate = useNavigate();
 
   const userInfo = useUserInfo();
-  const isDentist = userInfo?.role === 'Dentist';
+  const canEdit = userInfo?.role === 'Dentist' || userInfo?.role === 'Assistant';
+  const canDelete = userInfo?.role === 'Dentist' || userInfo?.role === 'Assistant';
 
   // Add loading state for user info
   const [isUserInfoLoaded, setIsUserInfoLoaded] = React.useState(false);
 
   // Wait for user info to be loaded
   React.useEffect(() => {
-    if (userInfo && (userInfo.role === 'Patient' || userInfo.role === 'Dentist' || userInfo.role === 'Administrator')) {
+    if (userInfo ) {
       setIsUserInfoLoaded(true);
     } else if (!userInfo) {
       // If no userInfo yet, check if we have a token and try to get role
@@ -575,26 +576,30 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
           </div>
         </div>
 
-        {mode === 'view' && isDentist && (
+        {mode === 'view' && (canEdit || canDelete) && (
           <div className="flex flex-col sm:flex-row gap-2">
-            <Button
-              variant="outline"
-              onClick={() => navigate(`/patients/${patientId}/orthodontic-treatment-plans/${planId}/edit`)}
-              className="w-full sm:w-auto"
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              <span className="sm:hidden">Chỉnh sửa</span>
-              <span className="hidden sm:inline">Chỉnh Sửa</span>
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setConfirmOpen(true)}
-              disabled={isDeleting}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              {isDeleting ? 'Đang xóa...' : 'Xóa'}
-            </Button>
+            {canEdit && (
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/patients/${patientId}/orthodontic-treatment-plans/${planId}/edit`)}
+                className="w-full sm:w-auto"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                <span className="sm:hidden">Chỉnh sửa</span>
+                <span className="hidden sm:inline">Chỉnh Sửa</span>
+              </Button>
+            )}
+            {canDelete && (
+              <Button
+                variant="outline"
+                onClick={() => setConfirmOpen(true)}
+                disabled={isDeleting}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {isDeleting ? 'Đang xóa...' : 'Xóa'}
+              </Button>
+            )}
           </div>
         )}
       </div>
@@ -801,6 +806,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
                 rows={4}
                 {...form.register('intraoralExam')}
                 readOnly={mode === 'view'}
+                placeholder='Mô tả tình trạng răng miệng, các vấn đề phát hiện trong quá trình khám.'
               />
             </div>
           </CardContent>
@@ -822,6 +828,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
                     rows={2}
                     {...form.register('boneAnalysis')}
                     readOnly={mode === 'view'}
+                    placeholder='Mô tả tình trạng xương hàm, các vấn đề phát hiện trong phim.'
                   />
                 </div>
                 <div>
@@ -913,13 +920,14 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
         {/* Nội dung và kế hoạch điều trị */}
         <Card>
           <CardHeader>
-            <CardTitle>NỘI DUNG VÀ KẾ HOẠCH ĐIỀU TRỊ</CardTitle>
+            <CardTitle>NỘI DUNG VÀ KẾ HOẠCH ĐIỀU TRỊ  <span className="text-red-600">*</span></CardTitle>
           </CardHeader>
           <CardContent>
             <Textarea
               rows={8}
               {...form.register('treatmentPlanContent')}
               readOnly={mode === 'view'}
+              placeholder='Mô tả chi tiết kế hoạch điều trị, các bước thực hiện, thời gian dự kiến... (bắt buộc)'
             />
           </CardContent>
         </Card>
