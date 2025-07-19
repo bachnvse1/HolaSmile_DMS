@@ -31,7 +31,7 @@ public class ChatHub : Hub
             SenderId = senderIdClaim,
             ReceiverId = receiverId,
             Message = message,
-            Timestamp = DateTime.UtcNow
+            Timestamp = DateTime.Now
         };
 
         _context.ChatMessages.Add(chatMessage);
