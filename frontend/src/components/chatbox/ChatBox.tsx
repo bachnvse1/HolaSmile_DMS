@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useChatHub } from "@/hooks/useChatHub";
 import axiosInstance from "@/lib/axios";
@@ -15,9 +15,11 @@ type Props = {
 
 export default function ChatBox({ receiver }: Props) {
   const { token, userId } = useAuth();
-  const { messages, sendMessage } = useChatHub(token ?? "");
+  const { messages, sendMessage } = useChatHub(token ?? "", receiver?.id ?? "");
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<any[]>([]);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null); // 👈 Ref để scroll
 
   // Fetch chat history
   useEffect(() => {
@@ -38,6 +40,7 @@ export default function ChatBox({ receiver }: Props) {
     fetchHistory();
   }, [userId, receiver?.id]);
 
+  // Gộp và sắp xếp tin nhắn
   const allMessages = useMemo(() => {
     if (!receiver?.id) return [];
     const realTimeMsgs = messages.filter(
@@ -68,6 +71,13 @@ export default function ChatBox({ receiver }: Props) {
     );
     return unique;
   }, [history, messages, userId, receiver?.id]);
+
+  // 👉 Scroll to bottom when messages change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [allMessages]);
 
   return (
     <div
@@ -145,6 +155,8 @@ export default function ChatBox({ receiver }: Props) {
             </div>
           );
         })}
+        {/* ✅ Đây là điểm cuộn cuối cùng */}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}

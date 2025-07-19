@@ -8,9 +8,10 @@ export default function FloatingChatButton() {
   const [open, setOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [customers, setCustomers] = useState<any[]>([]);
+  const [unreadMap, setUnreadMap] = useState<Record<string, number>>({});
 
   const { token, userId } = useAuth();
-  const { messages } = useChatHub(token ?? '');
+  const { messages } = useChatHub(token ?? '', selectedUser?.userId ?? '');
 
   // Fetch danh sách người dùng
   useEffect(() => {
@@ -30,9 +31,23 @@ export default function FloatingChatButton() {
     if (!userId || messages.length === 0) return;
 
     const lastMsg = messages[messages.length - 1];
+
+    // Nếu người khác nhắn đến
     if (lastMsg.receiverId === userId) {
       const sender = customers.find((u) => u.userId === lastMsg.senderId);
-      if (sender && (!open || selectedUser?.userId !== sender.userId)) {
+
+      if (!sender) return;
+
+      // Nếu chưa mở chat với người đó thì tăng unread
+      if (!selectedUser || selectedUser.userId !== sender.userId) {
+        setUnreadMap((prev) => ({
+          ...prev,
+          [sender.userId]: (prev[sender.userId] || 0) + 1,
+        }));
+      }
+
+      // Nếu chưa mở cửa sổ chat thì auto mở
+      if (!open || selectedUser?.userId !== sender.userId) {
         setSelectedUser(sender);
         setOpen(true);
       }
@@ -41,7 +56,6 @@ export default function FloatingChatButton() {
 
   const handleToggle = () => {
     if (!open) {
-      // Nếu chưa có selectedUser thì chọn người đầu tiên (tuỳ ý)
       if (!selectedUser && customers.length > 0) {
         setSelectedUser(customers[0]);
       }
@@ -70,6 +84,9 @@ export default function FloatingChatButton() {
             selectedUser={selectedUser}
             customers={customers}
             onClose={() => setOpen(false)}
+            unreadMap={unreadMap}
+            setUnreadMap={setUnreadMap}
+            setSelectedUser={setSelectedUser}
           />
         </div>
       )}
