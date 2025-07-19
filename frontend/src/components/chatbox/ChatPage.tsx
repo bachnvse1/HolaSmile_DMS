@@ -13,21 +13,26 @@ type Props = {
   selectedUser: Customer | null;
   customers: Customer[];
   onClose?: () => void;
+  unreadMap: Record<string, number>;
+  setUnreadMap: React.Dispatch<React.SetStateAction<Record<string, number>>>;
+  setSelectedUser: (user: Customer | null) => void; // 👈
 };
 
-export default function ChatPage({ selectedUser: initialSelectedUser, customers: initialCustomers, onClose }: Props) {
+
+export default function ChatPage({
+  selectedUser,
+  customers: initialCustomers,
+  onClose,
+  setSelectedUser,
+  unreadMap,
+}: Props) {
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers || []);
-  const [selectedUser, setSelectedUser] = useState<Customer | null>(initialSelectedUser);
-  const [unreadMap, setUnreadMap] = useState<Record<string, number>>({});
 
-  const handleSelectUser = (user: any) => {
-  setSelectedUser(user);
-  setUnreadMap((prev) => ({ ...prev, [user.userId]: 0 }));
-};
-
+  const handleSelectUser = (user: Customer) => {
+    setSelectedUser(user);
+  };
 
   useEffect(() => {
-    // Nếu không truyền props.customers thì tự fetch
     if (initialCustomers.length === 0) {
       const fetchCustomers = async () => {
         try {
@@ -42,22 +47,6 @@ export default function ChatPage({ selectedUser: initialSelectedUser, customers:
     }
   }, [initialCustomers]);
 
-  useEffect(() => {
-    if (initialSelectedUser) {
-      handleSelectUser(initialSelectedUser);
-    }
-  }, [initialSelectedUser]);
-
-  useEffect(() => {
-  if (selectedUser) {
-    setUnreadMap((prev) => ({
-      ...prev,
-      [selectedUser.userId]: 0,
-    }));
-  }
-}, [selectedUser]);
-
-
   return (
     <div
       style={{
@@ -71,7 +60,6 @@ export default function ChatPage({ selectedUser: initialSelectedUser, customers:
         background: '#fff',
       }}
     >
-      {/* Sidebar người dùng */}
       <div
         style={{
           width: 220,
@@ -87,60 +75,57 @@ export default function ChatPage({ selectedUser: initialSelectedUser, customers:
           <div style={{ color: '#888', fontSize: 14 }}>Không có người dùng nào</div>
         )}
         {customers.map((user) => (
-        <div
-          key={user.userId}
-          onClick={() => handleSelectUser(user)}
-          style={{
-            padding: '8px 10px',
-            cursor: 'pointer',
-            borderRadius: 8,
-            background: selectedUser?.userId === user.userId ? '#2563eb' : '#fff',
-            color: selectedUser?.userId === user.userId ? '#fff' : '#111',
-            marginBottom: 6,
-            fontSize: 15,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            transition: 'all 0.2s',
-            position: 'relative', // 👈 để đặt 🔔 tuyệt đối
-          }}
-        >
-          {user.avatarUrl && (
-            <img
-              src={user.avatarUrl}
-              alt="avatar"
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: '50%',
-                objectFit: 'cover',
-                border: '1px solid #e5e7eb',
-              }}
-            />
-          )}
-          <span>{user.fullName}</span>
+          <div
+            key={user.userId}
+            onClick={() => handleSelectUser(user)}
+            style={{
+              padding: '8px 10px',
+              cursor: 'pointer',
+              borderRadius: 8,
+              background: selectedUser?.userId === user.userId ? '#2563eb' : '#fff',
+              color: selectedUser?.userId === user.userId ? '#fff' : '#111',
+              marginBottom: 6,
+              fontSize: 15,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              transition: 'all 0.2s',
+              position: 'relative',
+            }}
+          >
+            {user.avatarUrl && (
+              <img
+                src={user.avatarUrl}
+                alt="avatar"
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  border: '1px solid #e5e7eb',
+                }}
+              />
+            )}
+            <span>{user.fullName}</span>
 
-          {/* Hiển thị 🔔 nếu có tin chưa đọc */}
-          {unreadMap?.[user.userId] > 0 && (
-            <span
-              style={{
-                position: 'absolute',
-                right: 10,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'red',
-                fontSize: 18,
-              }}
-            >
-              🔔
-            </span>
-          )}
-        </div>
-      ))}
-
+            {unreadMap?.[user.userId] > 0 && (
+              <span
+                style={{
+                  position: 'absolute',
+                  right: 10,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: 'red',
+                  fontSize: 18,
+                }}
+              >
+                🔔
+              </span>
+            )}
+          </div>
+        ))}
       </div>
 
-      {/* Chat box */}
       <div style={{ flex: 1, padding: 12, position: 'relative' }}>
         {selectedUser ? (
           <ChatBox
@@ -155,7 +140,6 @@ export default function ChatPage({ selectedUser: initialSelectedUser, customers:
           </div>
         )}
 
-        {/* Nút đóng chat */}
         {onClose && (
           <button
             onClick={onClose}

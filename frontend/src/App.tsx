@@ -55,6 +55,7 @@ import PatientTreatmentRecordsSection from "./components/patient/PatientTreatmen
 import { PatientOrthodonticImagesPage } from "./pages/patient/PatientOrthodonticImagesPage";
 import { PatientTreatmentImagesPage } from "./pages/patient/PatientTreatmentImagesPage";
 import FloatingChatButton from './components/chatbox/FloatingChatButton';
+import { ChatHubProvider } from './components/chatbox/ChatHubProvider';
 function App() {
   return (
     <>
@@ -63,7 +64,8 @@ function App() {
         autoClose={3000}
         toastStyle={{ marginTop: "80px" }}
       />
-      <Routes>
+        <ChatHubProvider>
+        <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -186,8 +188,9 @@ function App() {
         <Route path="/thank-you" element={<ThankYou />} />
         <Route path="/cancel" element={<PaymentCancelled />} />
         <Route path="/patient/treatment-records" element={<PatientTreatmentRecordsSection />} />
-      </Routes>
+        </Routes>
         <FloatingChatButton />
+        </ChatHubProvider>
     </>
   );
 }
