@@ -91,7 +91,7 @@ public class UpdateInvoiceHandler : IRequestHandler<UpdateInvoiceCommand, string
                         userIdNotification,
                         "Thanh toán",
                         message,
-                        "Thanh toán",
+                        "invoice",
                         userId
                     ), cancellationToken);
                 }

@@ -168,17 +168,24 @@ export class AuthService {
 }
 
 // Setup axios interceptor to automatically add auth token
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const token =
-      localStorage.getItem("token") || localStorage.getItem("authToken");
-    if (token && !config.headers.Authorization) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+  axiosInstance.interceptors.request.use(
+    (config) => {
+      const token =
+        localStorage.getItem("token") || localStorage.getItem("authToken");
+
+      // 👇 Đảm bảo headers có thể dùng .set()
+      if (config.headers && typeof config.headers.set === "function") {
+        config.headers.set("ngrok-skip-browser-warning", "true");
+
+        if (token && !config.headers.has("Authorization")) {
+          config.headers.set("Authorization", `Bearer ${token}`);
+        }
+      }
+
+      return config;
+    },
+    (error) => Promise.reject(error)
+  );
 
 // Response interceptor for automatic token refresh
 axiosInstance.interceptors.response.use(

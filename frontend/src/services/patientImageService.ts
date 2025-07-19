@@ -40,6 +40,7 @@ export const patientImageService = {
 
     const response = await axiosInstance.post("/patient-image", formData, {
       headers: {
+        "ngrok-skip-browser-warning": "true",
         "Content-Type": "multipart/form-data",
       },
     });

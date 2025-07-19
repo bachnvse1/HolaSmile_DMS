@@ -3,6 +3,7 @@ using Application.Services;
 using Azure;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Net.payOS;
 using Net.payOS.Types;
 
@@ -12,13 +13,15 @@ public class CreatePaymentLinkHandler : IRequestHandler<CreatePaymentLinkCommand
 {
     private readonly IInvoiceRepository _invoiceRepo;
     private readonly IPayOSConfiguration _config;
+    private readonly IConfiguration _configuration;
 
     public CreatePaymentLinkHandler(
         IInvoiceRepository invoiceRepo,
-        IHttpClientFactory httpClientFactory,
+        IConfiguration configuration,
         IPayOSConfiguration config)
     {
         _invoiceRepo = invoiceRepo;
+        _configuration = configuration;
         _config = config;
     }
 
@@ -26,7 +29,8 @@ public class CreatePaymentLinkHandler : IRequestHandler<CreatePaymentLinkCommand
     {
         var invoice = await _invoiceRepo.GetByOrderCodeAsync(request.OrderCode, cancellationToken);
         if (invoice == null) throw new Exception("Không tìm thấy hoá đơn");
-        var domain = "http://localhost:5173/";
+        var domain = _configuration["Frontend:Domain"]; // 👈 lấy từ appsettings.json
+        if (string.IsNullOrWhiteSpace(domain)) domain = "http://localhost:5173/";
 
         var payOS = new PayOS(_config.ClientId, _config.ApiKey, _config.ChecksumKey);
         if (!long.TryParse(invoice.OrderCode, out var orderCode))

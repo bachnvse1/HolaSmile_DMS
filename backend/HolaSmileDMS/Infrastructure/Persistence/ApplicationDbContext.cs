@@ -42,7 +42,6 @@ namespace HDMS_API.Infrastructure.Persistence
 
         // Add these DbSets
         public DbSet<FinancialTransaction> FinancialTransactions { get; set; }
-        public DbSet<SuppliesTransaction> SuppliesTransactions { get; set; }
         public DbSet<DiscountProgram> DiscountPrograms { get; set; }
         public DbSet<ProcedureDiscountProgram> ProcedureDiscountPrograms { get; set; }
 
@@ -61,10 +60,6 @@ namespace HDMS_API.Infrastructure.Persistence
             // Composite key for ProcedureDiscountProgram
             modelBuilder.Entity<ProcedureDiscountProgram>()
                 .HasKey(pdp => new { pdp.ProcedureId, pdp.DiscountProgramId });
-            
-            // Composite key for SuppliesTransaction
-            modelBuilder.Entity<SuppliesTransaction>()
-                .HasKey(st => new { st.SupplyId, st.FinancialTransactionsID });
 
             modelBuilder.Entity<UserRoleResult>().HasNoKey();
         }
