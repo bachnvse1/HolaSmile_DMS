@@ -1,8 +1,9 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import ChatPage from './ChatPage';
 import { useAuth } from '@/hooks/useAuth';
 import axiosInstance from '@/lib/axios';
-import { useChatHub } from '@/hooks/useChatHub'; // 👉 Hook SignalR mới
+import { useChatHub } from '@/hooks/useChatHub';
+import type { ChatMessage } from '@/hooks/useChatHub';
 
 export default function FloatingChatButton() {
   const [open, setOpen] = useState(false);
@@ -10,13 +11,14 @@ export default function FloatingChatButton() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [unreadMap, setUnreadMap] = useState<Record<string, number>>({});
   const [hasNewMessage, setHasNewMessage] = useState(false);
+  const [history, setHistory] = useState<ChatMessage[]>([]); // ✅ Chat history
 
   const { token, userId } = useAuth();
-  const { messages, sendMessage } = useChatHub(token!, selectedUser?.userId || '');
-
+  const { realtimeMessages, sendMessage, fetchChatHistory } = useChatHub(token!);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // 📥 Fetch danh sách người dùng
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
@@ -29,16 +31,39 @@ export default function FloatingChatButton() {
     fetchCustomers();
   }, []);
 
-  // Xử lý tin nhắn mới
+  // 📥 Fetch lịch sử khi chọn người chat
   useEffect(() => {
-    if (!userId || messages.length === 0) return;
+    if (!userId || !selectedUser?.userId) return;
+    fetchChatHistory(userId, selectedUser.userId).then(setHistory);
+  }, [selectedUser, userId, fetchChatHistory]);
 
-    const lastMsg = messages[messages.length - 1];
+  // 🧠 Gộp history + realtime
+  const allMessages = useMemo(() => {
+    if (!selectedUser) return [];
+    const merged = [
+      ...history,
+      ...realtimeMessages.filter(
+        (m) =>
+          (m.senderId === userId && m.receiverId === selectedUser.userId) ||
+          (m.receiverId === userId && m.senderId === selectedUser.userId)
+      ),
+    ];
+    return merged.sort((a, b) =>
+      new Date(a.timestamp || '').getTime() - new Date(b.timestamp || '').getTime()
+    );
+  }, [history, realtimeMessages, selectedUser, userId]);
+
+  // 🔔 Xử lý tin nhắn mới đến
+  useEffect(() => {
+    if (!userId || realtimeMessages.length === 0) return;
+
+    const lastMsg = realtimeMessages[realtimeMessages.length - 1];
+
     if (lastMsg.receiverId === userId) {
       const sender = customers.find((u) => u.userId === lastMsg.senderId);
       if (!sender) return;
 
-      const isNotCurrentChat = !selectedUser || selectedUser.userId !== sender.userId || !open;
+      const isNotCurrentChat = !open || !selectedUser || selectedUser.userId !== sender.userId;
       if (isNotCurrentChat) {
         setUnreadMap((prev) => ({
           ...prev,
@@ -51,11 +76,12 @@ export default function FloatingChatButton() {
         });
       }
     }
-  }, [messages, customers, userId, open, selectedUser]);
+  }, [realtimeMessages, customers, userId, open, selectedUser]);
 
-  // Khi mở popup thì reset chấm đỏ
+  // ✅ Reset chấm đỏ khi mở đúng người
   useEffect(() => {
     if (!open || !selectedUser) return;
+
     const unreadCount = unreadMap[selectedUser.userId] || 0;
     if (unreadCount > 0) {
       setUnreadMap((prev) => ({
@@ -63,6 +89,7 @@ export default function FloatingChatButton() {
         [selectedUser.userId]: 0,
       }));
     }
+
     setHasNewMessage(false);
   }, [open, selectedUser, unreadMap]);
 
@@ -75,10 +102,8 @@ export default function FloatingChatButton() {
 
   return (
     <>
-      {/* Âm thanh */}
       <audio ref={audioRef} src="/sound/inflicted-601.ogg" preload="auto" />
 
-      {/* Chat popup */}
       {open && (
         <div
           style={{
@@ -101,13 +126,12 @@ export default function FloatingChatButton() {
             setUnreadMap={setUnreadMap}
             setSelectedUser={setSelectedUser}
             setHasNewMessage={setHasNewMessage}
-            messages={messages} // ✅ truyền vào
-            sendMessage={sendMessage} // ✅ truyền vào
+            messages={allMessages} // ✅ full messages để hiển thị
+            sendMessage={sendMessage}
           />
         </div>
       )}
 
-      {/* Nút tròn */}
       <div style={{ position: 'fixed', bottom: 20, right: 20 }}>
         <button
           onClick={handleToggle}
