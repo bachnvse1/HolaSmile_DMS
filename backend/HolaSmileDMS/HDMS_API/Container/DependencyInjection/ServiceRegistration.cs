@@ -80,7 +80,7 @@ namespace HDMS_API.Container.DependencyInjection
                         policy =>
                         {
                             policy.WithOrigins(
-                                    "https://6f8f-14-232-61-47.ngrok-free.app",
+                                    "https://dd4b55c264ef.ngrok-free.app",
                                     "http://localhost:5173"
                                 )
                                 .AllowAnyHeader()
