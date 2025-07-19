@@ -7,7 +7,7 @@ namespace Application.Usecases.Receptionist.ViewFinancialTransactions
     {
         public int TransactionID { get; set; }
         public int? InvoiceId { get; set; }
-        public string TransactionDate { get; set; } = string.Empty;
+        public DateTime? TransactionDate { get; set; }
         public string Description { get; set; } = string.Empty;
         /// <summary>
         /// True: Thu, False: Chi

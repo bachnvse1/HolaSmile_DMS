@@ -38,6 +38,15 @@ namespace Application.Usecases.Receptionist.De_ActivePromotion
             if (discountProgram == null)
                 throw new Exception(MessageConstants.MSG.MSG119);
 
+            if (discountProgram.IsDelete)
+            {
+                var activeProgram = await _promotionRepository.GetProgramActiveAsync();
+                if(activeProgram != null)
+                {
+                    throw new Exception(MessageConstants.MSG.MSG121); 
+                }
+            }
+
             discountProgram.IsDelete = !discountProgram.IsDelete;
             discountProgram.UpdatedAt = DateTime.Now;
             discountProgram.UpdatedBy = currentUserId;

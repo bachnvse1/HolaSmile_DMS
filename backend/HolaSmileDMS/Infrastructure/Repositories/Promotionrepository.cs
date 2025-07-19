@@ -16,7 +16,7 @@ namespace Infrastructure.Repositories
 
         public async Task<List<DiscountProgram>> GetAllPromotionProgramsAsync()
         {
-            return await _context.DiscountPrograms.Include(p => p.ProcedureDiscountPrograms).ToListAsync();
+            return await _context.DiscountPrograms.ToListAsync();
         }
 
         public async Task<bool> CreateDiscountProgramAsync(DiscountProgram discountProgram)

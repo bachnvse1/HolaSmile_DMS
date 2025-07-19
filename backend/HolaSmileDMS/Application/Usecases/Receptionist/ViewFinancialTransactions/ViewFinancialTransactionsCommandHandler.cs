@@ -44,7 +44,6 @@ namespace Application.Usecases.Receptionist.ViewFinancialTransactions
             var viewFinancialTransactionsDTOs = transactions.Select(x => new ViewFinancialTransactionsDTO
             {
                 TransactionID = x.TransactionID,
-                InvoiceId = x.InvoiceId,
                 TransactionDate = x.TransactionDate,
                 TransactionType = x.TransactionType ? "Thu" : "Chi",
                 Category = x.Category,
