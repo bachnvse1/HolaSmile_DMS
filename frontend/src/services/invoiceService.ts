@@ -32,6 +32,7 @@ export const invoiceService = {
       const response = await axiosInstance.get(`/invoice/print/${invoiceId}`,
         {
           headers: {
+            "ngrok-skip-browser-warning": "true",
             'Accept': 'application/pdf',
           },
           responseType: 'blob',
