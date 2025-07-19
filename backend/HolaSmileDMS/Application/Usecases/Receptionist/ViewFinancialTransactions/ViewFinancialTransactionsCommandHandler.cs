@@ -32,7 +32,7 @@ namespace Application.Usecases.Receptionist.ViewFinancialTransactions
             //    throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // Bạn không có quyền truy cập chức năng này
             //}
 
-            //if (!string.Equals(currentUserRole, "receptionist", StringComparison.OrdinalIgnoreCase) || !string.Equals(currentUserRole, "owner", StringComparison.OrdinalIgnoreCase))
+            //if (!string.Equals(currentUserRole, "receptionist", StringComparison.OrdinalIgnoreCase) && !string.Equals(currentUserRole, "owner", StringComparison.OrdinalIgnoreCase))
             //{
             //    throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
             //}
