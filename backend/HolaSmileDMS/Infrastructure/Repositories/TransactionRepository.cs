@@ -20,12 +20,6 @@ namespace Infrastructure.Repositories
             return await _context.SaveChangesAsync() > 0;
         }
 
-        public async Task<bool> CreateSupplyTransactionAsync(SuppliesTransaction suppliesTransaction)
-        {
-            _context.SuppliesTransactions.Add(suppliesTransaction);
-            return await _context.SaveChangesAsync() > 0;
-        }
-
         public async Task<List<FinancialTransaction>> GetAllFinancialTransactionsAsync()
         {
             return await _context.FinancialTransactions.ToListAsync();

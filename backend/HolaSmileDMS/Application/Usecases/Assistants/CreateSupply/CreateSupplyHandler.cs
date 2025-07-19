@@ -53,7 +53,7 @@ namespace Application.Usecases.Assistant.CreateSupply
             // Create new supply and transaction records
             var newTransaction = new FinancialTransaction
             {
-                TransactionDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                TransactionDate = DateTime.Now,
                 Description = $"Nhập kho vật tư: {request.SupplyName.Trim()}",
                 TransactionType = false, // True for chi
                 Category = "Vật tư y tế",
@@ -79,23 +79,7 @@ namespace Application.Usecases.Assistant.CreateSupply
                 IsDeleted = false
             };
             var isSupplyCreated = await _supplyRepository.CreateSupplyAsync(newSupply);
-            if (!isSupplyCreated)
-                throw new Exception(MessageConstants.MSG.MSG58);
-
-            var suppliesTransaction = new SuppliesTransaction
-            {
-                SupplyId = newSupply.SupplyId,
-                FinancialTransactionsID  = newTransaction.TransactionID,
-                Quantity = request.QuantityInStock,
-            };
-
-            var isSupplyTransactionCreated = await _transactionRepository.CreateSupplyTransactionAsync(suppliesTransaction);
-            if (!isSupplyTransactionCreated)
-            {
-                throw new Exception(MessageConstants.MSG.MSG58); // Thêm vật tư mới thất bại
-            }
-
-            return true;
+            return isSupplyCreated;
         }
     }
 }

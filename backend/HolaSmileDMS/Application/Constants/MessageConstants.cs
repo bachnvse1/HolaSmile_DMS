@@ -123,6 +123,7 @@ public static class MessageConstants
                 public const string MSG118 = "Danh sách thủ thuật không được để trống";
                 public const string MSG119 = "Chương trình khuyến mãi không tồn tại";
                 public const string MSG120 = "Cập nhật chương trình khuyến mãi thành công.";
+                public const string MSG121 = "Không thể chạy 2 chương trình khuyến mãi cùng 1 thời điểm.";
     }
 }   
  

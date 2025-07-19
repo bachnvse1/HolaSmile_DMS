@@ -64,7 +64,7 @@ namespace Application.Usecases.Assistants.ExcelSupply
                     // Tạo transaction
                     var transaction = new FinancialTransaction
                     {
-                        TransactionDate = now.ToString("yyyy-MM-dd HH:mm:ss"),
+                        TransactionDate = now,
                         Description = $"Nhập kho vật tư: {name}",
                         TransactionType = false, // Nhập kho
                         Category = "Vật tư y tế",
@@ -93,17 +93,6 @@ namespace Application.Usecases.Assistants.ExcelSupply
 
                     var isSupplyCreated = await _supplyRepository.CreateSupplyAsync(supply);
                     if (!isSupplyCreated) continue;
-
-                    // Tạo mapping supply-transaction
-                    var mapping = new SuppliesTransaction
-                    {
-                        SupplyId = supply.SupplyId,
-                        FinancialTransactionsID = transaction.TransactionID,
-                        Quantity = quantity
-                    };
-
-                    var isMappingCreated = await _transactionRepository.CreateSupplyTransactionAsync(mapping);
-                    if (!isMappingCreated) continue;
 
                     successCount++;
                 }
