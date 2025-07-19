@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useMemo } from 'react';
 import ChatPage from './ChatPage';
 import { useAuth } from '@/hooks/useAuth';
 import axiosInstance from '@/lib/axios';
-import { useChatHub } from '@/hooks/useChatHub';
+import { useChatHub } from './ChatHubProvider';
 import type { ChatMessage } from '@/hooks/useChatHub';
 
 export default function FloatingChatButton() {
@@ -13,8 +13,8 @@ export default function FloatingChatButton() {
   const [hasNewMessage, setHasNewMessage] = useState(false);
   const [history, setHistory] = useState<ChatMessage[]>([]); // ✅ Chat history
 
-  const { token, userId } = useAuth();
-  const { realtimeMessages, sendMessage, fetchChatHistory } = useChatHub(token!);
+  const { userId } = useAuth();
+  const { messages:realtimeMessages, sendMessage, fetchChatHistory } = useChatHub();
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 

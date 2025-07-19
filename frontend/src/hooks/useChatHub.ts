@@ -9,7 +9,7 @@ export interface ChatMessage {
   timestamp?: string;
 }
 
-export function useChatHub(token: string) {
+export function useChatHub2(token: string) {
   const connectionRef = useRef<signalR.HubConnection | null>(null);
   const [realtimeMessages, setRealtimeMessages] = useState<ChatMessage[]>([]);
 
