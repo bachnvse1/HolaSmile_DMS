@@ -1,6 +1,10 @@
 ﻿using Application.Constants;
+using Application.Usecases.Receptionist.CreateFinancialTransaction;
+using Application.Usecases.Receptionist.DeactiveFinancialTransaction;
+using Application.Usecases.Receptionist.EditFinancialTransaction;
 using Application.Usecases.Receptionist.ViewFinancialTransactions;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HDMS_API.Controllers
@@ -16,7 +20,7 @@ namespace HDMS_API.Controllers
             _mediator = mediator;
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpGet("financial-transactions")]
         public async Task<IActionResult> GetListTransactions()
         {
@@ -24,6 +28,118 @@ namespace HDMS_API.Controllers
             {
                 var result = await _mediator.Send(new ViewFinancialTransactionsCommand());
                 return result == null ? NotFound(MessageConstants.MSG.MSG16) : Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("financial-transactions/{TransactionID}")]
+        public async Task<IActionResult> GetTransactionById([FromRoute]int TransactionID)
+        {
+            try
+            {
+                var result = await _mediator.Send(new ViewDetailFinancialTransactionsCommand(TransactionID));
+                return result == null ? NotFound(MessageConstants.MSG.MSG16) : Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPost("financial-transactions")]
+        public async Task<IActionResult> CreateTransaction([FromBody] CreateFinancialTransactionCommand command)
+        {
+            try
+            {
+                var result = await _mediator.Send(command);
+                return result ? Ok(MessageConstants.MSG.MSG122) : BadRequest(MessageConstants.MSG.MSG58);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPut("edit-financial-transactions/{transactionId}")]
+        public async Task<IActionResult> EditTransaction([FromRoute] int transactionId, [FromBody] EditFinancialTransactionCommand command)
+        {
+            if (transactionId != command.TransactionId)
+            {
+                return BadRequest(MessageConstants.MSG.MSG58);
+            }
+            try
+            {
+                var result = await _mediator.Send(command);
+                return result ? Ok(MessageConstants.MSG.MSG122) : BadRequest(MessageConstants.MSG.MSG58);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPut("Deactive-financial-transactions/{transactionId}")]
+        public async Task<IActionResult> DeactiveTransaction([FromRoute] int transactionId)
+        {
+            try
+            {
+                var result = await _mediator.Send(new DeactiveFinancialTransactionCommand(transactionId));
+                return result ? Ok(MessageConstants.MSG.MSG123) : BadRequest(MessageConstants.MSG.MSG58);
             }
             catch (UnauthorizedAccessException ex)
             {

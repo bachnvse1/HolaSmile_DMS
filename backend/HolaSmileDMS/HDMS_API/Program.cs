@@ -52,9 +52,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-// hangfire
-app.UseHangfireDashboard();
-HangfireJobScheduler.ScheduleJobs();
 // CORS
 app.UseCors("_myAllowSpecificOrigins");
 app.UseHttpsRedirection();
