@@ -1,22 +1,22 @@
 import { useEffect, useState, useRef } from 'react';
 import ChatPage from './ChatPage';
-import { useChatHub } from './ChatHubProvider';
 import { useAuth } from '@/hooks/useAuth';
 import axiosInstance from '@/lib/axios';
+import { useChatHub } from '@/hooks/useChatHub'; // 👉 Hook SignalR mới
 
 export default function FloatingChatButton() {
   const [open, setOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [customers, setCustomers] = useState<any[]>([]);
   const [unreadMap, setUnreadMap] = useState<Record<string, number>>({});
-  const [hasNewMessage, setHasNewMessage] = useState(false); // 🔴 chấm đỏ
+  const [hasNewMessage, setHasNewMessage] = useState(false);
 
   const { token, userId } = useAuth();
-  const { messages } = useChatHub();
+  const { messages, sendMessage } = useChatHub(token!, selectedUser?.userId || '');
 
-  const audioRef = useRef<HTMLAudioElement | null>(null); // 🔔 Âm thanh
 
-  // Fetch người dùng
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
@@ -29,25 +29,23 @@ export default function FloatingChatButton() {
     fetchCustomers();
   }, []);
 
-  // Khi có tin nhắn mới
+  // Xử lý tin nhắn mới
   useEffect(() => {
     if (!userId || messages.length === 0) return;
 
     const lastMsg = messages[messages.length - 1];
-
     if (lastMsg.receiverId === userId) {
       const sender = customers.find((u) => u.userId === lastMsg.senderId);
       if (!sender) return;
 
       const isNotCurrentChat = !selectedUser || selectedUser.userId !== sender.userId || !open;
-
       if (isNotCurrentChat) {
         setUnreadMap((prev) => ({
           ...prev,
           [sender.userId]: (prev[sender.userId] || 0) + 1,
         }));
 
-        setHasNewMessage(true); // 🔴 hiện chấm đỏ
+        setHasNewMessage(true);
         audioRef.current?.play().catch((err) => {
           console.warn('Không thể phát âm thanh:', err);
         });
@@ -55,18 +53,9 @@ export default function FloatingChatButton() {
     }
   }, [messages, customers, userId, open, selectedUser]);
 
-  // Khi click mở/tắt chat
-  const handleToggle = () => {
-    setOpen((prev) => !prev);
-
-    if (!open && customers.length > 0 && !selectedUser) {
-      setSelectedUser(customers[0]);
-    }
-  }
-
+  // Khi mở popup thì reset chấm đỏ
   useEffect(() => {
     if (!open || !selectedUser) return;
-
     const unreadCount = unreadMap[selectedUser.userId] || 0;
     if (unreadCount > 0) {
       setUnreadMap((prev) => ({
@@ -74,17 +63,22 @@ export default function FloatingChatButton() {
         [selectedUser.userId]: 0,
       }));
     }
-
-    setHasNewMessage(false); // Luôn tắt chấm đỏ khi mở popup
+    setHasNewMessage(false);
   }, [open, selectedUser, unreadMap]);
 
+  const handleToggle = () => {
+    setOpen((prev) => !prev);
+    if (!open && customers.length > 0 && !selectedUser) {
+      setSelectedUser(customers[0]);
+    }
+  };
 
   return (
     <>
-      {/* 🔊 Âm thanh */}
+      {/* Âm thanh */}
       <audio ref={audioRef} src="/sound/inflicted-601.ogg" preload="auto" />
 
-      {/* Popup chat */}
+      {/* Chat popup */}
       {open && (
         <div
           style={{
@@ -106,11 +100,14 @@ export default function FloatingChatButton() {
             unreadMap={unreadMap}
             setUnreadMap={setUnreadMap}
             setSelectedUser={setSelectedUser}
+            setHasNewMessage={setHasNewMessage}
+            messages={messages} // ✅ truyền vào
+            sendMessage={sendMessage} // ✅ truyền vào
           />
         </div>
       )}
 
-      {/* Nút chat */}
+      {/* Nút tròn */}
       <div style={{ position: 'fixed', bottom: 20, right: 20 }}>
         <button
           onClick={handleToggle}
@@ -129,8 +126,6 @@ export default function FloatingChatButton() {
           title="Mở chat"
         >
           💬
-
-          {/* 🔴 chấm đỏ khi có tin mới */}
           {hasNewMessage && (
             <span
               style={{

@@ -9,15 +9,24 @@ type Customer = {
   avatarUrl?: string;
 };
 
+type ChatMessage = {
+  senderId: string;
+  receiverId: string;
+  message: string;
+  timestamp?: string;
+};
+
 type Props = {
   selectedUser: Customer | null;
   customers: Customer[];
   onClose?: () => void;
   unreadMap: Record<string, number>;
   setUnreadMap: React.Dispatch<React.SetStateAction<Record<string, number>>>;
-  setSelectedUser: (user: Customer | null) => void; // 👈
+  setSelectedUser: (user: Customer | null) => void;
+  setHasNewMessage: React.Dispatch<React.SetStateAction<boolean>>;
+  messages: ChatMessage[]; // 👈 truyền từ cha
+  sendMessage: (receiverId: string, msg: string) => void; // 👈 truyền từ cha
 };
-
 
 export default function ChatPage({
   selectedUser,
@@ -25,11 +34,20 @@ export default function ChatPage({
   onClose,
   setSelectedUser,
   unreadMap,
+  setUnreadMap,
+  setHasNewMessage,
+  messages,
+  sendMessage
 }: Props) {
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers || []);
 
   const handleSelectUser = (user: Customer) => {
     setSelectedUser(user);
+    setUnreadMap((prev) => ({
+      ...prev,
+      [user.userId]: 0,
+    }));
+    setHasNewMessage(false);
   };
 
   useEffect(() => {
@@ -60,6 +78,7 @@ export default function ChatPage({
         background: '#fff',
       }}
     >
+      {/* Danh sách người dùng */}
       <div
         style={{
           width: 220,
@@ -107,7 +126,6 @@ export default function ChatPage({
               />
             )}
             <span>{user.fullName}</span>
-
             {unreadMap?.[user.userId] > 0 && (
               <span
                 style={{
@@ -126,6 +144,7 @@ export default function ChatPage({
         ))}
       </div>
 
+      {/* Chat box */}
       <div style={{ flex: 1, padding: 12, position: 'relative' }}>
         {selectedUser ? (
           <ChatBox
@@ -133,6 +152,8 @@ export default function ChatPage({
               id: selectedUser.userId,
               name: selectedUser.fullName,
             }}
+            messages={messages}
+            sendMessage={sendMessage}
           />
         ) : (
           <div style={{ textAlign: 'center', color: '#999', marginTop: 80 }}>

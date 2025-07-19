@@ -29,7 +29,7 @@ export const ChatHubProvider = ({ children }: { children: React.ReactNode }) => 
     });
 
     connection.start().catch(console.error);
-  }, [token, userId]);
+  },[]);
 
   return <ChatContext.Provider value={{ messages }}>{children}</ChatContext.Provider>;
 };

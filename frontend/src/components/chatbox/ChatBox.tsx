@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useChatHub } from "@/hooks/useChatHub";
 import axiosInstance from "@/lib/axios";
 import dayjs from "dayjs";
 
@@ -9,19 +8,27 @@ type Receiver = {
   name: string;
 };
 
-type Props = {
-  receiver: Receiver;
+type ChatMessage = {
+  senderId: string;
+  receiverId: string;
+  message: string;
+  timestamp?: string;
 };
 
-export default function ChatBox({ receiver }: Props) {
-  const { token, userId } = useAuth();
-  const { messages, sendMessage } = useChatHub(token ?? "", receiver?.id ?? "");
+type Props = {
+  receiver: Receiver;
+  messages: ChatMessage[];
+  sendMessage: (receiverId: string, msg: string) => void;
+};
+
+export default function ChatBox({ receiver, messages, sendMessage }: Props) {
+  const { userId } = useAuth();
   const [input, setInput] = useState("");
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<ChatMessage[]>([]);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null); // 👈 Ref để scroll
+  const messagesEndRef = useRef<HTMLDivElement>(null); // 👈 Ref scroll
 
-  // Fetch chat history
+  // 📥 Lấy lịch sử từ server
   useEffect(() => {
     const fetchHistory = async () => {
       if (userId && receiver?.id) {
@@ -40,44 +47,48 @@ export default function ChatBox({ receiver }: Props) {
     fetchHistory();
   }, [userId, receiver?.id]);
 
-  // Gộp và sắp xếp tin nhắn
+  // 📦 Gộp lịch sử + realtime + lọc trùng + sort
   const allMessages = useMemo(() => {
     if (!receiver?.id) return [];
+
     const realTimeMsgs = messages.filter(
-      m =>
+      (m) =>
         (m.senderId === userId && m.receiverId === receiver.id) ||
         (m.senderId === receiver.id && m.receiverId === userId)
     );
-    const historyMsgs = history.map((m: any) => ({
-      senderId: m.senderId,
-      receiverId: m.receiverId,
-      message: m.message,
-      timestamp: m.timestamp,
-    }));
-    const merged = [...historyMsgs, ...realTimeMsgs];
+
+    const merged = [...history, ...realTimeMsgs];
     const unique = merged.filter((msg, idx, arr) =>
       arr.findIndex(
-        m =>
+        (m) =>
           m.senderId === msg.senderId &&
           m.receiverId === msg.receiverId &&
           m.message === msg.message &&
           m.timestamp === msg.timestamp
       ) === idx
     );
+
     unique.sort((a, b) =>
       a.timestamp && b.timestamp
         ? new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
         : 0
     );
+
     return unique;
   }, [history, messages, userId, receiver?.id]);
 
-  // 👉 Scroll to bottom when messages change
+  // 🔽 Auto scroll
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [allMessages]);
+
+  // 📤 Gửi tin nhắn
+  const handleSend = () => {
+    if (input.trim()) {
+      sendMessage(receiver.id, input.trim());
+      setInput("");
+    }
+  };
 
   return (
     <div
@@ -92,7 +103,7 @@ export default function ChatBox({ receiver }: Props) {
         fontFamily: "inherit",
       }}
     >
-      {/* Header */}
+      {/* Tiêu đề */}
       <div
         style={{
           fontWeight: 700,
@@ -104,7 +115,7 @@ export default function ChatBox({ receiver }: Props) {
         💬 Chat với {receiver.name}
       </div>
 
-      {/* Messages */}
+      {/* Tin nhắn */}
       <div
         style={{
           flex: 1,
@@ -155,7 +166,6 @@ export default function ChatBox({ receiver }: Props) {
             </div>
           );
         })}
-        {/* ✅ Đây là điểm cuộn cuối cùng */}
         <div ref={messagesEndRef} />
       </div>
 
@@ -174,19 +184,11 @@ export default function ChatBox({ receiver }: Props) {
             background: "#fff",
           }}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && input) {
-              sendMessage(receiver.id, input);
-              setInput("");
-            }
+            if (e.key === "Enter") handleSend();
           }}
         />
         <button
-          onClick={() => {
-            if (input) {
-              sendMessage(receiver.id, input);
-              setInput("");
-            }
-          }}
+          onClick={handleSend}
           style={{
             background: "#2563eb",
             color: "#fff",
