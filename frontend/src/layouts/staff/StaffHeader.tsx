@@ -13,9 +13,11 @@ interface UserInfo {
 interface StaffHeaderProps {
   userInfo: UserInfo;
   onToggleSidebar: () => void;
+  isSidebarOpen?: boolean;
+  isMobile?: boolean;
 }
 
-export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSidebar }) => {
+export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSidebar, isSidebarOpen = false, isMobile = false }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -39,18 +41,21 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSide
   };
 
   return (
-    <header className="bg-white shadow-sm border-b h-16 flex items-center justify-between px-6">
+    <header className="bg-white shadow-sm border-b h-16 flex items-center justify-between px-4 sm:px-6 relative z-30">
       {/* Left side */}
-      <div className="flex items-center space-x-4">
-        <button
-          onClick={onToggleSidebar}
-          className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-          title="Toggle sidebar"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
+      <div className="flex items-center space-x-2 sm:space-x-4">
+        {/* Show menu button only when sidebar is closed on mobile, or always on desktop */}
+        {(!isMobile || (isMobile && isSidebarOpen === false)) && (
+          <button
+            onClick={onToggleSidebar}
+            className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+            title="Toggle sidebar"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        )}
         
-        <div>
+        <div className="hidden sm:block">
           <h1 className="text-lg font-semibold text-gray-900">
             Hệ Thống Quản Lý Nha Khoa
           </h1>
@@ -58,10 +63,15 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSide
             Chào mừng trở lại, {userInfo.name}
           </p>
         </div>
+        
+        {/* Mobile title */}
+        <div className="sm:hidden">
+          <h1 className="text-base font-semibold text-gray-900">HolaSmile</h1>
+        </div>
       </div>
 
       {/* Right side */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2 sm:space-x-4">
         {/* Notifications */}
         <div 
           className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full relative"
@@ -84,7 +94,7 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSide
               <p className="text-sm font-medium">{userInfo.name}</p>
               <p className="text-xs text-gray-500">{getRoleDisplayName(userInfo.role)}</p>
             </div>
-            <ChevronDown className="h-4 w-4" />
+            <ChevronDown className="h-4 w-4 hidden sm:block" />
           </button>
 
           {isUserMenuOpen && (

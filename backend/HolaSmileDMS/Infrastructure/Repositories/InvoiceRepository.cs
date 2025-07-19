@@ -83,4 +83,9 @@ public class InvoiceRepository : IInvoiceRepository
             .Where(x => x.TreatmentRecord_Id == treatmentRecordId && !x.IsDeleted)
             .SumAsync(x => x.PaidAmount ?? 0);
     }
+
+    public async Task<List<Invoice>> GetTotalInvoice()
+    {
+        return await _context.Invoices.ToListAsync();
+    }
 }

@@ -45,7 +45,7 @@ namespace Application.Usecases.Assistant.UpdateTaskStatus
             task.UpdatedBy = assistantId;
 
             var result = await _taskRepository.UpdateTaskAsync(task, cancellationToken);
-            return result ? MessageConstants.MSG.MSG31 : MessageConstants.MSG.MSG58; // MSG31: Lưu thành công, MSG58: Thất bại
+            return result ? MessageConstants.MSG.MSG97 : MessageConstants.MSG.MSG58; // MSG31: Lưu thành công, MSG58: Thất bại
         }
     }
 }

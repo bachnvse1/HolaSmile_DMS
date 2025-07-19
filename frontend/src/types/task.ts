@@ -1,4 +1,4 @@
-export interface Task {
+export interface BasicTask {
     taskId: number
     progressName: string
     description: string
@@ -19,5 +19,28 @@ export interface TaskAssignment {
     endTime: string
 }
 
+export interface TaskFilter {
+  status: string
+  timeRange: string
+  dentist: string
+  procedure: string
+}
+export type TaskStatus = "Pending" | "Completed"
 
-export interface AssignedTask extends Task { }
+export interface Task {
+  taskId: number
+  progressName: string
+  description: string
+  status: TaskStatus
+  startTime: string
+  endTime: string
+  treatmentProgressId: number
+  treatmentRecordId: number
+  treatmentDate: string
+  procedureName: string
+  dentistName: string
+  symptoms: string
+  diagnosis: string
+}
+
+export interface AssignedTask extends BasicTask { }

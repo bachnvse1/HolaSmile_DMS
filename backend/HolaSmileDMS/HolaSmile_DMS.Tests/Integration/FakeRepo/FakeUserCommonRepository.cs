@@ -116,4 +116,14 @@ public class FakeUserCommonRepository : IUserCommonRepository
     {
         throw new NotImplementedException();
     }
+
+    Task<List<Patient>> IUserCommonRepository.GetAllPatientsAsync(CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<List<Owner>> GetAllOwnerAsync()
+    {
+        throw new NotImplementedException();
+    }
 }

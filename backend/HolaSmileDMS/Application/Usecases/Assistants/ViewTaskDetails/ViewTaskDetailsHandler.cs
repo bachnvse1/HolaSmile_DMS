@@ -52,7 +52,7 @@ namespace Application.Usecases.Assistant.ViewTaskDetails
                 TaskId = task.TaskID,
                 ProgressName = task.ProgressName ?? "",
                 Description = task.Description ?? "",
-                Status = task.Status == true ? "Hoàn thành" : "Chưa hoàn thành",
+                Status = task.Status == true ? "Completed" : "Pending",
                 StartTime = task.StartTime?.ToString(@"hh\:mm") ?? "",
                 EndTime = task.EndTime?.ToString(@"hh\:mm") ?? "",
 

@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { getAllProcedures } from "@/services/procedureService";
+import { ProcedureService } from "@/services/procedureService";
 import type { Procedure } from "@/types/procedure";
 
 interface ProcedureSelectionModalProps {
@@ -32,7 +32,7 @@ export function ProcedureSelectionModal({
 
   const { data: procedures = [], isLoading, error } = useQuery({
     queryKey: ["procedures"],
-    queryFn: getAllProcedures,
+    queryFn: ProcedureService.getAll,
   });
 
   useEffect(() => {
