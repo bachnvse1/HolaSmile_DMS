@@ -25,7 +25,6 @@ public class ViewInstructionTemplateListHandler : IRequestHandler<ViewInstructio
     {
         // Optional: Check user role
         var user = _httpContextAccessor.HttpContext?.User;
-        var role = user?.FindFirst(ClaimTypes.Role)?.Value;
         var list = await _repository.GetAllAsync();
         var result = new List<ViewInstructionTemplateDto>();
 

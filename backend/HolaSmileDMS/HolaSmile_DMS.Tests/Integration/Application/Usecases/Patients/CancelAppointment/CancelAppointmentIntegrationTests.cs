@@ -28,7 +28,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Patients
             var services = new ServiceCollection();
 
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseInMemoryDatabase("EditProfileTestDb"));
+                options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
 
             services.AddMemoryCache();
             services.AddHttpContextAccessor();
