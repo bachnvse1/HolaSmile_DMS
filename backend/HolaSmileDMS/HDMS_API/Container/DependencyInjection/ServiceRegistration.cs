@@ -4,6 +4,8 @@ using Application.Services;
 using Application.Usecases.SendNotification;
 using DinkToPdf;
 using DinkToPdf.Contracts;
+using Hangfire;
+using Hangfire.MySql;
 using HDMS_API.Application.Common.Mappings;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
@@ -31,7 +33,20 @@ namespace HDMS_API.Container.DependencyInjection
                 options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)),
                 ServiceLifetime.Scoped
             );
-            
+
+            //hangfire
+            services.AddHangfire(config =>
+            {
+                config.UseStorage(new MySqlStorage(connectionString, new MySqlStorageOptions
+                {
+                    TablesPrefix = "Hangfire", // prefix cho table, tùy chọn
+                    QueuePollInterval = TimeSpan.FromSeconds(15), // khoảng thời gian kiểm tra job queue
+                    JobExpirationCheckInterval = TimeSpan.FromHours(1),
+                    CountersAggregateInterval = TimeSpan.FromMinutes(5),
+                    PrepareSchemaIfNecessary = true // tự tạo bảng nếu chưa có
+                }));
+            });
+
             // Repository & Services
             services.AddScoped<IAppointmentRepository, AppointmentRepository>();
             services.AddScoped<IEmailService, EmailService>();
@@ -71,6 +86,8 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<ICloudinaryService, CloudinaryService>();
             services.AddScoped<IImageRepository, ImageRepository>();
             services.AddScoped<ITransactionRepository, TransactionRepository>();
+            services.AddScoped<IPromotionrepository, Promotionrepository>();
+            services.AddScoped<IDeactiveExpiredPromotionsService, DeactiveExpiredPromotionsService>();
 
 
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -102,6 +119,8 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddAutoMapper(typeof(MappingTreatmentProgress).Assembly);
             services.AddAutoMapper(typeof(OrthodonticTreatmentPlanProfile).Assembly);
 
+            // Add Hangfire Server
+        services.AddHangfireServer();
 
             // Caching
             services.AddMemoryCache();
