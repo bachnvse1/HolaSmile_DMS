@@ -51,7 +51,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             {
                if(request.CaptchaValue != request.CaptchaInput)
                 {
-                    throw new Exception(MessageConstants.MSG.MSG125); // "Captcha không hợp lệ."
+                    throw new Exception(MessageConstants.MSG.MSG124); // "Captcha không hợp lệ."
                 }
 
             var guest = _mapper.Map<CreatePatientDto>(request);
