@@ -10,13 +10,13 @@ public class WarrantyCard
     public int? Duration { get; set; }
 
     public bool Status { get; set; }
-    public DateTime? CreateAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
+    public DateTime? CreatedAt { get; set; } = default;
+    public DateTime? UpdatedAt { get; set; } = default;
 
     public int? CreateBy { get; set; }
     public int? UpdatedBy { get; set; }
     
-    public bool IsDelete { get; set; }
+    public bool IsDeleted { get; set; } = false;
 
     public TreatmentRecord TreatmentRecord { get; set; }
     public int TreatmentRecordID { get; set; }

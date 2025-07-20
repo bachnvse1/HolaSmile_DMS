@@ -82,7 +82,7 @@ const getUserProfile = async (): Promise<FormValues> => {
 
   try {
     const response = await axiosInstance.get("/user/profile", {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {"ngrok-skip-browser-warning": "true", Authorization: `Bearer ${token}` },
     })
 
     return transformApiResponse(response.data)
@@ -102,7 +102,7 @@ const updateUserProfile = async (formData: FormValues, token: string): Promise<v
   }
 
   await axiosInstance.put("/user/profile", payload, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {"ngrok-skip-browser-warning": "true", Authorization: `Bearer ${token}` },
   })
 }
 

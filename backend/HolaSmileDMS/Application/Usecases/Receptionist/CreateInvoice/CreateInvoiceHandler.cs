@@ -111,9 +111,9 @@ public class CreateInvoiceHandler : IRequestHandler<CreateInvoiceCommand, string
                         $"Hoá đơn thanh toán {invoice.OrderCode} đã được tạo";
                     await _mediator.Send(new SendNotificationCommand(
                         userIdNotification,
-                        "Thanh toán",
+                        "Tạo hoá đơn thanh toán",
                         message,
-                        "Thanh toán",
+                        "invoice",
                         userId
                     ), cancellationToken);
                 }
