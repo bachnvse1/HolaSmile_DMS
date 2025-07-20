@@ -1,6 +1,7 @@
 ﻿using Application.Common.Mappings;
 using Application.Interfaces;
 using Application.Services;
+using Application.Usecases.Receptionist.SMS;
 using Application.Usecases.SendNotification;
 using DinkToPdf;
 using DinkToPdf.Contracts;
@@ -18,6 +19,7 @@ using Infrastructure.Hubs;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
 using MediatR;
+using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -74,6 +76,7 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<ITransactionRepository, TransactionRepository>();
             services.AddScoped<IPromotionrepository, Promotionrepository>();
 
+            services.AddHttpClient<IEsmsService, SmsService>();
 
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>
@@ -107,6 +110,7 @@ namespace HDMS_API.Container.DependencyInjection
             //background services
             services.AddHostedService<PromotionCleanupService>();
             services.AddHostedService<AppointmentCleanupService>();
+
 
             // Caching
             services.AddMemoryCache();

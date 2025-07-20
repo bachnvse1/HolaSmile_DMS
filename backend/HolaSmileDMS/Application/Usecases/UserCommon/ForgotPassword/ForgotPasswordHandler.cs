@@ -1,7 +1,7 @@
 ﻿using Application.Interfaces;
 using MediatR;
 
-namespace HDMS_API.Application.Usecases.Auth.ForgotPassword
+namespace HDMS_API.Application.Usecases.UserCommon.ForgotPassword
 {
     public class ForgotPasswordHandler : IRequestHandler<ForgotPasswordCommand, string>
     {
