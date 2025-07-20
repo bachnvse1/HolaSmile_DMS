@@ -101,7 +101,7 @@ export const promotionApi = {
   // Deactivate promotion program
   deactivatePromotionProgram: async (programId: number) => {
     try {
-      const response = await axiosInstance.delete(`/promotion/deactive-promotion-program/${programId}`);
+      const response = await axiosInstance.put(`/promotion/deactive-promotion-program/${programId}`);
       return response.data;
     } catch (error) {
       console.error('Error deactivating promotion program:', error);

@@ -445,7 +445,7 @@ export const FinancialTransactionList: React.FC = () => {
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              <Button
+                              {/* <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setDeleteTransaction(transaction.transactionID)}
@@ -453,7 +453,7 @@ export const FinancialTransactionList: React.FC = () => {
                                 title="Xóa giao dịch"
                               >
                                 <Trash2 className="h-4 w-4" />
-                              </Button>
+                              </Button> */}
                             </div>
                           </td>
                         </tr>

@@ -5,7 +5,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { usePromotionProgramDetail } from '@/hooks/usePromotions';
 import { formatDateShort, getDaysRemaining } from '@/utils/date';
-import { formatCurrency } from '@/utils/currencyUtils';
 
 interface ViewPromotionModalProps {
   isOpen: boolean;
@@ -191,9 +190,9 @@ export const ViewPromotionModal: React.FC<ViewPromotionModalProps> = ({
                           </div>
                           <div className="text-right">
                             <p className="font-bold text-lg text-blue-600">
-                              {formatCurrency(procedure.discountAmount)} ₫
+                              {procedure.discountAmount}%
                             </p>
-                            <p className="text-xs text-gray-500">Giá khuyến mãi</p>
+                            <p className="text-xs text-gray-500">Phần trăm giảm giá</p>
                           </div>
                         </div>
                       ))}

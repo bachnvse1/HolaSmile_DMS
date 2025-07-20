@@ -10,7 +10,6 @@ import {Combobox} from '@/components/ui/simple-combobox';
 import { useUpdatePromotionProgram, usePromotionProgramDetail } from '@/hooks/usePromotions';
 import { useProcedures } from '@/hooks/useProcedures';
 import type { Procedure } from '@/services/procedureApi';
-import { formatCurrency, handleCurrencyInput } from '@/utils/currencyUtils';
 import { getErrorMessage } from '@/utils/formatUtils';
 
 interface EditPromotionModalProps {
@@ -67,17 +66,18 @@ export const EditPromotionModal: React.FC<EditPromotionModalProps> = ({
         procedures: programDetail.listProcedure.length > 0 
           ? programDetail.listProcedure.map(p => ({
               procedureId: p.procedureId,
-              discountAmount: formatCurrency(p.discountAmount)
+              discountAmount: p.discountAmount?.toString() || '0'
             }))
           : [{ procedureId: 0, discountAmount: '' }]
       });
     }
   }, [programDetail, form]);
 
-  const handleDiscountAmountChange = (index: number, value: string) => {
-    handleCurrencyInput(value, (formattedValue) => {
-      form.setValue(`procedures.${index}.discountAmount`, formattedValue);
-    });
+  const handleDiscountPercentageChange = (index: number, value: string) => {
+    // Only allow numbers and ensure it's between 0-100
+    const numericValue = value.replace(/[^\d]/g, '');
+    const percentage = Math.min(100, Math.max(0, parseInt(numericValue) || 0));
+    form.setValue(`procedures.${index}.discountAmount`, percentage.toString());
   };
 
   const onSubmit = async (data: FormData) => {
@@ -87,7 +87,7 @@ export const EditPromotionModal: React.FC<EditPromotionModalProps> = ({
       // Validate procedures
       const validProcedures = data.procedures.filter(p => p.procedureId > 0 && p.discountAmount);
       if (validProcedures.length === 0) {
-        toast.error('Vui lòng thêm ít nhất một thủ thuật với giá khuyến mãi');
+        toast.error('Vui lòng thêm ít nhất một thủ thuật với phần trăm giảm giá');
         return;
       }
 
@@ -108,7 +108,7 @@ export const EditPromotionModal: React.FC<EditPromotionModalProps> = ({
         discountPercentage: 0, // Backend expects this field
         listProcedure: validProcedures.map(p => ({
           procedureId: p.procedureId,
-          discountAmount: parseInt(p.discountAmount.replace(/[^\d]/g, '')) || 0
+          discountAmount: parseInt(p.discountAmount) || 0
         }))
       };
 
@@ -294,18 +294,21 @@ export const EditPromotionModal: React.FC<EditPromotionModalProps> = ({
                             />
                           </div>
 
-                          {/* Discount Amount */}
+                          {/* Discount Percentage */}
                           <div className="space-y-2">
-                            <Label>Giá khuyến mãi</Label>
+                            <Label>Phần trăm giảm giá (%)</Label>
                             <div className="flex gap-2">
                               <div className="relative flex-1">
                                 <Input
                                   placeholder="0"
+                                  type="number"
+                                  min="0"
+                                  max="100"
                                   value={form.watch(`procedures.${index}.discountAmount`)}
-                                  onChange={(e) => handleDiscountAmountChange(index, e.target.value)}
+                                  onChange={(e) => handleDiscountPercentageChange(index, e.target.value)}
                                   className="pr-8"
                                 />
-                                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₫</span>
+                                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">%</span>
                               </div>
                               
                               {/* Remove Button */}
@@ -356,7 +359,7 @@ export const EditPromotionModal: React.FC<EditPromotionModalProps> = ({
                               <div key={index} className="flex justify-between bg-white p-2 rounded">
                                 <span>{procedure?.procedureName}</span>
                                 <span className="font-medium text-blue-600">
-                                  {formatCurrency(parseInt(proc.discountAmount.replace(/[^\d]/g, '')) || 0)} ₫
+                                  Giảm {proc.discountAmount}%
                                 </span>
                               </div>
                             );
