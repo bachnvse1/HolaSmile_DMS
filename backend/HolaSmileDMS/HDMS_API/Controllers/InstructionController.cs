@@ -1,6 +1,7 @@
 ﻿using Application.Usecases.Assistants.CreateInstruction;
 using Application.Usecases.Assistants.DeactiveInstruction;
 using Application.Usecases.Assistants.UpdateInstruction;
+using Application.Usecases.Assistants.ViewListInstruction;
 using Application.Usecases.Patients.ViewInstruction;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -111,5 +112,25 @@ namespace HDMS_API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet]
+        [Authorize(Roles = "Assistant,Dentist")]
+        public async Task<IActionResult> GetInstructions()
+        {
+            try
+            {
+                var result = await _mediator.Send(new ViewListInstructionCommand());
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
     }
 }

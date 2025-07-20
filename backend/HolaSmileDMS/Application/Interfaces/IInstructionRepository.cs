@@ -8,4 +8,6 @@ public interface IInstructionRepository
     Task<bool> ExistsByAppointmentIdAsync(int appointmentId, CancellationToken ct = default);
     Task<Instruction?> GetByIdAsync(int instructionId, CancellationToken ct = default);
     Task<bool> UpdateAsync(Instruction instruction, CancellationToken ct = default);
+    Task<List<Instruction>> GetAllInstructionsAsync();
+
 }
