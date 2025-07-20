@@ -145,7 +145,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
 
         {/* Action Buttons - Dentist có full quyền, Patient chỉ xem đơn thuốc */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {role === 'Dentist' && (
+          {role === 'Dentist' && appointment.status !== "canceled" && (
             <Button
               variant="outline"
               size="sm"

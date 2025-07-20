@@ -175,7 +175,7 @@ export function ProcedureTable({
                                 </TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex justify-end gap-2">
-                                        <Button variant="outline" size="sm" onClick={() => onViewDetails(procedure)}>
+                                        <Button variant="default" size="sm" onClick={() => onViewDetails(procedure)}>
                                             <Eye className="w-4 h-4" />
                                         </Button>
 
