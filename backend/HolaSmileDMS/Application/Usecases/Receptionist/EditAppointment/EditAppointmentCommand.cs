@@ -9,6 +9,5 @@ namespace Application.Usecases.Receptionist.EditAppointment
         public DateTime AppointmentDate { get; set; }
         public TimeSpan AppointmentTime { get; set; }
         public string? ReasonForFollowUp { get; set; }
-        public string Actions { get; set; }
     }
 }

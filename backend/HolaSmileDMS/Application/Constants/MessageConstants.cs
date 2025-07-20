@@ -126,6 +126,7 @@ public static class MessageConstants
                 public const string MSG121 = "Không thể chạy 2 chương trình khuyến mãi cùng 1 thời điểm.";
                 public const string MSG122 = "Tạo phiếu thu chi thành công";
                 public const string MSG123 = "Cập nhật phiếu thu chi thành công";
+                public const string MSG124 = "Captcha không hợp lệ";
     }
 }   
  
