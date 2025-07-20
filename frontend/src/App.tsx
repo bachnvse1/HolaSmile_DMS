@@ -56,6 +56,7 @@ import { PatientOrthodonticImagesPage } from "./pages/patient/PatientOrthodontic
 import { PatientTreatmentImagesPage } from "./pages/patient/PatientTreatmentImagesPage";
 import FloatingChatButton from './components/chatbox/FloatingChatButton';
 import { ChatHubProvider } from './components/chatbox/ChatHubProvider';
+import InstructionTemplateManagement from "./pages/instruction/InstructionTemplateManagement";
 function App() {
   return (
     <>
@@ -188,6 +189,7 @@ function App() {
         <Route path="/thank-you" element={<ThankYou />} />
         <Route path="/cancel" element={<PaymentCancelled />} />
         <Route path="/patient/treatment-records" element={<PatientTreatmentRecordsSection />} />
+        <Route path="/instruction-templates" element={<InstructionTemplateManagement />} />
         </Routes>
         <FloatingChatButton />
         </ChatHubProvider>
