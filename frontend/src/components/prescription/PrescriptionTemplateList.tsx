@@ -91,8 +91,8 @@ export const PrescriptionTemplateList: React.FC = () => {
     if (!template) return;
 
     deactivateTemplate(template.PreTemplateID, {
-      onSuccess: (response: any) => {
-        toast.success(response?.message || 'Đã xóa mẫu đơn thuốc thành công');
+      onSuccess: () => {
+        toast.success('Đã xóa mẫu đơn thuốc thành công');
         setConfirmModal({ isOpen: false, template: null });
       },
       onError: (error) => {
@@ -115,23 +115,39 @@ export const PrescriptionTemplateList: React.FC = () => {
     );
   }
 
+  // Only show error for non-empty data errors
   if (error) {
-    return (
-      <div className="container mx-auto p-6 max-w-7xl">
-        <div className="flex justify-center items-center min-h-[400px]">
-          <div className="text-center">
-            <p className="text-red-600">Có lỗi xảy ra khi tải dữ liệu: {error.message}</p>
-            <Button
-              variant="outline"
-              onClick={() => window.location.reload()}
-              className="mt-2"
-            >
-              Thử lại
-            </Button>
+    const apiError = error as { 
+      response?: { status?: number; data?: { message?: string } }; 
+      message?: string;
+    };
+    
+    // Check for various empty data error patterns
+    const isEmptyDataError = 
+      (apiError?.response?.status === 200 && 
+       apiError?.response?.data?.message === "Không có dữ liệu phù hợp") ||
+      (apiError?.message?.includes('is not a function')) ||
+      (apiError?.message?.includes('Cannot read property')) ||
+      (apiError?.message?.includes('map is not a function'));
+    
+    if (!isEmptyDataError) {
+      return (
+        <div className="container mx-auto p-6 max-w-7xl">
+          <div className="flex justify-center items-center min-h-[400px]">
+            <div className="text-center">
+              <p className="text-red-600">Có lỗi xảy ra khi tải dữ liệu: {(error as Error).message}</p>
+              <Button
+                variant="outline"
+                onClick={() => window.location.reload()}
+                className="mt-2"
+              >
+                Thử lại
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
-    );
+      );
+    }
   }
 
   return (
@@ -176,12 +192,12 @@ export const PrescriptionTemplateList: React.FC = () => {
           <CardContent className="p-8 text-center">
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {searchQuery ? 'Không tìm thấy mẫu đơn thuốc' : 'Chưa có mẫu đơn thuốc nào'}
+              {searchQuery ? 'Không tìm thấy mẫu đơn thuốc' : 'Không có mẫu đơn thuốc'}
             </h3>
             <p className="text-gray-600 mb-4 text-sm sm:text-base">
               {searchQuery
                 ? 'Thử thay đổi từ khóa tìm kiếm của bạn'
-                : 'Bắt đầu tạo mẫu đơn thuốc đầu tiên'
+                : 'Bắt đầu tạo mẫu đơn thuốc đầu tiên để sử dụng trong điều trị'
               }
             </p>
             {!searchQuery && userRole === 'Assistant' && (

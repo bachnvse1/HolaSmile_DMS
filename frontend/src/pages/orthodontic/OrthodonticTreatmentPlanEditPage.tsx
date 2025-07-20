@@ -5,7 +5,7 @@ import { AuthGuard } from '@/components/AuthGuard';
 import { StaffLayout } from '@/layouts/staff/StaffLayout';
 export const OrthodonticTreatmentPlanEditPage: React.FC = () => {
   return (
-    <AuthGuard requiredRoles={['Dentist']}>
+    <AuthGuard requiredRoles={['Dentist', 'Assistant']}>
       <StaffLayout userInfo={useUserInfo()}>
         <OrthodonticTreatmentPlanBasicForm mode="edit" />
       </StaffLayout>

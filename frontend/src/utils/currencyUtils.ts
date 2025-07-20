@@ -11,12 +11,12 @@ export const parseCurrency = (value: string): number => {
 };
 
 export const handleCurrencyInput = (
-  value: string,
+  rawInput: string,
   onChange: (value: string) => void
 ) => {
-  const numericValue = value.replace(/[^\d]/g, '');
-  if (numericValue) {
-    const formatted = parseInt(numericValue).toLocaleString('vi-VN');
+  const rawNumber = rawInput.replace(/[^\d]/g, '');
+  if (rawNumber) {
+    const formatted = Number(rawNumber).toLocaleString('vi-VN');
     onChange(formatted);
   } else {
     onChange('');
