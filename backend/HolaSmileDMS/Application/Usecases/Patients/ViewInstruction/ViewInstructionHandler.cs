@@ -4,7 +4,6 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
-
 namespace Application.Usecases.Patients.ViewInstruction
 {
     public class ViewInstructionHandler : IRequestHandler<ViewInstructionCommand, List<ViewInstructionDto>>
@@ -32,39 +31,57 @@ namespace Application.Usecases.Patients.ViewInstruction
             var userId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var role = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-            if (!string.Equals(role, "Patient", System.StringComparison.OrdinalIgnoreCase))
-                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
-
-            // Lấy danh sách các appointment của bệnh nhân hiện tại
-            var appointments = await _appointmentRepository.GetAppointmentsByPatientIdAsync(userId);
-            var appointmentIds = appointments.Select(a => a.AppointmentId).ToList();
-
-            // Nếu có truyền AppointmentId thì chỉ lấy chỉ dẫn của lịch hẹn đó (và phải thuộc về bệnh nhân này)
-            if (request.AppointmentId.HasValue)
+            if (!string.Equals(role, "Patient", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(role, "Assistant", StringComparison.OrdinalIgnoreCase))
             {
-                if (!appointmentIds.Contains(request.AppointmentId.Value))
-                    throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
-
-                appointmentIds = new List<int> { request.AppointmentId.Value };
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             }
 
-            // Lấy tất cả instruction liên quan đến các appointment này
+            List<Appointment> appointments;
+
+            if (string.Equals(role, "Patient", StringComparison.OrdinalIgnoreCase))
+            {
+                // Patient chỉ được xem lịch của chính mình
+                appointments = await _appointmentRepository.GetAppointmentsByPatient(userId);
+
+                // Nếu có truyền AppointmentId → phải là lịch của chính bệnh nhân
+                if (request.AppointmentId.HasValue)
+                {
+                    var isValid = appointments.Any(a => a.AppointmentId == request.AppointmentId.Value);
+                    if (!isValid)
+                        throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
+
+                    appointments = appointments
+                        .Where(a => a.AppointmentId == request.AppointmentId.Value)
+                        .ToList();
+                }
+            }
+            else // Assistant
+            {
+                // Assistant được xem tất cả
+                appointments = request.AppointmentId.HasValue
+                    ? new List<Appointment> {
+                          await _appointmentRepository.GetAppointmentByIdAsync(request.AppointmentId.Value)
+                      }.Where(a => a != null).ToList()
+                    : await _appointmentRepository.GetAllAppointments();
+            }
+
+            var appointmentIds = appointments.Select(a => a.AppointmentId).ToList();
+
+            // Lấy chỉ dẫn từ danh sách appointment
             var instructions = await _instructionRepository.GetInstructionsByAppointmentIdsAsync(appointmentIds);
 
             var result = new List<ViewInstructionDto>();
+
             foreach (var ins in instructions.Where(i => !i.IsDeleted))
             {
-                string? dentistName = null;
-                // Lấy thông tin appointment để lấy DentistName
                 var appointment = appointments.FirstOrDefault(a => a.AppointmentId == ins.AppointmentId);
-                if (appointment != null && !string.IsNullOrEmpty(appointment.DentistName))
-                {
-                    dentistName = appointment.DentistName;
-                }
+                string? dentistName = appointment?.Dentist?.User?.Fullname;
 
                 string? templateName = null;
                 string? templateContext = null;
                 int? templateId = ins.Instruc_TemplateID;
+
                 if (templateId.HasValue)
                 {
                     var template = await _templateRepository.GetByIdAsync(templateId.Value, cancellationToken);
