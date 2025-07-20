@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MediatR;
+﻿using MediatR;
 
 namespace Application.Usecases.Receptionist.EditAppointment
 {
@@ -13,6 +8,7 @@ namespace Application.Usecases.Receptionist.EditAppointment
         public int DentistId { get; set; }
         public DateTime AppointmentDate { get; set; }
         public TimeSpan AppointmentTime { get; set; }
-        public string ReasonForFollowUp { get; set; }
+        public string? ReasonForFollowUp { get; set; }
+        public string Actions { get; set; }
     }
 }

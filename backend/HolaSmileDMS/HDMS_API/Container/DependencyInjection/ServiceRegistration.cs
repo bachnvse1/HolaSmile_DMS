@@ -1,12 +1,9 @@
-﻿using Application.Common.hangefire;
-using Application.Common.Mappings;
+﻿using Application.Common.Mappings;
 using Application.Interfaces;
 using Application.Services;
 using Application.Usecases.SendNotification;
 using DinkToPdf;
 using DinkToPdf.Contracts;
-using Hangfire;
-using Hangfire.MySql;
 using HDMS_API.Application.Common.Mappings;
 using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
@@ -14,6 +11,8 @@ using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Infrastructure.Persistence;
 using HDMS_API.Infrastructure.Repositories;
 using HDMS_API.Infrastructure.Services;
+using Infrastructure.BackGroundCleanupServices;
+using Infrastructure.BackGroundServices;
 using Infrastructure.Configurations;
 using Infrastructure.Hubs;
 using Infrastructure.Repositories;
@@ -107,6 +106,7 @@ namespace HDMS_API.Container.DependencyInjection
 
             //background services
             services.AddHostedService<PromotionCleanupService>();
+            services.AddHostedService<AppointmentCleanupService>();
 
             // Caching
             services.AddMemoryCache();

@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Application.Common.hangefire
+namespace Infrastructure.BackGroundCleanupServices
 {
     public class PromotionCleanupService : BackgroundService
     {
@@ -15,7 +15,7 @@ namespace Application.Common.hangefire
         {
             _scopeFactory = scopeFactory;
             // Cho test dễ override interval; production sẽ dùng 24h
-            _interval = interval ?? TimeSpan.FromMinutes(5);
+            _interval = interval ?? TimeSpan.FromHours(24);
         }
 
         protected override async System.Threading.Tasks.Task ExecuteAsync(CancellationToken stoppingToken)

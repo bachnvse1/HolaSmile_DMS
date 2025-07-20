@@ -46,21 +46,28 @@ namespace Application.Usecases.Receptionist.EditAppointment
                 throw new Exception("Lịch hẹn đang ở trạng thái không thể thay đổi");
             }
 
-            if (request.AppointmentDate.Date < DateTime.Today.Date)
+            if (request.AppointmentDate.Date <                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        DateTime.Now.Date)
             {
                 throw new Exception(MessageConstants.MSG.MSG34); // "Ngày hẹn phải sau ngày hôm nay"
             }
 
-            if (request.AppointmentDate.Date == DateTime.Today.Date && request.AppointmentTime < DateTime.Now.TimeOfDay)
-            {
-                throw new Exception(MessageConstants.MSG.MSG34); // "Ngày hẹn phải sau ngày hôm nay"
-            }
+            //if (request.AppointmentDate.Date == DateTime.Today.Date && request.AppointmentTime < DateTime.Now.TimeOfDay)
+            //{
+            //    throw new Exception(MessageConstants.MSG.MSG34); // "Ngày hẹn phải sau ngày hôm nay"
+            //}
 
             if (await _dentistRepository.GetDentistByDentistIdAsync(request.DentistId) == null)
             {
                 throw new Exception(MessageConstants.MSG.MSG16); // "Bác sĩ không tồn tại"
             }
 
+            if(request.Actions.ToLower() != "attended")
+            {
+                existApp.Status = "attended";
+            }else if (request.Actions.ToLower() == "absented")
+            {
+                existApp.Status = "absented";
+            }
 
             var newDentist = await _dentistRepository.GetDentistByDentistIdAsync(request.DentistId);
             var currentDentist = await _dentistRepository.GetDentistByDentistIdAsync(existApp.DentistId);
