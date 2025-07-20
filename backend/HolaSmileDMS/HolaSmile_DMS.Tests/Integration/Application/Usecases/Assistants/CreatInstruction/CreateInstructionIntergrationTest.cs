@@ -3,9 +3,11 @@ using Application.Usecases.Assistants.CreateInstruction;
 using HDMS_API.Infrastructure.Persistence;
 using HDMS_API.Infrastructure.Repositories;
 using Infrastructure.Repositories;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using System.Security.Claims;
 using Xunit;
 
@@ -16,6 +18,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
         private readonly ApplicationDbContext _context;
         private readonly CreateInstructionHandler _handler;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly Mock<IMediator> _mediatorMock = new();
 
         public CreateInstructionIntegrationTests()
         {
@@ -35,7 +38,13 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             var templateRepo = new InstructionTemplateRepository(_context);
             var appointmentRepo = new AppointmentRepository(_context);
 
-            _handler = new CreateInstructionHandler(instructionRepo, _httpContextAccessor, templateRepo, appointmentRepo);
+            _handler = new CreateInstructionHandler(
+                instructionRepo,
+                _httpContextAccessor,
+                templateRepo,
+                appointmentRepo,
+                _mediatorMock.Object
+            );
 
             SeedData();
         }
@@ -94,9 +103,8 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             _context.SaveChanges();
         }
 
-
-        [Fact(DisplayName = "UTCID01 - Assistant tạo chỉ dẫn thành công")]
-        public async System.Threading.Tasks.Task UTCID01_CreateInstruction_Success()
+        [Fact(DisplayName = "Normal - UTCID01 - Assistant tạo chỉ dẫn thành công")]
+        public async System.Threading.Tasks.Task Normal_UTCID01_CreateInstruction_Success()
         {
             SetupHttpContext("Assistant");
 
@@ -113,8 +121,8 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             Assert.Single(_context.Instructions.Where(x => !x.IsDeleted));
         }
 
-        [Fact(DisplayName = "UTCID02 - Không đăng nhập => MSG26")]
-        public async System.Threading.Tasks.Task UTCID02_NotLoggedIn_Throws()
+        [Fact(DisplayName = "Abnormal - UTCID02 - Không đăng nhập => MSG26")]
+        public async System.Threading.Tasks.Task Abnormal_UTCID02_NotLoggedIn_Throws()
         {
             _httpContextAccessor.HttpContext = null;
 
@@ -131,8 +139,8 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
         }
 
-        [Fact(DisplayName = "UTCID03 - Role không hợp lệ => MSG26")]
-        public async System.Threading.Tasks.Task UTCID03_InvalidRole_Throws()
+        [Fact(DisplayName = "Abnormal - UTCID03 - Role không hợp lệ => MSG26")]
+        public async System.Threading.Tasks.Task Abnormal_UTCID03_InvalidRole_Throws()
         {
             SetupHttpContext("Receptionist");
 
@@ -149,8 +157,8 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
         }
 
-        [Fact(DisplayName = "UTCID04 - Mẫu chỉ dẫn không tồn tại => MSG114")]
-        public async System.Threading.Tasks.Task UTCID04_TemplateNotFound_Throws()
+        [Fact(DisplayName = "Abnormal - UTCID04 - Mẫu chỉ dẫn không tồn tại => MSG115")]
+        public async System.Threading.Tasks.Task Abnormal_UTCID04_TemplateNotFound_Throws()
         {
             SetupHttpContext("Assistant");
 
@@ -167,8 +175,8 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             Assert.Equal(MessageConstants.MSG.MSG115, ex.Message);
         }
 
-        [Fact(DisplayName = "UTCID05 - Appointment không tồn tại => MSG107")]
-        public async System.Threading.Tasks.Task UTCID05_AppointmentNotFound_Throws()
+        [Fact(DisplayName = "Abnormal - UTCID05 - Appointment không tồn tại => MSG28")]
+        public async System.Threading.Tasks.Task Abnormal_UTCID05_AppointmentNotFound_Throws()
         {
             SetupHttpContext("Assistant");
 
@@ -183,6 +191,33 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
                 _handler.Handle(command, default));
 
             Assert.Equal(MessageConstants.MSG.MSG28, ex.Message);
+        }
+
+        [Fact(DisplayName = "Abnormal - UTCID06 - Đã có instruction cho appointment này sẽ bị chặn")]
+        public async System.Threading.Tasks.Task Abnormal_UTCID06_InstructionAlreadyExists_Throws()
+        {
+            SetupHttpContext("Assistant");
+
+            // Thêm instruction cho appointmentId = 1
+            _context.Instructions.Add(new Instruction
+            {
+                AppointmentId = 1,
+                Content = "Đã tồn tại",
+                IsDeleted = false
+            });
+            _context.SaveChanges();
+
+            var command = new CreateInstructionCommand
+            {
+                AppointmentId = 1,
+                Instruc_TemplateID = 1,
+                Content = "Test content"
+            };
+
+            var ex = await Assert.ThrowsAsync<Exception>(() =>
+                _handler.Handle(command, default));
+
+            Assert.Equal("Chỉ dẫn cho lịch hẹn này đã tồn tại, không thể tạo mới.", ex.Message);
         }
     }
 }
