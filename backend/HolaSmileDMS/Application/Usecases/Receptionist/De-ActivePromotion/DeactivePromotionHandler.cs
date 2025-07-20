@@ -11,13 +11,15 @@ namespace Application.Usecases.Receptionist.De_ActivePromotion
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IPromotionrepository _promotionRepository;
+        private readonly IProcedureRepository _procedureRepository;
         private readonly IOwnerRepository _ownerRepository;
         private readonly IMediator _mediator;
 
-        public DeactivePromotionHandler(IHttpContextAccessor httpContextAccessor, IPromotionrepository promotionRepository, IOwnerRepository ownerRepository, IMediator mediator)
+        public DeactivePromotionHandler(IHttpContextAccessor httpContextAccessor, IPromotionrepository promotionRepository, IProcedureRepository procedureRepository, IOwnerRepository ownerRepository, IMediator mediator)
         {
             _httpContextAccessor = httpContextAccessor;
             _promotionRepository = promotionRepository;
+            _procedureRepository = procedureRepository;
             _ownerRepository = ownerRepository;
             _mediator = mediator;
         }
@@ -34,14 +36,33 @@ namespace Application.Usecases.Receptionist.De_ActivePromotion
 
             var discountProgram = await _promotionRepository.GetDiscountProgramByIdAsync(request.ProgramId);
             if (discountProgram == null)
-                throw new Exception(MessageConstants.MSG.MSG119);
+                throw new Exception(MessageConstants.MSG.MSG119); // "Không tìm thấy chương trình khuyến mãi"
 
-            if (discountProgram.IsDelete)
+            if (!discountProgram.IsDelete)
             {
+                // Đang bị vô hiệu → sắp bật lại => kiểm tra xem có chương trình nào đang active không
                 var activeProgram = await _promotionRepository.GetProgramActiveAsync();
-                if(activeProgram != null)
+                if (activeProgram != null && activeProgram.DiscountProgramID != discountProgram.DiscountProgramID)
+                    throw new Exception(MessageConstants.MSG.MSG121); // "Chỉ được phép có 1 chương trình khuyến mãi tại 1 thời điểm"
+
+                // Restore giá gốc từ giá đã giảm (nếu bạn không lưu OriginalPrice)
+                foreach (var pd in discountProgram.ProcedureDiscountPrograms)
                 {
-                    throw new Exception(MessageConstants.MSG.MSG121); 
+                    var proc = await _procedureRepository.GetProcedureByIdAsync(pd.ProcedureId, cancellationToken);
+                    proc.Price = proc.Price / (1 - (pd.DiscountAmount / 100m)); // phục hồi
+                    var ok = await _procedureRepository.UpdateProcedureAsync(proc, cancellationToken);
+                    if (!ok) throw new Exception(MessageConstants.MSG.MSG58);
+                }
+            }
+            else
+            {
+                // Đang active → sắp deactivate => áp dụng giảm giá
+                foreach (var pd in discountProgram.ProcedureDiscountPrograms)
+                {
+                    var proc = await _procedureRepository.GetProcedureByIdAsync(pd.ProcedureId, cancellationToken);
+                    proc.Price = proc.Price * (1 - (pd.DiscountAmount / 100m));
+                    var ok = await _procedureRepository.UpdateProcedureAsync(proc, cancellationToken);
+                    if (!ok) throw new Exception(MessageConstants.MSG.MSG58);
                 }
             }
 

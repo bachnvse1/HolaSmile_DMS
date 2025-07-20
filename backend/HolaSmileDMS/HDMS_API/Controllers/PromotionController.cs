@@ -20,7 +20,6 @@ namespace HDMS_API.Controllers
             _mediator = mediator;
         }
 
-        //[Authorize]
         [Authorize]
         [HttpGet("list-promotion-programs")]
         public async Task<IActionResult> GetAllPromotionPrograms()
@@ -48,7 +47,7 @@ namespace HDMS_API.Controllers
             }
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpGet("promotion-program/{ProgramId}")]
         public async Task<IActionResult> GetPromotionProgramById([FromRoute] int ProgramId)
         {
@@ -134,7 +133,7 @@ namespace HDMS_API.Controllers
         }
 
         [Authorize]
-        [HttpDelete("deactive-promotion-program/{ProgramId}")]
+        [HttpPut("deactive-promotion-program/{ProgramId}")]
         public async Task<IActionResult> DeletePromotionProgram([FromRoute] int ProgramId)
         {
             try
