@@ -49,4 +49,11 @@ public class InstructionRepository : IInstructionRepository
         var result = await _context.SaveChangesAsync(ct);
         return result > 0;
     }
+    public async Task<List<Instruction>> GetAllInstructionsAsync()
+    {
+        return await _context.Instructions
+            .Include(i => i.InstructionTemplate)
+            .Include(i => i.Appointment)
+            .ToListAsync();
+    }
 }
