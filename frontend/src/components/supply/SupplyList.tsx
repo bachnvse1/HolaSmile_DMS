@@ -32,6 +32,7 @@ import {
 import { useUserInfo } from '@/hooks/useUserInfo';
 import type { Supply } from '@/types/supply';
 import { getErrorMessage } from '@/utils/formatUtils';
+import { formatCurrency } from '@/utils/formatUtils';
 
 export const SupplyList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -222,13 +223,6 @@ export const SupplyList: React.FC = () => {
     });
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-    }).format(price);
-  };
-
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -413,7 +407,7 @@ export const SupplyList: React.FC = () => {
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm font-medium text-gray-600">Tổng giá trị</p>
                   <p className="text-sm sm:text-lg font-bold text-green-600 truncate">
-                    {formatPrice(stats.totalValue)}
+                    {formatCurrency(stats.totalValue)}
                   </p>
                 </div>
                 <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 flex-shrink-0" />
@@ -564,7 +558,7 @@ export const SupplyList: React.FC = () => {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {formatPrice(supply.Price)}
+                            {formatCurrency(supply.Price)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex flex-col gap-1">
@@ -714,7 +708,7 @@ export const SupplyList: React.FC = () => {
                         <div>
                           <span className="text-gray-600">Giá:</span>
                           <div className="font-medium text-gray-900 mt-1 truncate">
-                            {formatPrice(supply.Price)}
+                            {formatCurrency(supply.Price)}
                           </div>
                         </div>
                       </div>
