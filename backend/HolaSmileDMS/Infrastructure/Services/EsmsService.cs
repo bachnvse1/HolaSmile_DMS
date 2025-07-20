@@ -17,9 +17,9 @@ namespace Infrastructure.Services
             _configuration = configuration;
         }
 
-        public async Task<bool> SendOTPAsync(string phoneNumber, string otp)
+        public async Task<bool> SendPasswordAsync(string phoneNumber, string newPassword)
         {
-            string content = $"{otp} la ma xac minh dang ky Baotrixemay cua ban";
+            string content = $"{newPassword} la ma xac minh dang ky Baotrixemay cua ban";
             return await SendSmsAsync(phoneNumber, content);
         }
 
@@ -33,13 +33,15 @@ namespace Infrastructure.Services
             var requestId = Guid.NewGuid().ToString(); // Unique request ID
 
             var parameters = new Dictionary<string, string>
-{
-    { "ApiKey", "YOUR_API_KEY" },
-    { "SecretKey", "YOUR_SECRET_KEY" },
-    { "Phone", "PHONE_NUMBER" },
-    { "Content", "Your SMS content" },
-    { "Brandname", "BRANDNAME" },
-    { "SmsType", "2" } // 2 = brandname; 1 = thông thường
+            {
+             { "ApiKey", apiKey },
+             { "SecretKey", secretKey },
+             { "Phone", phoneNumber },
+             { "Content", message },
+             { "Brandname", brandname },
+             { "SmsType", "2" },
+             { "IsUnicode", "0" },
+             { "CallbackUrl", "https://esms.vn/webhook/"}// 2 = brandname; 1 = thông thường
 };
 
             var json = JsonSerializer.Serialize(parameters);

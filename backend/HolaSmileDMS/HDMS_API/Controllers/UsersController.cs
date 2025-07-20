@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authorization;
 using HDMS_API.Application.Usecases.UserCommon.ForgotPassword;
-using Application.Usecases.UserCommon.Otp;
+using Application.Usecases.UserCommon.ForgotPasswordBySMS;
 
 namespace HDMS_API.Controllers
 {
@@ -91,14 +91,14 @@ namespace HDMS_API.Controllers
         }
 
         [HttpPost("OTP-Request-sms")]
-        public async Task<IActionResult> RequestOtpSMS([FromBody] RequestOTPBySmsCommand request)
+        public async Task<IActionResult> RequestOtpSMS([FromBody] ForgotPasswordBySmsCommand request)
         {
             try
             {
                 var result = await _mediator.Send(request);
                 return result
-                    ? Ok(new { message = "Mã OTP đã được gửi đến email của bạn" })
-                    : BadRequest("Gửi OTP thất bại.");
+                    ? Ok(MessageConstants.MSG.MSG44)
+                    : BadRequest(MessageConstants.MSG.MSG58);
             }
             catch (Exception ex)
             {
