@@ -1,33 +1,34 @@
 ﻿using Application.Constants;
-using Application.Usecases.Receptionist.CreateFinancialTransaction;
-using Application.Usecases.Receptionist.DeactiveFinancialTransaction;
-using Application.Usecases.Receptionist.EditFinancialTransaction;
-using Application.Usecases.Receptionist.ViewFinancialTransactions;
+using Application.Usecases.Receptionist.CreateDiscountProgram;
+using Application.Usecases.Receptionist.De_ActivePromotion;
+using Application.Usecases.Receptionist.UpdateDiscountProgram;
+using Application.Usecases.Receptionist.ViewPromotionProgram;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HDMS_API.Controllers
 {
-    [Route("api/transaction")]
+    [Route("api/promotion")]
     [ApiController]
-    public class TransactionsController : ControllerBase
+    public class PromotionController : ControllerBase
     {
         private readonly IMediator _mediator;
 
-        public TransactionsController(IMediator mediator)
+        public PromotionController(IMediator mediator)
         {
             _mediator = mediator;
         }
 
+        //[Authorize]
         [Authorize]
-        [HttpGet("financial-transactions")]
-        public async Task<IActionResult> GetListTransactions()
+        [HttpGet("list-promotion-programs")]
+        public async Task<IActionResult> GetAllPromotionPrograms()
         {
             try
             {
-                var result = await _mediator.Send(new ViewFinancialTransactionsCommand());
-                return result == null ? NotFound(MessageConstants.MSG.MSG16) : Ok(result);
+                var result = await _mediator.Send(new ViewPromotionProgramCommand());
+                return Ok(result);
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -39,7 +40,7 @@ namespace HDMS_API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new
+                return StatusCode(500, new
                 {
                     status = false,
                     message = ex.Message
@@ -47,14 +48,14 @@ namespace HDMS_API.Controllers
             }
         }
 
-        [Authorize]
-        [HttpGet("financial-transactions/{TransactionID}")]
-        public async Task<IActionResult> GetTransactionById([FromRoute]int TransactionID)
+        //[Authorize]
+        [HttpGet("promotion-program/{ProgramId}")]
+        public async Task<IActionResult> GetPromotionProgramById([FromRoute] int ProgramId)
         {
             try
             {
-                var result = await _mediator.Send(new ViewDetailFinancialTransactionsCommand(TransactionID));
-                return result == null ? NotFound(MessageConstants.MSG.MSG16) : Ok(result);
+                var result = await _mediator.Send(new ViewDetailPromotionProgramCommand(ProgramId));
+                return Ok(result);
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -66,7 +67,7 @@ namespace HDMS_API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new
+                return StatusCode(500, new
                 {
                     status = false,
                     message = ex.Message
@@ -75,13 +76,15 @@ namespace HDMS_API.Controllers
         }
 
         [Authorize]
-        [HttpPost("financial-transactions")]
-        public async Task<IActionResult> CreateTransaction([FromBody] CreateFinancialTransactionCommand command)
+        [HttpPost("create-discount-program")]
+        public async Task<IActionResult> CreateDiscountProgram([FromBody] CreateDiscountProgramCommand command)
         {
             try
             {
                 var result = await _mediator.Send(command);
-                return result ? Ok(MessageConstants.MSG.MSG122) : BadRequest(MessageConstants.MSG.MSG58);
+                return result
+                    ? Ok(new { status = true, message = MessageConstants.MSG.MSG117 })
+                    : Conflict(new { status = false, message = MessageConstants.MSG.MSG58 });
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -93,7 +96,7 @@ namespace HDMS_API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new
+                return StatusCode(500, new
                 {
                     status = false,
                     message = ex.Message
@@ -102,17 +105,15 @@ namespace HDMS_API.Controllers
         }
 
         [Authorize]
-        [HttpPut("edit-financial-transactions/{transactionId}")]
-        public async Task<IActionResult> EditTransaction([FromRoute] int transactionId, [FromBody] EditFinancialTransactionCommand command)
+        [HttpPut("update-promotion-program")]
+        public async Task<IActionResult> UpdatePromotionProgram([FromBody] UpdateDiscountProgramCommand command)
         {
-            if (transactionId != command.TransactionId)
-            {
-                return BadRequest(MessageConstants.MSG.MSG58);
-            }
             try
             {
                 var result = await _mediator.Send(command);
-                return result ? Ok(MessageConstants.MSG.MSG122) : BadRequest(MessageConstants.MSG.MSG58);
+                return result
+                    ? Ok(new { status = true, message = MessageConstants.MSG.MSG120 })
+                    : Conflict(new { status = false, message = MessageConstants.MSG.MSG58 });
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -124,7 +125,7 @@ namespace HDMS_API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new
+                return StatusCode(500, new
                 {
                     status = false,
                     message = ex.Message
@@ -133,13 +134,15 @@ namespace HDMS_API.Controllers
         }
 
         [Authorize]
-        [HttpPut("Deactive-financial-transactions/{transactionId}")]
-        public async Task<IActionResult> DeactiveTransaction([FromRoute] int transactionId)
+        [HttpDelete("deactive-promotion-program/{ProgramId}")]
+        public async Task<IActionResult> DeletePromotionProgram([FromRoute] int ProgramId)
         {
             try
             {
-                var result = await _mediator.Send(new DeactiveFinancialTransactionCommand(transactionId));
-                return result ? Ok(MessageConstants.MSG.MSG123) : BadRequest(MessageConstants.MSG.MSG58);
+                var result = await _mediator.Send(new DeactivePromotionCommand(ProgramId));
+                return result
+                    ? Ok(new { status = true, message = MessageConstants.MSG.MSG31 })
+                    : Conflict(new { status = false, message = MessageConstants.MSG.MSG58 });
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -151,7 +154,7 @@ namespace HDMS_API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new
+                return StatusCode(500, new
                 {
                     status = false,
                     message = ex.Message
