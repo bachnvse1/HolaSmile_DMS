@@ -8,17 +8,7 @@ public class FinancialTransaction
     [Key]
     public int TransactionID { get; set; }
 
-    /// <summary>
-    /// Liên kết 1-1 với Invoice (bắt buộc)
-    /// </summary>
-    [Required]
-    public int InvoiceId { get; set; }
-
-    [ForeignKey("InvoiceId")]
-    public Invoice Invoice { get; set; }
-
-    [Column(TypeName = "nvarchar(200)")]
-    public string TransactionDate { get; set; } = string.Empty;
+    public DateTime? TransactionDate { get; set; } = default;
 
     [Column(TypeName = "nvarchar(500)")]
     public string Description { get; set; } = string.Empty;
@@ -47,6 +37,4 @@ public class FinancialTransaction
 
     public bool IsDelete { get; set; }
 
-    // Quan hệ 1-n với SuppliesTransactions
-    public ICollection<SuppliesTransaction> SuppliesTransactions { get; set; } = new List<SuppliesTransaction>();
 }

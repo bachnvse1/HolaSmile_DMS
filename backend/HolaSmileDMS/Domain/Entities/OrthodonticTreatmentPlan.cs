@@ -29,8 +29,6 @@ public class OrthodonticTreatmentPlan
     public string? TreatmentPlanContent { get; set; }
 
     public int TotalCost { get; set; }
-
-    [MaxLength(255)]
     public string? PaymentMethod { get; set; }
 
     public DateTime CreatedAt { get; set; }

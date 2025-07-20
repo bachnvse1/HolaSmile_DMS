@@ -174,9 +174,6 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<bool>("InvoiceId")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<bool>("IsDelete")
                         .HasColumnType("tinyint(1)");
 
@@ -214,18 +211,14 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<int>("InvoiceId")
-                        .HasColumnType("int");
-
                     b.Property<bool>("IsDelete")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<bool>("PaymentMethod")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<string>("TransactionDate")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(200)");
+                    b.Property<DateTime?>("TransactionDate")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<bool>("TransactionType")
                         .HasColumnType("tinyint(1)");
@@ -237,8 +230,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("TransactionID");
-
-                    b.HasIndex("InvoiceId");
 
                     b.ToTable("FinancialTransactions");
                 });
@@ -259,24 +250,6 @@ namespace Infrastructure.Migrations
                     b.HasIndex("DiscountProgramId");
 
                     b.ToTable("ProcedureDiscountPrograms");
-                });
-
-            modelBuilder.Entity("Domain.Entities.SuppliesTransaction", b =>
-                {
-                    b.Property<int>("SupplyId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("FinancialTransactionsID")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.HasKey("SupplyId", "FinancialTransactionsID");
-
-                    b.HasIndex("FinancialTransactionsID");
-
-                    b.ToTable("SuppliesTransactions");
                 });
 
             modelBuilder.Entity("EquipmentMaintenance", b =>
@@ -424,6 +397,9 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<int?>("CreateBy")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -439,6 +415,9 @@ namespace Infrastructure.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int");
 
                     b.HasKey("Instruc_TemplateID");
 
@@ -597,8 +576,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("PaymentMethod")
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("PlanTitle")
                         .HasMaxLength(255)
@@ -1325,11 +1303,11 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("CreateAt")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<int?>("CreateBy")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int?>("Duration")
                         .HasColumnType("int");
@@ -1337,7 +1315,7 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<bool>("IsDelete")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<DateTime>("StartDate")
@@ -1412,17 +1390,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domain.Entities.FinancialTransaction", b =>
-                {
-                    b.HasOne("Invoice", "Invoice")
-                        .WithMany()
-                        .HasForeignKey("InvoiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Invoice");
-                });
-
             modelBuilder.Entity("Domain.Entities.ProcedureDiscountProgram", b =>
                 {
                     b.HasOne("Domain.Entities.DiscountProgram", "DiscountProgram")
@@ -1440,25 +1407,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("DiscountProgram");
 
                     b.Navigation("Procedure");
-                });
-
-            modelBuilder.Entity("Domain.Entities.SuppliesTransaction", b =>
-                {
-                    b.HasOne("Domain.Entities.FinancialTransaction", "FinancialTransaction")
-                        .WithMany("SuppliesTransactions")
-                        .HasForeignKey("FinancialTransactionsID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Supplies", "Supplies")
-                        .WithMany()
-                        .HasForeignKey("SupplyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FinancialTransaction");
-
-                    b.Navigation("Supplies");
                 });
 
             modelBuilder.Entity("Image", b =>
@@ -1787,11 +1735,6 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.DiscountProgram", b =>
                 {
                     b.Navigation("ProcedureDiscountPrograms");
-                });
-
-            modelBuilder.Entity("Domain.Entities.FinancialTransaction", b =>
-                {
-                    b.Navigation("SuppliesTransactions");
                 });
 
             modelBuilder.Entity("EquipmentMaintenance", b =>
