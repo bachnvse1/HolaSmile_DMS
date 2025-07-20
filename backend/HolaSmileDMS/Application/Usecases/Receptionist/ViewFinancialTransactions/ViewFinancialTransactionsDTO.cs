@@ -6,7 +6,6 @@ namespace Application.Usecases.Receptionist.ViewFinancialTransactions
     public class ViewFinancialTransactionsDTO
     {
         public int TransactionID { get; set; }
-        public int? InvoiceId { get; set; }
         public DateTime? TransactionDate { get; set; }
         public string Description { get; set; } = string.Empty;
         /// <summary>
@@ -22,6 +21,10 @@ namespace Application.Usecases.Receptionist.ViewFinancialTransactions
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal Amount { get; set; }
+        public string CreateBy { get; set; } = string.Empty;
+        public string UpdateBy { get; set; } = string.Empty;
+        public DateTime CreateAt { get; set; }
+        public DateTime? UpdateAt { get; set; }
 
     }
 }

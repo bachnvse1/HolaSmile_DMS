@@ -19,6 +19,11 @@ namespace Infrastructure.Repositories
             _context.FinancialTransactions.Add(transaction);
             return await _context.SaveChangesAsync() > 0;
         }
+        public async Task<bool> UpdateTransactionAsync(FinancialTransaction transaction)
+        {
+            _context.FinancialTransactions.Update(transaction);
+            return await _context.SaveChangesAsync() > 0;
+        }
 
         public async Task<List<FinancialTransaction>> GetAllFinancialTransactionsAsync()
         {

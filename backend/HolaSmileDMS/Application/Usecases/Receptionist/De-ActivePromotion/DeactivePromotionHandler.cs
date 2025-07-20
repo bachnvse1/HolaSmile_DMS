@@ -11,15 +11,13 @@ namespace Application.Usecases.Receptionist.De_ActivePromotion
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IPromotionrepository _promotionRepository;
-        private readonly IProcedureRepository _procedureRepository;
         private readonly IOwnerRepository _ownerRepository;
         private readonly IMediator _mediator;
 
-        public DeactivePromotionHandler(IHttpContextAccessor httpContextAccessor, IPromotionrepository promotionRepository, IProcedureRepository procedureRepository, IOwnerRepository ownerRepository, IMediator mediator)
+        public DeactivePromotionHandler(IHttpContextAccessor httpContextAccessor, IPromotionrepository promotionRepository, IOwnerRepository ownerRepository, IMediator mediator)
         {
             _httpContextAccessor = httpContextAccessor;
             _promotionRepository = promotionRepository;
-            _procedureRepository = procedureRepository;
             _ownerRepository = ownerRepository;
             _mediator = mediator;
         }
