@@ -14,6 +14,7 @@ using Infrastructure.Hubs;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
 using MediatR;
+using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -54,7 +55,6 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<ITaskRepository, TaskRepository>();
             services.AddHttpClient<IEsmsService, SmsService>();
 
-
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>
             {
@@ -84,7 +84,6 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddAutoMapper(typeof(MappingTreatmentProgress).Assembly);
             services.AddAutoMapper(typeof(OrthodonticTreatmentPlanProfile).Assembly);
 
-            services.AddMediatR((typeof(SendReminderSmsHandler).Assembly));
 
 
             // Caching

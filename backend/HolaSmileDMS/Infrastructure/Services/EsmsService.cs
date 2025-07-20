@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
+using System.Text.Json;
 using Application.Services;
+using Infrastructure.Models;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Services
 {
@@ -20,30 +17,45 @@ namespace Infrastructure.Services
             _configuration = configuration;
         }
 
+        public async Task<bool> SendOTPAsync(string phoneNumber, string otp)
+        {
+            string content = $"{otp} la ma xac minh dang ky Baotrixemay cua ban";
+            return await SendSmsAsync(phoneNumber, content);
+        }
+
         public async Task<bool> SendSmsAsync(string phoneNumber, string message)
         {
             var apiKey = _configuration["ESMS:ApiKey"];
             var secretKey = _configuration["ESMS:SecretKey"];
             var brandname = _configuration["ESMS:Brandname"];
+            var smsType = _configuration["ESMS:SmsType"];
             var url = "https://rest.esms.vn/MainService.svc/json/SendMultipleMessage_V4_post_json/";
+            var requestId = Guid.NewGuid().ToString(); // Unique request ID
 
             var parameters = new Dictionary<string, string>
-        {
-            { "ApiKey", apiKey },
-            { "SecretKey", secretKey },
-            { "SmsType", "2" }, // 2: brandname, 4: notify
-            { "Brandname", brandname },
-            { "Phone", phoneNumber },
-            { "Content", message },
-            { "IsUnicode", "0" }
-        };
+{
+    { "ApiKey", "YOUR_API_KEY" },
+    { "SecretKey", "YOUR_SECRET_KEY" },
+    { "Phone", "PHONE_NUMBER" },
+    { "Content", "Your SMS content" },
+    { "Brandname", "BRANDNAME" },
+    { "SmsType", "2" } // 2 = brandname; 1 = thông thường
+};
 
-            var content = new FormUrlEncodedContent(parameters);
-            var response = await _httpClient.PostAsync(url, content);
+            var json = JsonSerializer.Serialize(parameters);
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync(url, httpContent);
             var responseString = await response.Content.ReadAsStringAsync();
 
             // Parse resultCode = 100 nghĩa là thành công
-            return responseString.Contains("\"CodeResult\":100");
+            Console.WriteLine(responseString);
+            var result = JsonSerializer.Deserialize<EsmsResponse>(responseString, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            return result?.CodeResult == "100";
         }
     }
 

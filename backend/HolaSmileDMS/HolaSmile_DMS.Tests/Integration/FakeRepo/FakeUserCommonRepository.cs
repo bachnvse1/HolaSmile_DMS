@@ -1,10 +1,11 @@
 using Application.Interfaces;
 using Application.Usecases.Patients.ViewListPatient;
 using Application.Usecases.UserCommon.ViewProfile;
-using HDMS_API.Application.Usecases.Auth.ForgotPassword;
+using HDMS_API.Application.Usecases.UserCommon.ForgotPassword;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
+using Application.Usecases.Administrator.ViewListUser;
 
 namespace Infrastructure.Repositories;
 
@@ -97,6 +98,106 @@ public class FakeUserCommonRepository : IUserCommonRepository
     }
 
     public Task<int?> GetUserIdByRoleTableIdAsync(string role, int id)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<User> IUserCommonRepository.CreatePatientAccountAsync(CreatePatientDto dto, string password)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<bool> IUserCommonRepository.SendPasswordForGuestAsync(string email)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<bool> IUserCommonRepository.SendOtpEmailAsync(string toEmail)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<bool> IUserCommonRepository.ResendOtpAsync(string toEmail)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<string> IUserCommonRepository.VerifyOtpAsync(VerifyOtpCommand otp)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<string> IUserCommonRepository.ResetPasswordAsync(ForgotPasswordCommand request)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<User?> IUserCommonRepository.GetUserByPhoneAsync(string phone)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<User?> IUserCommonRepository.GetUserByEmailAsync(string email)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<User> IUserCommonRepository.GetByUsernameAsync(string username, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<User?> IUserCommonRepository.GetByEmailAsync(string email)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<bool> IUserCommonRepository.EditProfileAsync(User user, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<ViewProfileDto?> IUserCommonRepository.GetUserProfileAsync(int userId, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<UserRoleResult?> IUserCommonRepository.GetUserRoleAsync(string username, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<User?> IUserCommonRepository.GetByIdAsync(int userId, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<List<ViewListPatientDto>> IUserCommonRepository.GetAllPatientsAsync(CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<List<Receptionist>> IUserCommonRepository.GetAllReceptionistAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<List<ViewListUserDTO>> IUserCommonRepository.GetAllUserAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<bool> IUserCommonRepository.CreateUserAsync(User user, string role)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<bool> IUserCommonRepository.UpdateUserStatusAsync(int userId)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<int?> IUserCommonRepository.GetUserIdByRoleTableIdAsync(string role, int id)
     {
         throw new NotImplementedException();
     }

@@ -96,7 +96,5 @@ public static class MessageConstants
         public const string MSG90 = "Số điện thoại đã được đăng ký tài khoản";
         public const string MSG91 = "Định dạng thời gian không hợp lệ. Vui lòng sử dụng hh:mm:ss.";
         public const string MSG92 = "Thời gian bắt đầu và kết thúc của nhiệm vụ phải nằm trong thời gian tiến trình điều trị.";
-
-
     }
 }
