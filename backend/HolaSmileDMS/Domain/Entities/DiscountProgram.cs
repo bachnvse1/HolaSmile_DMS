@@ -8,8 +8,6 @@ namespace Domain.Entities
         [Key]
         public int DiscountProgramID { get; set; }
 
-        public bool InvoiceId { get; set; }
-
         [Column(TypeName = "nvarchar(255)")]
         public string DiscountProgramName { get; set; } = string.Empty;
 
