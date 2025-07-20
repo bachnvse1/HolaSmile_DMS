@@ -1,28 +1,31 @@
 import React, { useState } from 'react';
-import { Plus, Download, Search, TrendingUp, TrendingDown, DollarSign, Calendar } from 'lucide-react';
+import { Plus, Download, Search, TrendingUp, TrendingDown, DollarSign, Calendar, Edit, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Pagination } from '@/components/ui/Pagination';
-import { useFinancialTransactions, useExportTransactions } from '@/hooks/useFinancialTransactions';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { useFinancialTransactions, useExportFinancialTransactions, useDeactivateFinancialTransaction } from '@/hooks/useFinancialTransactions';
 import { formatCurrency } from '@/utils/currencyUtils';
 import { getErrorMessage } from '@/utils/formatUtils';
 import { CreateTransactionModal } from './CreateTransactionModal';
+import { EditTransactionModal } from './EditTransactionModal';
+import { ViewTransactionModal } from './ViewTransactionModal';
 
 export const FinancialTransactionList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [filter, setFilter] = useState<'all' | 'thu' | 'chi'>('all');
-  const [showModal, setShowModal] = useState<{ isOpen: boolean; type: 'receipt' | 'payment' | null }>({
-    isOpen: false,
-    type: null
-  });
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editTransaction, setEditTransaction] = useState<number | null>(null);
+  const [viewTransaction, setViewTransaction] = useState<number | null>(null);
+  const [deleteTransaction, setDeleteTransaction] = useState<number | null>(null);
 
   const { data: transactions = [], isLoading, error } = useFinancialTransactions();
-  const { mutate: exportTransactions, isPending: isExporting } = useExportTransactions();
+  const { mutate: exportTransactions, isPending: isExporting } = useExportFinancialTransactions();
+  const { mutate: deactivateTransaction, isPending: isDeleting } = useDeactivateFinancialTransaction();
 
   // Filter and search transactions
   const filteredTransactions = React.useMemo(() => {
@@ -30,9 +33,15 @@ export const FinancialTransactionList: React.FC = () => {
 
     // Filter by type
     if (filter !== 'all') {
-      filtered = filtered.filter(transaction => 
-        transaction.transactionType.toLowerCase() === filter
-      );
+      filtered = filtered.filter(transaction => {
+        const isIncome = typeof transaction.transactionType === 'boolean' 
+          ? transaction.transactionType 
+          : transaction.transactionType?.toLowerCase() === 'thu';
+        
+        if (filter === 'thu') return isIncome;
+        if (filter === 'chi') return !isIncome;
+        return true;
+      });
     }
 
     // Filter by search query
@@ -43,17 +52,24 @@ export const FinancialTransactionList: React.FC = () => {
       );
     }
 
+    // Sort by transaction date (newest first)
+    filtered = filtered.sort((a, b) => {
+      const dateA = new Date(a.transactionDate);
+      const dateB = new Date(b.transactionDate);
+      return dateB.getTime() - dateA.getTime();
+    });
+
     return filtered;
   }, [transactions, filter, searchQuery]);
 
   // Calculate statistics
   const stats = React.useMemo(() => {
     const totalIncome = transactions
-      .filter(t => t.transactionType === 'Thu')
+      .filter(t => typeof t.transactionType === 'boolean' ? t.transactionType : t.transactionType?.toLowerCase() === 'thu')
       .reduce((sum, t) => sum + t.amount, 0);
     
     const totalExpense = transactions
-      .filter(t => t.transactionType === 'Chi')
+      .filter(t => typeof t.transactionType === 'boolean' ? !t.transactionType : t.transactionType?.toLowerCase() === 'chi')
       .reduce((sum, t) => sum + t.amount, 0);
 
     return {
@@ -101,6 +117,20 @@ export const FinancialTransactionList: React.FC = () => {
     });
   };
 
+  const handleDelete = () => {
+    if (!deleteTransaction) return;
+    
+    deactivateTransaction(deleteTransaction, {
+      onSuccess: () => {
+        toast.success('Đã xóa giao dịch thành công');
+        setDeleteTransaction(null);
+      },
+      onError: (error) => {
+        toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi xóa giao dịch');
+      }
+    });
+  };
+
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
@@ -116,10 +146,18 @@ export const FinancialTransactionList: React.FC = () => {
     }
   };
 
-  const getTransactionTypeConfig = (type: string) => {
-    return type === 'Thu' 
-      ? { variant: 'success' as const, icon: <TrendingUp className="h-4 w-4" />, color: 'text-green-600' }
-      : { variant: 'destructive' as const, icon: <TrendingDown className="h-4 w-4" />, color: 'text-red-600' };
+  const getTransactionTypeConfig = (type: string | boolean) => {
+    const isIncome = typeof type === 'boolean' ? type : type?.toLowerCase() === 'thu';
+    return isIncome 
+      ? { variant: 'success' as const, icon: <TrendingUp className="h-4 w-4" />, color: 'text-green-600', badgeClass: 'bg-green-100 text-green-800 hover:bg-green-200', label: 'Thu' }
+      : { variant: 'destructive' as const, icon: <TrendingDown className="h-4 w-4" />, color: 'text-red-600', badgeClass: 'bg-red-100 text-red-800 hover:bg-red-200', label: 'Chi' };
+  };
+
+  const getPaymentMethodLabel = (method: string | boolean) => {
+    if (typeof method === 'boolean') {
+      return method ? 'Tiền mặt' : 'Chuyển khoản';
+    }
+    return method;
   };
 
   if (isLoading) {
@@ -176,27 +214,18 @@ export const FinancialTransactionList: React.FC = () => {
           <Button
             onClick={handleExport}
             disabled={isExporting || transactions.length === 0}
-            variant="outline"
-            className="text-sm"
+            className="text-sm bg-green-600 hover:bg-green-700 text-white"
           >
             <Download className="h-4 w-4 mr-2" />
             {isExporting ? 'Đang xuất...' : 'Xuất Excel'}
           </Button>
           
           <Button
-            onClick={() => setShowModal({ isOpen: true, type: 'receipt' })}
-            className="text-sm bg-green-600 hover:bg-green-700"
+            onClick={() => setShowCreateModal(true)}
+            className="text-sm bg-blue-600 hover:bg-blue-700"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Tạo Phiếu Thu
-          </Button>
-          
-          <Button
-            onClick={() => setShowModal({ isOpen: true, type: 'payment' })}
-            className="text-sm bg-red-600 hover:bg-red-700"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Tạo Phiếu Chi
+            Tạo Giao Dịch
           </Button>
         </div>
       </div>
@@ -327,22 +356,13 @@ export const FinancialTransactionList: React.FC = () => {
               }
             </p>
             {!searchQuery && (
-              <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                <Button
-                  onClick={() => setShowModal({ isOpen: true, type: 'receipt' })}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Tạo Phiếu Thu
-                </Button>
-                <Button
-                  onClick={() => setShowModal({ isOpen: true, type: 'payment' })}
-                  className="bg-red-600 hover:bg-red-700"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Tạo Phiếu Chi
-                </Button>
-              </div>
+              <Button
+                onClick={() => setShowCreateModal(true)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Tạo Giao Dịch
+              </Button>
             )}
           </CardContent>
         </Card>
@@ -371,7 +391,10 @@ export const FinancialTransactionList: React.FC = () => {
                         Phương thức
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Thời gian
+                        Ngày
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Thao tác
                       </th>
                     </tr>
                   </thead>
@@ -382,31 +405,55 @@ export const FinancialTransactionList: React.FC = () => {
                       return (
                         <tr key={transaction.transactionID} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <Badge variant={typeConfig.variant} className="flex items-center w-fit">
+                            <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-md ${typeConfig.badgeClass}`}>
                               {typeConfig.icon}
-                              <span className="ml-1">{transaction.transactionType}</span>
-                            </Badge>
+                              {typeConfig.label}
+                            </span>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="text-sm font-medium text-gray-900 max-w-xs truncate">
+                            <div 
+                              className="text-sm text-gray-900 max-w-xs truncate cursor-pointer hover:text-blue-600" 
+                              title={transaction.description}
+                              onClick={() => setViewTransaction(transaction.transactionID)}
+                            >
                               {transaction.description}
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                            {transaction.category}
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{transaction.category}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`text-sm font-bold ${typeConfig.color}`}>
+                            <div className={`text-sm font-medium ${typeConfig.color}`}>
                               {formatCurrency(transaction.amount)} ₫
-                            </span>
+                            </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                            {transaction.paymentMethod}
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{getPaymentMethodLabel(transaction.paymentMethod)}</div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                            <div className="flex items-center">
-                              <Calendar className="h-4 w-4 mr-2 text-gray-400" />
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">
                               {formatDate(transaction.transactionDate)}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setEditTransaction(transaction.transactionID)}
+                                className="text-blue-600 hover:text-blue-900"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setDeleteTransaction(transaction.transactionID)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                title="Xóa giao dịch"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
                           </td>
                         </tr>
@@ -428,35 +475,58 @@ export const FinancialTransactionList: React.FC = () => {
                   <CardContent className="p-3 sm:p-4">
                     <div className="space-y-3">
                       {/* Header */}
-                      <div className="flex justify-between items-start gap-2">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
-                            {transaction.description}
-                          </h3>
-                          <p className="text-xs sm:text-sm text-gray-600 mt-1">
-                            {transaction.category}
-                          </p>
-                        </div>
-                        <Badge variant={typeConfig.variant} className="flex items-center">
+                      <div className="flex items-center justify-between">
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-md ${typeConfig.badgeClass}`}>
                           {typeConfig.icon}
-                          <span className="ml-1">{transaction.transactionType}</span>
-                        </Badge>
+                          {typeConfig.label}
+                        </span>
+                        <div className="text-xs text-gray-500">
+                          <Calendar className="h-3 w-3 inline mr-1" />
+                          {formatDate(transaction.transactionDate)}
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <div 
+                        className="cursor-pointer"
+                        onClick={() => setViewTransaction(transaction.transactionID)}
+                      >
+                        <p className="text-sm font-medium text-gray-900 mb-1 hover:text-blue-600">
+                          {transaction.description}
+                        </p>
+                        <p className="text-xs text-gray-600">{transaction.category}</p>
                       </div>
 
                       {/* Amount and Payment Method */}
-                      <div className="flex justify-between items-center">
-                        <span className={`text-lg font-bold ${typeConfig.color}`}>
+                      <div className="flex items-center justify-between">
+                        <div className={`text-lg font-bold ${typeConfig.color}`}>
                           {formatCurrency(transaction.amount)} ₫
-                        </span>
-                        <span className="text-sm text-gray-600">
-                          {transaction.paymentMethod}
-                        </span>
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          {getPaymentMethodLabel(transaction.paymentMethod)}
+                        </div>
                       </div>
 
-                      {/* Date */}
-                      <div className="flex items-center text-xs text-gray-500">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        {formatDate(transaction.transactionDate)}
+                      {/* Actions */}
+                      <div className="flex justify-end gap-2 pt-2 border-t">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setEditTransaction(transaction.transactionID)}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          <Edit className="h-4 w-4 mr-1" />
+                          Sửa
+                        </Button>
+                        {/* <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setDeleteTransaction(transaction.transactionID)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Xóa
+                        </Button> */}
                       </div>
                     </div>
                   </CardContent>
@@ -480,14 +550,40 @@ export const FinancialTransactionList: React.FC = () => {
         </>
       )}
 
-      {/* Create Transaction Modal */}
-      {showModal.type && (
+      {/* Modals */}
+      {showCreateModal && (
         <CreateTransactionModal
-          isOpen={showModal.isOpen}
-          onClose={() => setShowModal({ isOpen: false, type: null })}
-          type={showModal.type}
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
         />
       )}
+
+      {editTransaction && (
+        <EditTransactionModal
+          isOpen={!!editTransaction}
+          onClose={() => setEditTransaction(null)}
+          transactionId={editTransaction}
+        />
+      )}
+
+      {viewTransaction && (
+        <ViewTransactionModal
+          isOpen={!!viewTransaction}
+          onClose={() => setViewTransaction(null)}
+          transactionId={viewTransaction}
+        />
+      )}
+
+      <ConfirmModal
+        isOpen={!!deleteTransaction}
+        onClose={() => setDeleteTransaction(null)}
+        onConfirm={handleDelete}
+        title="Xác nhận xóa giao dịch"
+        message="Bạn có chắc chắn muốn xóa giao dịch này? Hành động này không thể hoàn tác."
+        confirmText="Xóa"
+        confirmVariant="destructive"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

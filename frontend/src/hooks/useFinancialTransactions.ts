@@ -1,76 +1,91 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { financialTransactionApi, type CreateTransactionRequest } from '@/services/financialTransactionApi';
+import { 
+  getFinancialTransactions, 
+  getFinancialTransactionDetail,
+  createFinancialTransaction,
+  updateFinancialTransaction,
+  deactivateFinancialTransaction,
+  exportFinancialTransactions
+} from '@/services/financialTransactionApi';
 
 // Query keys
-const FINANCIAL_TRANSACTION_KEYS = {
-  all: ['financial-transactions'] as const,
+export const FINANCIAL_TRANSACTION_KEYS = {
+  all: ['financialTransactions'] as const,
   lists: () => [...FINANCIAL_TRANSACTION_KEYS.all, 'list'] as const,
+  list: (filters: string) => [...FINANCIAL_TRANSACTION_KEYS.lists(), { filters }] as const,
+  details: () => [...FINANCIAL_TRANSACTION_KEYS.all, 'detail'] as const,
+  detail: (id: number) => [...FINANCIAL_TRANSACTION_KEYS.details(), id] as const,
 };
 
-// Hook for getting all financial transactions
+// Get all financial transactions
 export const useFinancialTransactions = () => {
   return useQuery({
     queryKey: FINANCIAL_TRANSACTION_KEYS.lists(),
-    queryFn: async () => {
-      try {
-        return await financialTransactionApi.getFinancialTransactions();
-      } catch (error: unknown) {
-        // Handle empty data case
-        const apiError = error as { response?: { status?: number; data?: { message?: string } } };
-        if (apiError?.response?.status === 500 && 
-            apiError?.response?.data?.message === "Không có dữ liệu phù hợp") {
-          return [];
-        }
-        throw error;
-      }
-    },
+    queryFn: getFinancialTransactions,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+// Get financial transaction detail
+export const useFinancialTransactionDetail = (transactionId: number) => {
+  return useQuery({
+    queryKey: FINANCIAL_TRANSACTION_KEYS.detail(transactionId),
+    queryFn: () => getFinancialTransactionDetail(transactionId),
+    enabled: !!transactionId,
     staleTime: 5 * 60 * 1000,
   });
 };
 
-// Hook for creating receipt
-export const useCreateReceipt = () => {
+// Create financial transaction
+export const useCreateFinancialTransaction = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateTransactionRequest) =>
-      financialTransactionApi.createReceipt(data),
+    mutationFn: createFinancialTransaction,
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: FINANCIAL_TRANSACTION_KEYS.lists(),
-      });
+      queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.lists() });
     },
   });
 };
 
-// Hook for creating payment
-export const useCreatePayment = () => {
+// Update financial transaction
+export const useUpdateFinancialTransaction = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateTransactionRequest) =>
-      financialTransactionApi.createPayment(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: FINANCIAL_TRANSACTION_KEYS.lists(),
-      });
+    mutationFn: updateFinancialTransaction,
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.lists() });
+      queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.detail(variables.transactionID) });
     },
   });
 };
 
-// Hook for exporting transactions
-export const useExportTransactions = () => {
+// Deactivate financial transaction
+export const useDeactivateFinancialTransaction = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: () => financialTransactionApi.exportTransactions(),
-    onSuccess: (data) => {
+    mutationFn: deactivateFinancialTransaction,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.lists() });
+    },
+  });
+};
+
+// Export financial transactions
+export const useExportFinancialTransactions = () => {
+  return useMutation({
+    mutationFn: exportFinancialTransactions,
+    onSuccess: (blob) => {
       // Create download link
-      const url = window.URL.createObjectURL(new Blob([data]));
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `giao-dich-tai-chinh-${new Date().toISOString().split('T')[0]}.xlsx`);
+      link.download = `financial-transactions-${new Date().toISOString().split('T')[0]}.xlsx`;
       document.body.appendChild(link);
       link.click();
-      link.remove();
+      document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     },
   });

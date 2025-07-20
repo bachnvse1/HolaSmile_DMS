@@ -1,69 +1,78 @@
 import axiosInstance from '@/lib/axios';
 
+// Types
 export interface FinancialTransaction {
   transactionID: number;
-  invoiceId: number | null;
   transactionDate: string;
   description: string;
-  transactionType: string;
+  transactionType: string | boolean;
   category: string;
-  paymentMethod: string;
+  paymentMethod: string | boolean; 
   amount: number;
+  createBy: string;
+  updateBy: string;
+  createAt: string;
+  updateAt: string | null;
 }
 
 export interface CreateTransactionRequest {
+  transactionType: boolean; // true: Thu, false: Chi
+  description: string;
+  amount: number;
+  category: string;
+  paymentMethod: boolean; // true: Tiền mặt, false: Chuyển khoản
+  transactionDate: string;
+}
+
+export interface UpdateTransactionRequest {
+  transactionID: number; // Backend expect transactionID
+  transactionDate: string;
   description: string;
   transactionType: boolean; // true: Thu, false: Chi
   category: string;
   paymentMethod: boolean; // true: Tiền mặt, false: Chuyển khoản
   amount: number;
-  invoiceId?: number;
+  createBy: string;
+  updateBy: string;
+  createAt: string;
+  updateAt: string | null;
 }
 
-export const financialTransactionApi = {
-  // Get all financial transactions
-  getFinancialTransactions: async (): Promise<FinancialTransaction[]> => {
-    try {
-      const response = await axiosInstance.get('/transaction/financial-transactions');
-      return response.data;
-    } catch (error) {
-      console.error('Error getting financial transactions:', error);
-      throw error;
-    }
-  },
+export interface ApiResponse {
+  message?: string;
+  status?: boolean;
+}
 
-  // Create receipt (phiếu thu)
-  createReceipt: async (data: CreateTransactionRequest) => {
-    try {
-      const response = await axiosInstance.post('/transaction/receipt', data);
-      return response.data;
-    } catch (error) {
-      console.error('Error creating receipt:', error);
-      throw error;
-    }
-  },
+// API Functions
+export const getFinancialTransactions = async (): Promise<FinancialTransaction[]> => {
+  const response = await axiosInstance.get('/transaction/financial-transactions');
+  return response.data;
+};
 
-  // Create payment (phiếu chi)
-  createPayment: async (data: CreateTransactionRequest) => {
-    try {
-      const response = await axiosInstance.post('/transaction/payment', data);
-      return response.data;
-    } catch (error) {
-      console.error('Error creating payment:', error);
-      throw error;
-    }
-  },
+export const getFinancialTransactionDetail = async (transactionId: number): Promise<FinancialTransaction> => {
+  const response = await axiosInstance.get(`/transaction/financial-transactions/${transactionId}`);
+  return response.data;
+};
 
-  // Export transactions
-  exportTransactions: async () => {
-    try {
-      const response = await axiosInstance.get('/transaction/export', {
-        responseType: 'blob'
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error exporting transactions:', error);
-      throw error;
-    }
-  }
+export const createFinancialTransaction = async (data: CreateTransactionRequest): Promise<ApiResponse> => {
+  const response = await axiosInstance.post('/transaction/financial-transactions', data);
+  return response.data;
+};
+
+export const updateFinancialTransaction = async (data: UpdateTransactionRequest): Promise<ApiResponse> => {
+  console.log('API Update request:', data); // Debug log
+  const response = await axiosInstance.put(`/transaction/edit-financial-transactions/${data.transactionID}`, data);
+  return response.data;
+};
+
+export const deactivateFinancialTransaction = async (transactionId: number): Promise<ApiResponse> => {
+  const response = await axiosInstance.put(`/transaction/Deactive-financial-transactions/${transactionId}`);
+  return response.data;
+};
+
+export const exportFinancialTransactions = async (): Promise<Blob> => {
+  const response = await axiosInstance.get('/transaction/export-financial-transactions', {
+    responseType: 'blob'
+  });
+  return response.data;
 };
