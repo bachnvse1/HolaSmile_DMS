@@ -188,9 +188,9 @@ function App() {
         <Route path="/patient/treatment-records" element={<PatientTreatmentRecordsSection />} />
       </Routes>
             {/* ChatBox lơ lửng ở mọi trang */}
-      <div style={{position: "fixed", bottom: 24, right: 24, zIndex: 1000, width: 350}}>
+      {/* <div style={{position: "fixed", bottom: 24, right: 24, zIndex: 1000, width: 350}}>
         <ChatBox />
-      </div>
+      </div> */}
     </>
   );
 }
