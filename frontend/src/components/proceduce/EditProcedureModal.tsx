@@ -18,6 +18,7 @@ import type { Procedure, ProcedureUpdateForm, Supply, SupplyItem } from "@/types
 import { supplyApi, mapToSupplyItem } from "@/services/supplyApi"
 import React from "react"
 import { Badge } from "../ui/badge"
+import { formatCurrency } from "@/utils/currencyUtils"
 
 interface EditProcedureModalProps {
     procedure: Procedure | null
@@ -281,13 +282,6 @@ export function EditProcedureModal({
         onOpenChange(false)
         setErrors({})
     }
-
-    const formatCurrency = (amount: number) =>
-        new Intl.NumberFormat("vi-VN", {
-            style: "currency",
-            currency: "VND",
-        }).format(amount)
-
     if (!procedure) return null
 
     const currentSupplies = form.suppliesUsed || []

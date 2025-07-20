@@ -15,6 +15,7 @@ import { useEffect, useState } from "react"
 import type { ProcedureCreateForm, Supply, SupplyItem } from "@/types/procedure"
 import { SupplySearch } from "./SupplySearch"
 import { ConfirmModal } from "../common/ConfirmModal"
+import { formatCurrency } from "@/utils/currencyUtils"
 
 interface CreateProcedureModalProps {
   isOpen: boolean
@@ -72,9 +73,6 @@ export function CreateProcedureModal({
     )
     updateForm("suppliesUsed", updated)
   }
-
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

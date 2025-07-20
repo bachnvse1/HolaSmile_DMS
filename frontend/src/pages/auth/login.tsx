@@ -86,19 +86,31 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4">
+    <div className="min-h-screen relative flex items-center justify-center px-4">
+      {/* Background Image with Overlay */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url('https://images.unsplash.com/photo-1629909613654-28e377c37b09?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80')`
+        }}
+      />
+      
+      {/* Dark Overlay */}
+      <div className="absolute inset-0 bg-black/50" />
+      
+      {/* Login Form */}
       <form
         onSubmit={formik.handleSubmit}
-        className="w-full max-w-md space-y-6 bg-white/10 backdrop-blur border border-slate-700 shadow-xl p-6 rounded"
+        className="relative z-10 w-full max-w-md space-y-6 bg-white/15 backdrop-blur-lg border border-white/20 shadow-2xl p-8 rounded-xl"
       >
-        <h1 className="text-2xl font-bold text-white text-center">Đăng nhập</h1>
+        <h1 className="text-3xl font-bold text-white text-center mb-8">Đăng nhập</h1>
 
-        <div className="space-y-1">
-          <label htmlFor="email" className="block text-sm font-medium text-slate-300">
+        <div className="space-y-2">
+          <label htmlFor="email" className="block text-sm font-medium text-white/90">
             Email hoặc số điện thoại
           </label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-white/70" size={18} />
             <input
               id="email"
               name="email"
@@ -107,31 +119,33 @@ export function Login() {
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               placeholder="Email hoặc số điện thoại"
-              className={`w-full pl-10 pr-3 py-2 rounded-md bg-slate-700/50 text-white placeholder:text-slate-400 border focus:outline-none ${formik.touched.email && formik.errors.email
-                  ? "border-red-500 focus:ring-1 focus:ring-red-500"
-                  : "border-slate-600 focus:ring-1 focus:ring-blue-500"
+              className={`w-full pl-11 pr-3 py-3 rounded-lg bg-white/10 backdrop-blur text-white placeholder:text-white/60 border focus:outline-none transition-all ${formik.touched.email && formik.errors.email
+                  ? "border-red-400 focus:ring-2 focus:ring-red-400/50"
+                  : "border-white/30 focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400"
                 }`}
             />
             {formik.touched.email && formik.errors.email && (
-              <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500" size={16} />
+              <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 text-red-400" size={18} />
             )}
           </div>
           {formik.touched.email && formik.errors.email && (
-            <p className="text-sm text-red-400 flex items-center gap-1">
+            <p className="text-sm text-red-300 flex items-center gap-1">
               <AlertCircle size={14} /> {formik.errors.email}
             </p>
           )}
         </div>
 
-        <div className="space-y-1">
-          <div className="flex justify-between items-center">            <label htmlFor="password" className="text-sm font-medium text-slate-300">
-            Mật khẩu
-          </label>            <Link type="button" className="text-sm text-blue-400 hover:underline" to={`/forgot-password`}>
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <label htmlFor="password" className="text-sm font-medium text-white/90">
+              Mật khẩu
+            </label>
+            <Link type="button" className="text-sm text-blue-300 hover:text-blue-200 transition-colors" to={`/forgot-password`}>
               Quên mật khẩu?
             </Link>
           </div>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-white/70" size={18} />
             <input
               id="password"
               name="password"
@@ -140,61 +154,71 @@ export function Login() {
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               placeholder="Mật khẩu"
-              className={`w-full pl-10 pr-10 py-2 rounded-md bg-slate-700/50 text-white placeholder:text-slate-400 border focus:outline-none ${formik.touched.password && formik.errors.password
-                  ? "border-red-500 focus:ring-1 focus:ring-red-500"
-                  : "border-slate-600 focus:ring-1 focus:ring-blue-500"
+              className={`w-full pl-11 pr-12 py-3 rounded-lg bg-white/10 backdrop-blur text-white placeholder:text-white/60 border focus:outline-none transition-all ${formik.touched.password && formik.errors.password
+                  ? "border-red-400 focus:ring-2 focus:ring-red-400/50"
+                  : "border-white/30 focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400"
                 }`}
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-2 items-center">
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="text-slate-400 hover:text-slate-300"
+                className="text-white/70 hover:text-white/90 transition-colors"
                 aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
               >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
           {formik.touched.password && formik.errors.password && (
-            <p className="text-sm text-red-400 flex items-center gap-1">
+            <p className="text-sm text-red-300 flex items-center gap-1">
               <AlertCircle size={14} /> {formik.errors.password}
             </p>
           )}
         </div>
 
         {apiError && (
-          <p className="text-center text-red-500 text-sm font-medium" role="alert">
-            {apiError}
-          </p>
+          <div className="bg-red-500/20 border border-red-400/30 rounded-lg p-3">
+            <p className="text-center text-red-200 text-sm font-medium" role="alert">
+              {apiError}
+            </p>
+          </div>
         )}
 
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition disabled:opacity-60"
+          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed"
           disabled={formik.isSubmitting}
         >
-          {formik.isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
+          {formik.isSubmitting ? (
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-4 h-4 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
+              Đang đăng nhập...
+            </div>
+          ) : (
+            "Đăng nhập"
+          )}
         </button>
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-600"></div>
+            <div className="w-full border-t border-white/30"></div>
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-slate-800 px-2 text-slate-400">or</span>
+            <span className="bg-transparent px-3 text-white/70 font-medium">hoặc</span>
           </div>
         </div>
 
         <button
+          type="button"
           onClick={handleGoogleLogin}
           disabled={isGoogleLoading}
-          className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-slate-800 font-medium py-2.5 px-4 rounded-md transition-colors border border-gray-300 relative"
+          className="w-full flex items-center justify-center gap-3 bg-white/90 hover:bg-white text-gray-800 font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl relative disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {isGoogleLoading ? (
-            <div className="absolute left-4 w-5 h-5 border-t-2 border-b-2 border-slate-800 rounded-full animate-spin"></div>
+            <div className="absolute left-4 w-5 h-5 border-t-2 border-b-2 border-gray-800 rounded-full animate-spin"></div>
           ) : (
-            <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+            <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
               <path
                 fill="#FFC107"
                 d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
@@ -213,15 +237,15 @@ export function Login() {
               ></path>
             </svg>
           )}
-          <span>{isGoogleLoading ? "Connecting..." : "Continue with Google"}</span>
+          <span>{isGoogleLoading ? "Đang kết nối..." : "Tiếp tục với Google"}</span>
         </button>
 
-        <div className="text-center">
+        <div className="text-center pt-4">
           <Link
             to="/"
-            className="text-sm text-blue-400 hover:text-blue-300 transition-colors font-medium inline-flex items-center gap-1"
+            className="text-sm text-blue-300 hover:text-blue-200 transition-colors font-medium inline-flex items-center gap-2"
           >
-            <ArrowLeft className="h-3 w-3" />
+            <ArrowLeft className="h-4 w-4" />
             Trở về trang chủ
           </Link>
         </div>

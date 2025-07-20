@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import type { UseFormReturn } from "react-hook-form";
 import type { TreatmentFormData } from "@/types/treatment";
 import { useCalculateTotal } from "@/hooks/useCalculateTotal";
-import { formatCurrency } from "@/utils/format";
+import { formatCurrency } from "@/utils/currencyUtils";
 import {
   createTreatmentRecord,
   updateTreatmentRecord,

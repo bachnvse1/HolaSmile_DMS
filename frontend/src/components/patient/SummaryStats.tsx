@@ -1,6 +1,6 @@
 import { Calendar, Clock, FileText } from "lucide-react"
 import type { TreatmentRecord } from "@/types/treatment"
-import { formatCurrency } from "@/utils/format"
+import { formatCurrency } from "@/utils/currencyUtils"
 
 interface SummaryStatsProps {
   records: TreatmentRecord[]
