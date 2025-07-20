@@ -46,9 +46,6 @@ namespace HDMS_API.Controllers
             try
             {
                 var result = await _mediator.Send(new ViewInstructionCommand(appointmentId));
-                if (result == null || !result.Any())
-                    return Ok(new { message = "Không có dữ liệu chỉ dẫn." });
-
                 return Ok(result);
             }
             catch (UnauthorizedAccessException ex)
