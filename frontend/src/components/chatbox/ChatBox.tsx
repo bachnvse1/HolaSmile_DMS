@@ -1,8 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import axiosInstance from "@/lib/axios";
 import dayjs from "dayjs";
-import { v4 as uuidv4 } from "uuid";
 
 type Receiver = {
   id: string;
@@ -29,19 +28,15 @@ export default function ChatBox({ receiver, messages, sendMessage }: Props) {
   const [history, setHistory] = useState<ChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Load lịch sử từ server
   useEffect(() => {
     const fetchHistory = async () => {
       if (userId && receiver?.id) {
         try {
-          console.log('📜 Loading chat history:', { userId, receiverId: receiver.id });
           const res = await axiosInstance.get('/chats/history', {
             params: { user1: userId, user2: receiver.id },
           });
-          console.log('📜 History loaded:', res.data?.length || 0, 'messages');
           setHistory(res.data || []);
         } catch (err) {
-          console.error('❌ Error loading history:', err);
           setHistory([]);
         }
       } else {
@@ -60,12 +55,6 @@ export default function ChatBox({ receiver, messages, sendMessage }: Props) {
         (m.senderId === userId && m.receiverId === receiver.id) ||
         (m.senderId === receiver.id && m.receiverId === userId)
     );
-
-    console.log('🔄 Merging messages:', {
-      historyCount: history.length,
-      realtimeCount: realtimeMsgs.length,
-      receiver: receiver.id
-    });
 
     const merged = [...history, ...realtimeMsgs];
 
@@ -90,7 +79,6 @@ export default function ChatBox({ receiver, messages, sendMessage }: Props) {
         : 0
     );
 
-    console.log('💬 Final messages count:', unique.length);
     return unique;
   }, [history, messages, userId, receiver?.id]);
 
@@ -102,7 +90,6 @@ export default function ChatBox({ receiver, messages, sendMessage }: Props) {
   // Gửi tin nhắn
   const handleSend = () => {
     if (input.trim()) {
-      console.log('📤 Sending message to:', receiver.id, input.trim());
       sendMessage(receiver.id, input.trim());
       setInput("");
     }
