@@ -54,7 +54,7 @@ public class GoogleAuthService : IGoogleAuthService
         var refreshToken = _jwtService.GenerateRefreshToken(user.UserID.ToString());
         var domain = _configuration["Frontend:Domain"]; // 👈 lấy từ appsettings.json
         if (string.IsNullOrWhiteSpace(domain)) domain = "http://localhost:5173/";
-        return $"{domain}" +
+        return $"{domain}auth/callback" +
                $"?token={jwt}" +
                $"&refreshToken={refreshToken}" +
                $"&username={user.Username}" +
