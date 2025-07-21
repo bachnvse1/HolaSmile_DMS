@@ -12,13 +12,16 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
     {
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private readonly Mock<ISupplyRepository> _supplyRepositoryMock;
+        private readonly Mock<ITransactionRepository> _transactionRepositoryMock;
+
         private readonly CreateSupplyHandler _handler;
 
         public CreateSupplyHandlerTests()
         {
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             _supplyRepositoryMock = new Mock<ISupplyRepository>();
-            _handler = new CreateSupplyHandler(_httpContextAccessorMock.Object, _supplyRepositoryMock.Object);
+            _transactionRepositoryMock = new Mock<ITransactionRepository>();
+            _handler = new CreateSupplyHandler(_httpContextAccessorMock.Object, _supplyRepositoryMock.Object, _transactionRepositoryMock.Object);
         }
 
         private void SetupHttpContext(string role, string userId)

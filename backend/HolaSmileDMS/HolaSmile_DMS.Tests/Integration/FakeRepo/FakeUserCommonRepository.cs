@@ -6,7 +6,6 @@ using HDMS_API.Application.Usecases.UserCommon.ForgotPassword;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
-using Application.Usecases.Administrator.ViewListUser;
 
 namespace Infrastructure.Repositories;
 
@@ -167,11 +166,6 @@ public class FakeUserCommonRepository : IUserCommonRepository
         throw new NotImplementedException();
     }
 
-    Task<User?> IUserCommonRepository.GetByEmailAsync(string email)
-    {
-        throw new NotImplementedException();
-    }
-
     Task<bool> IUserCommonRepository.EditProfileAsync(User user, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
@@ -187,10 +181,6 @@ public class FakeUserCommonRepository : IUserCommonRepository
         throw new NotImplementedException();
     }
 
-    Task<User?> IUserCommonRepository.GetByIdAsync(int userId, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
 
     Task<List<ViewListPatientDto>> IUserCommonRepository.GetAllPatientsAsync(CancellationToken cancellationToken)
     {
@@ -208,11 +198,6 @@ public class FakeUserCommonRepository : IUserCommonRepository
     }
 
     Task<bool> IUserCommonRepository.CreateUserAsync(User user, string role)
-    {
-        throw new NotImplementedException();
-    }
-
-    Task<bool> IUserCommonRepository.UpdateUserStatusAsync(int userId)
     {
         throw new NotImplementedException();
     }

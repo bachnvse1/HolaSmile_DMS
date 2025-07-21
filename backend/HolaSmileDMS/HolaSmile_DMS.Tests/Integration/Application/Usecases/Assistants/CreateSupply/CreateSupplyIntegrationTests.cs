@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
+using Application.Interfaces;
 using Application.Usecases.Assistant.CreateSupply;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;
@@ -15,6 +16,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
         private readonly ApplicationDbContext _context;
         private readonly CreateSupplyHandler _handler;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ITransactionRepository _transactionRepository;
 
         public CreateSupplyHandlerIntegrationTests()
         {
@@ -32,6 +34,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             _handler = new CreateSupplyHandler(
                 _httpContextAccessor,
                 new SupplyRepository(_context)
+                , new TransactionRepository(_context)
             );
         }
 
