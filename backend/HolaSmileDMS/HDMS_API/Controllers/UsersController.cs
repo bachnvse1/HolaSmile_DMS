@@ -1,5 +1,6 @@
-using Application.Usecases.UserCommon.RefreshToken;
 using Application.Constants;
+using Application.Usecases.UserCommon.ChangePassword;
+using Application.Usecases.UserCommon.RefreshToken;
 using Application.Usecases.UserCommon.ViewAllUserChat;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Usecases.UserCommon.EditProfile;
@@ -7,6 +8,7 @@ using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using HDMS_API.Infrastructure.Persistence;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authorization;
@@ -209,6 +211,32 @@ namespace HDMS_API.Controllers
         {
             var result = await _mediator.Send(new ViewAllUsersChatCommand());
             return Ok(result);
+        }
+
+        [HttpPut("change-password")]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordCommand command)
+        {
+            try
+            {
+                var result = await _mediator.Send(command);
+                return Ok(new { message = result });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // Xử lý lỗi không có quyền truy cập
+                return StatusCode(401, new { message = MessageConstants.MSG.MSG53 });
+            }
+            catch (ArgumentException ex)
+            {
+                // Xử lý lỗi validation
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                // Xử lý lỗi không xác định
+                return StatusCode(500, new { message = "Có lỗi xảy ra, vui lòng thử lại sau." });
+            }
         }
     }
 }
