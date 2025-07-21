@@ -3,6 +3,7 @@ using HDMS_API.Infrastructure.Persistence;
 using Microsoft.AspNetCore.SignalR;
 using Infrastructure.Realtime;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Hubs;
 
@@ -54,6 +55,22 @@ public class GuestChatHub : Hub
         var guestId = httpContext?.Request.Query["guestId"].ToString() ?? Context.ConnectionId;
         var timestamp = DateTime.Now;
 
+        var guest = await _context.GuestInfos.FirstOrDefaultAsync(x => x.GuestId.ToString() == guestId);
+        if (guest == null)
+        {
+            guest = new GuestInfo
+            {
+                GuestId = Guid.Parse(guestId),
+                Name = await GenerateUniqueAnonymousNameAsync(),
+                LastMessageAt = DateTime.Now
+            };
+            _context.GuestInfos.Add(guest);
+        }
+        else
+        {
+            guest.LastMessageAt = DateTime.Now;
+        }
+        
         // Save message to database
         var chatMessage = new ChatMessage
         {
@@ -74,5 +91,19 @@ public class GuestChatHub : Hub
 
         // Optionally, send confirmation to guest
         await Clients.Caller.SendAsync("MessageSent", chatMessage.Id);
+    }
+    private async System.Threading.Tasks.Task<string> GenerateUniqueAnonymousNameAsync()
+    {
+        string baseName = "Anonymous";
+        int suffix = 1;
+        string candidate;
+    
+        do
+        {
+            candidate = $"{baseName} {suffix}";
+            suffix++;
+        } while (await _context.GuestInfos.AnyAsync(g => g.Name == candidate));
+    
+        return candidate;
     }
 }

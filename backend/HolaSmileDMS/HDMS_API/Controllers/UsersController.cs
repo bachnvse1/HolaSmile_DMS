@@ -1,5 +1,6 @@
 using Application.Usecases.UserCommon.RefreshToken;
 using Application.Constants;
+using Application.Usecases.Guests.ViewAllGuestCommand;
 using Application.Usecases.UserCommon.ViewAllUserChat;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
@@ -190,7 +191,12 @@ namespace HDMS_API.Controllers
             var result = await _mediator.Send(new ViewAllUsersChatCommand());
             return Ok(result);
         }
+        
+        [HttpGet("allGuestsChat")]
+        public async Task<IActionResult> AllGuestsChat()
+        {
+            var result = await _mediator.Send(new ViewAllGuestsChatCommand());
+            return Ok(result);
+        }
     }
 }
-
-

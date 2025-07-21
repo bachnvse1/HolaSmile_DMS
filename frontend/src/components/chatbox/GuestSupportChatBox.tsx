@@ -1,39 +1,101 @@
-import React, { useMemo, useRef, useState, useEffect } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import axiosInstance from "@/lib/axios";
 import { useChatHub } from "@/components/chatbox/ChatHubProvider";
+import type { ChatMessage } from "@/hooks/useChatHub";
 
 type Props = {
   onClose?: () => void;
 };
 
+type GuestInfo = {
+  guestId: string;
+  name?: string;
+  lastMessageAt?: string;
+};
+
 export default function GuestSupportChatBox({ onClose }: Props) {
-  const { messages, sendMessage } = useChatHub();
-  const [selectedGuestId, setSelectedGuestId] = useState<string | null>(null);
+  const { userId } = useAuth(); // Lấy consultant ID (ví dụ: "10")
+  const {
+    messages: realtimeMessages,
+    sendMessage,
+    fetchChatHistory,
+  } = useChatHub();
+
+  const [guestList, setGuestList] = useState<GuestInfo[]>([]);
+  const [selectedGuest, setSelectedGuest] = useState<GuestInfo | null>(null);
+  const [history, setHistory] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const CONSULTANT_ID = "10"; // hardcoded consultant ID
+  // Lấy danh sách khách
+  useEffect(() => {
+    const fetchGuests = async () => {
+      try {
+        const res = await axiosInstance.get("/user/allGuestsChat");
+        setGuestList(res.data || []);
+      } catch {
+        setGuestList([]);
+      }
+    };
+    fetchGuests();
+  }, []);
 
-  // 1. Group messages theo guestId
-  const messagesMap = useMemo(() => {
-    const map: Record<string, typeof messages> = {};
-    messages.forEach((msg) => {
-      const guestId = msg.senderId === CONSULTANT_ID ? msg.receiverId : msg.senderId;
-      if (!map[guestId]) map[guestId] = [];
-      map[guestId].push(msg);
+  // Lấy lịch sử chat khi chọn khách
+  useEffect(() => {
+    if (!userId || !selectedGuest?.guestId) return;
+    fetchChatHistory(userId, selectedGuest.guestId).then(setHistory);
+  }, [selectedGuest, userId, fetchChatHistory]);
+
+  // Gộp lịch sử + tin nhắn realtime
+const allMessages = useMemo(() => {
+  if (!selectedGuest) return [];
+
+  const merged = [
+    ...history,
+    ...realtimeMessages.filter(
+      (m) =>
+        (m.senderId === userId && m.receiverId === selectedGuest.guestId) ||
+        (m.receiverId === userId && m.senderId === selectedGuest.guestId)
+    ),
+  ];
+
+  const unique: ChatMessage[] = [];
+
+  merged.forEach((msg) => {
+    const isDuplicate = unique.some((m) => {
+      const sameSender = m.senderId === msg.senderId;
+      const sameReceiver = m.receiverId === msg.receiverId;
+      const sameMessage = m.message.trim() === msg.message.trim();
+
+      const timeA = new Date(m.timestamp || "").getTime();
+      const timeB = new Date(msg.timestamp || "").getTime();
+      const timeDiff = Math.abs(timeA - timeB);
+
+      return sameSender && sameReceiver && sameMessage && timeDiff < 5000; // < 5s
     });
-    return map;
-  }, [messages]);
 
-  // 2. Generate guest list từ messages
-  const guestList = useMemo(() => Object.keys(messagesMap), [messagesMap]);
+    if (!isDuplicate) {
+      unique.push(msg);
+    }
+  });
 
+  return unique.sort(
+    (a, b) =>
+      new Date(a.timestamp || "").getTime() -
+      new Date(b.timestamp || "").getTime()
+  );
+}, [history, realtimeMessages, selectedGuest, userId]);
+
+
+  // Auto scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messagesMap, selectedGuestId]);
+  }, [allMessages]);
 
   const handleSend = () => {
-    if (input.trim() && selectedGuestId) {
-      sendMessage(selectedGuestId, input);
+    if (input.trim() && selectedGuest) {
+      sendMessage(selectedGuest.guestId, input);
       setInput("");
     }
   };
@@ -78,24 +140,27 @@ export default function GuestSupportChatBox({ onClose }: Props) {
             Chưa có tin nhắn nào từ khách
           </div>
         )}
-        {guestList.map((guestId) => (
+        {guestList.map((guest) => (
           <div
-            key={guestId}
-            onClick={() => setSelectedGuestId(guestId)}
+            key={guest.guestId}
+            onClick={() => setSelectedGuest(guest)}
             style={{
               padding: "8px 10px",
               cursor: "pointer",
               borderRadius: 8,
-              background: selectedGuestId === guestId ? "#2563eb" : "#fff",
-              color: selectedGuestId === guestId ? "#fff" : "#111",
+              background: selectedGuest?.guestId === guest.guestId ? "#2563eb" : "#fff",
+              color: selectedGuest?.guestId === guest.guestId ? "#fff" : "#111",
               marginBottom: 6,
               fontSize: 14,
               transition: "all 0.2s",
               wordBreak: "break-all",
             }}
-            title={guestId}
+            title={guest.guestId}
           >
-            {guestId.slice(0, 8)}...
+            <div>{guest.name || guest.guestId.slice(0, 8) + "..."}</div>
+            <div style={{ fontSize: 12, color: "#888" }}>
+              {formatTime(guest.lastMessageAt)}
+            </div>
           </div>
         ))}
       </div>
@@ -124,7 +189,7 @@ export default function GuestSupportChatBox({ onClose }: Props) {
           </button>
         )}
 
-        {selectedGuestId ? (
+        {selectedGuest ? (
           <>
             <div
               style={{
@@ -140,27 +205,21 @@ export default function GuestSupportChatBox({ onClose }: Props) {
                 gap: 6,
               }}
             >
-              {(messagesMap[selectedGuestId] || []).map(
-                (msg: {
-                  senderId: string;
-                  receiverId: string;
-                  message: string;
-                  timestamp?: string;
-                }, i: number) => (
+              {allMessages.map((msg, i) => (
                 <div
                   key={i}
                   style={{
                     alignSelf:
-                      msg.senderId === CONSULTANT_ID ? "flex-end" : "flex-start",
+                      msg.senderId === userId ? "flex-end" : "flex-start",
                     background:
-                      msg.senderId === CONSULTANT_ID ? "#2563eb" : "#e0e7ff",
+                      msg.senderId === userId ? "#2563eb" : "#e0e7ff",
                     color:
-                      msg.senderId === CONSULTANT_ID ? "#fff" : "#1e293b",
+                      msg.senderId === userId ? "#fff" : "#1e293b",
                     borderRadius: 12,
                     padding: "8px 14px",
                     maxWidth: "75%",
                     boxShadow:
-                      msg.senderId === CONSULTANT_ID
+                      msg.senderId === userId
                         ? "0 2px 8px #2563eb22"
                         : "0 2px 8px #64748b22",
                     fontSize: 14,
@@ -173,7 +232,7 @@ export default function GuestSupportChatBox({ onClose }: Props) {
                     style={{
                       fontSize: 11,
                       color:
-                        msg.senderId === CONSULTANT_ID ? "#cbd5e1" : "#64748b",
+                        msg.senderId === userId ? "#cbd5e1" : "#64748b",
                       marginTop: 4,
                       textAlign: "right",
                     }}
