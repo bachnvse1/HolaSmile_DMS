@@ -104,4 +104,12 @@ public class InvoiceRepository : IInvoiceRepository
             i.Status != "paid"
         );
     }
+
+    public async Task<List<Invoice>> GetTotalInvoice()
+    {
+        return await _context.Invoices
+            .Where(i => !i.IsDeleted)
+            .ToListAsync();
+    }
+
 }

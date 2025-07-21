@@ -23,7 +23,7 @@ namespace Application.Interfaces
         Task<ViewProfileDto?> GetUserProfileAsync(int userId, CancellationToken cancellationToken);
         Task<UserRoleResult?> GetUserRoleAsync(string username, CancellationToken cancellationToken);
         Task<User?> GetByIdAsync(int? userId, CancellationToken cancellationToken);
-        Task<List<ViewListPatientDto>> GetAllPatientsAsync(CancellationToken cancellationToken);
+        Task<List<Patient>> GetAllPatientsAsync(CancellationToken cancellationToken);
         Task<List<Receptionist>> GetAllReceptionistAsync();
         Task<List<ViewListUserDTO>> GetAllUserAsync();
         Task<bool> CreateUserAsync(User user, string role);
