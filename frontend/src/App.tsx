@@ -58,6 +58,7 @@ import FloatingChatButton from './components/chatbox/FloatingChatButton';
 import { ChatHubProvider } from './components/chatbox/ChatHubProvider';
 import InstructionTemplateManagement from "./pages/instruction/InstructionTemplateManagement";
 import PatientInstructionsList from "./pages/instruction/PatientInstructionList";
+import InstructionsPage from "./pages/instruction/InstructionManagement";
 function App() {
   return (
     <>
@@ -192,6 +193,7 @@ function App() {
         <Route path="/patient/treatment-records" element={<PatientTreatmentRecordsSection />} />
         <Route path="/instruction-templates" element={<InstructionTemplateManagement />} />
         <Route path="/patient/instructions/:appointmentId" element={<PatientInstructionsList />} />
+        <Route path="/instructions/:appointmentId" element={<InstructionsPage />} />
         </Routes>
         <FloatingChatButton />
         </ChatHubProvider>

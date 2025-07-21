@@ -207,11 +207,17 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
               )}
             </Button>
           )}
-          {role === 'Patient' && hasInstruction && (
+          {(role === 'Patient' ? hasInstruction : true) && (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate(`/patient/instructions/${appointmentId}`)}
+              onClick={() =>
+                navigate(
+                  role === 'Patient'
+                    ? `/patient/instructions/${appointmentId}`
+                    : `/instructions/${appointmentId}`
+                )
+              }
               className="flex items-center gap-2 text-xs sm:text-sm"
             >
               <FileText className="h-4 w-4" />
