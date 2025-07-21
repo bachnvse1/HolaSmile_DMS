@@ -44,7 +44,7 @@ public static class MessageConstants
                 public const string MSG38 = "Cập nhật tiến trình điều trị thành công";
                 public const string MSG39 = "Tạo thẻ bảo hành thành công";
                 public const string MSG40 = "Cập nhật thẻ bảo hành thành công";
-                public const string MSG41 = "Vô hiệu hoá thẻ bảo hành thành công";
+                public const string MSG41 = "Vô hiệu hoá thành công";
                 public const string MSG42 = "Vui lòng chọn bác sĩ trước khi đặt lịch";
                 public const string MSG43 = "Mật khẩu mới và xác nhận không khớp";
                 public const string MSG44 = "Gửi tin nhắn thành công";
@@ -118,6 +118,15 @@ public static class MessageConstants
                 public const string MSG113 = "Tạo ảnh thành công";
                 public const string MSG114 = "Tạo chỉ dẫn thành công";
                 public const string MSG115 = "Mẫu chỉ dẫn không tồn tại";
+                public const string MSG116 = "Không thể tạo chương trình giảm giá";
+                public const string MSG117 = "Tạo chương trình khuyến mãi thành công.";
+                public const string MSG118 = "Danh sách thủ thuật không được để trống";
+                public const string MSG119 = "Chương trình khuyến mãi không tồn tại";
+                public const string MSG120 = "Cập nhật chương trình khuyến mãi thành công.";
+                public const string MSG121 = "Không thể chạy 2 chương trình khuyến mãi cùng 1 thời điểm.";
+                public const string MSG122 = "Tạo phiếu thu chi thành công";
+                public const string MSG123 = "Cập nhật phiếu thu chi thành công";
+                public const string MSG124 = "Captcha không hợp lệ";
     }
 }   
  

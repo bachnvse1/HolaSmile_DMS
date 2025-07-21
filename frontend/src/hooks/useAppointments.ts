@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import axiosInstance from '../lib/axios';
 import type { AppointmentDTO } from '../types/appointment';
 import { useAuth } from './useAuth';
@@ -45,5 +45,18 @@ export const useAppointmentDetail = (appointmentId: number) => {
     enabled: !!appointmentId,
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+// Change appointment status
+export const useChangeAppointmentStatus = () => {
+  return useMutation({
+    mutationFn: async (data: { appointmentId: number; status: string }) => {
+      const response = await axiosInstance.put(`/appointment/changeStatus`, data);
+      return response.data;
+    },
+    onError: (error) => {
+      console.error('Change appointment status error:', error);
+    }
   });
 };

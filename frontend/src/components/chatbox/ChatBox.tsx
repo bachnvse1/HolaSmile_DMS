@@ -1,27 +1,44 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useChatHub } from "@/hooks/useChatHub";
 import axiosInstance from "@/lib/axios";
+import dayjs from "dayjs";
+import { v4 as uuidv4 } from "uuid";
 
+type Receiver = {
+  id: string;
+  name: string;
+};
 
-export default function ChatBox() {
-  const { token, userId } = useAuth();
-  const { messages, sendMessage } = useChatHub(token ?? "");
+type ChatMessage = {
+  messageId?: string;
+  senderId: string;
+  receiverId: string;
+  message: string;
+  timestamp?: string;
+};
+
+type Props = {
+  receiver: Receiver;
+  messages: ChatMessage[]; // realtime từ socket
+  sendMessage: (receiverId: string, msg: string, messageId: string) => void; // 👈 thêm messageId
+};
+
+export default function ChatBox({ receiver, messages, sendMessage }: Props) {
+  const { userId } = useAuth();
   const [input, setInput] = useState("");
-  const [receiverId, setReceiverId] = useState("");
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<ChatMessage[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Lấy lịch sử chat khi chọn receiverId
+  // 📥 Load lịch sử từ server
   useEffect(() => {
     const fetchHistory = async () => {
-      if (userId && receiverId) {
+      if (userId && receiver?.id) {
         try {
           const res = await axiosInstance.get("/chats/history", {
-            params: { user1: userId, user2: receiverId },
+            params: { user1: userId, user2: receiver.id },
           });
           setHistory(res.data || []);
-        } catch (e) {
+        } catch {
           setHistory([]);
         }
       } else {
@@ -29,146 +46,151 @@ export default function ChatBox() {
       }
     };
     fetchHistory();
-  }, [userId, receiverId]);
+  }, [userId, receiver?.id]);
 
-  // Gộp lịch sử và tin nhắn realtime, tránh trùng lặp
-  const allMessages = React.useMemo(() => {
-    // Chỉ merge nếu có receiverId
-    if (!receiverId) return [];
-    // Lấy id đã có từ messages realtime
-    const realTimeMsgs = messages.filter(m =>
-      (m.senderId === userId && m.receiverId === receiverId) ||
-      (m.senderId === receiverId && m.receiverId === userId)
+  // 📦 Gộp lịch sử + realtime (KHÔNG dùng localSent)
+  const allMessages = useMemo(() => {
+    if (!receiver?.id) return [];
+
+    const realtimeMsgs = messages.filter(
+      (m) =>
+        (m.senderId === userId && m.receiverId === receiver.id) ||
+        (m.senderId === receiver.id && m.receiverId === userId)
     );
-    // Lịch sử có thể chưa có receiverId, nên map lại cho đồng nhất
-    const historyMsgs = history.map((m: any) => ({
-      senderId: m.senderId,
-      receiverId: m.receiverId,
-      message: m.message,
-      timestamp: m.timestamp,
-    }));
-    // Gộp và loại trùng theo timestamp + senderId + message
-    const merged = [...historyMsgs, ...realTimeMsgs];
+
+    const merged = [...history, ...realtimeMsgs];
+
     const unique = merged.filter((msg, idx, arr) =>
-      arr.findIndex(m => m.senderId === msg.senderId && m.receiverId === msg.receiverId && m.message === msg.message && m.timestamp === msg.timestamp) === idx
+      arr.findIndex((m) =>
+        m.messageId
+          ? m.messageId === msg.messageId
+          : (
+              m.senderId === msg.senderId &&
+              m.receiverId === msg.receiverId &&
+              m.message === msg.message &&
+              new Date(m.timestamp || '').toISOString() === new Date(msg.timestamp || '').toISOString()
+            )
+      ) === idx
     );
-    // Sắp xếp theo thời gian nếu có timestamp
-    unique.sort((a, b) => (a.timestamp && b.timestamp ? new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime() : 0));
+
+    unique.sort((a, b) =>
+      a.timestamp && b.timestamp
+        ? new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        : 0
+    );
+
     return unique;
-  }, [history, messages, userId, receiverId]);
+  }, [history, messages, userId, receiver?.id]);
+
+  // 🔽 Tự scroll xuống cuối
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [allMessages]);
+
+  // 📤 Gửi tin nhắn (KHÔNG thêm vào local)
+  const handleSend = () => {
+    if (input.trim()) {
+      const messageId = uuidv4();
+      sendMessage(receiver.id, input.trim(), messageId);
+      setInput("");
+    }
+  };
 
   return (
     <div
       style={{
-        width: 350,
-        background: '#fff',
+        width: "100%",
+        height: "100%",
+        background: "#fff",
         borderRadius: 16,
-        boxShadow: '0 4px 24px rgba(0,0,0,0.13)',
         padding: 16,
-        display: 'flex',
-        flexDirection: 'column',
-        fontFamily: 'inherit',
+        display: "flex",
+        flexDirection: "column",
+        fontFamily: "inherit",
       }}
     >
-      <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 8, color: '#2563eb', letterSpacing: 0.5 }}>💬 Chat trực tuyến</div>
+      <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 8, color: "#2563eb" }}>
+        💬 Chat với {receiver.name}
+      </div>
+
       <div
         style={{
-          height: 240,
-          overflowY: 'auto',
-          background: '#f6f8fa',
+          flex: 1,
+          overflowY: "auto",
+          background: "#f6f8fa",
           borderRadius: 12,
           padding: 12,
           marginBottom: 12,
-          border: '1px solid #e5e7eb',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 8,
+          border: "1px solid #e5e7eb",
+          display: "flex",
+          flexDirection: "column",
+          gap: 6,
         }}
       >
         {allMessages.length === 0 && (
-          <div style={{ color: '#888', textAlign: 'center', marginTop: 40 }}>Chưa có tin nhắn nào</div>
-        )}
-        {allMessages.map((msg, idx) => (
-          <div
-            key={idx}
-            style={{
-              alignSelf: msg.senderId === userId ? 'flex-end' : 'flex-start',
-              background: msg.senderId === userId ? '#2563eb' : '#e0e7ff',
-              color: msg.senderId === userId ? '#fff' : '#1e293b',
-              borderRadius: 12,
-              padding: '8px 14px',
-              maxWidth: '80%',
-              boxShadow: msg.senderId === userId ? '0 2px 8px #2563eb22' : '0 2px 8px #64748b22',
-              marginBottom: 2,
-              fontSize: 15,
-              wordBreak: 'break-word',
-            }}
-            title={msg.senderId === userId ? 'Bạn' : msg.senderId}
-          >
-            <span style={{ fontWeight: 500 }}>{msg.senderId === userId ? 'Bạn' : msg.senderId}:</span> {msg.message}
+          <div style={{ color: "#888", textAlign: "center", marginTop: 40 }}>
+            Chưa có tin nhắn nào
           </div>
-        ))}
+        )}
+
+        {allMessages.map((msg) => {
+          const isMine = msg.senderId === userId;
+          return (
+            <div
+              key={msg.messageId || `${msg.senderId}-${msg.timestamp}-${msg.message}`}
+              style={{
+                alignSelf: isMine ? "flex-end" : "flex-start",
+                background: isMine ? "#2563eb" : "#e0e7ff",
+                color: isMine ? "#fff" : "#1e293b",
+                borderRadius: 16,
+                padding: "8px 12px",
+                maxWidth: "80%",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+              }}
+            >
+              <div style={{ fontSize: 15, wordBreak: "break-word" }}>{msg.message}</div>
+              <div style={{ fontSize: 11, marginTop: 4, textAlign: "right", opacity: 0.6 }}>
+                {msg.timestamp ? dayjs(msg.timestamp).format("HH:mm") : ""}
+              </div>
+            </div>
+          );
+        })}
+
+        <div ref={messagesEndRef} />
       </div>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-        <input
-          value={receiverId}
-          onChange={e => setReceiverId(e.target.value)}
-          placeholder="ID người nhận"
-          style={{
-            flex: 1,
-            border: '1px solid #d1d5db',
-            borderRadius: 8,
-            padding: '8px 10px',
-            fontSize: 15,
-            outline: 'none',
-            background: '#f9fafb',
-            transition: 'border 0.2s',
-          }}
-        />
-      </div>
-      <div style={{ display: 'flex', gap: 8 }}>
+
+      <div style={{ display: "flex", gap: 8 }}>
         <input
           value={input}
-          onChange={e => setInput(e.target.value)}
+          onChange={(e) => setInput(e.target.value)}
           placeholder="Nhập tin nhắn..."
           style={{
             flex: 1,
-            border: '1px solid #d1d5db',
+            border: "1px solid #d1d5db",
             borderRadius: 8,
-            padding: '8px 10px',
+            padding: "10px 12px",
             fontSize: 15,
-            outline: 'none',
-            background: '#f9fafb',
-            transition: 'border 0.2s',
+            background: "#fff",
           }}
-          onKeyDown={e => {
-            if (e.key === 'Enter' && receiverId && input) {
-              sendMessage(receiverId, input);
-              setInput('');
-            }
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleSend();
           }}
         />
         <button
-          onClick={() => {
-            if (receiverId && input) {
-              sendMessage(receiverId, input);
-              setInput('');
-            }
-          }}
+          onClick={handleSend}
           style={{
-            background: '#2563eb',
-            color: '#fff',
-            border: 'none',
+            background: "#2563eb",
+            color: "#fff",
+            border: "none",
             borderRadius: 8,
-            padding: '8px 18px',
+            padding: "10px 16px",
             fontWeight: 600,
             fontSize: 15,
-            cursor: receiverId && input ? 'pointer' : 'not-allowed',
-            opacity: receiverId && input ? 1 : 0.6,
-            boxShadow: '0 2px 8px #2563eb22',
-            transition: 'background 0.2s',
+            cursor: input ? "pointer" : "not-allowed",
+            opacity: input ? 1 : 0.6,
+            boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
           }}
-          disabled={!receiverId || !input}
+          disabled={!input}
         >
           Gửi
         </button>

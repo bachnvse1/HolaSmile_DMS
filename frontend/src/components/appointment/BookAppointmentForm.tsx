@@ -5,10 +5,11 @@ import { Calendar, CheckCircle, ArrowLeft, Clock } from 'lucide-react';
 import { AppointmentStep1 } from './AppointmentStep1';
 import { ScheduleCalendar } from './ScheduleCalendar';
 import { AppointmentSuccess } from './AppointmentSuccess';
+import { AppointmentCaptchaStep } from './AppointmentCaptchaStep';
 import { DentistSelector } from './DentistSelector';
 import { SelectedAppointmentInfo } from './SelectedAppointmentInfo';
 import { useDentistSchedule } from '../../hooks/useDentistSchedule';
-import { useBookAppointment } from '../../hooks/useBookAppointment';
+import { useGuestBookAppointment } from '../../hooks/useBookAppointment';
 import { appointmentFormSchema } from '../../lib/validations/appointment';
 import { TIME_SLOTS } from '../../constants/appointment';
 import type { AppointmentFormData } from '../../lib/validations/appointment';
@@ -35,7 +36,7 @@ export const BookAppointmentForm = () => {
 
   // React Query hooks
   const { dentists, isLoading: dentistsLoading, error: dentistsError } = useDentistSchedule();
-  const bookAppointmentMutation = useBookAppointment();
+  const bookAppointmentMutation = useGuestBookAppointment();
 
   // Tạo time slots với icon cho hiển thị
   const timeSlotsWithIcons: TimeSlot[] = TIME_SLOTS.map(slot => ({
@@ -84,42 +85,44 @@ export const BookAppointmentForm = () => {
     }
   };
 
-  const onFinalSubmit = async () => {
+  const handleScheduleConfirm = () => {
+    setCurrentStep(3); // Go to captcha step
+  };
+
+  const onFinalSubmit = async (captchaInput: string, captchaValue: string) => {
     if (!step1Data || !selectedDentist || !selectedDate || !selectedTimeSlot) return;
     setError(null);
 
     // Tạo appointmentDate với đúng format
     const appointmentDate = new Date(selectedDate);
 
-    // Set time based on shift và tạo TimeSpan format
-    let timeString = '08:00:00'; // Default morning
+    // Set time based on shift
     if (selectedTimeSlot === 'morning') {
-      timeString = '08:00:00';
       appointmentDate.setHours(8, 0, 0, 0);
     } else if (selectedTimeSlot === 'afternoon') {
-      timeString = '14:00:00';
       appointmentDate.setHours(14, 0, 0, 0);
     } else if (selectedTimeSlot === 'evening') {
-      timeString = '17:00:00';
       appointmentDate.setHours(17, 0, 0, 0);
     }
 
-    // Payload theo format backend - PascalCase field names
+    // Payload theo format backend - PascalCase field names với captcha
     const payload = {
       FullName: step1Data.fullName.trim(),
       Email: step1Data.email.trim(),
       PhoneNumber: step1Data.phoneNumber.trim(),
-      AppointmentDate: `${appointmentDate.getFullYear()}-${(appointmentDate.getMonth() + 1).toString().padStart(2, '0')}-${appointmentDate.getDate().toString().padStart(2, '0')}`,
-      AppointmentTime: timeString,
+      AppointmentDate: appointmentDate.toISOString(),
+      AppointmentTime: appointmentDate.getHours() + ':' + appointmentDate.getMinutes().toString().padStart(2, '0') + ':00',
       MedicalIssue: step1Data.medicalIssue.trim(),
-      DentistId: selectedDentist.dentistID
+      DentistId: selectedDentist.dentistID,
+      CaptchaValue: captchaValue,
+      CaptchaInput: captchaInput
     };
 
     bookAppointmentMutation.mutate(payload, {
       onSuccess: (data) => {
-        setSuccessMessage(data.message);
+        setSuccessMessage(data.message ?? '');
         setIsSubmitted(true);
-        toast.success('Đặt lịch thành công!', {
+        toast.success(data.message || 'Đặt lịch thành công!', {
           position: "top-right",
           autoClose: 5000,
         })
@@ -184,6 +187,22 @@ export const BookAppointmentForm = () => {
     return <AppointmentStep1 form={form} onSubmit={onStep1Submit} />;
   }
 
+  // Step 3: Captcha verification
+  if (currentStep === 3) {
+    return (
+      <AppointmentCaptchaStep
+        step1Data={step1Data!}
+        selectedDentist={selectedDentist!}
+        selectedDate={selectedDate}
+        selectedTimeSlot={selectedTimeSlot}
+        onBack={() => setCurrentStep(2)}
+        onSubmit={onFinalSubmit}
+        isLoading={bookAppointmentMutation.isPending}
+        error={error || undefined}
+      />
+    );
+  }
+
   // Step 2: Dentist and Schedule Selection
   return (
     <div className="max-w-7xl mx-auto">
@@ -197,7 +216,7 @@ export const BookAppointmentForm = () => {
             Chọn Bác Sĩ & Lịch Hẹn
           </h2>
           <p className="text-gray-600">
-            Bước 2/2: Chọn bác sĩ và thời gian phù hợp
+            Bước 2/3: Chọn bác sĩ và thời gian phù hợp
           </p>
         </div>
 
@@ -242,12 +261,12 @@ export const BookAppointmentForm = () => {
 
           {selectedDentist && selectedDate && selectedTimeSlot && (
             <button
-              onClick={onFinalSubmit}
+              onClick={handleScheduleConfirm}
               disabled={bookAppointmentMutation.isPending}
               className="flex items-center px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-semibold hover:from-green-700 hover:to-emerald-700 transition-all transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               <CheckCircle className="h-5 w-5 mr-2" />
-              {bookAppointmentMutation.isPending ? 'Đang xử lý...' : 'Xác Nhận Đặt Lịch'}
+              Tiếp Theo - Xác Minh
             </button>
           )}
         </div>
