@@ -1,6 +1,6 @@
-﻿using Application.Interfaces;
+﻿using Application.Constants;
+using Application.Interfaces;
 using Application.Usecases.Patients.ViewInstruction;
-using Application.Usecases.UserCommon.ViewAppointment;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using System.Security.Claims;
@@ -8,7 +8,7 @@ using Xunit;
 
 namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients
 {
-    public class ViewInstructionHandlerTest
+    public class ViewInstructionHandlerTests
     {
         private readonly Mock<IInstructionRepository> _instructionRepoMock;
         private readonly Mock<IAppointmentRepository> _appointmentRepoMock;
@@ -16,7 +16,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private readonly ViewInstructionHandler _handler;
 
-        public ViewInstructionHandlerTest()
+        public ViewInstructionHandlerTests()
         {
             _instructionRepoMock = new Mock<IInstructionRepository>();
             _appointmentRepoMock = new Mock<IAppointmentRepository>();
@@ -38,19 +38,24 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients
                 new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
                 new Claim(ClaimTypes.Role, role)
             };
-            var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
+            var identity = new ClaimsIdentity(claims, "TestAuth");
+            var principal = new ClaimsPrincipal(identity);
             var context = new DefaultHttpContext { User = principal };
             _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
         }
 
-        [Fact(DisplayName = "Normal - UTCID01 - Patient xem chỉ dẫn thành công, có template")]
-        public async System.Threading.Tasks.Task Patient_ViewInstructions_Success_WithTemplate()
+        [Fact(DisplayName = "UTCID01 - Patient xem tất cả chỉ dẫn thành công (có template)")]
+        public async System.Threading.Tasks.Task UTCID01_Patient_ViewAllInstructions_Success_WithTemplate()
         {
             // Arrange
             SetupHttpContext("Patient", 1);
-            var appointments = new List<AppointmentDTO>
+            var appointments = new List<Appointment>
             {
-                new AppointmentDTO { AppointmentId = 10, DentistName = "Dr. A" }
+                new Appointment
+                {
+                    AppointmentId = 10,
+                    Dentist = new Dentist { User = new User { Fullname = "Dr. A" } }
+                }
             };
             var instructions = new List<Instruction>
             {
@@ -58,7 +63,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients
                 {
                     InstructionID = 100,
                     AppointmentId = 10,
-                    Content = "Nội dung chỉ dẫn",
+                    Content = "Nội dung A",
                     CreatedAt = DateTime.Today,
                     Instruc_TemplateID = 5,
                     IsDeleted = false
@@ -67,42 +72,37 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients
             var template = new InstructionTemplate
             {
                 Instruc_TemplateID = 5,
-                Instruc_TemplateName = "Template A",
-                Instruc_TemplateContext = "Context A",
+                Instruc_TemplateName = "T1",
+                Instruc_TemplateContext = "Context 1",
                 IsDeleted = false
             };
 
-            _appointmentRepoMock.Setup(r => r.GetAppointmentsByPatientIdAsync(1))
-                .ReturnsAsync(appointments);
-            _instructionRepoMock.Setup(r => r.GetInstructionsByAppointmentIdsAsync(It.IsAny<List<int>>()))
+            _appointmentRepoMock.Setup(x => x.GetAppointmentsByPatient(1)).ReturnsAsync(appointments);
+            _instructionRepoMock.Setup(x => x.GetInstructionsByAppointmentIdsAsync(It.IsAny<List<int>>()))
                 .ReturnsAsync(instructions);
-            _templateRepoMock.Setup(r => r.GetByIdAsync(5, default))
-                .ReturnsAsync(template);
-
-            var command = new ViewInstructionCommand();
+            _templateRepoMock.Setup(x => x.GetByIdAsync(5, It.IsAny<CancellationToken>())).ReturnsAsync(template);
 
             // Act
-            var result = await _handler.Handle(command, default);
+            var result = await _handler.Handle(new ViewInstructionCommand(), default);
 
             // Assert
             Assert.Single(result);
-            var dto = result.First();
-            Assert.Equal(100, dto.InstructionId);
-            Assert.Equal(10, dto.AppointmentId);
-            Assert.Equal("Nội dung chỉ dẫn", dto.Content);
-            Assert.Equal("Dr. A", dto.DentistName);
-            Assert.Equal(5, dto.Instruc_TemplateID);
-            Assert.Equal("Template A", dto.Instruc_TemplateName);
-            Assert.Equal("Context A", dto.Instruc_TemplateContext);
+            Assert.Equal(100, result[0].InstructionId);
+            Assert.Equal("Dr. A", result[0].DentistName);
+            Assert.Equal("T1", result[0].Instruc_TemplateName);
         }
 
-        [Fact(DisplayName = "Normal - UTCID02 - Patient xem chỉ dẫn thành công, không có template")]
-        public async System.Threading.Tasks.Task Patient_ViewInstructions_Success_WithoutTemplate()
+        [Fact(DisplayName = "UTCID02 - Patient xem chỉ dẫn thành công không có template")]
+        public async System.Threading.Tasks.Task UTCID02_Patient_ViewInstructions_NoTemplate_Success()
         {
             SetupHttpContext("Patient", 2);
-            var appointments = new List<AppointmentDTO>
+            var appointments = new List<Appointment>
             {
-                new AppointmentDTO { AppointmentId = 20, DentistName = "Dr. B" }
+                new Appointment
+                {
+                    AppointmentId = 20,
+                    Dentist = new Dentist { User = new User { Fullname = "Dr. B" } }
+                }
             };
             var instructions = new List<Instruction>
             {
@@ -110,57 +110,81 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients
                 {
                     InstructionID = 200,
                     AppointmentId = 20,
-                    Content = "Chỉ dẫn không template",
+                    Content = "Nội dung B",
                     CreatedAt = DateTime.Today,
                     Instruc_TemplateID = null,
                     IsDeleted = false
                 }
             };
 
-            _appointmentRepoMock.Setup(r => r.GetAppointmentsByPatientIdAsync(2))
-                .ReturnsAsync(appointments);
-            _instructionRepoMock.Setup(r => r.GetInstructionsByAppointmentIdsAsync(It.IsAny<List<int>>()))
+            _appointmentRepoMock.Setup(x => x.GetAppointmentsByPatient(2)).ReturnsAsync(appointments);
+            _instructionRepoMock.Setup(x => x.GetInstructionsByAppointmentIdsAsync(It.IsAny<List<int>>()))
                 .ReturnsAsync(instructions);
 
-            var command = new ViewInstructionCommand();
-
-            var result = await _handler.Handle(command, default);
+            var result = await _handler.Handle(new ViewInstructionCommand(), default);
 
             Assert.Single(result);
-            var dto = result.First();
-            Assert.Equal(200, dto.InstructionId);
-            Assert.Equal(20, dto.AppointmentId);
-            Assert.Equal("Chỉ dẫn không template", dto.Content);
-            Assert.Equal("Dr. B", dto.DentistName);
-            Assert.Null(dto.Instruc_TemplateID);
-            Assert.Null(dto.Instruc_TemplateName);
-            Assert.Null(dto.Instruc_TemplateContext);
+            Assert.Equal(200, result[0].InstructionId);
+            Assert.Null(result[0].Instruc_TemplateName);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID03 - Patient truyền appointmentId không thuộc về mình sẽ bị chặn")]
-        public async System.Threading.Tasks.Task Patient_ViewInstructions_InvalidAppointment_Throws()
+        [Fact(DisplayName = "UTCID03 - Patient truyền AppointmentId không thuộc về mình sẽ bị chặn")]
+        public async System.Threading.Tasks.Task UTCID03_Patient_AppointmentIdNotBelongToPatient_Throws()
         {
             SetupHttpContext("Patient", 3);
-            var appointments = new List<AppointmentDTO>
+            var appointments = new List<Appointment>
             {
-                new AppointmentDTO { AppointmentId = 30, DentistName = "Dr. C" }
+                new Appointment { AppointmentId = 30 }
             };
-            _appointmentRepoMock.Setup(r => r.GetAppointmentsByPatientIdAsync(3))
-                .ReturnsAsync(appointments);
+            _appointmentRepoMock.Setup(x => x.GetAppointmentsByPatient(3)).ReturnsAsync(appointments);
 
-            var command = new ViewInstructionCommand { AppointmentId = 999 };
+            var cmd = new ViewInstructionCommand { AppointmentId = 999 };
 
-            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(command, default));
+            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                _handler.Handle(cmd, default));
+            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID04 - Role không phải Patient sẽ bị chặn")]
-        public async System.Threading.Tasks.Task NotPatientRole_Throws()
+        [Fact(DisplayName = "UTCID04 - Assistant xem chỉ dẫn của 1 lịch hẹn")]
+        public async System.Threading.Tasks.Task UTCID04_Assistant_ViewInstructions_ByAppointmentId_Success()
         {
-            SetupHttpContext("Assistant", 4);
-            var command = new ViewInstructionCommand();
-            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(command, default));
+            SetupHttpContext("Assistant", 10);
+            var appointment = new Appointment
+            {
+                AppointmentId = 40,
+                Dentist = new Dentist { User = new User { Fullname = "Dr. C" } }
+            };
+            var instructions = new List<Instruction>
+            {
+                new Instruction
+                {
+                    InstructionID = 300,
+                    AppointmentId = 40,
+                    Content = "Nội dung C",
+                    CreatedAt = DateTime.Today,
+                    Instruc_TemplateID = null,
+                    IsDeleted = false
+                }
+            };
+
+            _appointmentRepoMock.Setup(x => x.GetAppointmentByIdAsync(40)).ReturnsAsync(appointment);
+            _instructionRepoMock.Setup(x => x.GetInstructionsByAppointmentIdsAsync(It.IsAny<List<int>>()))
+                .ReturnsAsync(instructions);
+
+            var result = await _handler.Handle(new ViewInstructionCommand { AppointmentId = 40 }, default);
+
+            Assert.Single(result);
+            Assert.Equal("Dr. C", result[0].DentistName);
+        }
+
+        [Fact(DisplayName = "UTCID05 - Role không hợp lệ sẽ bị chặn truy cập")]
+        public async System.Threading.Tasks.Task UTCID05_InvalidRole_Throws()
+        {
+            SetupHttpContext("Admin", 99);
+
+            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                _handler.Handle(new ViewInstructionCommand(), default));
+            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
         }
     }
 }

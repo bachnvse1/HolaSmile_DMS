@@ -30,7 +30,7 @@ namespace Infrastructure.Repositories
         {
             return await _context.WarrantyCards
                 .Include(w => w.TreatmentRecord)
-                .FirstOrDefaultAsync(w => w.WarrantyCardID == id, ct);
+                .FirstOrDefaultAsync(w => w.WarrantyCardID == id && !w.IsDeleted, ct);
         }
 
         public async Task<bool> DeactiveWarrantyCardAsync(WarrantyCard card, CancellationToken ct)

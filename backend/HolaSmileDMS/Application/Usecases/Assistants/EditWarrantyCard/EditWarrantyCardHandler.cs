@@ -3,6 +3,7 @@ using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Application.Usecases.Assistant.EditWarrantyCard
 {
@@ -33,20 +34,20 @@ namespace Application.Usecases.Assistant.EditWarrantyCard
 
             var card = await _warrantyRepository.GetByIdAsync(request.WarrantyCardId, cancellationToken);
             if (card == null)
-                throw new KeyNotFoundException(MessageConstants.MSG.MSG102);
+                throw new KeyNotFoundException(MessageConstants.MSG.MSG103);
 
-            if (!request.Duration.HasValue || request.Duration <= 0)
+            if (!request.Duration.HasValue || request.Duration <= 0 )
                 throw new ArgumentException(MessageConstants.MSG.MSG98);
 
             card.Duration = request.Duration;
-            card.EndDate = card.StartDate.AddMonths(request.Duration.Value); // Tính lại ngày kết thúc
+            card.EndDate = card.StartDate.AddMonths(request.Duration.Value);
             card.Status = request.Status;
             card.UpdatedAt = DateTime.Now;
             card.UpdatedBy = int.TryParse(userId, out var uid) ? uid : null;
 
             await _warrantyRepository.UpdateWarrantyCardAsync(card, cancellationToken);
 
-            return MessageConstants.MSG.MSG106; // Cập nhật thẻ bảo hành thành công
+            return MessageConstants.MSG.MSG106;
         }
     }
 }

@@ -141,7 +141,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Patients
         [Fact(DisplayName = "Abnormal - UTCID03 - Role không phải Patient sẽ bị chặn")]
         public async System.Threading.Tasks.Task Abnormal_UTCID03_InvalidRole_Throws()
         {
-            SetupHttpContext("Assistant", 1);
+            SetupHttpContext("Admin", 1);
 
             var command = new ViewInstructionCommand();
 
