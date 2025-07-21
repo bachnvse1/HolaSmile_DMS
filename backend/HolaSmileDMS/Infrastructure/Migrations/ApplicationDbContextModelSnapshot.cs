@@ -234,6 +234,42 @@ namespace Infrastructure.Migrations
                     b.ToTable("FinancialTransactions");
                 });
 
+            modelBuilder.Entity("Domain.Entities.GuestInfo", b =>
+                {
+                    b.Property<Guid>("GuestId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("IPAddress")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("LastMessageAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("UserAgent")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("GuestId");
+
+                    b.ToTable("GuestInfos");
+                });
+
             modelBuilder.Entity("Domain.Entities.ProcedureDiscountProgram", b =>
                 {
                     b.Property<int>("ProcedureId")

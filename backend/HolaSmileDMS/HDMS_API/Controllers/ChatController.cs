@@ -7,7 +7,6 @@ namespace HDMS_API.Controllers;
 
 [ApiController]
 [Route("api/chats")]
-[Authorize]
 public class ChatController : ControllerBase
 {
     private readonly ApplicationDbContext _context;

@@ -1,6 +1,6 @@
 namespace Infrastructure.Realtime;
 
-public static class ChatConnectionManager
+public static partial class ChatConnectionManager
 {
     private static readonly Dictionary<string, string> _userConnections = new();
 

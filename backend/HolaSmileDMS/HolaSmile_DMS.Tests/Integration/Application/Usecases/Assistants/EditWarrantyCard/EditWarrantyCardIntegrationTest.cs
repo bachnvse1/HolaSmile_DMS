@@ -68,7 +68,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
                     Duration = 12,
                     Status = true,
                     CreateBy = 1,
-                    IsDelete = false
+                    IsDeleted = false
                 },
                 new WarrantyCard
                 {
@@ -79,7 +79,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
                     Duration = 12,
                     Status = true,
                     CreateBy = 1,
-                    IsDelete = true
+                    IsDeleted = true
                 }
             );
 

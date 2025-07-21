@@ -39,6 +39,8 @@ namespace HDMS_API.Infrastructure.Persistence
         public DbSet<User> Users { get; set; }
         public DbSet<WarrantyCard> WarrantyCards { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
+        public DbSet<GuestInfo> GuestInfos { get; set; }
+        
 
         // Add these DbSets
         public DbSet<FinancialTransaction> FinancialTransactions { get; set; }
