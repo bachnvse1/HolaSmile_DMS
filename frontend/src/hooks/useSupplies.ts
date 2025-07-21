@@ -20,16 +20,26 @@ export const useSupplies = (searchQuery?: string) => {
   return useQuery({
     queryKey: SUPPLY_KEYS.list(searchQuery),
     queryFn: async () => {
-      const supplies = await supplyApi.getSupplies();
-      
-      // Filter by search query if provided
-      if (searchQuery) {
-        return supplies.filter(supply => 
-          supply.Name.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+      try {
+        const supplies = await supplyApi.getSupplies();
+        
+        // Filter by search query if provided
+        if (searchQuery) {
+          return supplies.filter(supply => 
+            supply.Name.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+        }
+        
+        return supplies;
+      } catch (error: unknown) {
+        // Handle empty data case - return empty array instead of throwing error
+        const apiError = error as { response?: { status?: number; data?: { message?: string } } };
+        if (apiError?.response?.status === 500 && 
+            apiError?.response?.data?.message === "Không có dữ liệu phù hợp") {
+          return [];
+        }
+        throw error;
       }
-      
-      return supplies;
     },
     staleTime: 5 * 60 * 1000, 
   });
@@ -94,25 +104,40 @@ export const useSupplyStats = () => {
   return useQuery({
     queryKey: SUPPLY_KEYS.stats(),
     queryFn: async () => {
-      const supplies = await supplyApi.getSupplies();
-      
-      // Calculate statistics
-      const lowStockSupplies = supplies.filter(supply => supply.QuantityInStock <= 50);
-      const expiringSoonSupplies = supplies.filter(supply => {
-        const futureDate = new Date();
-        futureDate.setDate(futureDate.getDate() + 30);
-        return new Date(supply.ExpiryDate) <= futureDate;
-      });
-      const totalValue = supplies.reduce((sum, supply) => 
-        sum + (supply.Price * supply.QuantityInStock), 0
-      );
+      try {
+        const supplies = await supplyApi.getSupplies();
+        
+        // Calculate statistics
+        const lowStockSupplies = supplies.filter(supply => supply.QuantityInStock <= 50);
+        const expiringSoonSupplies = supplies.filter(supply => {
+          const futureDate = new Date();
+          futureDate.setDate(futureDate.getDate() + 30);
+          return new Date(supply.ExpiryDate) <= futureDate;
+        });
+        const totalValue = supplies.reduce((sum, supply) => 
+          sum + (supply.Price * supply.QuantityInStock), 0
+        );
 
-      return {
-        totalSupplies: supplies.length,
-        lowStockCount: lowStockSupplies.length,
-        expiringSoonCount: expiringSoonSupplies.length,
-        totalValue
-      };
+        return {
+          totalSupplies: supplies.length,
+          lowStockCount: lowStockSupplies.length,
+          expiringSoonCount: expiringSoonSupplies.length,
+          totalValue
+        };
+      } catch (error: unknown) {
+        // Handle empty data case - return zero stats instead of throwing error
+        const apiError = error as { response?: { status?: number; data?: { message?: string } } };
+        if (apiError?.response?.status === 500 && 
+            apiError?.response?.data?.message === "Không có dữ liệu phù hợp") {
+          return {
+            totalSupplies: 0,
+            lowStockCount: 0,
+            expiringSoonCount: 0,
+            totalValue: 0
+          };
+        }
+        throw error;
+      }
     },
     staleTime: 5 * 60 * 1000, 
   });

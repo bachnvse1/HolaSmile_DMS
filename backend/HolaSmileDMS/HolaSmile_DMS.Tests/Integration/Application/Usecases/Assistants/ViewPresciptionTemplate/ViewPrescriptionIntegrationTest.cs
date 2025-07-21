@@ -8,15 +8,15 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants.ViewPresciptionTemplate
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
 {
-    public class ViewPrescriptionIntegrationTest
+    public class ViewPresciptionTemplateIntegrationTest
     {
         private readonly ApplicationDbContext _context;
         private readonly ViewPrescriptionTemplateHandler _handler;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ViewPrescriptionIntegrationTest()
+        public ViewPresciptionTemplateIntegrationTest()
         {
             var services = new ServiceCollection();
 

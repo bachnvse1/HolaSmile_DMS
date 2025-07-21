@@ -19,20 +19,23 @@ export const AppointmentStep1: React.FC<AppointmentStep1Props> = ({ form, onSubm
       await axiosInstance.post('/Guest/ValidateBookAppointment', data);
       // Nếu không lỗi, gọi onSubmit tiếp tục
       onSubmit(data);
-    } catch (err: any) {
-      if (err.response?.data?.errors) {
-        setServerErrors(err.response.data.errors);
-      } else if (err.response?.data?.message) {
-        const msg = err.response.data.message;
-        if (msg.includes('điện thoại')) {
-          setServerErrors({ phoneNumber: msg });
-        } else if (msg.toLowerCase().includes('email')) {
-          setServerErrors({ email: msg });
-        } else if (msg.toLowerCase().includes('họ tên')) {
-          setServerErrors({ fullName: msg });
-        } else {
-          // fallback: gán vào một trường chung hoặc hiển thị toast
-          setServerErrors({ general: msg });
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'response' in err) {
+        const error = err as { response?: { data?: { errors?: Record<string, string>; message?: string } } };
+        if (error.response?.data?.errors) {
+          setServerErrors(error.response.data.errors);
+        } else if (error.response?.data?.message) {
+          const msg = error.response.data.message;
+          if (msg.includes('điện thoại')) {
+            setServerErrors({ phoneNumber: msg });
+          } else if (msg.toLowerCase().includes('email')) {
+            setServerErrors({ email: msg });
+          } else if (msg.toLowerCase().includes('họ tên')) {
+            setServerErrors({ fullName: msg });
+          } else {
+            // fallback: gán vào một trường chung hoặc hiển thị toast
+            setServerErrors({ general: msg });
+          }
         }
       }
     }
@@ -49,7 +52,7 @@ export const AppointmentStep1: React.FC<AppointmentStep1Props> = ({ form, onSubm
             Thông Tin Cá Nhân
           </h2>
           <p className="text-gray-600">
-            Bước 1/2: Vui lòng điền thông tin của bạn
+            Bước 1/3: Vui lòng điền thông tin của bạn
           </p>
         </div>
 

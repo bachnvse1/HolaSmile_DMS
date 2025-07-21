@@ -47,10 +47,10 @@ public class CreateInvoiceHandlerIntegrationTests
         var invoiceRepo = new InvoiceRepository(db);
         var patientRepo = new PatientRepository(db);
         var treatmentRepo = new TreatmentRecordRepository(db, _mapper);
-
+    
         var mediator = new Mock<IMediator>();
-
-        return new CreateInvoiceHandler(invoiceRepo, treatmentRepo, httpContextAccessor.Object, patientRepo, mediator.Object);
+        var transactionRepo = new TransactionRepository(db);
+        return new CreateInvoiceHandler(invoiceRepo, treatmentRepo, httpContextAccessor.Object, patientRepo, mediator.Object, transactionRepo);
     }
 
     private void SeedData()

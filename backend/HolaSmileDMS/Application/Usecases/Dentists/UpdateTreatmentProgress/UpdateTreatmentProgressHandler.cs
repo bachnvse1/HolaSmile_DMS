@@ -11,6 +11,7 @@ namespace Application.Usecases.Dentist.UpdateTreatmentProgress
     public class UpdateTreatmentProgressHandler : IRequestHandler<UpdateTreatmentProgressCommand, bool>
     {
         private readonly ITreatmentProgressRepository _repository;
+        private readonly ITreatmentRecordRepository _treatmentRecordRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMediator _mediator;
         private readonly IUserCommonRepository _userCommonRepository;
@@ -19,12 +20,13 @@ namespace Application.Usecases.Dentist.UpdateTreatmentProgress
 
         public UpdateTreatmentProgressHandler(
             ITreatmentProgressRepository repository,
-            IHttpContextAccessor httpContextAccessor, IUserCommonRepository userCommonRepository, IMediator mediator)
+            IHttpContextAccessor httpContextAccessor, IUserCommonRepository userCommonRepository, IMediator mediator, ITreatmentRecordRepository treatmentRecordRepository)
         {
             _repository = repository;
             _httpContextAccessor = httpContextAccessor;
             _mediator = mediator;
             _userCommonRepository = userCommonRepository;
+            _treatmentRecordRepository = treatmentRecordRepository;
         }
 
         public async Task<bool> Handle(UpdateTreatmentProgressCommand request, CancellationToken cancellationToken)
@@ -74,12 +76,12 @@ namespace Application.Usecases.Dentist.UpdateTreatmentProgress
             if (updateSuccess)
             {
                 var treatmentDate = progress.EndTime?.ToString("dd/MM/yyyy") ?? "chưa xác định";
-
+                await UpdateTreatmentRecordStatusIfCompleted(progress, cancellationToken);
                 // 1. Gửi cho bệnh nhân
                 await _mediator.Send(new SendNotificationCommand(
                     await _userCommonRepository.GetUserIdByRoleTableIdAsync("patient", progress.PatientID) ?? 0,
                     "Cập nhật tiến trình điều trị",
-                    $"Tiến trình điều trị ${progress.TreatmentProgressID} của bạn đã được cập nhật sang ngày {treatmentDate}.",
+                    $"Tiến trình điều trị #{progress.TreatmentProgressID} của bạn đã được cập nhật sang ngày {treatmentDate}.",
                     "Tiến trình điều trị",
                     0
                 ), cancellationToken);
@@ -88,7 +90,7 @@ namespace Application.Usecases.Dentist.UpdateTreatmentProgress
                 await _mediator.Send(new SendNotificationCommand(
                     await _userCommonRepository.GetUserIdByRoleTableIdAsync("dentist", progress.DentistID) ?? 0,
                     "Tiến trình đã được cập nhật",
-                     $"Tiến trình điều trị ${progress.TreatmentProgressID} của bệnh nhân đã được cập nhật.",
+                     $"Tiến trình điều trị #{progress.TreatmentProgressID} của bệnh nhân đã được cập nhật.",
                     "Tiến trình điều trị",
                     progress.TreatmentProgressID
                 ), cancellationToken);
@@ -136,6 +138,25 @@ namespace Application.Usecases.Dentist.UpdateTreatmentProgress
             var endTime = req.EndTime ?? current.EndTime;
             if (endTime.HasValue && endTime < current.CreatedAt)
                 throw new ArgumentException("EndTime không thể nhỏ hơn CreatedAt.");
+        }
+        private async System.Threading.Tasks.Task UpdateTreatmentRecordStatusIfCompleted(TreatmentProgress progress, CancellationToken cancellationToken)
+        {
+            if (!progress.Status?.Equals("completed", StringComparison.OrdinalIgnoreCase) ?? true)
+                return;
+
+            var allProgresses = await _repository.GetByTreatmentRecordIdAsync(progress.TreatmentRecordID, cancellationToken);
+            if (allProgresses.All(p => p.Status?.Equals("completed", StringComparison.OrdinalIgnoreCase) == true))
+            {
+                // You need to inject ITreatmentRecordRepository as _treatmentRecordRepository
+                var treatmentRecord = await _treatmentRecordRepository.GetTreatmentRecordByIdAsync(progress.TreatmentRecordID, cancellationToken);
+                if (treatmentRecord != null)
+                {
+                    treatmentRecord.TreatmentStatus = "completed";
+                    treatmentRecord.UpdatedAt = DateTime.Now;
+                    treatmentRecord.UpdatedBy = progress.UpdatedBy;
+                    await _treatmentRecordRepository.UpdatedTreatmentRecordAsync(treatmentRecord, cancellationToken);
+                }
+            }
         }
     }
 }
