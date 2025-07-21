@@ -20,6 +20,11 @@ public class ProcedureRepository : IProcedureRepository
             .ThenInclude(su => su.Supplies)
             .ToListAsync();
     }
+    public async Task<List<int>> GetAllProceddureIdAsync()
+    {
+        return await _context.Procedures.Select(p => p.ProcedureId).ToListAsync();
+    }
+
 
     public async Task<Procedure?> GetProcedureByProcedureId(int procedureId)
     {

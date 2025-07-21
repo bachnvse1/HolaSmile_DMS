@@ -111,6 +111,34 @@ public class InvoiceController : ControllerBase
         }
     }
     
+    [HttpPut("updateOrderCode")]
+    [Authorize]
+    public async Task<IActionResult> UpdateInvoicOrderCode([FromBody] UpdateOrderCodeCommand command)
+    {
+        try
+        {
+            var result = await _mediator.Send(command);
+            return Ok(new { message = result });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { message = MessageConstants.MSG.MSG26 });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            // Trường hợp lỗi không rõ, có thể log lại nếu cần
+            return StatusCode(500, new { message = ex.Message });
+        }
+    }
+    
     [HttpGet("print/{InvoiceId}")]
     [Authorize]
     public async Task<IActionResult> PrintInvoice(int InvoiceId)

@@ -25,7 +25,7 @@ export const OrthodonticTreatmentPlanBasicForm: React.FC<OrthodonticTreatmentPla
   // Dynamic schema based on mode
   const basicPlanSchema = React.useMemo(() => z.object({
     planTitle: z.string().min(1, 'Tên kế hoạch là bắt buộc'),
-    templateName: z.string().min(1, 'Template là bắt buộc'),
+    templateName: z.string().min(1, 'Tên mẫu là bắt buộc'),
     dentistId: mode === 'edit' ? z.coerce.number().optional() : z.coerce.number().min(1, 'Bác sĩ phụ trách là bắt buộc'),
     consultationDate: z.string().min(1, 'Ngày tư vấn là bắt buộc'),
   }), [mode]);
@@ -231,7 +231,7 @@ export const OrthodonticTreatmentPlanBasicForm: React.FC<OrthodonticTreatmentPla
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Tên Kế Hoạch *</label>
+                <label className="text-sm font-medium text-gray-700">Tên Kế Hoạch  <span className="text-red-600">*</span></label>
                 <Input
                   placeholder="Nhập tên kế hoạch điều trị"
                   {...form.register('planTitle')}
@@ -242,7 +242,7 @@ export const OrthodonticTreatmentPlanBasicForm: React.FC<OrthodonticTreatmentPla
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Tên Mẫu *</label>
+                <label className="text-sm font-medium text-gray-700">Tên Mẫu <span className="text-red-600">*</span></label>
                 <Select 
                   value={form.watch('templateName') || ''}
                   onValueChange={(value) => form.setValue('templateName', value)}
@@ -263,7 +263,7 @@ export const OrthodonticTreatmentPlanBasicForm: React.FC<OrthodonticTreatmentPla
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Bác Sĩ Phụ Trách *</label>
+                <label className="text-sm font-medium text-gray-700">Bác Sĩ Phụ Trách  <span className="text-red-600">*</span></label>
                 {mode === 'edit' ? (
                   <Input
                     value={treatmentPlan && (treatmentPlan as { dentistName?: string }).dentistName || 'Không xác định'}

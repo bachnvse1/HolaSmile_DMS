@@ -108,7 +108,8 @@ namespace HDMS_API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     status = false,
-                    message = ex.Message
+                    message = ex.Message,
+                    inner = ex.InnerException
                 });
             }
         }
@@ -120,7 +121,7 @@ namespace HDMS_API.Controllers
             try
             {
                 var bytes = await _mediator.Send(new DownloadSupplyExcelTemplateCommand());
-                return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "SupplyTemplate.xlsx");
+                return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Thêm mới vật tư.xlsx");
             }
             catch (UnauthorizedAccessException ex)
             {

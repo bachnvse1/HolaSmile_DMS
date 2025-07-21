@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.SendNotification;
+using Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
@@ -14,17 +15,19 @@ public class CreateInvoiceHandler : IRequestHandler<CreateInvoiceCommand, string
     private readonly ITreatmentRecordRepository _treatmentRecordRepository;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IMediator _mediator;
+    private readonly ITransactionRepository _financialTransactionRepository;
 
     public CreateInvoiceHandler(
         IInvoiceRepository invoiceRepository,
         ITreatmentRecordRepository treatmentRecordRepository,
-        IHttpContextAccessor httpContextAccessor, IPatientRepository patientRepository, IMediator mediator)
+        IHttpContextAccessor httpContextAccessor, IPatientRepository patientRepository, IMediator mediator, ITransactionRepository financialTransactionRepository)
     {
         _invoiceRepository = invoiceRepository;
         _treatmentRecordRepository = treatmentRecordRepository;
         _httpContextAccessor = httpContextAccessor;
         _patientRepository = patientRepository;
         _mediator = mediator;
+        _financialTransactionRepository = financialTransactionRepository;
     }
 
     public async Task<string> Handle(CreateInvoiceCommand request, CancellationToken cancellationToken)
@@ -99,6 +102,23 @@ public class CreateInvoiceHandler : IRequestHandler<CreateInvoiceCommand, string
         };
 
         await _invoiceRepository.CreateInvoiceAsync(invoice);
+        
+        // Create FinancialTransaction after invoice is created
+        var financialTransaction = new FinancialTransaction
+        {
+            TransactionDate = DateTime.Now,
+            Description = "Thanh toán hoá đơn, " + invoice.OrderCode,
+            TransactionType = true, // true: income (thu)
+            Category = "Thanh toán hoá đơn",
+            PaymentMethod = invoice.PaymentMethod == "cash", // true: cash, false: transfer
+            Amount = invoice.PaidAmount ?? 0,
+            CreatedAt = DateTime.Now,
+            CreatedBy = userId,
+            IsDelete = false
+        };
+
+        await _financialTransactionRepository.CreateTransactionAsync(financialTransaction);
+        
         var patient = await _patientRepository.GetPatientByPatientIdAsync(request.PatientId);
         if (patient != null)
         {

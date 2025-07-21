@@ -52,7 +52,10 @@ public class CreatePaymentLinkHandler : IRequestHandler<CreatePaymentLinkCommand
             signature: ""
         );
         var response = await payOS.createPaymentLink(paymentData);
-
+            
+        //update invoice with payment URL
+        invoice.PaymentUrl = response.checkoutUrl!;
+        await _invoiceRepo.UpdateInvoiceAsync(invoice);
         return response.checkoutUrl!;
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Application.Common.Mappings;
 using Application.Interfaces;
 using Application.Services;
+using Application.Usecases.Receptionist.SMS;
 using Application.Usecases.SendNotification;
 using DinkToPdf;
 using DinkToPdf.Contracts;
@@ -11,11 +12,14 @@ using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Infrastructure.Persistence;
 using HDMS_API.Infrastructure.Repositories;
 using HDMS_API.Infrastructure.Services;
+using Infrastructure.BackGroundCleanupServices;
+using Infrastructure.BackGroundServices;
 using Infrastructure.Configurations;
 using Infrastructure.Hubs;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
 using MediatR;
+using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -31,7 +35,6 @@ namespace HDMS_API.Container.DependencyInjection
                 options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)),
                 ServiceLifetime.Scoped
             );
-            
             // Repository & Services
             services.AddScoped<IAppointmentRepository, AppointmentRepository>();
             services.AddScoped<IEmailService, EmailService>();
@@ -70,7 +73,10 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IPayOSConfiguration, PayOSConfiguration>();
             services.AddScoped<ICloudinaryService, CloudinaryService>();
             services.AddScoped<IImageRepository, ImageRepository>();
+            services.AddScoped<ITransactionRepository, TransactionRepository>();
+            services.AddScoped<IPromotionrepository, Promotionrepository>();
 
+            services.AddHttpClient<IEsmsService, SmsService>();
 
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>
@@ -100,6 +106,10 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddAutoMapper(typeof(MappingAppointment));
             services.AddAutoMapper(typeof(MappingTreatmentProgress).Assembly);
             services.AddAutoMapper(typeof(OrthodonticTreatmentPlanProfile).Assembly);
+
+            //background services
+            services.AddHostedService<PromotionCleanupService>();
+            services.AddHostedService<AppointmentCleanupService>();
 
 
             // Caching

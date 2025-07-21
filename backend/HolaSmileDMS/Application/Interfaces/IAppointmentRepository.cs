@@ -16,7 +16,7 @@ namespace Application.Interfaces
         Task<bool> ExistsAppointmentAsync(int patientId, DateTime date);
         Task<Appointment> GetLatestAppointmentByPatientIdAsync(int? patientId);
         Task<bool> UpdateAppointmentAsync(Appointment appointment);
-
+        Task<List<Appointment>> GetAllCofirmAppoitmentAsync();
 
     }
 }
