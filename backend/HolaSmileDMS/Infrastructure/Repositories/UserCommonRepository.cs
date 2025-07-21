@@ -184,10 +184,14 @@ namespace HDMS_API.Infrastructure.Repositories
             return await _context.Receptionists.Include(r => r.User).ToListAsync();
         }
 
-        public Task<List<ViewListPatientDto>> GetAllPatientsAsync(CancellationToken cancellationToken)
+        public async Task<List<Patient>> GetAllPatientsAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return await _context.Patients
+                .Include(p => p.User)
+                .Where(p => p.User.IsVerify == true && p.User.Status == true)
+                .ToListAsync(cancellationToken);
         }
+
 
         public async Task<ViewProfileDto?> GetUserProfileAsync(int userId, CancellationToken cancellationToken)
         {
