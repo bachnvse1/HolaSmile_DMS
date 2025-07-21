@@ -19,7 +19,6 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Skeleton } from "@/components/ui/skeleton"
 
-// Constants
 const TREATMENT_PROGRESS_STATUS = {
   "in-progress": { label: "Đang điều trị", className: "bg-blue-100 text-blue-800 border border-blue-200" },
   "canceled": { label: "Đã huỷ", className: "bg-red-100 text-red-800 border border-red-200" },
@@ -29,7 +28,6 @@ const TREATMENT_PROGRESS_STATUS = {
 
 const ROLES_CAN_CREATE = ["Administrator", "Owner", "Receptionist", "Assistant", "Dentist"] as const
 
-// Types
 interface PageState {
   selectedProgress: TreatmentProgress | null
   progressList: TreatmentProgress[]
@@ -63,7 +61,6 @@ export default function ViewTreatmentProgress() {
   const navigate = useNavigate()
   const { fullName, role, userId } = useAuth()
 
-  // Computed values
   const isPatient = role === "Patient"
   const canCreateProgress = ROLES_CAN_CREATE.includes(role as any)
   const patientId = Number(searchParams.get("patientId"))
@@ -77,7 +74,6 @@ export default function ViewTreatmentProgress() {
     avatar: undefined
   }), [userId, fullName, role])
 
-  // Data fetching
   const fetchData = useCallback(async (recordId: number, scrollToLatest = false) => {
     updateState({ isLoading: true, error: null })
     
@@ -99,20 +95,24 @@ export default function ViewTreatmentProgress() {
     } catch (err) {
       console.error("Lỗi load tiến trình:", err)
       updateState({
-        error: err instanceof Error ? err.message : "Không thể tải dữ liệu tiến trình điều trị",
+        error:
+          typeof err === "object" &&
+          err !== null &&
+          "response" in err &&
+          typeof (err as any).response?.data?.message === "string"
+            ? (err as any).response.data.message
+            : "Không thể tải dữ liệu tiến trình điều trị",
         isLoading: false,
       })
     }
   }, [updateState])
 
-  // Effects
   useEffect(() => {
     if (treatmentRecordId) {
       fetchData(Number(treatmentRecordId))
     }
   }, [treatmentRecordId, fetchData])
 
-  // Event handlers
   const handleCreateSuccess = useCallback((newProgress: TreatmentProgress) => {
     updateState({
       selectedProgress: newProgress,
@@ -135,7 +135,6 @@ export default function ViewTreatmentProgress() {
     navigate(-1)
   }, [navigate])
 
-  // Render functions
   const renderStatusBadge = (status?: string) => {
     const statusInfo = TREATMENT_PROGRESS_STATUS[status as keyof typeof TREATMENT_PROGRESS_STATUS] ?? {
       label: status ?? "Không rõ",
@@ -252,7 +251,6 @@ export default function ViewTreatmentProgress() {
     </div>
   )
 
-  // Main content component
   const ContentComponent = () => (
     <div className="w-full px-4 md:px-8 lg:px-12 py-6 space-y-6">
       {renderHeader()}

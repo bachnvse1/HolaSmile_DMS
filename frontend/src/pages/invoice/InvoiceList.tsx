@@ -401,7 +401,6 @@ export default function InvoiceList() {
         const pendingInvoices = filteredInvoices.filter(invoice => invoice.status === 'pending').length
         const paidInvoices = filteredInvoices.filter(invoice => invoice.status === 'paid').length
 
-        // Gom invoice theo treatmentRecordId
         const grouped = new Map<number, { totalAmount: number, paidAmount: number }>()
 
         allInvoices.forEach(inv => {

@@ -32,6 +32,7 @@ import {
 import { useUserInfo } from '@/hooks/useUserInfo';
 import type { Supply } from '@/types/supply';
 import { getErrorMessage } from '@/utils/formatUtils';
+import { formatCurrency } from '@/utils/formatUtils';
 
 export const SupplyList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -63,7 +64,7 @@ export const SupplyList: React.FC = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
-    }, 300); 
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
@@ -222,13 +223,6 @@ export const SupplyList: React.FC = () => {
     });
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-    }).format(price);
-  };
-
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -265,23 +259,30 @@ export const SupplyList: React.FC = () => {
     );
   }
 
+  // Only show error for non-empty data errors
   if (error) {
-    return (
-      <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
-        <div className="flex justify-center items-center min-h-[400px]">
-          <div className="text-center">
-            <p className="text-red-600">Có lỗi xảy ra khi tải dữ liệu: {error.message}</p>
-            <Button
-              variant="outline"
-              onClick={() => window.location.reload()}
-              className="mt-2"
-            >
-              Thử lại
-            </Button>
+    const apiError = error as { response?: { status?: number; data?: { message?: string } } };
+    const isEmptyDataError = apiError?.response?.status === 500 &&
+      apiError?.response?.data?.message === "Không có dữ liệu phù hợp";
+
+    if (!isEmptyDataError) {
+      return (
+        <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
+          <div className="flex justify-center items-center min-h-[400px]">
+            <div className="text-center">
+              <p className="text-red-600">Có lỗi xảy ra khi tải dữ liệu: {(error as Error).message}</p>
+              <Button
+                variant="outline"
+                onClick={() => window.location.reload()}
+                className="mt-2"
+              >
+                Thử lại
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
-    );
+      );
+    }
   }
 
   return (
@@ -300,20 +301,23 @@ export const SupplyList: React.FC = () => {
         <div className="flex flex-col gap-2 sm:gap-3 sm:ml-auto">
           {/* Mobile layout: 2 rows */}
           <div className="grid grid-cols-2 gap-2 sm:hidden">
-            <Button
-              onClick={handleExportExcel}
-              disabled={isExportExcel}
-              className="text-xs bg-green-600 hover:bg-green-700 text-white"
-            >
-              <Download className="h-3 w-3 mr-1" />
-              <span>Xuất Excel</span>
-            </Button>
-
+            {supplies.length > 0 && (
+              <Button
+                onClick={handleExportExcel}
+                disabled={isExportExcel}
+                className="text-xs bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Download className="h-3 w-3 mr-1" />
+                <span>Xuất Excel</span>
+              </Button>
+            )}
             {canModify && (
               <Button
                 onClick={() => setShowImportModal(true)}
                 disabled={isImporting}
-                className="text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                className={`text-xs bg-blue-600 hover:bg-blue-700 text-white ${
+                  supplies.length === 0 ? 'col-span-2' : ''
+                }`}
               >
                 <Upload className="h-3 w-3 mr-1" />
                 <span>Nhập Excel</span>
@@ -335,14 +339,16 @@ export const SupplyList: React.FC = () => {
 
           {/* Desktop layout: Single row */}
           <div className="hidden sm:flex sm:gap-3">
-            <Button
-              onClick={handleExportExcel}
-              disabled={isExportExcel}
-              className="text-sm bg-green-600 hover:bg-green-700 text-white"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              {isExportExcel ? 'Đang xuất...' : 'Xuất Excel'}
-            </Button>
+            {supplies.length > 0 && (
+              <Button
+                onClick={handleExportExcel}
+                disabled={isExportExcel}
+                className="text-sm bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {isExportExcel ? 'Đang xuất...' : 'Xuất Excel'}
+              </Button>
+            )}
 
             {canModify && (
               <>
@@ -413,7 +419,7 @@ export const SupplyList: React.FC = () => {
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm font-medium text-gray-600">Tổng giá trị</p>
                   <p className="text-sm sm:text-lg font-bold text-green-600 truncate">
-                    {formatPrice(stats.totalValue)}
+                    {formatCurrency(stats.totalValue)}
                   </p>
                 </div>
                 <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 flex-shrink-0" />
@@ -480,12 +486,12 @@ export const SupplyList: React.FC = () => {
           <CardContent className="p-8 text-center">
             <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {searchQuery ? 'Không tìm thấy vật tư' : 'Chưa có vật tư nào'}
+              {searchQuery ? 'Không tìm thấy vật tư' : 'Kho vật tư trống'}
             </h3>
             <p className="text-gray-600 mb-4">
               {searchQuery
                 ? 'Thử thay đổi từ khóa tìm kiếm của bạn'
-                : 'Bắt đầu thêm vật tư đầu tiên vào kho'
+                : 'Bắt đầu thêm vật tư đầu tiên vào kho để quản lý hiệu quả'
               }
             </p>
             {!searchQuery && canModify && (
@@ -494,11 +500,23 @@ export const SupplyList: React.FC = () => {
                 Thêm Vật Tư Mới
               </Button>
             )}
+            {searchQuery && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearchQuery('');
+                  setDebouncedSearchQuery('');
+                  setCurrentPage(1);
+                }}
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Xem tất cả vật tư
+              </Button>
+            )}
           </CardContent>
         </Card>
       ) : (
         <>
-          {/* Desktop Table */}
           <Card className="hidden lg:block">
             <CardContent className="p-0">
               <div className="overflow-x-auto">
@@ -564,7 +582,7 @@ export const SupplyList: React.FC = () => {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {formatPrice(supply.Price)}
+                            {formatCurrency(supply.Price)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex flex-col gap-1">
@@ -714,7 +732,7 @@ export const SupplyList: React.FC = () => {
                         <div>
                           <span className="text-gray-600">Giá:</span>
                           <div className="font-medium text-gray-900 mt-1 truncate">
-                            {formatPrice(supply.Price)}
+                            {formatCurrency(supply.Price)}
                           </div>
                         </div>
                       </div>
@@ -777,7 +795,7 @@ export const SupplyList: React.FC = () => {
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen px-4 text-center">
             <div className="fixed inset-0 bg-black opacity-50" onClick={handleCancelImport}></div>
-            
+
             <div className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl relative z-10">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-medium text-gray-900">
@@ -799,13 +817,12 @@ export const SupplyList: React.FC = () => {
                   <p className="text-sm text-gray-600 mb-3">
                     Chọn file Excel để nhập dữ liệu vật tư. File phải có định dạng .xlsx hoặc .xls
                   </p>
-                  
-                  <div 
-                    className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
-                      selectedFile 
-                        ? 'border-green-400 bg-green-50' 
+
+                  <div
+                    className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${selectedFile
+                        ? 'border-green-400 bg-green-50'
                         : 'border-gray-300 hover:border-blue-400'
-                    }`}
+                      }`}
                     onClick={() => {
                       console.log('Clicking to open file dialog');
                       fileInputRef.current?.click();
@@ -856,7 +873,7 @@ export const SupplyList: React.FC = () => {
                       {isImporting ? 'Đang nhập...' : 'Xác nhận nhập Excel'}
                     </Button>
                   )}
-                  
+
                   <div className="flex gap-3">
                     <Button
                       variant="outline"
@@ -867,9 +884,9 @@ export const SupplyList: React.FC = () => {
                       <Download className="h-4 w-4 mr-2" />
                       {isDownloadExcel ? 'Đang tải...' : 'Tải mẫu Excel'}
                     </Button>
-                    
+
                     <Button
-                      variant="outline" 
+                      variant="outline"
                       onClick={handleCancelImport}
                       className="flex-1"
                       disabled={isImporting}

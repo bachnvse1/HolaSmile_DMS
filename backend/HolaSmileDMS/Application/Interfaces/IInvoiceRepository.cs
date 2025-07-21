@@ -16,4 +16,5 @@ public interface IInvoiceRepository
     Task<decimal> GetTotalPaidForTreatmentRecord(int treatmentRecordId);
     System.Threading.Tasks.Task UpdateInvoiceAsync(Invoice invoice);
     Task<bool> HasUnpaidInvoice(int treatmentRecordId);
+    Task<List<Invoice>> GetTotalInvoice();
 }

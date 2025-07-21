@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Edit, Percent, Shield, Clock, Eye, Power, PowerOff } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { Procedure } from "@/types/procedure"
+import { formatCurrency } from "@/utils/currencyUtils"
 
 interface ProcedureTableProps {
     procedures: Procedure[]
@@ -26,12 +27,6 @@ export function ProcedureTable({
     totalProcedures,
     canEdit,
 }: ProcedureTableProps) {
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat("vi-VN", {
-            style: "currency",
-            currency: "VND",
-        }).format(amount)
-    }
 
     const formatDuration = (minutes?: number) => {
         if (!minutes) return null
@@ -175,7 +170,7 @@ export function ProcedureTable({
                                 </TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex justify-end gap-2">
-                                        <Button variant="outline" size="sm" onClick={() => onViewDetails(procedure)}>
+                                        <Button variant="default" size="sm" onClick={() => onViewDetails(procedure)}>
                                             <Eye className="w-4 h-4" />
                                         </Button>
 

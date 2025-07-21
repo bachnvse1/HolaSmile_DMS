@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogOverlay } from 
 import { Separator } from "@/components/ui/separator"
 import { FileText, Percent, Shield, Package, Calendar, User, Clock, Activity } from "lucide-react"
 import type { Procedure } from "@/types/procedure"
+import { formatCurrency } from "@/utils/currencyUtils"
 
 interface ProcedureDetailModalProps {
     procedure: Procedure | null
@@ -15,13 +16,6 @@ interface ProcedureDetailModalProps {
 
 export function ProcedureDetailModal({ procedure, isOpen, onOpenChange, onEdit, role }: ProcedureDetailModalProps) {
     if (!procedure) return null
-
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat("vi-VN", {
-            style: "currency",
-            currency: "VND",
-        }).format(amount)
-    }
 
     const formatDate = (dateString: string | null) => {
         if (!dateString) return "Chưa cập nhật"

@@ -20,75 +20,9 @@ import {
   mapModelAnalysis,
   mapCostItemsToString,
   mapCostItemsToTotalCost,
+  type DetailFormData,
+  type BasicPlanData
 } from '@/utils/orthodonticMapping';
-import type { BasicPlanData } from '@/utils/orthodonticMapping';
-
-
-interface DetailFormData {
-  // Tiểu sử y khoa
-  medicalHistory: {
-    benhtim: boolean;
-    tieuduong: boolean;
-    thankinh: boolean;
-    benhtruyen: boolean;
-    caohuyetap: boolean;
-    loangxuong: boolean;
-    benhngan: boolean;
-    chaymausau: boolean;
-  };
-
-  // Lý do đến khám
-  reasonForVisit: string;
-
-  // Khám ngoài mặt
-  faceShape: string;
-  frontView: string;
-  sideView: string;
-  smileArc: string;
-  smileLine: string;
-  midline: string;
-
-  // Khám chức năng
-  openBite: string;
-  crossBite: string;
-  tongueThrunt: string;
-
-  // Khám trong miệng
-  intraoralExam: string;
-
-  // Phân tích phim
-  boneAnalysis: string;
-  sideViewAnalysis: string;
-  apicalSclerosis: string;
-
-  // Phân tích mẫu hàm
-  overjet: string;
-  overbite: string;
-  midlineAnalysis: string;
-  crossbite: string;
-  openbite: string;
-  archForm: string;
-  molarRelation: string;
-  r3Relation: string;
-  r6Relation: string;
-
-  // Nội dung và kế hoạch điều trị
-  treatmentPlanContent: string;
-
-
-  // Chi phí chi tiết
-  costItems: {
-    khophang: string;
-    xquang: string;
-    minivis: string;
-    maccai: string;
-    chupcam: string;
-    nongham: string;
-  };
-
-  otherCost: string;
-  paymentMethod: string;
-}
 
 interface OrthodonticTreatmentPlanDetailFormProps {
   mode?: 'create' | 'edit' | 'view';
@@ -101,14 +35,15 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
   const navigate = useNavigate();
 
   const userInfo = useUserInfo();
-  const isDentist = userInfo?.role === 'Dentist';
+  const canEdit = userInfo?.role === 'Dentist' || userInfo?.role === 'Assistant';
+  const canDelete = userInfo?.role === 'Dentist' || userInfo?.role === 'Assistant';
 
   // Add loading state for user info
   const [isUserInfoLoaded, setIsUserInfoLoaded] = React.useState(false);
 
   // Wait for user info to be loaded
   React.useEffect(() => {
-    if (userInfo && (userInfo.role === 'Patient' || userInfo.role === 'Dentist' || userInfo.role === 'Administrator')) {
+    if (userInfo ) {
       setIsUserInfoLoaded(true);
     } else if (!userInfo) {
       // If no userInfo yet, check if we have a token and try to get role
@@ -280,22 +215,27 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
 
     if (match) {
       const costDetails = match[1];
-      const extractCost = (text: string, pattern: string) => {
-        const regex = new RegExp(`${pattern}[:\\s]*([0-9,\\.\\s]+)`, 'i');
-        const costMatch = text.match(regex);
-        return costMatch ? costMatch[1].trim() : '';
+      const extractCost = (text: string, patterns: string[]) => {
+        for (const pattern of patterns) {
+          const regex = new RegExp(`${pattern}[:\\s]*([0-9,\\.\\s]+)`, 'i');
+          const costMatch = text.match(regex);
+          if (costMatch && costMatch[1].trim()) {
+            return costMatch[1].trim();
+          }
+        }
+        return '';
       };
 
       const costItems = {
-        khophang: extractCost(costDetails, 'khớp hàng'),
-        xquang: extractCost(costDetails, 'x-quang'),
-        minivis: extractCost(costDetails, 'minivis'),
-        maccai: extractCost(costDetails, 'mắc cài'),
-        chupcam: extractCost(costDetails, 'chụp cằm'),
-        nongham: extractCost(costDetails, 'nong hàm'),
+        khophang: extractCost(costDetails, ['khớp hàng', 'kho phang']),
+        xquang: extractCost(costDetails, ['x-quang', 'xquang']),
+        minivis: extractCost(costDetails, ['minivis']),
+        maccai: extractCost(costDetails, ['mắc cài', 'mac cai']),
+        chupcam: extractCost(costDetails, ['chụp cằm', 'chup cam']),
+        nongham: extractCost(costDetails, ['nong hàm', 'nong ham']),
       };
 
-      const otherCost = extractCost(costDetails, 'khác');
+      const otherCost = extractCost(costDetails, ['khác', 'chi phí khác', 'phí khác']);
       const cleanPaymentMethod = paymentMethod.replace(costDetailsRegex, '').trim();
 
       return { costItems, otherCost, cleanPaymentMethod };
@@ -636,26 +576,30 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
           </div>
         </div>
 
-        {mode === 'view' && isDentist && (
+        {mode === 'view' && (canEdit || canDelete) && (
           <div className="flex flex-col sm:flex-row gap-2">
-            <Button
-              variant="outline"
-              onClick={() => navigate(`/patients/${patientId}/orthodontic-treatment-plans/${planId}/edit`)}
-              className="w-full sm:w-auto"
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              <span className="sm:hidden">Chỉnh sửa</span>
-              <span className="hidden sm:inline">Chỉnh Sửa</span>
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setConfirmOpen(true)}
-              disabled={isDeleting}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              {isDeleting ? 'Đang xóa...' : 'Xóa'}
-            </Button>
+            {canEdit && (
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/patients/${patientId}/orthodontic-treatment-plans/${planId}/edit`)}
+                className="w-full sm:w-auto"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                <span className="sm:hidden">Chỉnh sửa</span>
+                <span className="hidden sm:inline">Chỉnh Sửa</span>
+              </Button>
+            )}
+            {canDelete && (
+              <Button
+                variant="outline"
+                onClick={() => setConfirmOpen(true)}
+                disabled={isDeleting}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {isDeleting ? 'Đang xóa...' : 'Xóa'}
+              </Button>
+            )}
           </div>
         )}
       </div>
@@ -683,6 +627,9 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
               {/* <div>
                 <span className="font-medium">Ngày tư vấn:</span> {basicData?.consultationDate || 'Chưa xác định'}
               </div> */}
+              <div>
+                <span className="font-medium">Giới tính:</span> {patientData?.gender === true ? 'Nam' : 'Nữ'}
+              </div>
               <div>
                 <span className="font-medium">Bác sĩ phụ trách:</span> {
                   mode === 'view' && treatmentPlan && (treatmentPlan as { dentistName?: string }).dentistName ||
@@ -859,6 +806,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
                 rows={4}
                 {...form.register('intraoralExam')}
                 readOnly={mode === 'view'}
+                placeholder='Mô tả tình trạng răng miệng, các vấn đề phát hiện trong quá trình khám.'
               />
             </div>
           </CardContent>
@@ -880,6 +828,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
                     rows={2}
                     {...form.register('boneAnalysis')}
                     readOnly={mode === 'view'}
+                    placeholder='Mô tả tình trạng xương hàm, các vấn đề phát hiện trong phim.'
                   />
                 </div>
                 <div>
@@ -971,13 +920,14 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
         {/* Nội dung và kế hoạch điều trị */}
         <Card>
           <CardHeader>
-            <CardTitle>NỘI DUNG VÀ KẾ HOẠCH ĐIỀU TRỊ</CardTitle>
+            <CardTitle>NỘI DUNG VÀ KẾ HOẠCH ĐIỀU TRỊ  <span className="text-red-600">*</span></CardTitle>
           </CardHeader>
           <CardContent>
             <Textarea
               rows={8}
               {...form.register('treatmentPlanContent')}
               readOnly={mode === 'view'}
+              placeholder='Mô tả chi tiết kế hoạch điều trị, các bước thực hiện, thời gian dự kiến... (bắt buộc)'
             />
           </CardContent>
         </Card>

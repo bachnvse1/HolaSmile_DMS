@@ -59,6 +59,7 @@ export interface DetailFormData {
     chupcam: string;
     nongham: string;
   };
+  otherCost: string;
   paymentMethod: string;
 }
 
@@ -169,7 +170,7 @@ export const mapCostItemsToString = (costItems: DetailFormData['costItems'], add
   if (costItems.maccai) items.push(`Mắc cài kim loại: ${costItems.maccai}`);
   if (costItems.chupcam) items.push(`Chụp cằm: ${costItems.chupcam}`);
   if (costItems.nongham) items.push(`Nong hàm: ${costItems.nongham}`);
-  if (additionalCost) items.push(`Ghi chú thêm: ${additionalCost}`);
+  if (additionalCost) items.push(`Chi phí khác: ${additionalCost}`);
   
   return items.join('; ');
 };

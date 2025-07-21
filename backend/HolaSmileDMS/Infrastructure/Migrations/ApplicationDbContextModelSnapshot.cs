@@ -495,6 +495,10 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
 
+                    b.Property<string>("PaymentUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
                     b.Property<decimal?>("RemainingAmount")
                         .HasColumnType("decimal(18,2)");
 

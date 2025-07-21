@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Application.Usecases.UserCommon.ViewAppointment;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -264,12 +263,36 @@ namespace HDMS_API.Infrastructure.Repositories
                 .Where(a => a.PatientId == patientId && !a.IsDeleted)
                 .FirstOrDefaultAsync();
         }
-
         public async Task<bool> UpdateAppointmentAsync(Appointment appointment)
         {
             _context.Appointments.Update(appointment);
             await _context.SaveChangesAsync();
             return true;
+        }
+        public async Task<List<Appointment>> GetAppointmentsByPatient(int userId)
+        {
+            return await _context.Appointments
+                .Include(a => a.Patient).ThenInclude(p => p.User)
+                .Include(a => a.Dentist).ThenInclude(d => d.User)
+                .Where(a => a.Patient.User.UserID == userId && !a.IsDeleted)
+                .ToListAsync();
+        }
+
+        public async Task<List<Appointment>> GetAllAppointments()
+        {
+            return await _context.Appointments
+                .Include(a => a.Patient).ThenInclude(p => p.User)
+                .Include(a => a.Dentist).ThenInclude(d => d.User)
+                .Where(a => !a.IsDeleted)
+                .ToListAsync();
+        }
+
+
+        public async Task<List<Appointment>> GetAllCofirmAppoitmentAsync()
+        {
+            return await _context.Appointments
+                .Where(a => a.Status == "confirmed" && !a.IsDeleted)
+                .ToListAsync();
         }
 
     }

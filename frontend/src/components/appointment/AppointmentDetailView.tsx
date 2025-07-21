@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Calendar, Clock, User, FileText, Tag, UserCheck, CheckCircle, XCircle, AlertTriangle, Plus, Eye, ArrowLeft } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { CancelAppointmentDialog } from './CancelAppointmentDialog';
 import { PrescriptionModal } from './PrescriptionModal';
 import { useAuth } from '../../hooks/useAuth';
 import { usePrescriptionByAppointment } from '../../hooks/usePrescription';
-import { useAppointmentDetail } from '../../hooks/useAppointments';
+import { useAppointmentDetail, useChangeAppointmentStatus } from '../../hooks/useAppointments';
 import { useDentistSchedule } from '../../hooks/useDentistSchedule';
 import { isAppointmentCancellable, getTimeUntilAppointment } from '../../utils/appointmentUtils';
 import { Link, useNavigate } from 'react-router';
@@ -17,6 +18,9 @@ import TreatmentModal from '../patient/TreatmentModal';
 import type { TreatmentFormData } from '@/types/treatment';
 import { useForm } from 'react-hook-form';
 import { useUserInfo } from '@/hooks/useUserInfo';
+import { getPatientInstructions } from '@/services/instructionService';
+import { toast } from 'react-toastify';
+import { getErrorMessage } from '@/utils/formatUtils';
 
 interface AppointmentDetailViewProps {
   appointmentId: number;
@@ -29,6 +33,19 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [showTreatmentModal, setShowTreatmentModal] = useState(false);
+  const [hasInstruction, setHasInstruction] = useState(false);
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    status: 'attended' | 'absented' | null;
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    status: null,
+    title: '',
+    message: ''
+  });
+
   const userInfo = useUserInfo();
   const { role } = useAuth();
   const navigate = useNavigate();
@@ -46,6 +63,9 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
 
   // Check if prescription exists for this appointment
   const { isLoading: isPrescriptionLoading } = usePrescriptionByAppointment(appointmentId);
+
+  // Change appointment status mutation
+  const { mutate: changeStatus, isPending: isChangingStatus } = useChangeAppointmentStatus();
 
   // Helper function to refresh appointment data
   const refreshAppointmentData = async () => {
@@ -70,8 +90,55 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
     }
   };
 
+  useEffect(() => {
+    const checkInstructions = async () => {
+      try {
+        const list = await getPatientInstructions(appointmentId);
+        if (list.length > 0) setHasInstruction(true);
+      } catch (err) {
+        console.error("Lỗi khi kiểm tra chỉ dẫn:", err);
+      }
+    };
+
+    if (role === 'Patient') {
+      checkInstructions();
+    }
+  }, [appointmentId, role]);
+
   const handleTreatmentSubmit = () => {
     setShowTreatmentModal(false);
+  };
+
+  const handleStatusChangeRequest = (newStatus: 'attended' | 'absented') => {
+    const statusText = newStatus === 'attended' ? 'đã đến' : 'vắng mặt';
+    const title = `Xác nhận ${statusText}`;
+    const message = `Bạn có chắc chắn muốn đánh dấu bệnh nhân ${appointment?.patientName} là "${statusText}"?`;
+    
+    setConfirmModal({
+      isOpen: true,
+      status: newStatus,
+      title,
+      message
+    });
+  };
+
+  const handleConfirmStatusChange = () => {
+    if (!confirmModal.status) return;
+    
+    changeStatus(
+      { appointmentId, status: confirmModal.status },
+      {
+        onSuccess: () => {
+          toast.success(`Đã cập nhật trạng thái thành công`);
+          refreshAppointmentData();
+          setConfirmModal({ isOpen: false, status: null, title: '', message: '' });
+        },
+        onError: (error) => {
+          toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi cập nhật trạng thái');
+          setConfirmModal({ isOpen: false, status: null, title: '', message: '' });
+        }
+      }
+    );
   };
 
   if (isAppointmentLoading) {
@@ -145,7 +212,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
 
         {/* Action Buttons - Dentist có full quyền, Patient chỉ xem đơn thuốc */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {role === 'Dentist' && (
+          {role === 'Dentist' && appointment.status !== "canceled" && (
             <Button
               variant="outline"
               size="sm"
@@ -188,6 +255,24 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
                   <span className="sm:hidden">Thêm</span>
                 </>
               )}
+            </Button>
+          )}
+          {(role === 'Patient' ? hasInstruction : true) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                navigate(
+                  role === 'Patient'
+                    ? `/patient/instructions/${appointmentId}`
+                    : `/instructions/${appointmentId}`
+                )
+              }
+              className="flex items-center gap-2 text-xs sm:text-sm"
+            >
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Xem chỉ dẫn</span>
+              <span className="sm:hidden">Chỉ dẫn</span>
             </Button>
           )}
         </div>
@@ -333,12 +418,32 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
         )}
 
         {role === 'Receptionist' && appointment.status === 'confirmed' && (
-          <Button
-            variant="default"
-            onClick={() => setShowEditDialog(true)}
-          >
-            Cập nhật lịch hẹn
-          </Button>
+          <>
+            <Button
+              variant="outline"
+              onClick={() => handleStatusChangeRequest('attended')}
+              disabled={isChangingStatus}
+              className="flex items-center gap-2"
+            >
+              <CheckCircle className="h-4 w-4" />
+              {isChangingStatus ? 'Đang cập nhật...' : 'Đánh dấu đã đến'}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleStatusChangeRequest('absented')}
+              disabled={isChangingStatus}
+              className="flex items-center gap-2 text-red-600 hover:text-red-700"
+            >
+              <XCircle className="h-4 w-4" />
+              {isChangingStatus ? 'Đang cập nhật...' : 'Đánh dấu vắng mặt'}
+            </Button>
+            <Button
+              variant="default"
+              onClick={() => setShowEditDialog(true)}
+            >
+              Cập nhật lịch hẹn
+            </Button>
+          </>
         )}
       </div>
 
@@ -398,6 +503,18 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
           patientId={Number(appointment.patientId)}
         />
       )}
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, status: null, title: '', message: '' })}
+        onConfirm={handleConfirmStatusChange}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.status === 'attended' ? 'Xác nhận đã đến' : 'Xác nhận vắng mặt'}
+        confirmVariant={confirmModal.status === 'attended' ? 'default' : 'destructive'}
+        isLoading={isChangingStatus}
+      />
     </div>
 
   );

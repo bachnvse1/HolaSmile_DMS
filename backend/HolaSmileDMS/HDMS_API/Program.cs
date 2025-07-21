@@ -50,7 +50,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+// CORS
 app.UseCors("_myAllowSpecificOrigins");
 
 app.UseRouting();

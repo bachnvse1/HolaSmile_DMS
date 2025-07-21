@@ -39,9 +39,9 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-              <h1 className="text-2xl font-bold text-blue-600 cursor-pointer">
-                HolaSmile
-              </h1>
+            <h1 className="text-2xl font-bold text-blue-600 cursor-pointer">
+              HolaSmile
+            </h1>
           </div>
 
           {/* Desktop Navigation */}
@@ -53,30 +53,36 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
               >
                 Trang Chủ
               </button> */}
-              <button 
-                onClick={() => navigate('/patient/appointments')} 
+              <button
+                onClick={() => navigate('/patient/appointments')}
                 className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
               >
                 Lịch Hẹn
               </button>
 
-              <button 
+              <button
                 onClick={() => navigate('/patient/treatment-records')}
                 className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
               >
-                Hồ Sơ 
+                Hồ Sơ
               </button>
-              <button 
+              <button
                 onClick={() => navigate('/patient/orthodontic-treatment-plans')}
                 className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
               >
-                Kế Hoạch 
+                Kế Hoạch
               </button>
               <button
                 onClick={() => navigate('/invoices')}
                 className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
               >
                 Hóa Đơn
+              </button>
+              <button
+                onClick={() => navigate('/instruction-templates')}
+                className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Chỉ Dẫn
               </button>
             </div>
           </div>
@@ -166,31 +172,36 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
             >
               Trang Chủ
             </button> */}
-            <button 
-              onClick={() => navigate('/patient/appointments')} 
+            <button
+              onClick={() => navigate('/patient/appointments')}
               className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
             >
               Lịch Hẹn
             </button>
-            <button 
+            <button
               onClick={() => navigate('/patient/treatment-records')}
               className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
             >
-              Hồ Sơ 
+              Hồ Sơ
             </button>
-            <button 
+            <button
               onClick={() => navigate('/patient/orthodontic-treatment-plans')}
               className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
             >
-              Kế Hoạch 
+              Kế Hoạch
             </button>
-            <button 
+            <button
               onClick={() => navigate('/invoices')}
               className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
             >
               Hóa Đơn
             </button>
-            
+            <button
+              onClick={() => navigate('/instruction-templates')}
+              className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
+            >
+              Chỉ Dẫn
+            </button>
             <div className="border-t pt-4 border-gray-300">
               <button
                 onClick={() => navigate('/patient/book-appointment')}

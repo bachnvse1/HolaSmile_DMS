@@ -112,13 +112,11 @@ export default function PatientList() {
             <PatientTable patients={paginatedPatients} refetchPatients={fetchPatients} />
           )}
 
-          {filteredPatients.length > PAGE_SIZE && (
-            <PaginationControls
-              currentPage={currentPage}
-              totalPages={pageCount}
-              onPageChange={setCurrentPage}
-            />
-          )}
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={pageCount}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </StaffLayout>
     </AuthGuard>

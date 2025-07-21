@@ -59,33 +59,40 @@ export function ForgotPassword() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <h2 className="text-lg text-slate-400">Quên mật khẩu?</h2>
-          </div>
-          <div className="bg-slate-800/50 border border-slate-700 rounded-lg shadow-xl backdrop-blur-sm">
-            <div className="p-6 text-center space-y-4">
-              <div className="mx-auto w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center">
-                <CheckCircle className="h-6 w-6 text-green-500" />
-              </div>
-              <h1 className="text-xl font-semibold text-white">Đã gửi thành công</h1>
-              <p className="text-sm text-slate-400">
-                {serverMessage} đến{" "}
-                <span className="text-white font-medium">{submittedValue}</span>
-              </p>
-              <p className="text-xs text-slate-500">
-                Nếu không thấy email, hãy kiểm tra mục spam hoặc thử lại sau vài phút.
-              </p>
-              <div className="pt-4">
-                <Link
-                  to="/login"
-                  className="text-sm text-blue-400 hover:text-blue-300 transition-colors font-medium inline-flex items-center gap-1"
-                >
-                  <ArrowLeft className="h-3 w-3" />
-                  Trở về trang đăng nhập
-                </Link>
-              </div>
+      <div className="min-h-screen relative flex items-center justify-center px-4">
+        {/* Background Image with Overlay */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `url('https://images.unsplash.com/photo-1629909613654-28e377c37b09?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80')`
+          }}
+        />
+        
+        {/* Dark Overlay */}
+        <div className="absolute inset-0 bg-black/50" />
+        
+        {/* Success Content */}
+        <div className="relative z-10 w-full max-w-md bg-white/15 backdrop-blur-lg border border-white/20 shadow-2xl p-8 rounded-xl">
+          <div className="text-center space-y-6">
+            <div className="mx-auto w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center">
+              <CheckCircle className="h-8 w-8 text-green-400" />
+            </div>
+            <h1 className="text-2xl font-semibold text-white">Đã gửi thành công</h1>
+            <p className="text-white/80">
+              {serverMessage} đến{" "}
+              <span className="text-white font-medium">{submittedValue}</span>
+            </p>
+            <p className="text-sm text-white/60">
+              Nếu không thấy email, hãy kiểm tra mục spam hoặc thử lại sau vài phút.
+            </p>
+            <div className="pt-4">
+              <Link
+                to="/login"
+                className="text-blue-300 hover:text-blue-200 transition-colors font-medium inline-flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Trở về trang đăng nhập
+              </Link>
             </div>
           </div>
         </div>
@@ -94,66 +101,79 @@ export function ForgotPassword() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen relative flex items-center justify-center px-4">
+      {/* Background Image with Overlay */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url('https://images.unsplash.com/photo-1629909613654-28e377c37b09?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80')`
+        }}
+      />
+      
+      {/* Dark Overlay */}
+      <div className="absolute inset-0 bg-black/50" />
+      
+      {/* Forgot Password Form */}
+      <div className="relative z-10 w-full max-w-md space-y-6 bg-white/15 backdrop-blur-lg border border-white/20 shadow-2xl p-8 rounded-xl">
         <div className="text-center mb-8">
-          <h2 className="text-lg text-slate-400">Quên mật khẩu</h2>
+          <h1 className="text-3xl font-bold text-white mb-2">Khôi phục mật khẩu</h1>
+          <p className="text-white/80">
+            Nhập email hoặc số điện thoại để nhận mật khẩu tạm thời.
+          </p>
         </div>
-        <div className="bg-slate-800/50 border border-slate-700 rounded-lg shadow-xl backdrop-blur-sm">
-          <div className="p-6 pb-8">
-            <h1 className="text-2xl font-semibold text-white text-center">Khôi phục mật khẩu</h1>
-            <p className="text-sm text-slate-400 text-center mt-2">
-              Nhập email hoặc số điện thoại để nhận mật khẩu tạm thời.
-            </p>
-          </div>
-          <div className="p-6 space-y-6">
-            <form onSubmit={formik.handleSubmit} className="space-y-6" noValidate>
-              <div className="space-y-2">
-                <label htmlFor="email" className="block text-sm font-medium text-slate-300">
-                  Email hoặc số điện thoại
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <input
-                    id="email"
-                    name="email"
-                    type="text"
-                    placeholder="Email hoặc số điện thoại"
-                    value={formik.values.email}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    disabled={isLoading}
-                    className={`w-full pl-10 py-2 px-3 bg-slate-700/50 border rounded-md text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-colors ${formik.touched.email && formik.errors.email
-                        ? "border-red-500 focus:ring-red-500"
-                        : "border-slate-600 focus:ring-blue-500"
-                      }`}
-                  />
-                </div>
-                {formik.touched.email && formik.errors.email && (
-                  <p className="text-sm text-red-400">{formik.errors.email}</p>
-                )}
-              </div>
-
-              <button
-                type="submit"
+        
+        <form onSubmit={formik.handleSubmit} className="space-y-6" noValidate>
+          <div className="space-y-2">
+            <label htmlFor="email" className="block text-sm font-medium text-white/90">
+              Email hoặc số điện thoại
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/70" />
+              <input
+                id="email"
+                name="email"
+                type="text"
+                placeholder="Email hoặc số điện thoại"
+                value={formik.values.email}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 disabled={isLoading}
-                className={`w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-md transition-colors ${isLoading ? "opacity-70 cursor-not-allowed" : ""
-                  }`}
-              >
-                {isLoading ? "Đang gửi..." : "Gửi"}
-              </button>
-            </form>
-
-            <div className="text-center">
-              <Link
-                to="/login"
-                className="text-sm text-blue-400 hover:text-blue-300 transition-colors font-medium inline-flex items-center gap-1"
-              >
-                <ArrowLeft className="h-3 w-3" />
-                Trở về trang đăng nhập
-              </Link>
+                className={`w-full pl-11 pr-3 py-3 rounded-lg bg-white/10 backdrop-blur text-white placeholder:text-white/60 border focus:outline-none transition-all ${
+                  formik.touched.email && formik.errors.email
+                    ? "border-red-400 focus:ring-2 focus:ring-red-400/50"
+                    : "border-white/30 focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400"
+                }`}
+              />
             </div>
+            {formik.touched.email && formik.errors.email && (
+              <p className="text-sm text-red-300">{formik.errors.email}</p>
+            )}
           </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-4 h-4 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
+                Đang gửi...
+              </div>
+            ) : (
+              "Gửi"
+            )}
+          </button>
+        </form>
+
+        <div className="text-center pt-4">
+          <Link
+            to="/login"
+            className="text-blue-300 hover:text-blue-200 transition-colors font-medium inline-flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Trở về trang đăng nhập
+          </Link>
         </div>
       </div>
     </div>

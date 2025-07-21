@@ -59,6 +59,15 @@ import PatientTreatmentRecordsSection from "./components/patient/PatientTreatmen
 import { PatientOrthodonticImagesPage } from "./pages/patient/PatientOrthodonticImagesPage";
 import { PatientTreatmentImagesPage } from "./pages/patient/PatientTreatmentImagesPage";
 import GuestSupportChatWrapper from "./components/chatbox/GuestSupportChatWrapper";
+import FloatingChatButton from './components/chatbox/FloatingChatButton';
+import { ChatHubProvider } from './components/chatbox/ChatHubProvider';
+import InstructionTemplateManagement from "./pages/instruction/InstructionTemplateManagement";
+import PatientInstructionsList from "./pages/instruction/PatientInstructionList";
+import InstructionsPage from "./pages/instruction/InstructionManagement";
+
+import ChatBox from "./components/chatbox/ChatBox";
+import { FinancialTransactionsPage } from './pages/financial/FinancialTransactionsPage';
+import { PromotionManagementPage } from './pages/promotion/PromotionManagementPage';
 
 function App() {
   return (
@@ -136,6 +145,11 @@ function App() {
                   <Route path="/thank-you" element={<ThankYou />} />
                   <Route path="/cancel" element={<PaymentCancelled />} />
                   <Route path="/patient/treatment-records" element={<PatientTreatmentRecordsSection />} />
+                    <Route path="/financial-transactions" element={<FinancialTransactionsPage />} />
+                    <Route path="/promotions" element={<PromotionManagementPage />} />
+                    <Route path="/instruction-templates" element={<InstructionTemplateManagement />} />
+                    <Route path="/patient/instructions/:appointmentId" element={<PatientInstructionsList />} />
+                    <Route path="/instructions/:appointmentId" element={<InstructionsPage />} />
                 </Routes>
 
                 {/* Floating chat chỉ hiển thị khi có ChatHubProvider */}
