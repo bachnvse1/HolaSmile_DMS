@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists.CreateInvoice;
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists;
 
 public class CreateInvoiceHandlerTests
 {

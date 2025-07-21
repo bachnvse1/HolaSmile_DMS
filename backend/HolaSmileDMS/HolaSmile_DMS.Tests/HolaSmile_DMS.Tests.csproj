@@ -42,4 +42,9 @@
     <ProjectReference Include="..\HDMS_API\HDMS_API.csproj" />
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Integration\Application\Usecases\Receptionists\EditFinancialTransaction\" />
+    <Folder Include="Integration\Application\Usecases\Receptionists\DeactiveFinancialTransaction\" />
+  </ItemGroup>
 </Project>

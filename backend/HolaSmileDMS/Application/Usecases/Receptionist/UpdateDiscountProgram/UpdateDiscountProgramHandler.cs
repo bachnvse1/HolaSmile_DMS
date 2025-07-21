@@ -8,7 +8,7 @@ using Domain.Entities;
 
 namespace Application.Usecases.Receptionist.UpdateDiscountProgram
 {
-    internal class UpdateDiscountProgramHandler : IRequestHandler<UpdateDiscountProgramCommand, bool>
+    public class UpdateDiscountProgramHandler : IRequestHandler<UpdateDiscountProgramCommand, bool>
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IPromotionrepository _promotionRepository;
@@ -59,9 +59,9 @@ namespace Application.Usecases.Receptionist.UpdateDiscountProgram
             {
                 if (!validProcedureIds.Contains(procedure.ProcedureId))
                     throw new Exception(MessageConstants.MSG.MSG99);
-                if (procedure.DiscountAmount < 0)
+                if (procedure.DiscountAmount < 0 || procedure.DiscountAmount > 100)
                 {
-                    throw new Exception(MessageConstants.MSG.MSG95);
+                    throw new Exception(MessageConstants.MSG.MSG125);
                 }
             }
 
