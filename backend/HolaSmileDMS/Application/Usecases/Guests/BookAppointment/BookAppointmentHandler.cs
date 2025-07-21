@@ -6,7 +6,6 @@ using Application.Interfaces;
 using Application.Usecases.SendNotification;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace HDMS_API.Application.Usecases.Guests.BookAppointment
 {
@@ -19,8 +18,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IMemoryCache _cache;
-        public BookAppointmentHandler(IAppointmentRepository appointmentRepository, IMediator mediator, IPatientRepository patientRepository, IUserCommonRepository userCommonRepository, IMapper mapper, IDentistRepository dentistRepository, IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache)
+        public BookAppointmentHandler(IAppointmentRepository appointmentRepository, IMediator mediator, IPatientRepository patientRepository, IUserCommonRepository userCommonRepository, IMapper mapper, IDentistRepository dentistRepository, IHttpContextAccessor httpContextAccessor)
 
         {
             _appointmentRepository = appointmentRepository;
@@ -31,7 +29,6 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             _mediator = mediator;
             _dentistRepository = dentistRepository;
             _httpContextAccessor = httpContextAccessor;
-            _cache = memoryCache;
         }
         public async Task<string> Handle(BookAppointmentCommand request, CancellationToken cancellationToken)
         {

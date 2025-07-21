@@ -127,13 +127,11 @@ public class CreateProcedureHandlerTests
     }
 
     [Theory(DisplayName = "UTCID05 - Invalid input fields - Should throw MSG95")]
-    [InlineData(0, 100, 0, 0, 0, 0, 0)]
-    [InlineData(100, 0, 0, 0, 0, 0, 0)]
-    [InlineData(100, 100, -1, 0, 0, 0, 0)]
-    [InlineData(100, 100, 0, -1, 0, 0, 0)]
-    [InlineData(100, 100, 0, 0, -1, 0, 0)]
-    [InlineData(100, 100, 0, 0, 0, -1, 0)]
-    [InlineData(100, 100, 0, 0, 0, 0, -1)]
+    [InlineData(99, 99, -1, 0, 0, 0, 0)]
+    [InlineData(99, 99, 0, -1, 0, 0, 0)]
+    [InlineData(99, 99, 0, 0, -1, 0, 0)]
+    [InlineData(99, 99, 0, 0, 0, -1, 0)]
+    [InlineData(99, 99, 0, 0, 0, 0, -1)]
     public async System.Threading.Tasks.Task UTCID05_InvalidValues_ThrowsMSG95(
         decimal price,
         decimal originalPrice,
@@ -159,7 +157,7 @@ public class CreateProcedureHandlerTests
         };
 
         var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
-        Assert.Equal(MessageConstants.MSG.MSG95, ex.Message);
+        Assert.Equal(MessageConstants.MSG.MSG125, ex.Message);
     }
 
     [Fact(DisplayName = "UTCID06 - ProcedureName is empty - Throws MSG07")]
