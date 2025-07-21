@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { useChatHubGuest } from "@/hooks/useChatHub";
+import { useChatHubGuest } from "@/hooks/useChatHubGuest";
 
 const CONSULTANT = { id: "10", name: "Nhân viên tư vấn" };
 

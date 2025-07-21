@@ -33,18 +33,15 @@ export function useChatHubGuest(guestId: string) {
 
     connectionRef.current = connection;
 
-    let isMounted = true;
-    console.log('🔗 SignalR connecting to:', hubUrl);
-
-    connection.on('ReceiveMessage', (senderId, message, receiverId, timestamp) => {
+    connection.on('ReceiveMessage', (senderId: string, message: string, receiverId: string, timestamp?: string) => {
+      console.log('📩 Tin nhắn mới:', { senderId, message, receiverId, timestamp });
       setRealtimeMessages(prev => [...prev, { senderId, receiverId: receiverId || '', message, timestamp }]);
     });
 
+    connection.on('MessageSent', () => {});
+
     connection.start()
       .then(() => {
-        if (isMounted) {
-          console.log('✅ SignalR connected:', hubUrl);
-        }
       })
       .catch(err => {
         console.error('❌ SignalR failed to connect:', err);
@@ -55,7 +52,6 @@ export function useChatHubGuest(guestId: string) {
     });
 
     return () => {
-      isMounted = false;
       if (connection.state === signalR.HubConnectionState.Connected || connection.state === signalR.HubConnectionState.Connecting) {
         connection.stop();
       }
@@ -73,7 +69,9 @@ export function useChatHubGuest(guestId: string) {
 
     connectionRef.current
       .invoke('SendMessageToConsultant', CONSULTANT_ID, message)
-      .then(() => console.log('📤 Message sent'))
+      .then(() => {
+        // Message sent successfully
+      })
       .catch(err => {
         console.error('❌ Failed to send message via SignalR:', err);
       });

@@ -3,7 +3,7 @@ import ChatPage from './ChatPage';
 import { useAuth } from '@/hooks/useAuth';
 import axiosInstance from '@/lib/axios';
 import { useChatHub } from './ChatHubProvider';
-import type { ChatMessage } from '@/hooks/useChatHub';
+import type { ChatMessage } from '@/hooks/useChatHubGuest';
 
 export default function FloatingChatButton() {
   const [open, setOpen] = useState(false);

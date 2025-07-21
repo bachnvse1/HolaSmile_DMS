@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import axiosInstance from "@/lib/axios";
 import { useChatHub } from "@/components/chatbox/ChatHubProvider";
-import type { ChatMessage } from "@/hooks/useChatHub";
+import type { ChatMessage } from "@/hooks/useChatHubGuest";
 
 type Props = {
   onClose?: () => void;
