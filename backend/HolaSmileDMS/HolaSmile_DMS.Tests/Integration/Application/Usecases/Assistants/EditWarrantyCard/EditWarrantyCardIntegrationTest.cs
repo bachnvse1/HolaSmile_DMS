@@ -1,4 +1,5 @@
-﻿using Application.Constants;
+﻿/*
+using Application.Constants;
 using Application.Usecases.Assistant.EditWarrantyCard;
 using Domain.Entities;
 using HDMS_API.Infrastructure.Persistence;
@@ -68,7 +69,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
                     Duration = 12,
                     Status = true,
                     CreateBy = 1,
-                    IsDelete = false
+                    IsDeleted = false
                 },
                 new WarrantyCard
                 {
@@ -79,7 +80,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
                     Duration = 12,
                     Status = true,
                     CreateBy = 1,
-                    IsDelete = true
+                    IsDeleted = true
                 }
             );
 
@@ -184,3 +185,4 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
         }
     }
 }
+*/

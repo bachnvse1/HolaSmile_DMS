@@ -88,7 +88,7 @@ public class FakeUserCommonRepository : IUserCommonRepository
         });
     }
 
-    public Task<List<ViewListPatientDto>> GetAllPatientsAsync(CancellationToken cancellationToken)
+    public Task<List<Patient>> GetAllPatientsAsync(CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
@@ -104,11 +104,6 @@ public class FakeUserCommonRepository : IUserCommonRepository
     }
 
     public Task<bool> CreateUserAsync(User user, string role)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<bool> UpdateUserStatusAsync(int userId)
     {
         throw new NotImplementedException();
     }
@@ -166,11 +161,7 @@ public class FakeUserCommonRepository : IUserCommonRepository
     {
         throw new NotImplementedException();
     }
-
-    Task<User?> IUserCommonRepository.GetByEmailAsync(string email)
-    {
-        throw new NotImplementedException();
-    }
+    
 
     Task<bool> IUserCommonRepository.EditProfileAsync(User user, CancellationToken cancellationToken)
     {
@@ -186,16 +177,7 @@ public class FakeUserCommonRepository : IUserCommonRepository
     {
         throw new NotImplementedException();
     }
-
-    Task<User?> IUserCommonRepository.GetByIdAsync(int userId, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
-    Task<List<ViewListPatientDto>> IUserCommonRepository.GetAllPatientsAsync(CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+    
 
     Task<List<Receptionist>> IUserCommonRepository.GetAllReceptionistAsync()
     {
@@ -208,11 +190,6 @@ public class FakeUserCommonRepository : IUserCommonRepository
     }
 
     Task<bool> IUserCommonRepository.CreateUserAsync(User user, string role)
-    {
-        throw new NotImplementedException();
-    }
-
-    Task<bool> IUserCommonRepository.UpdateUserStatusAsync(int userId)
     {
         throw new NotImplementedException();
     }

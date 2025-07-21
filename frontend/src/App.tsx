@@ -7,9 +7,6 @@ import { Login } from './pages/auth/login';
 import { ForgotPassword } from './pages/auth/forgotPassword';
 import { HomePage } from './pages/homepage/HomePage';
 import { LearnMorePage } from './pages/homepage/LearnMorePage';
-import { ChatHubProvider } from './components/chatbox/ChatHubProvider';
-import FloatingChatButton from './components/chatbox/FloatingChatButton';
-
 // Các import khác như cũ
 import { CosmeticDentistryPage, GeneralDentistryPage, OralSurgeryPage, PediatricDentistryPage, PreventiveCare, RestorativeDentistryPage } from './pages/services';
 import { BookAppointmentPage } from './pages/appointment/BookAppoinmentPage';
@@ -64,8 +61,6 @@ import { ChatHubProvider } from './components/chatbox/ChatHubProvider';
 import InstructionTemplateManagement from "./pages/instruction/InstructionTemplateManagement";
 import PatientInstructionsList from "./pages/instruction/PatientInstructionList";
 import InstructionsPage from "./pages/instruction/InstructionManagement";
-
-import ChatBox from "./components/chatbox/ChatBox";
 import { FinancialTransactionsPage } from './pages/financial/FinancialTransactionsPage';
 import { PromotionManagementPage } from './pages/promotion/PromotionManagementPage';
 
@@ -145,11 +140,11 @@ function App() {
                   <Route path="/thank-you" element={<ThankYou />} />
                   <Route path="/cancel" element={<PaymentCancelled />} />
                   <Route path="/patient/treatment-records" element={<PatientTreatmentRecordsSection />} />
-                    <Route path="/financial-transactions" element={<FinancialTransactionsPage />} />
-                    <Route path="/promotions" element={<PromotionManagementPage />} />
-                    <Route path="/instruction-templates" element={<InstructionTemplateManagement />} />
-                    <Route path="/patient/instructions/:appointmentId" element={<PatientInstructionsList />} />
-                    <Route path="/instructions/:appointmentId" element={<InstructionsPage />} />
+                  <Route path="/financial-transactions" element={<FinancialTransactionsPage />} />
+                  <Route path="/promotions" element={<PromotionManagementPage />} />
+                  <Route path="/instruction-templates" element={<InstructionTemplateManagement />} />
+                  <Route path="/patient/instructions/:appointmentId" element={<PatientInstructionsList />} />
+                  <Route path="/instructions/:appointmentId" element={<InstructionsPage />} />
                 </Routes>
 
                 {/* Floating chat chỉ hiển thị khi có ChatHubProvider */}
