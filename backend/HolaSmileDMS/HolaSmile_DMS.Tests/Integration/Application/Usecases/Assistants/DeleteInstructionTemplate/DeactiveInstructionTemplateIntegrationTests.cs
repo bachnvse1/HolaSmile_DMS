@@ -64,7 +64,7 @@ public class DeactiveInstructionTemplateIntegrationTests
 
         Assert.True(template.IsDeleted);
         Assert.Equal(123, template.UpdatedBy);
-        Assert.Equal(MessageConstants.MSG.MSG105, result);
+        Assert.Equal(MessageConstants.MSG.MSG41, result);
     }
 
     [Fact]

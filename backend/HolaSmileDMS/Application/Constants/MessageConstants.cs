@@ -44,7 +44,7 @@ public static class MessageConstants
                 public const string MSG38 = "Cập nhật tiến trình điều trị thành công";
                 public const string MSG39 = "Tạo thẻ bảo hành thành công";
                 public const string MSG40 = "Cập nhật thẻ bảo hành thành công";
-                public const string MSG41 = "Vô hiệu hoá thẻ bảo hành thành công";
+                public const string MSG41 = "Vô hiệu hoá thành công";
                 public const string MSG42 = "Vui lòng chọn bác sĩ trước khi đặt lịch";
                 public const string MSG43 = "Mật khẩu mới và xác nhận không khớp";
                 public const string MSG44 = "Gửi tin nhắn thành công";

@@ -112,19 +112,22 @@ export default function ChatPage({
               position: 'relative',
             }}
           >
-            {user.avatarUrl && (
-              <img
-                src={user.avatarUrl}
-                alt="avatar"
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: '50%',
-                  objectFit: 'cover',
-                  border: '1px solid #e5e7eb',
-                }}
-              />
-            )}
+            <img
+          src={
+            user.avatarUrl
+              ? user.avatarUrl
+              : "https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg"
+          }
+          alt="avatar"
+          style={{
+            width: 28,
+            height: 28,
+            borderRadius: '50%',
+            objectFit: 'cover',
+            border: '1px solid #e5e7eb',
+          }}
+        />
+
             <span>{user.fullName}</span>
             {unreadMap?.[user.userId] > 0 && (
               <span

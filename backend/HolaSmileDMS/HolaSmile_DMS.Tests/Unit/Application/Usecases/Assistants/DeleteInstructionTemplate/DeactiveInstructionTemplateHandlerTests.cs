@@ -81,7 +81,7 @@ public class DeactiveInstructionTemplateHandlerTests
         Assert.True(template.IsDeleted);
         Assert.Equal(10, template.UpdatedBy);
         Assert.True(template.UpdatedAt > DateTime.UtcNow.AddMinutes(-1));
-        Assert.Equal(MessageConstants.MSG.MSG105, result);
+        Assert.Equal(MessageConstants.MSG.MSG41, result);
     }
 
     [Fact]

@@ -16,9 +16,9 @@ export function useChatHub2(token: string) {
   // 🔗 Khởi tạo SignalR duy nhất
   useEffect(() => {
     if (!token || connectionRef.current) return;
-
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl('https://localhost:5001/chat', {
+      .withUrl(`${baseURL}/chat`, {
         accessTokenFactory: () => token,
       })
       .withAutomaticReconnect()

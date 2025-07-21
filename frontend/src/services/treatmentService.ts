@@ -89,6 +89,7 @@ export const printDentalRecord = async (appointmentId: number): Promise<Blob> =>
       `/patient/DentalRecord/Print/${appointmentId}`,
       {
         headers: {
+          "ngrok-skip-browser-warning": "true",
           'Accept': 'application/pdf',
         },
         responseType: 'blob',

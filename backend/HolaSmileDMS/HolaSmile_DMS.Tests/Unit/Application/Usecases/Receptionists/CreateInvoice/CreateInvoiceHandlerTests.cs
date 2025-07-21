@@ -19,7 +19,8 @@ public class CreateInvoiceHandlerTests
         Mock<IInvoiceRepository>? invoiceRepoMock = null,
         Mock<ITreatmentRecordRepository>? treatmentRepoMock = null,
         Mock<IPatientRepository>? patientRepoMock = null,
-        Mock<IMediator>? mediatorMock = null)
+        Mock<IMediator>? mediatorMock = null,
+        Mock<ITransactionRepository>? transactionRepoMock = null)
     {
         var claims = new[]
         {
@@ -41,7 +42,8 @@ public class CreateInvoiceHandlerTests
             treatmentRepoMock?.Object ?? new Mock<ITreatmentRecordRepository>().Object,
             contextAccessor.Object,
             patientRepoMock?.Object ?? new Mock<IPatientRepository>().Object,
-            mediatorMock?.Object ?? new Mock<IMediator>().Object
+            mediatorMock?.Object ?? new Mock<IMediator>().Object,
+            transactionRepoMock?.Object ?? new Mock<ITransactionRepository>().Object
         );
     }
 

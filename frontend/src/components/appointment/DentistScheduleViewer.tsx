@@ -39,12 +39,8 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
   });
 
   const { dentists, isLoading, error } = useDentistSchedule();
-  const bookAppointment = useBookAppointment();
-  const bookFUAppointment = useBookFUAppointment();
-  const bookAppointmentMutation =
-    role === "Receptionist"
-      ? bookFUAppointment
-      : bookAppointment;
+  const bookAppointmentMutation = useBookAppointment();
+  const bookFUAppointmentMutation = useBookFUAppointment();
 
   // Kiểm tra quyền đặt lịch
   const canBookAppointment = mode === 'book' && (!isAuthenticated || role === 'Patient' || role === 'Receptionist');
@@ -79,19 +75,21 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
       appointmentDate.setHours(17, 0, 0, 0);
     }
 
-    if (role === "Receptionist") {
+    if (role === "Receptionist" && patientId) {
       // Gọi API tạo lịch tái khám
       const payload = {
-        patientId, // cần truyền patientId từ ngoài vào prefilledData
+        patientId,
         dentistId: selectedDentist.dentistID,
         appointmentDate: appointmentDate.toISOString(),
         appointmentTime: timeString,
         reasonForFollowUp: bookingData.medicalIssue.trim(),
         appointmentType: "follow-up"
       };
-      bookAppointmentMutation.mutate(payload, {
-        onSuccess: (response) => {
-          toast.success(response.message || 'Đặt lịch tái khám thành công!');
+      
+      bookFUAppointmentMutation.mutate(payload, {
+        onSuccess: (response: unknown) => {
+          const res = response as { message?: string };
+          toast.success(res?.message || 'Đặt lịch tái khám thành công!');
           setShowBookingForm(false);
           setSelectedDate('');
           setSelectedTimeSlot('');
@@ -109,19 +107,24 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
         AppointmentDate: `${appointmentDate.getFullYear()}-${(appointmentDate.getMonth() + 1).toString().padStart(2, '0')}-${appointmentDate.getDate().toString().padStart(2, '0')}`,
         AppointmentTime: timeString,
         MedicalIssue: bookingData.medicalIssue.trim(),
-        DentistId: selectedDentist.dentistID
+        DentistId: selectedDentist.dentistID,
+        // Fixed captcha values for authenticated users
+        CaptchaValue: "authenticated",
+        CaptchaInput: "authenticated"
       };
+
 
       bookAppointmentMutation.mutate(payload, {
         onSuccess: (response) => {
-          toast.success(response.message || 'Đặt lịch hẹn thành công!');
+          toast.success(response?.message || 'Đặt lịch hẹn thành công!');
           setShowBookingForm(false);
           setSelectedDate('');
           setSelectedTimeSlot('');
           setBookingData({ medicalIssue: '', email: prefilledData?.email || '' });
         },
         onError: (error) => {
-         console.error('Error booking appointment:', error);
+          console.error('Error booking appointment:', error);
+          // Error toast đã được handle trong hook, không cần toast thêm ở đây
         }
       });
     };
@@ -304,13 +307,13 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
                 <button
                   onClick={handleBookAppointment}
                   disabled={
-                    bookAppointmentMutation.isPending ||
+                    (role === "Receptionist" ? bookFUAppointmentMutation.isPending : bookAppointmentMutation.isPending) ||
                     !bookingData.medicalIssue.trim() ||
                     (role !== "Receptionist" && !prefilledData?.email && !bookingData.email.trim())
                   }
                   className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  {bookAppointmentMutation.isPending ? 'Đang đặt lịch...' : 'Đặt lịch ngay'}
+                  {(role === "Receptionist" ? bookFUAppointmentMutation.isPending : bookAppointmentMutation.isPending) ? 'Đang đặt lịch...' : 'Đặt lịch ngay'}
                 </button>
               </div>
             </div>
