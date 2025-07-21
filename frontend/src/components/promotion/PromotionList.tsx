@@ -352,53 +352,55 @@ export const PromotionList: React.FC = () => {
               const daysRemaining = getDaysRemaining(program.endDate);
               
               return (
-                <Card key={program.discountProgramID} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="space-y-3">
-                      {/* Header */}
-                      <div className="flex justify-between items-start gap-2">
+                <Card key={program.discountProgramID} className="hover:shadow-lg transition-shadow flex flex-col h-full">
+                  <CardContent className="p-4 flex flex-col h-full">
+                    <div className="space-y-3 flex-1 flex flex-col">
+                      {/* Header - Fixed height */}
+                      <div className="flex justify-between items-start gap-2 min-h-[3rem]">
                         <h3 className="font-semibold text-gray-900 text-sm sm:text-base line-clamp-2 flex-1">
                           {program.discountProgramName}
                         </h3>
-                        <Badge variant={statusConfig.variant} className="text-xs">
+                        <Badge variant={statusConfig.variant} className="text-xs shrink-0">
                           {statusConfig.text}
                         </Badge>
                       </div>
 
-                      {/* Dates */}
+                      {/* Dates - Fixed position */}
                       <div className="space-y-1 text-xs text-gray-600">
                         <div className="flex items-center">
-                          <Calendar className="h-3 w-3 mr-1" />
+                          <Calendar className="h-3 w-3 mr-1 shrink-0" />
                           <span>Bắt đầu: {formatDateShort(program.createDate)}</span>
                         </div>
                         <div className="flex items-center">
-                          <Calendar className="h-3 w-3 mr-1" />
+                          <Calendar className="h-3 w-3 mr-1 shrink-0" />
                           <span>Kết thúc: {formatDateShort(program.endDate)}</span>
                         </div>
                       </div>
 
-                      {/* Progress indicator */}
-                      {!program.isDelete && daysRemaining >= 0 && (
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-xs text-gray-600">
-                            <span>Thời gian còn lại</span>
-                            <span className={statusConfig.color}>
-                              {daysRemaining === 0 ? 'Hôm nay' : `${daysRemaining} ngày`}
-                            </span>
+                      {/* Progress indicator - Flexible spacing */}
+                      <div className="flex-1 flex flex-col justify-end">
+                        {!program.isDelete && daysRemaining >= 0 && (
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-xs text-gray-600">
+                              <span>Thời gian còn lại</span>
+                              <span className={statusConfig.color}>
+                                {daysRemaining === 0 ? 'Hôm nay' : `${daysRemaining} ngày`}
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-1.5">
+                              <div 
+                                className={`h-1.5 rounded-full transition-all duration-300 ${
+                                  daysRemaining <= 3 ? 'bg-red-500 w-2/12' : 
+                                  daysRemaining <= 7 ? 'bg-orange-500 w-4/12' : 'bg-green-500 w-8/12'
+                                }`}
+                              />
+                            </div>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-1.5">
-                            <div 
-                              className={`h-1.5 rounded-full transition-all duration-300 ${
-                                daysRemaining <= 3 ? 'bg-red-500 w-2/12' : 
-                                daysRemaining <= 7 ? 'bg-orange-500 w-4/12' : 'bg-green-500 w-8/12'
-                              }`}
-                            />
-                          </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
 
-                      {/* Actions */}
-                      <div className="flex justify-between items-center pt-2">
+                      {/* Actions - Fixed at bottom */}
+                      <div className="flex justify-between items-center pt-2 mt-auto">
                         <div className="flex space-x-1">
                           <Button
                             size="sm"
