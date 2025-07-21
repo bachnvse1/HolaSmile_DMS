@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useSupply, useDeactivateSupply } from '@/hooks/useSupplies';
 import { useUserInfo } from '@/hooks/useUserInfo';
+import { formatCurrency } from '@/utils/currencyUtils';
 
 export const SupplyDetail: React.FC = () => {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ export const SupplyDetail: React.FC = () => {
   const userInfo = useUserInfo();
   const userRole = userInfo?.role || '';
 
-  // Chỉ Administrator, Owner, Assistant có quyền edit/delete
+  // Chỉ Assistant có quyền edit/delete
   const canModify = ['Assistant'].includes(userRole);
 
   const [confirmModal, setConfirmModal] = useState<{
@@ -66,15 +67,18 @@ export const SupplyDetail: React.FC = () => {
     navigate('/inventory');
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-    }).format(price);
-  };
+  const formatDate = (dateString: string | null | undefined): string => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    if (
+      isNaN(date.getTime()) ||                
+      date.getTime() === 0 ||             
+      date.getFullYear() <= 1                
+    ) {
+      return '';
+    }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
+    return date.toLocaleDateString('vi-VN', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -84,8 +88,8 @@ export const SupplyDetail: React.FC = () => {
   };
 
   const getStockStatus = (quantity: number) => {
-    if (quantity <= 10) return { text: 'Hết hàng', color: 'text-red-600 bg-red-50', icon: AlertTriangle };
-    if (quantity <= 50) return { text: 'Sắp hết', color: 'text-orange-600 bg-orange-50', icon: AlertTriangle };
+    if (quantity <= 0) return { text: 'Hết hàng', color: 'text-red-600 bg-red-50', icon: AlertTriangle };
+    if (quantity <= 10) return { text: 'Sắp hết', color: 'text-orange-600 bg-orange-50', icon: AlertTriangle };
     return { text: 'Còn hàng', color: 'text-green-600 bg-green-50', icon: Package };
   };
 
@@ -147,9 +151,9 @@ export const SupplyDetail: React.FC = () => {
 
         {canModify && (
           <div className="flex flex-col sm:flex-row gap-2">
-            <Button 
-              variant="outline" 
-              onClick={handleEdit} 
+            <Button
+              variant="outline"
+              onClick={handleEdit}
               className="w-full sm:w-auto"
             >
               <Edit className="h-4 w-4 mr-2" />
@@ -224,7 +228,7 @@ export const SupplyDetail: React.FC = () => {
               <div>
                 <label className="text-sm font-medium text-gray-600">Giá Đơn Vị</label>
                 <p className="text-base sm:text-lg font-semibold text-gray-900 mt-1 break-all">
-                  {formatPrice(supply.Price)}
+                  {formatCurrency(supply.Price)}
                 </p>
               </div>
             </div>
@@ -275,12 +279,12 @@ export const SupplyDetail: React.FC = () => {
               <div className="space-y-3">
                 <div>
                   <p className="text-base sm:text-lg font-semibold text-green-600 break-all">
-                    {formatPrice(totalValue)}
+                    {formatCurrency(totalValue)}
                   </p>
                 </div>
 
                 <div className="text-sm text-gray-600 space-y-1">
-                  <div className="break-all">Giá đơn vị: {formatPrice(supply.Price)}</div>
+                  <div className="break-all">Giá đơn vị: {formatCurrency(supply.Price)}</div>
                   <div>Số lượng: {supply.QuantityInStock} {supply.Unit}</div>
                 </div>
               </div>
@@ -301,7 +305,7 @@ export const SupplyDetail: React.FC = () => {
               </div>
               <div className="flex items-center text-sm text-gray-600">
                 <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
-                <span className="break-all">Cập nhật: {formatDate(supply.UpdatedAt)}</span>
+                <span className="break-all">Cập nhật: {formatDate(supply.UpdatedAt) || 'Chưa có cập nhật'} </span>
               </div>
             </div>
           </CardContent>

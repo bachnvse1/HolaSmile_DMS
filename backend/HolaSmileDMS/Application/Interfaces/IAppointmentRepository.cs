@@ -18,6 +18,6 @@ namespace Application.Interfaces
         Task<bool> UpdateAppointmentAsync(Appointment appointment);
         Task<List<Appointment>> GetAppointmentsByPatient(int userId);
         Task<List<Appointment>> GetAllAppointments();
-
+        Task<List<Appointment>> GetAllCofirmAppoitmentAsync();
     }
 }

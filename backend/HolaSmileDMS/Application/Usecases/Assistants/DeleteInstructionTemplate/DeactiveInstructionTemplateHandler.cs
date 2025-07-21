@@ -32,6 +32,6 @@ public class DeactiveInstructionTemplateHandler : IRequestHandler<DeactiveInstru
         template.UpdatedAt = DateTime.UtcNow;
         template.UpdatedBy = currentUserId;
         await _repository.UpdateAsync(template);
-        return MessageConstants.MSG.MSG105; // Vô hiệu hoá thẻ bảo hành thành công (dùng lại MSG105)
+        return MessageConstants.MSG.MSG41;
     }
 }

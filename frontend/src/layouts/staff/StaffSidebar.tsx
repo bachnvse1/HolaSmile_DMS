@@ -14,7 +14,8 @@ import {
   ChevronRight,
   Activity,
   Pill,
-  ChevronLeft
+  ChevronLeft,
+  Percent
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 
@@ -145,6 +146,13 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       roles: ['Administrator', 'Owner', 'Receptionist'],
       children: [
         {
+          id: 'finance-transactions',
+          label: 'Giao Dịch',
+          icon: <CreditCard className="h-4 w-4" />,
+          path: '/financial-transactions',
+          roles: ['Administrator', 'Owner', 'Receptionist']
+        },
+        {
           id: 'finance-invoices',
           label: 'Hóa Đơn',
           icon: <FileText className="h-4 w-4" />,
@@ -180,6 +188,13 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       icon: <Package className="h-5 w-5" />,
       path: '/inventory',
       roles: ['Administrator', 'Owner', 'Assistant', "Receptionist", 'Dentist'],
+    },
+    {
+      id: 'promotions',
+      label: 'Khuyến Mãi',
+      icon: <Percent className="h-5 w-5" />,
+      path: '/promotions',
+      roles: ['Receptionist']
     },
     // {
     //   id: 'reports',
@@ -349,20 +364,8 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
         </div>
 
         {/* Navigation - Scrollable */}
-        <nav
-          className="flex-1 overflow-y-auto overflow-x-hidden"
-          style={{
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-          }}
-        >
-          <div
-            style={{
-              overflowY: 'scroll',
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-            }}
-          >
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden">
+          <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {menuItems.map(item => renderMenuItem(item))}
 
             {/* Expand button when collapsed (non-mobile) */}

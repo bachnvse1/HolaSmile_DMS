@@ -35,7 +35,7 @@ namespace HDMS_API.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { message = MessageConstants.MSG.MSG110 });
+                return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
             }
         }
 
@@ -62,7 +62,7 @@ namespace HDMS_API.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { message = MessageConstants.MSG.MSG110 });
+                return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
             }
         }
 
@@ -94,7 +94,7 @@ namespace HDMS_API.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { message = MessageConstants.MSG.MSG110 });
+                return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
             }
         }
 
@@ -115,16 +115,17 @@ namespace HDMS_API.Controllers
             {
                 return NotFound(new { message = ex.Message });
             }
-            catch (FormatException ex)
+            catch (ArgumentException ex)
             {
                 return BadRequest(new { message = ex.Message });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { message = MessageConstants.MSG.MSG110 });
+                Console.WriteLine(ex.GetType()); // hoặc log ra logger
+                return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
             }
         }
-
+            
     }
 
 }

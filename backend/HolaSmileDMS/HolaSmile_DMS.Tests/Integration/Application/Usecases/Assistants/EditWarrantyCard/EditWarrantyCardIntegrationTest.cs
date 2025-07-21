@@ -1,6 +1,6 @@
-﻿/*
-using Application.Constants;
+﻿using Application.Constants;
 using Application.Usecases.Assistant.EditWarrantyCard;
+using Domain.Entities;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Http;
@@ -9,20 +9,20 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
 {
-    public class EditWarrantyCardIntegrationTest
+    public class EditWarrantyCardHandlerTests
     {
         private readonly ApplicationDbContext _context;
         private readonly EditWarrantyCardHandler _handler;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public EditWarrantyCardIntegrationTest()
+        public EditWarrantyCardHandlerTests()
         {
             var services = new ServiceCollection();
 
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseInMemoryDatabase("EditWarrantyCardTestDb"));
+                options.UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()));
 
             services.AddHttpContextAccessor();
 
@@ -31,22 +31,22 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
             _context = provider.GetRequiredService<ApplicationDbContext>();
             _httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
 
-            var warrantyRepo = new WarrantyCardRepository(_context);
+            var repository = new WarrantyCardRepository(_context);
 
             _handler = new EditWarrantyCardHandler(
-                warrantyRepo,
+                repository,
                 _httpContextAccessor
             );
 
             SeedData();
         }
 
-        private void SetupHttpContext(string role, string userId = "99")
+        private void SetupHttpContext(string role)
         {
             var context = new DefaultHttpContext();
             context.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, userId),
+                new Claim(ClaimTypes.NameIdentifier, "1"),
                 new Claim(ClaimTypes.Role, role)
             }, "TestAuth"));
 
@@ -58,14 +58,30 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
             _context.WarrantyCards.RemoveRange(_context.WarrantyCards);
             _context.SaveChanges();
 
-            _context.WarrantyCards.Add(new WarrantyCard
-            {
-                WarrantyCardID = 1,
-                Term = "6 tháng",
-                Status = true,
-                StartDate = new DateTime(2025, 1, 1),
-                EndDate = new DateTime(2025, 7, 1)
-            });
+            _context.WarrantyCards.AddRange(
+                new WarrantyCard
+                {
+                    WarrantyCardID = 1,
+                    TreatmentRecordID = 1,
+                    StartDate = new DateTime(2025, 1, 1),
+                    EndDate = new DateTime(2026, 1, 1),
+                    Duration = 12,
+                    Status = true,
+                    CreateBy = 1,
+                    IsDelete = false
+                },
+                new WarrantyCard
+                {
+                    WarrantyCardID = 2,
+                    TreatmentRecordID = 2,
+                    StartDate = new DateTime(2025, 2, 1),
+                    EndDate = new DateTime(2026, 2, 1),
+                    Duration = 12,
+                    Status = true,
+                    CreateBy = 1,
+                    IsDelete = true
+                }
+            );
 
             _context.SaveChanges();
         }
@@ -73,35 +89,37 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
         [Fact(DisplayName = "Normal - UTCID01 - Assistant edits warranty card successfully")]
         public async System.Threading.Tasks.Task UTCID01_EditWarrantyCard_Success()
         {
+            // Arrange
             SetupHttpContext("Assistant");
 
             var command = new EditWarrantyCardCommand
             {
                 WarrantyCardId = 1,
-                Term = "12 tháng",
+                Duration = 24,
                 Status = false
             };
 
+            // Act
             var result = await _handler.Handle(command, default);
 
+            // Assert
             Assert.Equal(MessageConstants.MSG.MSG106, result);
 
-            var card = await _context.WarrantyCards.FindAsync(1);
-            Assert.Equal("12 tháng", card!.Term);
-            Assert.False(card.Status);
-            Assert.Equal(99, card.UpdatedBy);
-            Assert.Equal(card.StartDate.AddMonths(12), card.EndDate);
+            var updated = _context.WarrantyCards.First(x => x.WarrantyCardID == 1);
+            Assert.Equal(24, updated.Duration);
+            Assert.False(updated.Status);
+            Assert.Equal(new DateTime(2025, 1, 1).AddMonths(24), updated.EndDate);
         }
 
         [Fact(DisplayName = "Abnormal - UTCID02 - Not logged in should throw MSG17")]
-        public async System.Threading.Tasks.Task UTCID02_EditWarrantyCard_NoLogin_Throws()
+        public async System.Threading.Tasks.Task UTCID02_NotLoggedIn_Throws()
         {
             _httpContextAccessor.HttpContext = null;
 
             var command = new EditWarrantyCardCommand
             {
                 WarrantyCardId = 1,
-                Term = "12 tháng",
+                Duration = 12,
                 Status = true
             };
 
@@ -111,15 +129,15 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
             Assert.Equal(MessageConstants.MSG.MSG17, ex.Message);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID03 - Non-Assistant role should throw MSG26")]
-        public async System.Threading.Tasks.Task UTCID03_EditWarrantyCard_WrongRole_Throws()
+        [Fact(DisplayName = "Abnormal - UTCID03 - Role not allowed should throw MSG26")]
+        public async System.Threading.Tasks.Task UTCID03_InvalidRole_Throws()
         {
-            SetupHttpContext("Receptionist");
+            SetupHttpContext("Patient");
 
             var command = new EditWarrantyCardCommand
             {
                 WarrantyCardId = 1,
-                Term = "12 tháng",
+                Duration = 12,
                 Status = true
             };
 
@@ -129,15 +147,15 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
             Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID04 - Non-existent warranty card should throw MSG102")]
-        public async System.Threading.Tasks.Task UTCID04_EditWarrantyCard_NotFound_Throws()
+        [Fact(DisplayName = "Abnormal - UTCID04 - Card not found should throw MSG102")]
+        public async System.Threading.Tasks.Task UTCID04_CardNotFound_Throws()
         {
             SetupHttpContext("Assistant");
 
             var command = new EditWarrantyCardCommand
             {
                 WarrantyCardId = 999,
-                Term = "12 tháng",
+                Duration = 12,
                 Status = true
             };
 
@@ -147,15 +165,15 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
             Assert.Equal(MessageConstants.MSG.MSG102, ex.Message);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID05 - Invalid term format should throw MSG98")]
-        public async System.Threading.Tasks.Task UTCID05_EditWarrantyCard_InvalidTerm_Throws()
+        [Fact(DisplayName = "Abnormal - UTCID05 - Invalid duration should throw MSG98")]
+        public async System.Threading.Tasks.Task UTCID05_InvalidDuration_Throws()
         {
             SetupHttpContext("Assistant");
 
             var command = new EditWarrantyCardCommand
             {
                 WarrantyCardId = 1,
-                Term = "xyz",
+                Duration = 0,
                 Status = true
             };
 
@@ -166,4 +184,3 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
         }
     }
 }
-*/

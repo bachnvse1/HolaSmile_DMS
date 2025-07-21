@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar, User, FileText, Eye, Search, Filter, Clock, AlertTriangle } from 'lucide-react';
+import { Calendar, User, FileText, Eye, Search, Filter, Clock, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Pagination } from '../ui/Pagination';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router';
 import { isAppointmentCancellable } from '../../utils/appointmentUtils';
@@ -14,6 +15,9 @@ import TreatmentModal from '../patient/TreatmentModal';
 import type { TreatmentFormData } from "@/types/treatment";
 import { formatDateVN, formatTimeVN } from '../../utils/dateUtils';
 import { useQueryClient } from '@tanstack/react-query';
+import { useChangeAppointmentStatus } from '../../hooks/useAppointments';
+import { toast } from 'react-toastify';
+import { getErrorMessage } from '@/utils/formatUtils';
 
 interface AppointmentListViewProps {
   appointments: AppointmentDTO[];
@@ -34,9 +38,23 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
 
   const [showTreatmentModal, setShowTreatmentModal] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<number | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    appointmentId: number | null;
+    status: 'attended' | 'absented' | null;
+    patientName: string;
+  }>({
+    isOpen: false,
+    appointmentId: null,
+    status: null,
+    patientName: ''
+  });
 
   const treatmentFormMethods = useForm<TreatmentFormData>();
   const [treatmentToday, setTreatmentToday] = useState<boolean | null>(null);
+
+  // Change appointment status mutation
+  const { mutate: changeStatus, isPending: isChangingStatus } = useChangeAppointmentStatus();
 
   // Clear cache when user changes
   useEffect(() => {
@@ -48,12 +66,6 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
     }
   }, [userId, queryClient, lastUserId]);
 
-
-  // const getStatusColor = (status: 'confirmed' | 'canceled') => {
-  //   return status === 'confirmed'
-  //     ? 'bg-green-100 text-green-800'
-  //     : 'bg-red-100 text-red-800';
-  // };
 
   const getStatusText = (
     status: 'confirmed' | 'canceled' | 'attended' | 'absented'
@@ -141,6 +153,35 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   const handleItemsPerPageChange = (value: number) => {
     setItemsPerPage(value);
     setCurrentPage(1);
+  };
+
+  // Handle status change for receptionist
+  const handleStatusChangeRequest = (appointmentId: number, newStatus: 'attended' | 'absented', patientName: string) => {
+    setConfirmModal({
+      isOpen: true,
+      appointmentId,
+      status: newStatus,
+      patientName
+    });
+  };
+
+  const handleConfirmStatusChange = () => {
+    if (!confirmModal.appointmentId || !confirmModal.status) return;
+    
+    changeStatus(
+      { appointmentId: confirmModal.appointmentId, status: confirmModal.status },
+      {
+        onSuccess: () => {
+          toast.success(`Đã cập nhật trạng thái thành công`);
+          queryClient.invalidateQueries({ queryKey: ['appointments'] });
+          setConfirmModal({ isOpen: false, appointmentId: null, status: null, patientName: '' });
+        },
+        onError: (error) => {
+          toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi cập nhật trạng thái');
+          setConfirmModal({ isOpen: false, appointmentId: null, status: null, patientName: '' });
+        }
+      }
+    );
   };
 
 
@@ -294,6 +335,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                         Bệnh nhân mới
                       </Badge>
                     )}
+
                     {appointment.isExistPrescription && (
                       <Badge variant="success" className="text-xs font-medium">
                         Có đơn thuốc
@@ -308,7 +350,9 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                         </Badge>
                       )}
                   </div>
-                  <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 xs:gap-0">
+                  
+                <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 xs:gap-0">
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       variant="outline"
                       size="sm"
@@ -319,12 +363,39 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                           navigate(`/appointments/${appointment.appointmentId}`);
                         }
                       }}
-                      className="flex items-center gap-2 w-full xs:w-auto"
+                      className="flex items-center gap-2"
                     >
                       <Eye className="h-4 w-4" />
                       Chi tiết
                     </Button>
-                    {role === 'Dentist' && appointment.status !== 'canceled' && (
+                
+                    
+                    {role === 'Receptionist' && appointment.status === 'confirmed' && (
+                      <>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => handleStatusChangeRequest(appointment.appointmentId, 'attended', appointment.patientName)}
+                          disabled={isChangingStatus}
+                          className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                          Đã đến
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleStatusChangeRequest(appointment.appointmentId, 'absented', appointment.patientName)}
+                          disabled={isChangingStatus}
+                          className="flex items-center gap-2 text-red-600 hover:text-red-700 border-red-300"
+                        >
+                          <XCircle className="h-4 w-4" />
+                          Vắng
+                        </Button>
+                      </>
+                    )}
+                    
+                 {role === 'Dentist' && appointment.status !== 'canceled' && (
                       <Button
                         variant="default"
                         size="sm"
@@ -420,7 +491,9 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
             </Card>
           ))
         )}
-      </div>      {/* Pagination */}
+      </div>
+        
+        {/* Pagination */}
       {sortedAppointments.length > 0 && (
         <Card className="p-4">
           <Pagination
@@ -445,6 +518,18 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
         onSubmit={() => {
           setShowTreatmentModal(false);
         }}
+      />
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, appointmentId: null, status: null, patientName: '' })}
+        onConfirm={handleConfirmStatusChange}
+        title={`Xác nhận ${confirmModal.status === 'attended' ? 'đã đến' : 'vắng mặt'}`}
+        message={`Bạn có chắc chắn muốn đánh dấu bệnh nhân ${confirmModal.patientName} là "${confirmModal.status === 'attended' ? 'đã đến' : 'vắng mặt'}"?`}
+        confirmText={confirmModal.status === 'attended' ? 'Xác nhận đã đến' : 'Xác nhận vắng mặt'}
+        confirmVariant={confirmModal.status === 'attended' ? 'default' : 'destructive'}
+        isLoading={isChangingStatus}
       />
     </div>
   );

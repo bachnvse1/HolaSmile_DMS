@@ -1,10 +1,10 @@
-using Application.Usecases.UserCommon.ViewProfile;
-using HDMS_API.Application.Usecases.Auth.ForgotPassword;
+﻿using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using Application.Usecases.Patients.ViewListPatient;
 using HDMS_API.Application.Usecases.UserCommon.Login;
 using Application.Usecases.Administrator.ViewListUser;
+using HDMS_API.Application.Usecases.UserCommon.ForgotPassword;
 
 namespace Application.Interfaces
 {
@@ -23,7 +23,7 @@ namespace Application.Interfaces
         Task<ViewProfileDto?> GetUserProfileAsync(int userId, CancellationToken cancellationToken);
         Task<UserRoleResult?> GetUserRoleAsync(string username, CancellationToken cancellationToken);
         Task<User?> GetByIdAsync(int? userId, CancellationToken cancellationToken);
-        Task<List<ViewListPatientDto>> GetAllPatientsAsync(CancellationToken cancellationToken);
+        Task<List<Patient>> GetAllPatientsAsync(CancellationToken cancellationToken);
         Task<List<Receptionist>> GetAllReceptionistAsync();
         Task<List<ViewListUserDTO>> GetAllUserAsync();
         Task<bool> CreateUserAsync(User user, string role);

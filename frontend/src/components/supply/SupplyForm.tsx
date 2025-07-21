@@ -17,6 +17,7 @@ import {
 import { SupplyUnit } from '@/types/supply';
 import { useQueryClient } from '@tanstack/react-query';
 import { getErrorMessage } from '@/utils/formatUtils';
+import { formatCurrency, handleCurrencyInput, parseCurrency } from '@/utils/currencyUtils';
 
 const supplySchema = z.object({
   name: z.string().min(1, 'Tên vật tư là bắt buộc'),
@@ -80,7 +81,7 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
           expiryDate: new Date(data.expiryDate).toISOString(),
         }, {
           onSuccess: (data) => {
-            const response = data as any;
+            const response = data as { message?: string };
             toast.success(response.message || 'Tạo vật tư thành công');
             navigate('/inventory');
           },
@@ -98,7 +99,7 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
           expiryDate: new Date(data.expiryDate).toISOString(),
         }, {
           onSuccess: (data) => {
-            const response = data as any;
+            const response = data as { message?: string };
             queryClient.invalidateQueries({ queryKey: ['supplies'] });
             toast.success(response.message || 'Cập nhật vật tư thành công');
             navigate('/inventory');
@@ -117,19 +118,23 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
     navigate('/inventory');
   };
 
-  const formatPrice = (value: string) => {
-    // Remove non-digits
-    const numericValue = value.replace(/\D/g, '');
-    // Format with thousand separators
-    return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  };
+  const [priceDisplayValue, setPriceDisplayValue] = React.useState<string>('');
+
+  // Initialize price display value when supply data loads
+  React.useEffect(() => {
+    if (mode === 'edit' && supply) {
+      setPriceDisplayValue(formatCurrency(supply.Price));
+    }
+  }, [supply, mode]);
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formattedValue = formatPrice(e.target.value);
-    e.target.value = formattedValue;
-    // Update form with numeric value
-    const numericValue = parseInt(formattedValue.replace(/,/g, '')) || 0;
-    form.setValue('price', numericValue);
+    const value = e.target.value;
+    handleCurrencyInput(value, (formattedValue) => {
+      setPriceDisplayValue(formattedValue);
+      // Update form with numeric value
+      const numericValue = parseCurrency(formattedValue);
+      form.setValue('price', numericValue);
+    });
   };
 
   if (mode === 'edit' && isLoadingSupply) {
@@ -286,8 +291,8 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
               </label>
               <Input
                 placeholder="0"
+                value={priceDisplayValue}
                 onChange={handlePriceChange}
-                defaultValue={mode === 'edit' && supply ? formatPrice(supply.Price.toString()) : ''}
                 className="w-full"
               />
               {form.formState.errors.price && (
