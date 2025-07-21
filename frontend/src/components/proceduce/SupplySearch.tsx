@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/tooltip"
 import type { SupplyItem, Supply } from "@/types/procedure"
 import { supplyApi, mapToSupplyItem  } from "@/services/supplyApi" 
+import { formatCurrency } from "@/utils/currencyUtils"
 
 interface SupplySearchProps {
   onSelectSupply: (supply: SupplyItem) => void
@@ -51,12 +52,6 @@ export function SupplySearch({ onSelectSupply, selectedSupplies, disabled = fals
     )
     setFilteredSupplies(filtered)
   }, [searchTerm, allSupplies])
-
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount)
 
   const isSupplySelected = (supplyId: number) =>
     selectedSupplies.some((s) => s.supplyId === supplyId)

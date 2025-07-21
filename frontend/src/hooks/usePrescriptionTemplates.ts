@@ -18,23 +18,74 @@ export const usePrescriptionTemplates = (searchQuery?: string) => {
   return useQuery({
     queryKey: PRESCRIPTION_TEMPLATE_KEYS.list(searchQuery),
     queryFn: async () => {
-      const templates =
-        await prescriptionTemplateApi.getPrescriptionTemplates();
+      try {
+        const response = await prescriptionTemplateApi.getPrescriptionTemplates();
+        
+        // Handle different response formats
+        let templates = response;
+        
+        // If response is not an array, check for data property or message
+        if (!Array.isArray(response)) {
+          // Check if response has message indicating no data
+          if (response?.message === "Không có dữ liệu phù hợp") {
+            return [];
+          }
+          
+          // Check if response has data property
+          if (response?.data && Array.isArray(response.data)) {
+            templates = response.data;
+          } else {
+            // If response format is unexpected but not empty data error, return empty array
+            console.warn('Unexpected response format:', response);
+            return [];
+          }
+        }
 
-      // Filter by search query if provided
-      if (searchQuery) {
-        return templates.filter(
-          (template) =>
-            template.PreTemplateName.toLowerCase().includes(
-              searchQuery.toLowerCase()
-            ) ||
-            template.PreTemplateContext.toLowerCase().includes(
-              searchQuery.toLowerCase()
-            )
-        );
+        // Filter by search query if provided
+        if (searchQuery && Array.isArray(templates)) {
+          return templates.filter(
+            (template) =>
+              template.PreTemplateName.toLowerCase().includes(
+                searchQuery.toLowerCase()
+              ) ||
+              template.PreTemplateContext.toLowerCase().includes(
+                searchQuery.toLowerCase()
+              )
+          );
+        }
+
+        return Array.isArray(templates) ? templates : [];
+      } catch (error: unknown) {
+        // Handle API errors that indicate empty data
+        const apiError = error as { 
+          response?: { 
+            status?: number; 
+            data?: { message?: string } | string 
+          };
+          message?: string;
+        };
+        
+        // Handle status 200 with empty data message
+        if (apiError?.response?.status === 200) {
+          const responseData = apiError.response.data;
+          if (typeof responseData === 'object' && responseData?.message === "Không có dữ liệu phù hợp") {
+            return [];
+          }
+          if (typeof responseData === 'string' && responseData.includes("Không có dữ liệu phù hợp")) {
+            return [];
+          }
+        }
+        
+        // Handle other common empty data scenarios
+        if (apiError?.message?.includes('is not a function') || 
+            apiError?.message?.includes('Cannot read property') ||
+            apiError?.message?.includes('map is not a function')) {
+          console.warn('Data format error, treating as empty data:', apiError.message);
+          return [];
+        }
+        
+        throw error;
       }
-
-      return templates;
     },
     staleTime: 5 * 60 * 1000,
   });

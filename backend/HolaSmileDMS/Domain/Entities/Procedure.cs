@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 public class Procedure
 {
@@ -7,7 +8,9 @@ public class Procedure
 
     [MaxLength(200)]
     public string? ProcedureName { get; set; }
+    
 
+    [Column(TypeName = "decimal(18,2)")]
     public decimal Price { get; set; }
 
     [MaxLength(500)]
@@ -18,7 +21,10 @@ public class Procedure
     [MaxLength(255)]
     public string? WarrantyPeriod { get; set; }
 
+    [Column(TypeName = "decimal(18,2)")]
     public decimal? OriginalPrice { get; set; }
+    
+    [Column(TypeName = "decimal(18,2)")]
     public decimal? ConsumableCost { get; set; }
 
     public float? ReferralCommissionRate { get; set; }

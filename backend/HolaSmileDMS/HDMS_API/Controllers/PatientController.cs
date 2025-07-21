@@ -24,6 +24,7 @@ namespace HDMS_API.Controllers
             _printer = printer;
         }
 
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> ViewPatientList()
         {
@@ -49,6 +50,7 @@ namespace HDMS_API.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> ViewDetailPatient(int id)
         {

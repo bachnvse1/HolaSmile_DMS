@@ -1,5 +1,6 @@
 using Application.Usecases.UserCommon.RefreshToken;
 using Application.Constants;
+using Application.Usecases.UserCommon.ViewAllUserChat;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Usecases.Auth.ForgotPassword;
 using HDMS_API.Application.Usecases.UserCommon.EditProfile;
@@ -49,7 +50,7 @@ namespace HDMS_API.Controllers
         }
 
 
-
+        [Authorize]
         [HttpPut("profile")]
         public async Task<IActionResult> EditProfile([FromBody] EditProfileCommand command,
             CancellationToken cancellationToken)
@@ -180,6 +181,14 @@ namespace HDMS_API.Controllers
             {
                 return Unauthorized(new { message = ex.Message });
             }
+        }
+        
+        [HttpGet("allUsersChat")]
+        [Authorize]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var result = await _mediator.Send(new ViewAllUsersChatCommand());
+            return Ok(result);
         }
     }
 }

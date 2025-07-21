@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Calendar, Clock, User, FileText, Tag, UserCheck, CheckCircle, XCircle, AlertTriangle, Plus, Eye, ArrowLeft } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -17,6 +17,7 @@ import TreatmentModal from '../patient/TreatmentModal';
 import type { TreatmentFormData } from '@/types/treatment';
 import { useForm } from 'react-hook-form';
 import { useUserInfo } from '@/hooks/useUserInfo';
+import { getPatientInstructions } from '@/services/instructionService';
 
 interface AppointmentDetailViewProps {
   appointmentId: number;
@@ -29,6 +30,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [showTreatmentModal, setShowTreatmentModal] = useState(false);
+  const [hasInstruction, setHasInstruction] = useState(false);
   const userInfo = useUserInfo();
   const { role } = useAuth();
   const navigate = useNavigate();
@@ -69,6 +71,21 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
       navigate('/appointments');
     }
   };
+
+  useEffect(() => {
+    const checkInstructions = async () => {
+      try {
+        const list = await getPatientInstructions(appointmentId);
+        if (list.length > 0) setHasInstruction(true);
+      } catch (err) {
+        console.error("Lỗi khi kiểm tra chỉ dẫn:", err);
+      }
+    };
+
+    if (role === 'Patient') {
+      checkInstructions();
+    }
+  }, [appointmentId, role]);
 
   const handleTreatmentSubmit = () => {
     setShowTreatmentModal(false);
@@ -145,7 +162,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
 
         {/* Action Buttons - Dentist có full quyền, Patient chỉ xem đơn thuốc */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {role === 'Dentist' && (
+          {role === 'Dentist' && appointment.status !== "canceled" && (
             <Button
               variant="outline"
               size="sm"
@@ -188,6 +205,24 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
                   <span className="sm:hidden">Thêm</span>
                 </>
               )}
+            </Button>
+          )}
+          {(role === 'Patient' ? hasInstruction : true) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                navigate(
+                  role === 'Patient'
+                    ? `/patient/instructions/${appointmentId}`
+                    : `/instructions/${appointmentId}`
+                )
+              }
+              className="flex items-center gap-2 text-xs sm:text-sm"
+            >
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Xem chỉ dẫn</span>
+              <span className="sm:hidden">Chỉ dẫn</span>
             </Button>
           )}
         </div>

@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FileText } from "lucide-react"
 import type { CreateWarrantyCard } from "@/types/warranty"
 import type { TreatmentRecord } from "@/types/treatment"
+import { formatCurrency } from "@/utils/currencyUtils"
 
 interface CreateWarrantyDialogProps {
   open: boolean
@@ -35,13 +36,6 @@ export function CreateWarrantyDialog({
   availableRecords,
   onSubmit,
 }: CreateWarrantyDialogProps) {
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount)
-  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("vi-VN", {

@@ -39,7 +39,7 @@ namespace HDMS_API.Container.DependencyInjection
 
                             // Chỉ áp dụng với endpoint Hub /notify
                             if (!string.IsNullOrEmpty(accessToken) &&
-                                path.StartsWithSegments("/notify"))
+                                (path.StartsWithSegments("/notify") || path.StartsWithSegments("/chat")))
                             {
                                 context.Token = accessToken;
                             }

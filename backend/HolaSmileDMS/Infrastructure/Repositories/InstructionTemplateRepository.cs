@@ -19,5 +19,22 @@ namespace Infrastructure.Repositories
                 .AsNoTracking()
                 .FirstOrDefaultAsync(t => t.Instruc_TemplateID == id, ct);
         }
+
+        public async System.Threading.Tasks.Task CreateAsync(InstructionTemplate entity)
+        {
+            _context.InstructionTemplates.Add(entity);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<InstructionTemplate>> GetAllAsync()
+        {
+            return await _context.InstructionTemplates.Where(x=>!x.IsDeleted).ToListAsync();
+        }
+        
+        public async System.Threading.Tasks.Task UpdateAsync(InstructionTemplate entity)
+        {
+            _context.InstructionTemplates.Update(entity);
+            await _context.SaveChangesAsync();
+        }
     }
 }

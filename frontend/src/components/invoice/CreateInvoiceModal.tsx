@@ -16,7 +16,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { formatCurrency } from "@/utils/format";
+import { formatCurrency, handleCurrencyInput, parseCurrency } from "@/utils/currencyUtils";
 
 // Improved type definitions
 interface TreatmentRecord {
@@ -66,6 +66,18 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
   handleCreateInvoice,
   isCreating = false,
 }) => {
+  // State để lưu trữ giá trị formatted cho input
+  const [formattedAmount, setFormattedAmount] = React.useState<string>('');
+
+  // Sync formatted amount khi paidAmount thay đổi từ bên ngoài
+  React.useEffect(() => {
+    if (newInvoice.paidAmount > 0) {
+      setFormattedAmount(formatCurrency(newInvoice.paidAmount));
+    } else {
+      setFormattedAmount('');
+    }
+  }, [newInvoice.paidAmount]);
+
   // Validation helper
   const isFormValid = () => {
     return (
@@ -84,12 +96,15 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
     }));
   };
 
-  // Handle payment amount change with validation
+  // Handle payment amount change với handleCurrencyInput
   const handleAmountChange = (value: string) => {
-    const numValue = parseFloat(value) || 0;
-    if (numValue >= 0 && numValue <= treatmentRecord.totalAmount) {
-      handleFieldChange('paidAmount', numValue);
-    }
+    handleCurrencyInput(value, (formattedValue) => {
+      setFormattedAmount(formattedValue);
+      const numericValue = parseCurrency(formattedValue);
+      if (numericValue >= 0 && numericValue <= treatmentRecord.totalAmount) {
+        handleFieldChange('paidAmount', numericValue);
+      }
+    });
   };
 
   // Auto-fill amount based on transaction type
@@ -97,8 +112,10 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
     handleFieldChange('transactionType', value);
     if (value === 'full') {
       handleFieldChange('paidAmount', treatmentRecord.totalAmount);
+      setFormattedAmount(formatCurrency(treatmentRecord.totalAmount));
     } else if (value === 'partial' && newInvoice.paidAmount === treatmentRecord.totalAmount) {
       handleFieldChange('paidAmount', 0);
+      setFormattedAmount('');
     }
   };
 
@@ -194,10 +211,8 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
             <div className="mt-1 relative">
               <Input
                 id="paidAmount"
-                type="number"
-                min={0}
-                max={treatmentRecord.totalAmount}
-                value={newInvoice.paidAmount || ''}
+                type="text"
+                value={formattedAmount}
                 onChange={(e) => handleAmountChange(e.target.value)}
                 placeholder="Nhập số tiền thanh toán"
                 className={`pr-12 ${

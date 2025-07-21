@@ -38,7 +38,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Administrators
             SetupHttpContext("administrator", 1);
             var cmd = new BanAndUnbanUserCommand { UserId = 999 };
 
-            _repoMock.Setup(r => r.UpdateUserStatusAsync(999)).ReturnsAsync(true);
+            _repoMock.Setup(r => r.UpdateUserStatusAsync(999,1)).ReturnsAsync(true);
 
             var result = await _handler.Handle(cmd, default);
 

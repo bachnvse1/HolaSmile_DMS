@@ -54,7 +54,11 @@ import PaymentCancelled from "./components/invoice/PaymentCancel";
 import PatientTreatmentRecordsSection from "./components/patient/PatientTreatmentRecordsSection";
 import { PatientOrthodonticImagesPage } from "./pages/patient/PatientOrthodonticImagesPage";
 import { PatientTreatmentImagesPage } from "./pages/patient/PatientTreatmentImagesPage";
-
+import FloatingChatButton from './components/chatbox/FloatingChatButton';
+import { ChatHubProvider } from './components/chatbox/ChatHubProvider';
+import InstructionTemplateManagement from "./pages/instruction/InstructionTemplateManagement";
+import PatientInstructionsList from "./pages/instruction/PatientInstructionList";
+import InstructionsPage from "./pages/instruction/InstructionManagement";
 function App() {
   return (
     <>
@@ -63,7 +67,8 @@ function App() {
         autoClose={3000}
         toastStyle={{ marginTop: "80px" }}
       />
-      <Routes>
+        <ChatHubProvider>
+        <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -186,7 +191,12 @@ function App() {
         <Route path="/thank-you" element={<ThankYou />} />
         <Route path="/cancel" element={<PaymentCancelled />} />
         <Route path="/patient/treatment-records" element={<PatientTreatmentRecordsSection />} />
-      </Routes>
+        <Route path="/instruction-templates" element={<InstructionTemplateManagement />} />
+        <Route path="/patient/instructions/:appointmentId" element={<PatientInstructionsList />} />
+        <Route path="/instructions/:appointmentId" element={<InstructionsPage />} />
+        </Routes>
+        <FloatingChatButton />
+        </ChatHubProvider>
     </>
   );
 }

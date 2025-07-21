@@ -161,6 +161,13 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       ]
     },
     {
+      id: 'instruction-templates',
+      label: 'Mẫu Chỉ Dẫn',
+      icon: <FileText className="h-5 w-5" />,
+      path: '/instruction-templates',
+      roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
+    },
+    {
       id: "procedures",
       label: "Thủ Thuật",
       icon: <Stethoscope className="h-5 w-5" />,
@@ -331,7 +338,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
             </div>
           )}
           {isCollapsed && !isMobile && (
-            <div 
+            <div
               className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center cursor-pointer hover:bg-blue-700 transition-colors"
               onClick={handleLogoClick}
               title="Expand sidebar"
@@ -357,7 +364,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
             }}
           >
             {menuItems.map(item => renderMenuItem(item))}
-            
+
             {/* Expand button when collapsed (non-mobile) */}
             {isCollapsed && !isMobile && onToggle && (
               <button

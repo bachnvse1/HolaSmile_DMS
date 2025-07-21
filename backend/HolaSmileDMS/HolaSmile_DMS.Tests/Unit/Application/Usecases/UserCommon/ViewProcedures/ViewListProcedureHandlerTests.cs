@@ -100,9 +100,10 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
 
             _procedureRepositoryMock.Setup(r => r.GetAll()).ReturnsAsync(new List<Procedure>());
 
-            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(new ViewListProcedureCommand(), CancellationToken.None));
+            var result = await _handler.Handle(new ViewListProcedureCommand(), CancellationToken.None);
 
-            Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
+            Assert.NotNull(result);
+            Assert.Empty(result);
         }
     }
 }

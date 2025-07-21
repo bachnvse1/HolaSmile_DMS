@@ -57,5 +57,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<NotifyHub>("/notify");
+app.MapHub<ChatHub>("/chat").RequireAuthorization();;
 app.Run();
 public partial class Program { }

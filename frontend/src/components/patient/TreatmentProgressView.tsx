@@ -36,17 +36,17 @@ import { useAuth } from "@/hooks/useAuth"
 
 // Constants
 const STATUS_OPTIONS = [
-  { value: "pending", label: "Đã lên lịch", color: "text-amber-600", icon: CalendarIcon },
+  { value: "pending", label: "Đã lên lịch", color: "text-gray-600", icon: CalendarIcon },
   { value: "in-progress", label: "Đang điều trị", color: "text-blue-600", icon: Activity },
-  { value: "completed", label: "Đã hoàn thành", color: "text-green-600", icon: UserCheck },
-  { value: "canceled", label: "Đã huỷ", color: "text-red-600", icon: UserX },
+  { value: "completed", label: "Đã hoàn thành", color: "text-gray-800", icon: UserCheck },
+  { value: "canceled", label: "Đã huỷ", color: "text-gray-600", icon: UserX },
 ] as const
 
 const STATUS_COLORS = {
-  pending: "bg-amber-50 text-amber-800 border-amber-200",
+  pending: "bg-gray-50 text-gray-800 border-gray-200",
   "in-progress": "bg-blue-50 text-blue-800 border-blue-200",
-  completed: "bg-green-50 text-green-800 border-green-200",
-  canceled: "bg-red-50 text-red-800 border-red-200",
+  completed: "bg-gray-100 text-gray-800 border-gray-300",
+  canceled: "bg-gray-50 text-gray-700 border-gray-200",
 } as const
 
 // Validation schema
@@ -239,7 +239,7 @@ export function TreatmentProgressView({ progress }: Props) {
 
   // Render functions
   const renderHeader = () => (
-    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg p-3">
+    <div className="bg-gradient-to-r from-blue-200 to-blue-300 text-black rounded-t-lg p-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-white/20 rounded-lg">
@@ -247,7 +247,7 @@ export function TreatmentProgressView({ progress }: Props) {
           </div>
           <div>
             <h1 className="text-base font-bold truncate">{progress.progressName}</h1>
-            <p className="text-blue-100 text-xs">Chi tiết tiến trình điều trị</p>
+            <p className="text-black-100 text-xs">Chi tiết tiến trình điều trị</p>
           </div>
         </div>
         
@@ -256,7 +256,7 @@ export function TreatmentProgressView({ progress }: Props) {
             variant="outline"
             size="sm"
             onClick={startEditing}
-            className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white text-xs px-3 py-1"
+            className="bg-white/10 border-white/20 text-black hover:bg-white/20 hover:text-black text-xs px-3 py-1"
           >
             <Edit className="h-3 w-3 mr-1" />
             Chỉnh Sửa
@@ -281,46 +281,46 @@ export function TreatmentProgressView({ progress }: Props) {
 
         {/* Info Grid - 2x2 layout */}
         <div className="grid grid-cols-2 gap-2">
-          <div className="bg-blue-50 p-2 rounded-lg border border-blue-200">
+          <div className="bg-gray-50 p-2 rounded-lg border border-gray-200">
             <div className="flex items-center gap-1">
-              <User className="h-3 w-3 text-blue-600 flex-shrink-0" />
+              <User className="h-3 w-3 text-gray-600 flex-shrink-0" />
               <div className="min-w-0 flex-1">
                 <p className="text-xs text-gray-600">Bệnh nhân</p>
-                <p className="font-semibold text-blue-700 text-xs truncate" title={progress.patientName}>
+                <p className="font-semibold text-gray-800 text-xs truncate" title={progress.patientName}>
                   {progress.patientName}
                 </p>
               </div>
             </div>
           </div>
           
-          <div className="bg-green-50 p-2 rounded-lg border border-green-200">
+          <div className="bg-blue-50 p-2 rounded-lg border border-blue-200">
             <div className="flex items-center gap-1">
-              <UserCheck className="h-3 w-3 text-green-600 flex-shrink-0" />
+              <UserCheck className="h-3 w-3 text-blue-600 flex-shrink-0" />
               <div className="min-w-0 flex-1">
                 <p className="text-xs text-gray-600">Bác sĩ</p>
-                <p className="font-semibold text-green-700 text-xs truncate" title={progress.dentistName}>
+                <p className="font-semibold text-blue-700 text-xs truncate" title={progress.dentistName}>
                   {progress.dentistName}
                 </p>
               </div>
             </div>
           </div>
           
-          <div className="bg-amber-50 p-2 rounded-lg border border-amber-200">
+          <div className="bg-gray-100 p-2 rounded-lg border border-gray-200">
             <div className="flex items-center gap-1">
-              <Timer className="h-3 w-3 text-amber-600 flex-shrink-0" />
+              <Timer className="h-3 w-3 text-gray-600 flex-shrink-0" />
               <div className="min-w-0 flex-1">
                 <p className="text-xs text-gray-600">Thời gian</p>
-                <p className="font-semibold text-amber-700 text-xs">{progress.duration || "--"} phút</p>
+                <p className="font-semibold text-gray-800 text-xs">{progress.duration || "--"} phút</p>
               </div>
             </div>
           </div>
           
-          <div className="bg-purple-50 p-2 rounded-lg border border-purple-200">
+          <div className="bg-gray-50 p-2 rounded-lg border border-gray-200">
             <div className="flex items-center gap-1">
-              <CalendarIcon className="h-3 w-3 text-purple-600 flex-shrink-0" />
+              <CalendarIcon className="h-3 w-3 text-gray-600 flex-shrink-0" />
               <div className="min-w-0 flex-1">
                 <p className="text-xs text-gray-600">Kết thúc</p>
-                <p className="font-semibold text-purple-700 text-xs truncate" title={formattedEndTime}>
+                <p className="font-semibold text-gray-800 text-xs truncate" title={formattedEndTime}>
                   {formattedEndTime}
                 </p>
               </div>
@@ -355,12 +355,12 @@ export function TreatmentProgressView({ progress }: Props) {
           </div>
           
           {progress.note && (
-            <div className="bg-yellow-50 p-2 rounded border border-yellow-200">
+            <div className="bg-gray-100 p-2 rounded border border-gray-300">
               <div className="flex items-start gap-2">
-                <StickyNote className="h-3 w-3 text-yellow-600 mt-0.5 flex-shrink-0" />
+                <StickyNote className="h-3 w-3 text-gray-600 mt-0.5 flex-shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs text-yellow-700 mb-1">Ghi chú</p>
-                  <p className="text-xs text-yellow-800 line-clamp-2" title={progress.note}>
+                  <p className="text-xs text-gray-700 mb-1">Ghi chú</p>
+                  <p className="text-xs text-gray-800 line-clamp-2" title={progress.note}>
                     {progress.note}
                   </p>
                 </div>
@@ -407,7 +407,7 @@ export function TreatmentProgressView({ progress }: Props) {
   const renderEditForm = () => (
     <div className="bg-white rounded-lg border p-3 max-h-[calc(100vh-200px)] overflow-y-auto">
       <div className="flex items-center gap-2 mb-3 pb-2 border-b">
-        <Edit className="h-4 w-4 text-orange-600" />
+        <Edit className="h-4 w-4 text-blue-600" />
         <h3 className="text-base font-semibold">Chỉnh Sửa Tiến Trình</h3>
       </div>
       
@@ -548,7 +548,7 @@ export function TreatmentProgressView({ progress }: Props) {
             id="note"
             {...register("note")}
             rows={2}
-            className="bg-yellow-50 border-yellow-200 focus:ring-yellow-500 focus:border-yellow-500 text-sm resize-none"
+            className="bg-gray-50 border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm resize-none"
           />
         </div>
         

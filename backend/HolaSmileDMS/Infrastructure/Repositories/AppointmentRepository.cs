@@ -52,8 +52,8 @@ namespace HDMS_API.Infrastructure.Repositories
                 Status = appointment.Status,
                 CreatedAt = appointment.CreatedAt,
                 UpdatedAt = appointment.UpdatedAt,
-                CreatedBy = appointment.CreatedBy,
-                UpdatedBy = appointment.UpdatedBy,
+                CreatedBy = appointment.CreatedBy.ToString(),
+                UpdatedBy = appointment.UpdatedBy.ToString(),
 
                 // Gắn thông tin Prescription / Instruction
                 IsExistPrescription = prescription != null,
@@ -102,8 +102,8 @@ namespace HDMS_API.Infrastructure.Repositories
                     Status = app.Status,
                     CreatedAt = app.CreatedAt,
                     UpdatedAt = app.UpdatedAt,
-                    CreatedBy = app.CreatedBy,
-                    UpdatedBy = app.UpdatedBy,
+                    CreatedBy = app.CreatedBy.ToString(),
+                    UpdatedBy = app.UpdatedBy.ToString(),
                     IsExistPrescription = pres != null,
                     IsExistInstruction = inst != null,
                     PrescriptionId = pres?.PrescriptionId,
@@ -152,8 +152,8 @@ namespace HDMS_API.Infrastructure.Repositories
                     Status = app.Status,
                     CreatedAt = app.CreatedAt,
                     UpdatedAt = app.UpdatedAt,
-                    CreatedBy = app.CreatedBy,
-                    UpdatedBy = app.UpdatedBy,
+                    CreatedBy = app.CreatedBy.ToString(),
+                    UpdatedBy = app.UpdatedBy.ToString(),
                     IsExistPrescription = pres != null,
                     IsExistInstruction = inst != null,
                     PrescriptionId = pres?.PrescriptionId,
@@ -203,8 +203,8 @@ namespace HDMS_API.Infrastructure.Repositories
                     Status = app.Status,
                     CreatedAt = app.CreatedAt,
                     UpdatedAt = app.UpdatedAt,
-                    CreatedBy = app.CreatedBy,
-                    UpdatedBy = app.UpdatedBy,
+                    CreatedBy = app.CreatedBy.ToString(),
+                    UpdatedBy = app.UpdatedBy.ToString(),
                     IsExistPrescription = pres != null,
                     IsExistInstruction = inst != null,
                     PrescriptionId = pres?.PrescriptionId,
@@ -271,6 +271,24 @@ namespace HDMS_API.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return true;
         }
+        public async Task<List<Appointment>> GetAppointmentsByPatient(int userId)
+        {
+            return await _context.Appointments
+                .Include(a => a.Patient).ThenInclude(p => p.User)
+                .Include(a => a.Dentist).ThenInclude(d => d.User)
+                .Where(a => a.Patient.User.UserID == userId && !a.IsDeleted)
+                .ToListAsync();
+        }
+
+        public async Task<List<Appointment>> GetAllAppointments()
+        {
+            return await _context.Appointments
+                .Include(a => a.Patient).ThenInclude(p => p.User)
+                .Include(a => a.Dentist).ThenInclude(d => d.User)
+                .Where(a => !a.IsDeleted)
+                .ToListAsync();
+        }
+
 
     }
 }

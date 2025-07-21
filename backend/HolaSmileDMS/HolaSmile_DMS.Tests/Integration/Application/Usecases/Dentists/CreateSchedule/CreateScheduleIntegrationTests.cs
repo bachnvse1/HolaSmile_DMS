@@ -34,7 +34,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists
             var services = new ServiceCollection();
 
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseInMemoryDatabase("TestDB_CreateSchedule"));
+                options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
 
             services.AddHttpContextAccessor();
 
@@ -98,7 +98,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists
             {
                 new CreateScheduleDTO
                 {
-                    WorkDate = DateTime.Today.AddDays(2),
+                    WorkDate = DateTime.Today.AddDays(5),
                     Shift = "morning"
                 }
             }
