@@ -1,6 +1,5 @@
 using Application.Constants;
 using Application.Interfaces;
-using HDMS_API.Application.Interfaces;
 using HDMS_API.Application.Usecases.UserCommon.Login;
 using Moq;
 using Xunit;

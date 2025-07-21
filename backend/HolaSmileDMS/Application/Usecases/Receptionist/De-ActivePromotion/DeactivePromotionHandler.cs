@@ -40,10 +40,7 @@ namespace Application.Usecases.Receptionist.De_ActivePromotion
 
             if (!discountProgram.IsDelete)
             {
-                // Đang bị vô hiệu → sắp bật lại => kiểm tra xem có chương trình nào đang active không
-                var activeProgram = await _promotionRepository.GetProgramActiveAsync();
-                if (activeProgram != null && activeProgram.DiscountProgramID != discountProgram.DiscountProgramID)
-                    throw new Exception(MessageConstants.MSG.MSG121); // "Chỉ được phép có 1 chương trình khuyến mãi tại 1 thời điểm"
+                // Đang k bi xoa(active) → sắp unactive
 
                 // Restore giá gốc từ giá đã giảm (nếu bạn không lưu OriginalPrice)
                 foreach (var pd in discountProgram.ProcedureDiscountPrograms)
@@ -56,7 +53,10 @@ namespace Application.Usecases.Receptionist.De_ActivePromotion
             }
             else
             {
-                // Đang active → sắp deactivate => áp dụng giảm giá
+                // bị xóa(khong active)  → sắp activate => áp dụng giảm giá
+                var activeProgram = await _promotionRepository.GetProgramActiveAsync();
+                if (activeProgram != null && activeProgram.DiscountProgramID != discountProgram.DiscountProgramID)
+                    throw new Exception(MessageConstants.MSG.MSG121); // "Chỉ được phép có 1 chương trình khuyến mãi tại 1 thời điểm"
                 foreach (var pd in discountProgram.ProcedureDiscountPrograms)
                 {
                     var proc = await _procedureRepository.GetProcedureByIdAsync(pd.ProcedureId, cancellationToken);
