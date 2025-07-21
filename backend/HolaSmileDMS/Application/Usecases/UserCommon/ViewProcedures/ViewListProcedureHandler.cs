@@ -41,11 +41,8 @@ public class ViewListProcedureHandler : IRequestHandler<ViewListProcedureCommand
             ? allProcedures
             : allProcedures.Where(p => !p.IsDeleted).ToList();
 
-        if (listProcedures == null || !listProcedures.Any())
-        {
-            throw new Exception(MessageConstants.MSG.MSG16); // "Không tìm thấy thủ thuật"
-        }
+        listProcedures = listProcedures?.ToList() ?? new List<Procedure>();
 
-        return _mapper.Map<List<ViewProcedureDto>>(listProcedures);
+        return _mapper.Map<List<ViewProcedureDto>>(listProcedures) ?? new List<ViewProcedureDto>();
     }
 }

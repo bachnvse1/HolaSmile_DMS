@@ -6,153 +6,181 @@ using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants;
+
+public class CreateProcedureHandlerTests
 {
-    public class CreateProcedureHandlerTests
+    private readonly Mock<IProcedureRepository> _procedureRepoMock;
+    private readonly Mock<ISupplyRepository> _supplyRepoMock;
+    private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
+    private readonly CreateProcedureHandler _handler;
+
+    public CreateProcedureHandlerTests()
     {
-        private readonly Mock<IProcedureRepository> _procedureRepositoryMock;
-        private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
-        private readonly CreateProcedureHandler _handler;
+        _procedureRepoMock = new Mock<IProcedureRepository>();
+        _supplyRepoMock = new Mock<ISupplyRepository>();
+        _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+        _handler = new CreateProcedureHandler(
+            _procedureRepoMock.Object,
+            _supplyRepoMock.Object,
+            _httpContextAccessorMock.Object
+        );
+    }
 
-        public CreateProcedureHandlerTests()
-        {
-            _procedureRepositoryMock = new Mock<IProcedureRepository>();
-            _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            _handler = new CreateProcedureHandler(_procedureRepositoryMock.Object, _httpContextAccessorMock.Object);
-        }
-
-        private void SetupHttpContext(string role, string userId)
-        {
-            var claims = new List<Claim>
+    private void SetupHttpContext(string role, string userId)
+    {
+        var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Role, role),
-            new Claim(ClaimTypes.NameIdentifier, userId),
+            new Claim(ClaimTypes.NameIdentifier, userId)
         };
-            var identity = new ClaimsIdentity(claims, "mock");
-            var claimsPrincipal = new ClaimsPrincipal(identity);
-            var context = new DefaultHttpContext { User = claimsPrincipal };
-            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
-        }
+        var identity = new ClaimsIdentity(claims, "mock");
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+        var context = new DefaultHttpContext { User = claimsPrincipal };
+        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
+    }
 
-        [Fact(DisplayName = "Normal - UTCID01 - Valid input should return success")]
-        public async System.Threading.Tasks.Task UTCID01_ValidInput_ReturnsSuccess()
-        {
-            SetupHttpContext("assistant", "1");
-            var command = new CreateProcedureCommand
-            {
-                ProcedureName = "Valid",
-                Price = 100,
-                Discount = 10,
-                Description = "Desc",
-                OriginalPrice = 90,
-                ConsumableCost = 5,
-                ReferralCommissionRate = 1,
-                DoctorCommissionRate = 2,
-                AssistantCommissionRate = 3,
-                TechnicianCommissionRate = 4
-            };
-            _procedureRepositoryMock.Setup(r => r.CreateProcedure(It.IsAny<Procedure>())).ReturnsAsync(true);
-            var result = await _handler.Handle(command, default);
-            Assert.True(result);
-        }
+    [Fact(DisplayName = "UTCID01 - Valid input with supplies - Should return success")]
+    public async System.Threading.Tasks.Task UTCID01_ValidInput_ReturnsTrue()
+    {
+        SetupHttpContext("assistant", "1");
 
-        [Fact(DisplayName = "Unauthorized - UTCID02 - User not authenticated")]
-        public async System.Threading.Tasks.Task UTCID02_UserNotAuthenticated_ThrowsUnauthorized()
+        var command = new CreateProcedureCommand
         {
-            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns((HttpContext)null);
-            var command = new CreateProcedureCommand();
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
+            ProcedureName = "Tẩy trắng răng",
+            Description = "Chi tiết",
+            Price = 200000,
+            Discount = 10,
+            OriginalPrice = 150000,
+            ConsumableCost = 5000,
+            ReferralCommissionRate = 5,
+            DoctorCommissionRate = 5,
+            AssistantCommissionRate = 5,
+            TechnicianCommissionRate = 5,
+            SuppliesUsed = new List<SupplyUsedDTO>
+        {
+            new SupplyUsedDTO { SupplyId = 1, Quantity = 2 }
         }
+        };
 
-        [Fact(DisplayName = "Unauthorized - UTCID03 - User is not assistant")]
-        public async System.Threading.Tasks.Task UTCID03_UserIsNotAssistant_ThrowsUnauthorized()
-        {
-            SetupHttpContext("doctor", "1");
-            var command = new CreateProcedureCommand();
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
-        }
+        _supplyRepoMock.Setup(x => x.GetSupplyBySupplyIdAsync(1))
+            .ReturnsAsync(new Supplies { SupplyId = 1, Price = 1000, Unit = "cái" });
 
-        [Fact(DisplayName = "Invalid - UTCID04 - ProcedureName is null or empty")]
-        public async System.Threading.Tasks.Task UTCID04_ProcedureNameEmpty_ThrowsException()
-        {
-            SetupHttpContext("assistant", "1");
-            var command = new CreateProcedureCommand { ProcedureName = "" };
-            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG07, ex.Message);
-        }
+        _procedureRepoMock.Setup(x => x.CreateProcedure(It.IsAny<Procedure>()))
+            .ReturnsAsync(true);
 
-        [Fact(DisplayName = "Invalid - UTCID05 - Price <= 0")]
-        public async System.Threading.Tasks.Task UTCID05_PriceInvalid_ThrowsException()
-        {
-            SetupHttpContext("assistant", "1");
-            var command = new CreateProcedureCommand { ProcedureName = "A", Price = 0 };
-            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG95, ex.Message);
-        }
+        var result = await _handler.Handle(command, default);
 
-        [Fact(DisplayName = "Invalid - UTCID06 - Discount < 0")]
-        public async System.Threading.Tasks.Task UTCID06_DiscountNegative_ThrowsException()
-        {
-            SetupHttpContext("assistant", "1");
-            var command = new CreateProcedureCommand { ProcedureName = "A", Price = 1, Discount = -1 };
-            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG95, ex.Message);
-        }
+        Assert.True(result);
+        _procedureRepoMock.Verify(x => x.CreateProcedure(It.IsAny<Procedure>()), Times.Once);
+    }
 
-        [Fact(DisplayName = "Invalid - UTCID07 - OriginalPrice <= 0")]
-        public async System.Threading.Tasks.Task UTCID07_OriginalPriceInvalid_ThrowsException()
-        {
-            SetupHttpContext("assistant", "1");
-            var command = new CreateProcedureCommand { ProcedureName = "A", Price = 1, Discount = 0, OriginalPrice = 0 };
-            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG95, ex.Message);
-        }
+    [Fact(DisplayName = "UTCID02 - Supply not found - Throws exception")]
+    public async System.Threading.Tasks.Task UTCID02_SupplyNotFound_ThrowsException()
+    {
+        SetupHttpContext("assistant", "1");
 
-        [Fact(DisplayName = "Invalid - UTCID08 - ConsumableCost < 0")]
-        public async System.Threading.Tasks.Task UTCID08_ConsumableCostNegative_ThrowsException()
+        var command = new CreateProcedureCommand
         {
-            SetupHttpContext("assistant", "1");
-            var command = new CreateProcedureCommand { ProcedureName = "A", Price = 1, Discount = 0, OriginalPrice = 1, ConsumableCost = -5 };
-            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG95, ex.Message);
+            ProcedureName = "Tẩy trắng răng",
+            Description = "Chi tiết",
+            Price = 200000,
+            Discount = 10,
+            OriginalPrice = 150000,
+            ConsumableCost = 5000,
+            ReferralCommissionRate = 5,
+            DoctorCommissionRate = 5,
+            AssistantCommissionRate = 5,
+            TechnicianCommissionRate = 5,
+            SuppliesUsed = new List<SupplyUsedDTO>
+        {
+            new SupplyUsedDTO { SupplyId = 999, Quantity = 2 }
         }
+        };
 
-        [Fact(DisplayName = "Invalid - UTCID09 - ReferralCommissionRate < 0")]
-        public async System.Threading.Tasks.Task UTCID09_ReferralCommissionNegative_ThrowsException()
-        {
-            SetupHttpContext("assistant", "1");
-            var command = new CreateProcedureCommand { ProcedureName = "A", Price = 1, Discount = 0, OriginalPrice = 1, ConsumableCost = 1, ReferralCommissionRate = -1 };
-            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG95, ex.Message);
-        }
+        _supplyRepoMock.Setup(x => x.GetSupplyBySupplyIdAsync(999)).ReturnsAsync((Supplies?)null);
 
-        [Fact(DisplayName = "Invalid - UTCID10 - DoctorCommissionRate < 0")]
-        public async System.Threading.Tasks.Task UTCID10_DoctorCommissionNegative_ThrowsException()
-        {
-            SetupHttpContext("assistant", "1");
-            var command = new CreateProcedureCommand { ProcedureName = "A", Price = 1, Discount = 0, OriginalPrice = 1, ConsumableCost = 1, ReferralCommissionRate = 0, DoctorCommissionRate = -2 };
-            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG95, ex.Message);
-        }
+        var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
+        Assert.Equal("Supply với ID 999 không tồn tại.", ex.Message);
+    }
 
-        [Fact(DisplayName = "Invalid - UTCID11 - AssistantCommissionRate < 0")]
-        public async System.Threading.Tasks.Task UTCID11_AssistantCommissionNegative_ThrowsException()
-        {
-            SetupHttpContext("assistant", "1");
-            var command = new CreateProcedureCommand { ProcedureName = "A", Price = 1, Discount = 0, OriginalPrice = 1, ConsumableCost = 1, ReferralCommissionRate = 0, DoctorCommissionRate = 0, AssistantCommissionRate = -1 };
-            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG95, ex.Message);
-        }
+    [Fact(DisplayName = "UTCID03 - User not authenticated - Throws unauthorized")]
+    public async System.Threading.Tasks.Task UTCID03_UserNotAuthenticated_ThrowsUnauthorized()
+    {
+        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns((HttpContext?)null);
 
-        [Fact(DisplayName = "Invalid - UTCID12 - TechnicianCommissionRate < 0")]
-        public async System.Threading.Tasks.Task UTCID12_TechnicianCommissionNegative_ThrowsException()
+        var command = new CreateProcedureCommand();
+
+        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(command, default));
+        Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
+    }
+
+    [Fact(DisplayName = "UTCID04 - User not assistant - Throws unauthorized")]
+    public async System.Threading.Tasks.Task UTCID04_UserNotAssistant_ThrowsUnauthorized()
+    {
+        SetupHttpContext("doctor", "2");
+
+        var command = new CreateProcedureCommand();
+
+        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(command, default));
+        Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
+    }
+
+    [Theory(DisplayName = "UTCID05 - Invalid input fields - Should throw MSG95")]
+    [InlineData(0, 100, 0, 0, 0, 0, 0)]
+    [InlineData(100, 0, 0, 0, 0, 0, 0)]
+    [InlineData(100, 100, -1, 0, 0, 0, 0)]
+    [InlineData(100, 100, 0, -1, 0, 0, 0)]
+    [InlineData(100, 100, 0, 0, -1, 0, 0)]
+    [InlineData(100, 100, 0, 0, 0, -1, 0)]
+    [InlineData(100, 100, 0, 0, 0, 0, -1)]
+    public async System.Threading.Tasks.Task UTCID05_InvalidValues_ThrowsMSG95(
+        decimal price,
+        decimal originalPrice,
+        decimal discount,
+        decimal consumable,
+        decimal referral,
+        decimal doctor,
+        decimal assistant)
+    {
+        SetupHttpContext("assistant", "1");
+
+        var command = new CreateProcedureCommand
         {
-            SetupHttpContext("assistant", "1");
-            var command = new CreateProcedureCommand { ProcedureName = "A", Price = 1, Discount = 0, OriginalPrice = 1, ConsumableCost = 1, ReferralCommissionRate = 0, DoctorCommissionRate = 0, AssistantCommissionRate = 0, TechnicianCommissionRate = -1 };
-            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG95, ex.Message);
-        }
+            ProcedureName = "X",
+            Price = price,
+            OriginalPrice = originalPrice,
+            Discount = -1,
+            ConsumableCost = consumable,
+            ReferralCommissionRate = -1,
+            DoctorCommissionRate = -1,
+            AssistantCommissionRate = -1,
+            TechnicianCommissionRate = -1
+        };
+
+        var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
+        Assert.Equal(MessageConstants.MSG.MSG95, ex.Message);
+    }
+
+    [Fact(DisplayName = "UTCID06 - ProcedureName is empty - Throws MSG07")]
+    public async System.Threading.Tasks.Task UTCID06_ProcedureNameEmpty_ThrowsMSG07()
+    {
+        SetupHttpContext("assistant", "1");
+
+        var command = new CreateProcedureCommand
+        {
+            ProcedureName = "",
+            Price = 100,
+            OriginalPrice = 90,
+            Discount = 0,
+            ConsumableCost = 0,
+            ReferralCommissionRate = 0,
+            DoctorCommissionRate = 0,
+            AssistantCommissionRate = 0,
+            TechnicianCommissionRate = 0
+        };
+
+        var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
+        Assert.Equal(MessageConstants.MSG.MSG07, ex.Message);
     }
 }

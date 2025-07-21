@@ -21,12 +21,15 @@ namespace HDMS_API.Infrastructure.Repositories
         private readonly ApplicationDbContext _context;
         private readonly IEmailService _emailService;
         private readonly IMemoryCache _memoryCache;
+
         public UserCommonRepository(ApplicationDbContext context, IEmailService emailService, IMemoryCache memoryCache)
         {
             _context = context;
             _emailService = emailService;
             _memoryCache = memoryCache;
         }
+
+
         public async Task<User> CreatePatientAccountAsync(CreatePatientDto dto, string password)
         {
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
@@ -269,6 +272,7 @@ namespace HDMS_API.Infrastructure.Repositories
                 Email = u.Email,
                 FullName = u.Fullname,
                 PhoneNumber = u.Phone,
+                ImageUrl = u.Avatar,
                 Role = "Dentist",
                 CreatedAt = u.CreatedAt,
                 Status = u.Status // Status = false là bị khoá
@@ -283,10 +287,11 @@ namespace HDMS_API.Infrastructure.Repositories
                 UserId = u.UserID,
                 Email = u.Email,
                 FullName = u.Fullname,
+                ImageUrl = u.Avatar,
                 PhoneNumber = u.Phone,
                 Role = "Patient",
                 CreatedAt = u.CreatedAt,
-                Status = u.Status 
+                Status = u.Status
             });
 
             var receptionistUsers = _context.Users
@@ -298,6 +303,7 @@ namespace HDMS_API.Infrastructure.Repositories
                         UserId = u.UserID,
                         Email = u.Email,
                         FullName = u.Fullname,
+                        ImageUrl = u.Avatar,
                         PhoneNumber = u.Phone,
                         Role = "Receptionist",
                         CreatedAt = u.CreatedAt,
@@ -313,6 +319,7 @@ namespace HDMS_API.Infrastructure.Repositories
                         UserId = u.UserID,
                         Email = u.Email,
                         FullName = u.Fullname,
+                        ImageUrl = u.Avatar,
                         PhoneNumber = u.Phone,
                         Role = "Assistant",
                         CreatedAt = u.CreatedAt,
@@ -328,6 +335,7 @@ namespace HDMS_API.Infrastructure.Repositories
                         UserId = u.UserID,
                         Email = u.Email,
                         FullName = u.Fullname,
+                        ImageUrl = u.Avatar,
                         PhoneNumber = u.Phone,
                         Role = "Owner",
                         CreatedAt = u.CreatedAt,
@@ -371,7 +379,7 @@ namespace HDMS_API.Infrastructure.Repositories
             }
             return await _context.SaveChangesAsync() > 0;
         }
-    public async Task<bool> UpdateUserStatusAsync(int userId)
+        public async Task<bool> UpdateUserStatusAsync(int userId, int updatedBy)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId);
             if (user == null)
@@ -379,9 +387,10 @@ namespace HDMS_API.Infrastructure.Repositories
                 return false;
             }
             user.Status = !user.Status; // Đảo ngược trạng thái
+            user.UpdatedAt = DateTime.Now;
+            user.UpdatedBy = updatedBy;
             _context.Users.Update(user);
-            await _context.SaveChangesAsync();
-            return true;
+            return await _context.SaveChangesAsync() > 0;
         }
         
         public async Task<int?> GetUserIdByRoleTableIdAsync(string role, int id)
@@ -421,6 +430,5 @@ namespace HDMS_API.Infrastructure.Repositories
                 _ => null
             };
         }
-
     }
 }

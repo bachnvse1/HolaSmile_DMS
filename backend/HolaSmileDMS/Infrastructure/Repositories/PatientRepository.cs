@@ -41,8 +41,10 @@ namespace HDMS_API.Infrastructure.Repositories
                     Fullname = p.User.Fullname ?? "",
                     Gender = p.User.Gender.HasValue ? (p.User.Gender.Value ? "Male" : "Female") : null,
                     Phone = p.User.Phone,
-                    DOB = p.User.DOB,
-                    Email = p.User.Email
+                    DOB = p.User.DOB,   
+                    Email = p.User.Email,
+                    Address = p.User.Address,
+                    UnderlyingConditions = p.UnderlyingConditions
                 })
                 .ToListAsync(cancellationToken);
         }

@@ -18,7 +18,7 @@ namespace Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<Dentist> GetDentistByDentistIdAsync(int dentistId)
+        public async Task<Dentist> GetDentistByDentistIdAsync(int? dentistId)
         {
             var dentist = await _context.Dentists.Include(d => d.User).FirstOrDefaultAsync(d => d.DentistId == dentistId);
             if (dentist == null || dentist.User == null)
@@ -43,7 +43,7 @@ namespace Infrastructure.Repositories
             return dentists;
         }
         
-        public async Task<Dentist?> GetDentistByUserIdAsync(int userID)
+        public async Task<Dentist?> GetDentistByUserIdAsync(int? userID)
         {
             var dentist = await _context.Dentists
                 .Include(d => d.User)

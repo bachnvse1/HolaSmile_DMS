@@ -17,6 +17,6 @@ namespace Application.Interfaces
         Task<Schedule> GetScheduleByIdAsync(int scheduleId);
         Task<bool> UpdateScheduleAsync(Schedule schedule);
         Task<Schedule> CheckDulplicateScheduleAsync(int dentistId, DateTime workDate, string shift, int currentScheduleId);
-        Task<bool> DeleteSchedule(int scheduleId);
+        Task<bool> DeleteSchedule(int scheduleId, int updatedBy);
     }
 }

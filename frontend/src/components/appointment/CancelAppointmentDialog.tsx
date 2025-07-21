@@ -6,6 +6,7 @@ import { Badge } from '../ui/badge';
 import { useCancelAppointment } from '../../hooks/useCancelAppointment';
 import { getTimeUntilAppointment } from '../../utils/appointmentUtils';
 import type { AppointmentDTO } from '../../types/appointment';
+import { formatDateVN, formatTimeVN } from '../../utils/dateUtils';
 
 interface CancelAppointmentDialogProps {
   appointment: AppointmentDTO;
@@ -42,24 +43,11 @@ export const CancelAppointmentDialog: React.FC<CancelAppointmentDialogProps> = (
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const formatTime = (timeString: string) => {
-    return timeString.substring(0, 5);
-  };
-
   return (
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-gray-500 bg-opacity-75 backdrop-blur-sm"
+        className="absolute bg-black/20 inset-0 bg-opacity-90"
         onClick={onClose}
       />
 
@@ -93,8 +81,8 @@ export const CancelAppointmentDialog: React.FC<CancelAppointmentDialogProps> = (
               </div>
               <div className="space-y-1 text-sm">
                 <p><span className="font-medium">Bác sĩ:</span> {appointment.dentistName}</p>
-                <p><span className="font-medium">Ngày:</span> {formatDate(appointment.appointmentDate)}</p>
-                <p><span className="font-medium">Giờ:</span> {formatTime(appointment.appointmentTime)}</p>
+                <p><span className="font-medium">Ngày:</span> {formatDateVN(appointment.appointmentDate)}</p>
+                <p><span className="font-medium">Giờ:</span> {formatTimeVN(appointment.appointmentTime)}</p>
                 <p><span className="font-medium">Loại hẹn: </span>{appointment.appointmentType === 'follow-up'
                   ? 'Tái khám'
                   : appointment.appointmentType === 'consultation'
@@ -155,7 +143,7 @@ export const CancelAppointmentDialog: React.FC<CancelAppointmentDialogProps> = (
               <Button
                 variant="destructive"
                 onClick={handleCancel}
-                className="flex-1"
+                className="flex-1 text-white"
                 disabled={cancelMutation.isPending}
               >
                 {cancelMutation.isPending ? 'Đang hủy...' : 'Xác nhận hủy'}

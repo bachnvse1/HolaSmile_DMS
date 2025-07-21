@@ -1,5 +1,5 @@
 import type React from "react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button2"
 import { Input } from "@/components/ui/input"
 import { Label } from "@radix-ui/react-label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -26,50 +26,48 @@ export function CreateUserModal({ isOpen, onOpenChange, form, onFormChange, onRe
         e.preventDefault()
         try {
             await userService.create(form)
-            toast.success("User created successfully")
+            toast.success("Tạo người dùng thành công")
             onOpenChange(false)
             onRefreshUsers()
         } catch (error: any) {
-            const message = error?.response?.data?.message || "Failed to create user"
+            const message = error?.response?.data?.message || "Không thể tạo người dùng"
             toast.error(message)
         }
     }
-
-
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogTrigger asChild>
                 <Button>
                     <Plus className="w-4 h-4 mr-2" />
-                    Create User
+                    Tạo người dùng
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md [&~div]:backdrop-blur-none">
                 <DialogHeader>
-                    <DialogTitle>Create New User</DialogTitle>
+                    <DialogTitle>Tạo người dùng mới</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="fullName">Full Name</Label>
+                        <Label htmlFor="fullName">Họ và tên</Label>
                         <Input
                             id="fullName"
                             value={form.fullName}
                             onChange={(e) => updateForm("fullName", e.target.value)}
-                            placeholder="Enter full name"
+                            placeholder="Nhập họ và tên"
                             required
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="gender">Gender</Label>
+                        <Label htmlFor="gender">Giới tính</Label>
                         <Select value={form.gender.toString()} onValueChange={(value) => updateForm("gender", value === "true")}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select gender" />
+                                <SelectValue placeholder="Chọn giới tính" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="true">Male</SelectItem>
-                                <SelectItem value="false">Female</SelectItem>
+                                <SelectItem value="true">Nam</SelectItem>
+                                <SelectItem value="false">Nữ</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -81,43 +79,43 @@ export function CreateUserModal({ isOpen, onOpenChange, form, onFormChange, onRe
                             type="email"
                             value={form.email}
                             onChange={(e) => updateForm("email", e.target.value)}
-                            placeholder="Enter email address"
+                            placeholder="Nhập địa chỉ email"
                             required
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="phoneNumber">Phone Number</Label>
+                        <Label htmlFor="phoneNumber">Số điện thoại</Label>
                         <Input
                             id="phoneNumber"
                             value={form.phoneNumber}
                             onChange={(e) => updateForm("phoneNumber", e.target.value)}
-                            placeholder="Enter phone number"
+                            placeholder="Nhập số điện thoại"
                             required
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="role">Role</Label>
+                        <Label htmlFor="role">Vai trò</Label>
                         <Select value={form.role} onValueChange={(value) => updateForm("role", value)}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select role" />
+                                <SelectValue placeholder="Chọn vai trò" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="Administrator">Administrator</SelectItem>
-                                <SelectItem value="Receptionist">Receptionist</SelectItem>
-                                <SelectItem value="Dentist">Dentist</SelectItem>
-                                <SelectItem value="Assistant">Assistant</SelectItem>
-                                <SelectItem value="Owner">Owner</SelectItem>
+                                <SelectItem value="Administrator">Quản trị viên</SelectItem>
+                                <SelectItem value="Receptionist">Lễ tân</SelectItem>
+                                <SelectItem value="Dentist">Bác sĩ nha khoa</SelectItem>
+                                <SelectItem value="Assistant">Trợ lý</SelectItem>
+                                <SelectItem value="Owner">Chủ sở hữu</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
 
                     <div className="flex justify-end space-x-2 pt-4">
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                            Cancel
+                            Hủy
                         </Button>
-                        <Button type="submit">Create User</Button>
+                        <Button type="submit">Tạo người dùng</Button>
                     </div>
                 </form>
             </DialogContent>

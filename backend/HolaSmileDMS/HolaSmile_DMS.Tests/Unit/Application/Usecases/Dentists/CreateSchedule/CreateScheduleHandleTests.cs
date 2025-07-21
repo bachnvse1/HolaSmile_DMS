@@ -2,6 +2,7 @@
 using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Dentist.ManageSchedule;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
@@ -13,14 +14,25 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new();
         private readonly Mock<IScheduleRepository> _scheduleRepoMock = new();
         private readonly Mock<IDentistRepository> _dentistRepoMock = new();
+        private readonly Mock<IOwnerRepository> _ownerRepoMock = new();
+        private readonly Mock<IMediator> _mediatorMock = new();
         private readonly CreateScheduleHandle _handler;
 
         public CreateScheduleHandleTests()
         {
+            // Setup mocks for dependencies
+            _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+            _scheduleRepoMock = new Mock<IScheduleRepository>();
+            _dentistRepoMock = new Mock<IDentistRepository>();
+            _ownerRepoMock = new Mock<IOwnerRepository>();
+            _mediatorMock = new Mock<IMediator>();
+            // Initialize the handler with the mocked dependencies
             _handler = new CreateScheduleHandle(
                 _httpContextAccessorMock.Object,
                 _scheduleRepoMock.Object,
-                _dentistRepoMock.Object
+                _dentistRepoMock.Object,
+                _ownerRepoMock.Object,
+                _mediatorMock.Object
             );
         }
 
@@ -132,7 +144,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
             _scheduleRepoMock.Setup(r => r.CheckDulplicateScheduleAsync(dentistId, scheduleDate, "morning", 0))
                 .ReturnsAsync(new Schedule { Status = "rejected", ScheduleId = 99 });
 
-            _scheduleRepoMock.Setup(r => r.DeleteSchedule(99)).ReturnsAsync(true);
+            _scheduleRepoMock.Setup(r => r.DeleteSchedule(99, 1)).ReturnsAsync(true);
             _scheduleRepoMock.Setup(r => r.RegisterScheduleByDentist(It.IsAny<Schedule>()))
                 .ReturnsAsync(true);
 

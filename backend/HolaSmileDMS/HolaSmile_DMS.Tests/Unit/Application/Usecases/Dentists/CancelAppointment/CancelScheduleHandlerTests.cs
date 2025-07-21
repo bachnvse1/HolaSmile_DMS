@@ -2,6 +2,7 @@
 using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Dentist.CancelSchedule;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
@@ -13,6 +14,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
         private readonly Mock<IDentistRepository> _dentistRepoMock;
         private readonly Mock<IScheduleRepository> _scheduleRepoMock;
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
+        private readonly Mock<IOwnerRepository> _ownerRepoMock;
+        private readonly Mock<IMediator> _mediatorMock;
         private readonly CancelScheduleHandler _handler;
 
         public CancelScheduleHandlerTests()
@@ -20,11 +23,15 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
             _dentistRepoMock = new Mock<IDentistRepository>();
             _scheduleRepoMock = new Mock<IScheduleRepository>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+            _ownerRepoMock = new Mock<IOwnerRepository>();
+            _mediatorMock = new Mock<IMediator>();
 
             _handler = new CancelScheduleHandler(
-                _dentistRepoMock.Object,
+                _httpContextAccessorMock.Object,
                 _scheduleRepoMock.Object,
-                _httpContextAccessorMock.Object
+                _dentistRepoMock.Object,
+                _ownerRepoMock.Object,
+                _mediatorMock.Object
             );
         }
 
@@ -47,7 +54,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
 
             _scheduleRepoMock.Setup(r => r.GetScheduleByIdAsync(1)).ReturnsAsync(schedule);
             _dentistRepoMock.Setup(r => r.GetDentistByUserIdAsync(10)).ReturnsAsync(dentist);
-            _scheduleRepoMock.Setup(r => r.DeleteSchedule(1)).ReturnsAsync(true);
+            _scheduleRepoMock.Setup(r => r.DeleteSchedule(1,10)).ReturnsAsync(true);
 
             var command = new CancelScheduleCommand { ScheduleId = 1 };
             var result = await _handler.Handle(command, default);
@@ -122,7 +129,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
 
             _scheduleRepoMock.Setup(r => r.GetScheduleByIdAsync(1)).ReturnsAsync(schedule);
             _dentistRepoMock.Setup(r => r.GetDentistByUserIdAsync(10)).ReturnsAsync(dentist);
-            _scheduleRepoMock.Setup(r => r.DeleteSchedule(1)).ReturnsAsync(false);
+            _scheduleRepoMock.Setup(r => r.DeleteSchedule(1, 10)).ReturnsAsync(false);
 
             var command = new CancelScheduleCommand { ScheduleId = 1 };
             var result = await _handler.Handle(command, default);

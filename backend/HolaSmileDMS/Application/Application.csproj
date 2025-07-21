@@ -9,18 +9,22 @@
   <ItemGroup>
     <Compile Remove="Usecases\UserCommon\RefreshToken - Copy\**" />
     <EmbeddedResource Remove="Usecases\UserCommon\NewFolder1\**" />
-    <EmbeddedResource Remove="Usecases\UserCommon\NewFolder\**" />
     <EmbeddedResource Remove="Usecases\UserCommon\RefreshToken - Copy\**" />
     <None Remove="Usecases\UserCommon\NewFolder1\**" />
-    <None Remove="Usecases\UserCommon\NewFolder\**" />
     <None Remove="Usecases\UserCommon\RefreshToken - Copy\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Usecases\UserCommon\ViewPatientPrescription\ViewPatientPrescriptionCommand.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Domain\Domain.csproj" />
   </ItemGroup>
 	<ItemGroup>
+		<PackageReference Include="EPPlus" Version="6.0.4" />
 		<PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.0" />
+		<PackageReference Include="PayOS" Version="1.0.9" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
 	</ItemGroup>
 	<ItemGroup>
@@ -43,5 +47,8 @@
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.6" />
 		<PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
 
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Usecases\UserCommon\ViewMessage\" />
 	</ItemGroup>
 </Project>

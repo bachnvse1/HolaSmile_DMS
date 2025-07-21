@@ -17,10 +17,8 @@ import { StaffLayout } from '../../layouts/staff/StaffLayout';
 
 const PatientTreatmentRecords: React.FC = () => {
   const [searchParams] = useSearchParams()
-  const userIdParam = searchParams.get("userId")
   const patientIdParam = searchParams.get("patientId")
 
-  const patientUserId = Number(userIdParam)
   const patientId = Number(patientIdParam)
 
   const { register, watch } = useForm<FilterFormData>({
@@ -116,8 +114,8 @@ const PatientTreatmentRecords: React.FC = () => {
       toothPosition: record.toothPosition,
       quantity: record.quantity,
       unitPrice: record.unitPrice,
-      discountAmount: record.discountAmount,
-      discountPercentage: record.discountPercentage,
+      discountAmount: record.discountAmount ?? undefined,
+      discountPercentage: record.discountPercentage ?? undefined,
       consultantEmployeeID: record.consultantEmployeeID ?? 0,
       treatmentStatus: record.treatmentStatus,
       symptoms: record.symptoms,
@@ -167,6 +165,7 @@ const PatientTreatmentRecords: React.FC = () => {
                   onEdit={handleEditRecord}
                   onToggleDelete={handleToggleDelete}
                   patientId={patientId}
+                  patientName={""}
                 />
               </div>
             </div>

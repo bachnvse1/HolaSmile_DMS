@@ -16,11 +16,16 @@ namespace Application.Usecases.UserCommon.ViewAppointment
         public string Content { get; set; }
         public string AppointmentType { get; set; }
         public bool IsNewPatient { get; set; }
+        public int? patientId { get; set; }
         public string Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
-        public int? CreatedBy { get; set; }
-        public int? UpdatedBy { get; set; }
+        public string? CreatedBy { get; set; }
+        public string? UpdatedBy { get; set; }
+        public bool IsExistPrescription { get; set; }
+        public bool IsExistInstruction { get; set; }
+        public int? PrescriptionId { get; set; }
+        public int? InstructionId { get; set; }
 
 
     }

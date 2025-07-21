@@ -17,6 +17,7 @@ import {
 import { toast } from 'react-toastify';
 import { Badge } from '@/components/ui/badge';
 import { ScheduleCalendar } from './ScheduleCalendar';
+import { getErrorMessage } from '@/utils/formatUtils';
 
 interface DentistScheduleEditorWithCalendarProps {
   dentistId?: number;
@@ -150,7 +151,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
       setScheduleToDelete(null);
       await refetch();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi xóa lịch!');
+      toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi xóa lịch!');
     }
   };
   const handleSubmit = async () => {
@@ -193,7 +194,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
       // Cập nhật lại dữ liệu
       await refetch();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra!');
+      toast.error(getErrorMessage(error) || 'Có lỗi xảy ra!');
     }
   };
   // Xử lý tạo nhiều lịch làm việc cùng lúc
@@ -242,7 +243,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
       // Cập nhật lại dữ liệu
       await refetch();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi tạo lịch!');
+      toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi tạo lịch!');
     }
   };
   // Mở dialog tạo nhiều lịch
@@ -559,7 +560,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
                 </>
               ) : (
                 <>
-                  <Trash className="h-4 w-4 mr-2" />
+                  <Trash className="h-4 w-4 mr-2 text-white" />
                   Xác nhận hủy
                 </>
               )}
@@ -570,7 +571,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
 
       {/* Bulk create dialog */}
       <Dialog open={isBulkCreateDialogOpen} onOpenChange={setIsBulkCreateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Tạo lịch làm việc hàng loạt</DialogTitle>
             <DialogDescription>
@@ -578,7 +579,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
             </DialogDescription>
           </DialogHeader>
 
-          <div className="py-4">
+          <div className="py-4 flex-1 overflow-y-auto">
             {selectedSlots.length === 0 ? (
               <div className="text-center text-sm text-gray-500 py-10">
                 <p>Không có ca làm việc nào được chọn.</p>
@@ -589,36 +590,26 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
             ) : (
               <div>
                 <div className="text-sm font-medium text-gray-800 mb-2">
-                  Các ca làm việc đã chọn:
+                  Các ca làm việc đã chọn ({selectedSlots.length} ca):
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
-                  {selectedSlots.map((slot, index) => (
-                    <div key={index} className="flex justify-between py-2 px-3 rounded-md bg-gray-50 border">
-                      <div>
-                        <div className="font-medium">{formatDateWithDay(slot.date)}</div>
-                        <div className="text-gray-500">{shiftTypeToText(slot.shift)}</div>
+                <div className="max-h-[300px] overflow-y-auto pr-2">
+                  <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
+                    {selectedSlots.map((slot, index) => (
+                      <div key={index} className="flex justify-between py-2 px-3 rounded-md bg-gray-50 border">
+                        <div>
+                          <div className="font-medium">{formatDateWithDay(slot.date)}</div>
+                          <div className="text-gray-500">{shiftTypeToText(slot.shift)}</div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Ghi chú cho tất cả lịch (không bắt buộc):</label>
-              <Textarea
-                value={note}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNote(e.target.value)}
-                placeholder="Thêm ghi chú chung cho các lịch này..."
-                className="min-h-[80px]"
-              />
-            </div>
-          </div> */}
-
-          <DialogFooter>
+          <DialogFooter className="flex-shrink-0">
             <Button variant="outline" onClick={() => setIsBulkCreateDialogOpen(false)}>
               <X className="h-4 w-4 mr-2" />
               Hủy

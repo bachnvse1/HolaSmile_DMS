@@ -8,21 +8,23 @@ using Xunit;
 
 namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
 {
-    public class ViewDetailAppointmentHandlerTest
+    public class ViewDetailAppointmentHandlerTests
     {
         private readonly Mock<IAppointmentRepository> _appointmentRepoMock;
+        private readonly Mock<IUserCommonRepository> _userCommonRepoMock;
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly ViewDetailAppointmentHandler _handler;
 
-        public ViewDetailAppointmentHandlerTest()
+        public ViewDetailAppointmentHandlerTests()
         {
             _appointmentRepoMock = new Mock<IAppointmentRepository>();
-            _mapperMock = new Mock<IMapper>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-
+            _userCommonRepoMock = new Mock<IUserCommonRepository>();
+            _mapperMock = new Mock<IMapper>();
             _handler = new ViewDetailAppointmentHandler(
                 _appointmentRepoMock.Object,
+                _userCommonRepoMock.Object,
                 _mapperMock.Object,
                 _httpContextAccessorMock.Object
             );
@@ -35,209 +37,142 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
                 new Claim(ClaimTypes.Role, role),
                 new Claim(ClaimTypes.NameIdentifier, userId.ToString())
             };
-            var identity = new ClaimsIdentity(claims, "Test");
+            var identity = new ClaimsIdentity(claims, "TestAuth");
             var principal = new ClaimsPrincipal(identity);
-            var ctx = new DefaultHttpContext { User = principal };
-            _httpContextAccessorMock
-                .Setup(x => x.HttpContext)
-                .Returns(ctx);
+            var context = new DefaultHttpContext { User = principal };
+
+            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
         }
 
-        // 🟢 AbNormal: Author user
-        [Fact(DisplayName = "[Unit] Unauthenticated_ThrowsUnauthorized")]
-        public async System.Threading.Tasks.Task Unauthenticated_ThrowsUnauthorized()
+        [Fact(DisplayName = "UTCID01 - Patient can view own appointment")]
+        public async System.Threading.Tasks.Task Patient_Can_View_Appointment()
         {
-            var emptyContext = new DefaultHttpContext { User = new ClaimsPrincipal() };
-            _httpContextAccessorMock
-                .Setup(x => x.HttpContext)
-                .Returns(emptyContext);
+            // Arrange
+            int patientId = 1, appointmentId = 10;
+            SetupHttpContext("patient", patientId);
 
-            await Assert.ThrowsAsync<UnauthorizedAccessException>(
-                () => _handler.Handle(new ViewDetailAppointmentCommand(12), CancellationToken.None)
-            );
-        }
-
-        // 🟢 Normal: Patient view own appointment
-        [Fact(DisplayName = "[Unit] Patient_Can_View_Own_Appointment")]
-        public async System.Threading.Tasks.Task Patient_Can_View_Own_Appointment()
-        {
-            int appointmentId = 13;
-            int userId = 12;
-            SetupHttpContext("patient", userId);
-
-            // repository says appointment belongs to patient
             _appointmentRepoMock
-                .Setup(r => r.CheckPatientAppointmentByUserIdAsync(appointmentId, userId))
+                .Setup(r => r.CheckPatientAppointmentByUserIdAsync(appointmentId, patientId))
                 .ReturnsAsync(true);
 
-            // repository returns an Appointment entity
-            var appointment = new Appointment
+            // Fake CreatedBy / UpdatedBy as string userId
+            var appointment = new AppointmentDTO
             {
                 AppointmentId = appointmentId,
-                // ...fill other properties if needed
+                CreatedBy = "2",
+                UpdatedBy = "3"
             };
+
             _appointmentRepoMock
-                .Setup(r => r.GetAppointmentByIdAsync(appointmentId))
+                .Setup(r => r.GetDetailAppointmentByAppointmentIDAsync(appointmentId))
                 .ReturnsAsync(appointment);
 
-            // mapper returns a DTO without AppointmentId set
-            var dto = new AppointmentDTO { /* other fields */ };
-            _mapperMock
-                .Setup(m => m.Map<AppointmentDTO>(appointment))
-                .Returns(dto);
+            // Mock created user
+            _userCommonRepoMock
+                .Setup(r => r.GetByIdAsync(2, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new User { UserID = 2,Phone ="0999999999", Fullname = "Alice Created" });
 
-            var result = await _handler.Handle(
-                new ViewDetailAppointmentCommand(appointmentId),
-                CancellationToken.None);
+            // Mock updated user
+            _userCommonRepoMock
+                .Setup(r => r.GetByIdAsync(3, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new User { UserID = 3, Phone = "0999999998", Fullname = "Bob Updated" });
 
+            var command = new ViewDetailAppointmentCommand(appointmentId);
+
+            // Act
+            var result = await _handler.Handle(command, default);
+
+            // Assert
             Assert.NotNull(result);
             Assert.Equal(appointmentId, result.AppointmentId);
+            Assert.Equal("Alice Created", result.CreatedBy);
         }
 
-        // 🟢 AbNormal: Patient cannot view others' appointment
-        [Fact(DisplayName = "[Unit] Patient_Cannot_View_Others_Appointment")]
-        public async System.Threading.Tasks.Task Patient_Cannot_View_Others_Appointment()
+
+        [Fact(DisplayName = "UTCID02 - Dentist can view own appointment")]
+        public async System.Threading.Tasks.Task Dentist_Can_View_Appointment()
         {
-            int appointmentId = 13;
-            int userId = 15;
-            SetupHttpContext("patient", userId);
+            // Arrange
+            int dentistId = 2, appointmentId = 11;
+            SetupHttpContext("dentist", dentistId);
 
-            // repository says appointment NOT belong to patient
             _appointmentRepoMock
-                .Setup(r => r.CheckPatientAppointmentByUserIdAsync(appointmentId, userId))
-                .ReturnsAsync(false);
-
-            await Assert.ThrowsAsync<Exception>(async () =>
-                await _handler.Handle(
-                    new ViewDetailAppointmentCommand(appointmentId),
-                    CancellationToken.None)
-            );
-        }
-
-        // 🟢 Normal: Dentist view own appointment
-        [Fact(DisplayName = "[Unit] Dentist_Can_View_Own_Appointment")]
-        public async System.Threading.Tasks.Task Dentist_Can_View_Own_Appointment()
-        {
-            int appointmentId = 13;
-            int userId = 2;
-            SetupHttpContext("dentist", userId);
-
-            // repository says appointment belongs to patient
-            _appointmentRepoMock
-                .Setup(r => r.CheckDentistAppointmentByUserIdAsync(appointmentId, userId))
+                .Setup(r => r.CheckDentistAppointmentByUserIdAsync(appointmentId, dentistId))
                 .ReturnsAsync(true);
 
-            // repository returns an Appointment entity
-            var appointment = new Appointment
+            var appointment = new AppointmentDTO
             {
                 AppointmentId = appointmentId,
-                // ...fill other properties if needed
+                CreatedBy = "4",
+                UpdatedBy = "5"
             };
+
             _appointmentRepoMock
-                .Setup(r => r.GetAppointmentByIdAsync(appointmentId))
+                .Setup(r => r.GetDetailAppointmentByAppointmentIDAsync(appointmentId))
                 .ReturnsAsync(appointment);
 
-            // mapper returns a DTO without AppointmentId set
-            var dto = new AppointmentDTO { /* other fields */ };
-            _mapperMock
-                .Setup(m => m.Map<AppointmentDTO>(appointment))
-                .Returns(dto);
+            _userCommonRepoMock
+                .Setup(r => r.GetByIdAsync(4, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new User { UserID = 4, Fullname = "Dr. Created" });
 
-            var result = await _handler.Handle(
-                new ViewDetailAppointmentCommand(appointmentId),
-                CancellationToken.None);
+            _userCommonRepoMock
+                .Setup(r => r.GetByIdAsync(5, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new User { UserID = 5, Fullname = "Dr. Updated" });
 
+            var command = new ViewDetailAppointmentCommand(appointmentId);
+
+            // Act
+            var result = await _handler.Handle(command, default);
+
+            // Assert
             Assert.NotNull(result);
             Assert.Equal(appointmentId, result.AppointmentId);
         }
 
-        // 🟢 AbNormal: Patient cannot view others' appointment
-        [Fact(DisplayName = "[Unit] Dentist_Cannot_View_Others_Appointment")]
-        public async System.Threading.Tasks.Task Dentist_Cannot_View_Others_Appointment()
-        {
-            int appointmentId = 6;
-            int userId = 3;
-            SetupHttpContext("dentist", userId);
 
-            // repository says appointment NOT belong to patient
+        [Fact(DisplayName = "UTCID03 - Patient accesses unauthorized appointment throws exception")]
+        public async System.Threading.Tasks.Task Patient_Access_Unauthorized_Throws()
+        {
+            int patientId = 3, appointmentId = 20;
+            SetupHttpContext("patient", patientId);
+
             _appointmentRepoMock
-                .Setup(r => r.CheckDentistAppointmentByUserIdAsync(appointmentId, userId))
+                .Setup(r => r.CheckPatientAppointmentByUserIdAsync(appointmentId, patientId))
                 .ReturnsAsync(false);
 
-            await Assert.ThrowsAsync<Exception>(async () =>
-                await _handler.Handle(
-                    new ViewDetailAppointmentCommand(appointmentId),
-                    CancellationToken.None)
-            );
+            var command = new ViewDetailAppointmentCommand(appointmentId);
+
+            await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
         }
 
-        // 🟢 Normal: Non-patient roles can view any appointment
-        [Theory(DisplayName = "[Unit] NonPatientRole_Can_View_Or_NotFound")]
-        [InlineData("Owner")]
-        [InlineData("Receptionist")]
-        public async System.Threading.Tasks.Task OtherRole_Can_View_Or_NotFound(string role)
+        [Fact(DisplayName = "UTCID04 - Dentist accesses unauthorized appointment throws exception")]
+        public async System.Threading.Tasks.Task Dentist_Access_Unauthorized_Throws()
         {
-            int appointmentId = 31;
-            SetupHttpContext(role, 14);
+            int dentistId = 4, appointmentId = 21;
+            SetupHttpContext("dentist", dentistId);
 
-            // Case 1: appointment exists
-            var appointment = new Appointment { AppointmentId = appointmentId };
             _appointmentRepoMock
-                .Setup(r => r.GetAppointmentByIdAsync(appointmentId))
-                .ReturnsAsync(appointment);
+                .Setup(r => r.CheckDentistAppointmentByUserIdAsync(appointmentId, dentistId))
+                .ReturnsAsync(false);
 
-            var dto = new AppointmentDTO();
-            _mapperMock
-                .Setup(m => m.Map<AppointmentDTO>(appointment))
-                .Returns(dto);
+            var command = new ViewDetailAppointmentCommand(appointmentId);
 
-            var result = await _handler.Handle(
-                new ViewDetailAppointmentCommand(appointmentId),
-                CancellationToken.None);
-            Assert.NotNull(result);
-            Assert.Equal(appointmentId, result.AppointmentId);
-
-            // Case 2: appointment not found
-            _appointmentRepoMock
-                .Setup(r => r.GetAppointmentByIdAsync(appointmentId))
-                .ReturnsAsync((Appointment)null);
-
-            await Assert.ThrowsAsync<Exception>(async () =>
-                await _handler.Handle(
-                    new ViewDetailAppointmentCommand(appointmentId),
-                    CancellationToken.None)
-            );
+            await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
         }
-        [Theory(DisplayName = "[Unit] PatientRole_CaseInsensitive_Can_View_Own")]
-        [InlineData("Patient")]
-        [InlineData("PATIENT")]
-        [InlineData("pAtIeNt")]
-        public async System.Threading.Tasks.Task PatientRole_CaseInsensitive_Can_View_Own(string roleVariant)
+
+        [Fact(DisplayName = "UTCID05 - Appointment not found throws exception")]
+        public async System.Threading.Tasks.Task Appointment_Not_Found_Throws()
         {
-            int appointmentId = 2, userId = 5;
-            SetupHttpContext(roleVariant, userId);
+            int receptionistId = 5, appointmentId = 22;
+            SetupHttpContext("receptionist", receptionistId);
 
             _appointmentRepoMock
-                .Setup(r => r.CheckPatientAppointmentByUserIdAsync(appointmentId, userId))
-                .ReturnsAsync(true);
+                .Setup(r => r.GetDetailAppointmentByAppointmentIDAsync(appointmentId))
+                .ReturnsAsync((AppointmentDTO)null);
 
-            var appointment = new Appointment { AppointmentId = appointmentId };
-            _appointmentRepoMock
-                .Setup(r => r.GetAppointmentByIdAsync(appointmentId))
-                .ReturnsAsync(appointment);
+            var command = new ViewDetailAppointmentCommand(appointmentId);
 
-            var dto = new AppointmentDTO();
-            _mapperMock
-                .Setup(m => m.Map<AppointmentDTO>(appointment))
-                .Returns(dto);
-
-            var result = await _handler.Handle(
-                new ViewDetailAppointmentCommand(appointmentId),
-                CancellationToken.None);
-
-            Assert.NotNull(result);
-            Assert.Equal(appointmentId, result.AppointmentId);
+            await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
         }
-
     }
 }

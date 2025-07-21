@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace HDMS_API.Migrations
+namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     partial class ApplicationDbContextModelSnapshot : ModelSnapshot
@@ -121,6 +121,135 @@ namespace HDMS_API.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Dentists");
+                });
+
+            modelBuilder.Entity("Domain.Entities.ChatMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ReceiverId")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("SenderId")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ChatMessages");
+                });
+
+            modelBuilder.Entity("Domain.Entities.DiscountProgram", b =>
+                {
+                    b.Property<int>("DiscountProgramID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DiscountProgramName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsDelete")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int");
+
+                    b.HasKey("DiscountProgramID");
+
+                    b.ToTable("DiscountPrograms");
+                });
+
+            modelBuilder.Entity("Domain.Entities.FinancialTransaction", b =>
+                {
+                    b.Property<int>("TransactionID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsDelete")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("PaymentMethod")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("TransactionDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("TransactionType")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int");
+
+                    b.HasKey("TransactionID");
+
+                    b.ToTable("FinancialTransactions");
+                });
+
+            modelBuilder.Entity("Domain.Entities.ProcedureDiscountProgram", b =>
+                {
+                    b.Property<int>("ProcedureId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DiscountProgramId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("ProcedureId", "DiscountProgramId");
+
+                    b.HasIndex("DiscountProgramId");
+
+                    b.ToTable("ProcedureDiscountPrograms");
                 });
 
             modelBuilder.Entity("EquipmentMaintenance", b =>
@@ -247,9 +376,6 @@ namespace HDMS_API.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<int?>("TreatmentRecordID")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -262,8 +388,6 @@ namespace HDMS_API.Migrations
 
                     b.HasIndex("Instruc_TemplateID");
 
-                    b.HasIndex("TreatmentRecordID");
-
                     b.ToTable("Instructions");
                 });
 
@@ -271,6 +395,9 @@ namespace HDMS_API.Migrations
                 {
                     b.Property<int>("Instruc_TemplateID")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CreateBy")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
@@ -288,6 +415,9 @@ namespace HDMS_API.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int");
 
                     b.HasKey("Instruc_TemplateID");
 
@@ -312,21 +442,35 @@ namespace HDMS_API.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<string>("OrderCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
                     b.Property<decimal?>("PaidAmount")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("PatientId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("PaymentDate")
+                    b.Property<DateTime?>("PaymentDate")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("PaymentMethod")
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
 
+                    b.Property<decimal?>("RemainingAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("longtext");
+
                     b.Property<int>("TotalAmount")
                         .HasColumnType("int");
+
+                    b.Property<string>("TransactionId")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("TransactionType")
                         .HasMaxLength(255)
@@ -432,8 +576,7 @@ namespace HDMS_API.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("PaymentMethod")
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("PlanTitle")
                         .HasMaxLength(255)
@@ -549,9 +692,6 @@ namespace HDMS_API.Migrations
                     b.Property<int?>("Pre_TemplateID")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TreatmentRecordID")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -563,8 +703,6 @@ namespace HDMS_API.Migrations
                     b.HasIndex("AppointmentId");
 
                     b.HasIndex("Pre_TemplateID");
-
-                    b.HasIndex("TreatmentRecordID");
 
                     b.ToTable("Prescriptions");
                 });
@@ -606,7 +744,7 @@ namespace HDMS_API.Migrations
                         .HasColumnType("float");
 
                     b.Property<decimal?>("ConsumableCost")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
@@ -628,10 +766,10 @@ namespace HDMS_API.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<decimal?>("OriginalPrice")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("ProcedureName")
                         .HasMaxLength(200)
@@ -739,7 +877,7 @@ namespace HDMS_API.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("TotalSalary")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
@@ -764,7 +902,7 @@ namespace HDMS_API.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("ComponentType")
                         .HasMaxLength(50)
@@ -867,7 +1005,7 @@ namespace HDMS_API.Migrations
                         .HasColumnType("varchar(200)");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("QuantityInStock")
                         .HasColumnType("int");
@@ -1168,11 +1306,17 @@ namespace HDMS_API.Migrations
                     b.Property<int?>("CreateBy")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<int?>("Duration")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime(6)");
@@ -1246,6 +1390,25 @@ namespace HDMS_API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Domain.Entities.ProcedureDiscountProgram", b =>
+                {
+                    b.HasOne("Domain.Entities.DiscountProgram", "DiscountProgram")
+                        .WithMany("ProcedureDiscountPrograms")
+                        .HasForeignKey("DiscountProgramId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Procedure", "Procedure")
+                        .WithMany()
+                        .HasForeignKey("ProcedureId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DiscountProgram");
+
+                    b.Navigation("Procedure");
+                });
+
             modelBuilder.Entity("Image", b =>
                 {
                     b.HasOne("OrthodonticTreatmentPlan", "OrthodonticTreatmentPlan")
@@ -1276,10 +1439,6 @@ namespace HDMS_API.Migrations
                     b.HasOne("InstructionTemplate", "InstructionTemplate")
                         .WithMany("Instructions")
                         .HasForeignKey("Instruc_TemplateID");
-
-                    b.HasOne("TreatmentRecord", null)
-                        .WithMany("Instructions")
-                        .HasForeignKey("TreatmentRecordID");
 
                     b.Navigation("Appointment");
 
@@ -1383,10 +1542,6 @@ namespace HDMS_API.Migrations
                     b.HasOne("PrescriptionTemplate", "PrescriptionTemplate")
                         .WithMany("Prescriptions")
                         .HasForeignKey("Pre_TemplateID");
-
-                    b.HasOne("TreatmentRecord", null)
-                        .WithMany("Prescriptions")
-                        .HasForeignKey("TreatmentRecordID");
 
                     b.Navigation("Appointment");
 
@@ -1577,6 +1732,11 @@ namespace HDMS_API.Migrations
                     b.Navigation("TreatmentRecords");
                 });
 
+            modelBuilder.Entity("Domain.Entities.DiscountProgram", b =>
+                {
+                    b.Navigation("ProcedureDiscountPrograms");
+                });
+
             modelBuilder.Entity("EquipmentMaintenance", b =>
                 {
                     b.Navigation("MaintenanceSupplies");
@@ -1626,11 +1786,7 @@ namespace HDMS_API.Migrations
 
             modelBuilder.Entity("TreatmentRecord", b =>
                 {
-                    b.Navigation("Instructions");
-
                     b.Navigation("Invoices");
-
-                    b.Navigation("Prescriptions");
 
                     b.Navigation("TreatmentProgresses");
                 });

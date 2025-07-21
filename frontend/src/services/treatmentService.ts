@@ -76,3 +76,28 @@ export const updateTreatmentRecord = async (
     throw new Error(error.response?.data?.message || "Lỗi hệ thống không xác định")
   }
 }
+
+
+export const fetchAllTreatmentRecords = async (): Promise<TreatmentRecord[]> => {
+  const res = await axiosInstance.get("/treatment-records/List")
+  return res.data
+}
+
+export const printDentalRecord = async (appointmentId: number): Promise<Blob> => {
+  try {
+    const response = await axiosInstance.get(
+      `/patient/DentalRecord/Print/${appointmentId}`,
+      {
+        headers: {
+          "ngrok-skip-browser-warning": "true",
+          'Accept': 'application/pdf',
+        },
+        responseType: 'blob',
+      }
+    );
+
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Lỗi khi in phiếu điều trị");
+  }
+};

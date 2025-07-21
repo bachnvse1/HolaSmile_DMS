@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User, LogOut, Settings, ChevronDown, Menu, X } from 'lucide-react';
+import { User, LogOut, Settings, Menu, X } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../../hooks/useAuth';
 import { NotificationButton } from "@/components/notification/NotificationButton"; // cập nhật đúng path của bạn
@@ -39,39 +39,44 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <button onClick={() => navigate('/patient/dashboard')}>
               <h1 className="text-2xl font-bold text-blue-600 cursor-pointer">
                 HolaSmile
               </h1>
-            </button>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-4">
-              <button 
+              {/* <button 
                 onClick={() => navigate('/patient/dashboard')} 
                 className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
               >
                 Trang Chủ
-              </button>
+              </button> */}
               <button 
                 onClick={() => navigate('/patient/appointments')} 
                 className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
               >
                 Lịch Hẹn
               </button>
+
               <button 
-                onClick={() => navigate('/patient/medical-records')} 
+                onClick={() => navigate('/patient/treatment-records')}
                 className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
               >
-                Hồ Sơ Y Tế
+                Hồ Sơ 
               </button>
               <button 
-                onClick={() => navigate('/patient/treatments')} 
+                onClick={() => navigate('/patient/orthodontic-treatment-plans')}
                 className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
               >
-                Điều Trị
+                Kế Hoạch 
+              </button>
+              <button
+                onClick={() => navigate('/invoices')}
+                className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Hóa Đơn
               </button>
             </div>
           </div>
@@ -79,7 +84,7 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
           {/* Right side - Desktop */}
           <div className="hidden md:flex items-center space-x-4">
             {/* Notifications */}
-            <div 
+            <div
               className="p-2 text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-full"
               title="Thông báo"
             >
@@ -89,7 +94,7 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
             {/* Book Appointment Button */}
             <button
               onClick={() => navigate('/patient/book-appointment')}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
+              className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition hidden lg:block"
             >
               Đặt Lịch Hẹn
             </button>
@@ -102,11 +107,12 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
               >
                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                   <User className="h-5 w-5 text-white" />
-                </div>                <div className="text-left">
+                </div>
+                <div className="text-left hidden lg:block">
                   <p className="text-sm font-medium">{displayName}</p>
                   <p className="text-xs text-gray-500">{displayRole}</p>
                 </div>
-                <ChevronDown className="h-4 w-4" />
+                {/* <ChevronDown className="h-4 w-4 hidden sm:block" /> */}
               </button>
 
               {isUserMenuOpen && (
@@ -125,10 +131,10 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
                     <Settings className="h-4 w-4 mr-2" />
                     Cài Đặt
                   </button>
-                  <hr className="my-1" />
+
                   <button
                     onClick={handleLogout}
-                    className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full text-left"
+                    className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full text-left border-t border-gray-300"
                   >
                     <LogOut className="h-4 w-4 mr-2" />
                     Đăng Xuất
@@ -154,12 +160,12 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
       {isMenuOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
-            <button 
+            {/* <button 
               onClick={() => navigate('/patient/dashboard')} 
               className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
             >
               Trang Chủ
-            </button>
+            </button> */}
             <button 
               onClick={() => navigate('/patient/appointments')} 
               className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
@@ -167,37 +173,44 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
               Lịch Hẹn
             </button>
             <button 
-              onClick={() => navigate('/patient/medical-records')} 
+              onClick={() => navigate('/patient/treatment-records')}
               className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
             >
-              Hồ Sơ Y Tế
+              Hồ Sơ 
             </button>
             <button 
-              onClick={() => navigate('/patient/treatments')} 
+              onClick={() => navigate('/patient/orthodontic-treatment-plans')}
               className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
             >
-              Điều Trị
+              Kế Hoạch 
+            </button>
+            <button 
+              onClick={() => navigate('/invoices')}
+              className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
+            >
+              Hóa Đơn
             </button>
             
-            <div className="border-t pt-4">
+            <div className="border-t pt-4 border-gray-300">
               <button
                 onClick={() => navigate('/patient/book-appointment')}
                 className="w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition mb-2"
               >
                 Đặt Lịch Hẹn
               </button>
-              
+
               <div className="flex items-center px-3 py-2">
                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-3">
                   <User className="h-5 w-5 text-white" />
-                </div>                <div>
+                </div>
+                <div>
                   <p className="text-sm font-medium">{displayName}</p>
-                  <p className="text-xs text-gray-500">{userInfo?.email || 'No email'}</p>
+                  <p className="text-xs text-gray-500">{displayRole}</p>
                 </div>
               </div>
-              
+
               <button
-                onClick={() => navigate('/patient/profile')}
+                onClick={() => navigate('/view-profile')}
                 className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
               >
                 Thông Tin Cá Nhân

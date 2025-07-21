@@ -1,34 +1,30 @@
 ﻿using System.Security.Claims;
+using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.UserCommon.ViewAppointment;
-using AutoMapper;
+using Application.Usecases.UserCommon.ViewSupplies;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
 
 namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
 {
-    public class ViewAppoinntmentHandlerTest
+    public class ViewAppointmentHandlerTests
     {
-        private readonly Mock<IAppointmentRepository> _appointmentRepositoryMock;
+        private readonly Mock<IAppointmentRepository> _appointmentRepoMock;
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
-        private readonly Mock<IMapper> _mapperMock;
         private readonly ViewAppointmentHandler _handler;
 
-        public ViewAppoinntmentHandlerTest()
+        public ViewAppointmentHandlerTests()
         {
-            _appointmentRepositoryMock = new Mock<IAppointmentRepository>();
+            _appointmentRepoMock = new Mock<IAppointmentRepository>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            _mapperMock = new Mock<IMapper>();
-
-            // Initialize the handler with the mocked dependencies
             _handler = new ViewAppointmentHandler(
-                _appointmentRepositoryMock.Object,
+                _appointmentRepoMock.Object,
                 _httpContextAccessorMock.Object,
-                _mapperMock.Object
+                null // IMapper no longer needed
             );
         }
-        // Add your test methods here
 
         private void SetupHttpContext(string role, int userId)
         {
@@ -40,102 +36,88 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
             var identity = new ClaimsIdentity(claims, "Test");
             var principal = new ClaimsPrincipal(identity);
             var context = new DefaultHttpContext { User = principal };
-            _httpContextAccessorMock
-                .Setup(x => x.HttpContext)
-                .Returns(context);
+            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
         }
 
-        // 🟢 Abnormal: Unauthenticated user cann't view all appointments
-        [Fact(DisplayName = "[Unit - Abnormal] Unauthenticated_Throws_UnauthorizedAccessException")]
-        public async System.Threading.Tasks.Task A_Unauthenticated_Throws_UnauthorizedAccessException()
+        [Fact(DisplayName = "[UTCID01] Unauthenticated user throws UnauthorizedAccessException")]
+        public async System.Threading.Tasks.Task UTCID01_Unauthenticated_Throws_UnauthorizedAccessException()
         {
-            // No role claim => unauthorized
-            var emptyContext = new DefaultHttpContext { User = new ClaimsPrincipal() };
-            _httpContextAccessorMock
-                .Setup(x => x.HttpContext)
-                .Returns(emptyContext);
+            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(new DefaultHttpContext { User = new ClaimsPrincipal() });
 
-            await Assert.ThrowsAsync<UnauthorizedAccessException>(
-                () => _handler.Handle(new ViewAppointmentCommand(), CancellationToken.None)
-            );
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                _handler.Handle(new ViewAppointmentCommand(), CancellationToken.None));
         }
 
-        // 🟢 Normal: Patient can view their own appointments
-        [Fact(DisplayName = "[Unit - Normal] Patient_Can_View_Own_Appointments")]
-        public async System.Threading.Tasks.Task N_Patient_Can_View_Own_Appointments()
+        [Fact(DisplayName = "[UTCID02] Patient can view own appointments")]
+        public async System.Threading.Tasks.Task UTCID02_Patient_View_Own_Appointments()
         {
             int userId = 5;
             SetupHttpContext("patient", userId);
 
-            var appointments = new List<Appointment>
-            {
-                new Appointment { PatientId = userId }
-            };
-            _appointmentRepositoryMock
-                .Setup(r => r.GetAppointmentsByPatientIdAsync(userId))
-                .ReturnsAsync(appointments);
-
-            _mapperMock
-                .Setup(m => m.Map<List<AppointmentDTO>>(appointments))
-                .Returns(new List<AppointmentDTO>());
+            var mockData = new List<AppointmentDTO> { new AppointmentDTO() };
+            _appointmentRepoMock.Setup(r => r.GetAppointmentsByPatientIdAsync(userId)).ReturnsAsync(mockData);
 
             var result = await _handler.Handle(new ViewAppointmentCommand(), CancellationToken.None);
+
             Assert.NotNull(result);
+            Assert.Single(result);
+            _appointmentRepoMock.Verify(r => r.GetAppointmentsByPatientIdAsync(userId), Times.Once);
         }
 
-        [Fact(DisplayName = "[Unit - Normal] Dentist_Can_View_Own_Appointments")]
-        public async System.Threading.Tasks.Task N_Dentist_Can_View_Own_Appointments()
+        [Fact(DisplayName = "[UTCID03] Dentist can view own appointments")]
+        public async System.Threading.Tasks.Task UTCID03_Dentist_View_Own_Appointments()
         {
-            int userId = 17;
+            int userId = 10;
             SetupHttpContext("dentist", userId);
 
-            var appointments = new List<Appointment>
+            var mockData = new List<AppointmentDTO> { new AppointmentDTO(), new AppointmentDTO() };
+            _appointmentRepoMock.Setup(r => r.GetAppointmentsByDentistIdAsync(userId)).ReturnsAsync(mockData);
+
+            var result = await _handler.Handle(new ViewAppointmentCommand(), CancellationToken.None);
+
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count);
+            _appointmentRepoMock.Verify(r => r.GetAppointmentsByDentistIdAsync(userId), Times.Once);
+        }
+
+        [Fact(DisplayName = "[UTCID04] Other role (e.g., receptionist) can view all appointments")]
+        public async System.Threading.Tasks.Task UTCID04_OtherRole_View_All_Appointments()
+        {
+            SetupHttpContext("receptionist", 3);
+
+            var appointments = new List<AppointmentDTO>
             {
-                new Appointment { DentistId = userId }
+                new AppointmentDTO { AppointmentId = 1 }
             };
-            _appointmentRepositoryMock
-                .Setup(r => r.GetAppointmentsByDentistIdAsync(userId))
-                .ReturnsAsync(appointments);
 
-            _mapperMock
-                .Setup(m => m.Map<List<AppointmentDTO>>(appointments))
-                .Returns(new List<AppointmentDTO>());
+            _appointmentRepoMock.Setup(r => r.GetAllAppointmentAsync()).ReturnsAsync(appointments);
 
             var result = await _handler.Handle(new ViewAppointmentCommand(), CancellationToken.None);
+
             Assert.NotNull(result);
+            Assert.Single(result);
         }
 
-        [Fact(DisplayName = "[Unit - Normal] OtherRole_Can_View_All_Appointments")]
-        public async System.Threading.Tasks.Task N_OtherRole_Can_View_All_Appointments()
+        [Fact(DisplayName = "[UTCID05] No data throws exception MSG28")]
+        public async System.Threading.Tasks.Task UTCID05_EmptyList_ThrowsException()
         {
-            SetupHttpContext("Receptionist", 18);
+            SetupHttpContext("receptionist", 99);
+            _appointmentRepoMock.Setup(r => r.GetAllAppointmentAsync()).ReturnsAsync(new List<AppointmentDTO>());
 
-            var appointments = new List<Appointment> { new Appointment() };
-            _appointmentRepositoryMock
-                .Setup(r => r.GetAllAppointmentAsync())
-                .ReturnsAsync(appointments);
-
-            _mapperMock
-                .Setup(m => m.Map<List<AppointmentDTO>>(appointments))
-                .Returns(new List<AppointmentDTO>());
-
-            var result = await _handler.Handle(new ViewAppointmentCommand(), CancellationToken.None);
+            var result = await _handler.Handle(new ViewAppointmentCommand(), default);
             Assert.NotNull(result);
+            Assert.Empty(result);
         }
 
-        [Fact(DisplayName = "[Unit - Abnormal] Repository_Returns_Null_Throws_Exception")]
-        public async System.Threading.Tasks.Task A_RepositoryReturnsNull_Throws_Exception()
+        [Fact(DisplayName = "[UTCID06] Null list throws exception MSG28")]
+        public async System.Threading.Tasks.Task UTCID06_NullList_ThrowsException()
         {
-            SetupHttpContext("Receptionist", 18);
-            _appointmentRepositoryMock
-                .Setup(r => r.GetAllAppointmentAsync())
-                .ReturnsAsync((List<Appointment>)null);
+            SetupHttpContext("dentist", 20);
+            _appointmentRepoMock.Setup(r => r.GetAppointmentsByDentistIdAsync(20)).ReturnsAsync((List<AppointmentDTO>)null);
 
-            await Assert.ThrowsAsync<Exception>(
-                () => _handler.Handle(new ViewAppointmentCommand(), CancellationToken.None)
-            );
+            var result = await _handler.Handle(new ViewAppointmentCommand(), default);
+            Assert.NotNull(result);
+            Assert.Empty(result);
         }
-
-
     }
 }

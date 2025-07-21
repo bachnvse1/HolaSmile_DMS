@@ -14,6 +14,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
     {
         private readonly Mock<IDentistRepository> _dentistRepoMock;
         private readonly Mock<IScheduleRepository> _scheduleRepoMock;
+        private readonly Mock<IUserCommonRepository> _userCommonRepoMock;
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly ViewDetailScheduleHandle _handler;
@@ -23,12 +24,14 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
             _dentistRepoMock = new Mock<IDentistRepository>();
             _scheduleRepoMock = new Mock<IScheduleRepository>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+            _userCommonRepoMock = new Mock<IUserCommonRepository>();
             _mapperMock = new Mock<IMapper>();
 
             _handler = new ViewDetailScheduleHandle(
                 _dentistRepoMock.Object,
                 _mapperMock.Object,
                 _scheduleRepoMock.Object,
+                _userCommonRepoMock.Object,
                 _httpContextAccessorMock.Object
             );
         }

@@ -10,6 +10,7 @@ using Application.Usecases.Dentist.ManageSchedule;
 using Application.Usecases.Dentist.ViewAllDentistSchedule;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,29 +22,40 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists
     public class CreateScheduleIntegrationTests
     {
         private readonly ApplicationDbContext _context;
-        private readonly CreateScheduleHandle _handler;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IMediator _mediator;
+        private readonly CreateScheduleHandle _handler;
+        private readonly Mock<IMediator> _mediatorMock; // 👈 để verify nếu cần
 
         public CreateScheduleIntegrationTests()
         {
+            _mediatorMock = new Mock<IMediator>();
+
             var services = new ServiceCollection();
 
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseInMemoryDatabase("TestDb_CreateSchedule"));
+                options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
 
             services.AddHttpContextAccessor();
 
+            // ✅ Đăng ký đúng kiểu IMediator với mock object
+            services.AddSingleton<IMediator>(_mediatorMock.Object);
+
             var provider = services.BuildServiceProvider();
+
             _context = provider.GetRequiredService<ApplicationDbContext>();
             _httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
+            _mediator = provider.GetRequiredService<IMediator>(); // sẽ lấy mock đã đăng ký
 
             SeedData();
 
             _handler = new CreateScheduleHandle(
                 _httpContextAccessor,
                 new ScheduleRepository(_context),
-                new DentistRepository(_context)
-            );
+                new DentistRepository(_context),
+                new OwnerRepository(_context),
+                _mediator
+                );
         }
 
         private void SeedData()
@@ -86,7 +98,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists
             {
                 new CreateScheduleDTO
                 {
-                    WorkDate = DateTime.Today.AddDays(2),
+                    WorkDate = DateTime.Today.AddDays(5),
                     Shift = "morning"
                 }
             }

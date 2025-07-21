@@ -1,6 +1,7 @@
 ﻿using Application.Constants;
 using Application.Usecases.Assistant.ViewAssignedTasks;
 using Application.Usecases.Assistant.ViewTaskDetails;
+using Application.Usecases.Dentists.AssignTasksToAssistantHandler;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -70,13 +71,32 @@ namespace HDMS_API.Controllers
                     message = MessageConstants.MSG.MSG16 // Không có dữ liệu phù hợp
                 });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
-                    message = MessageConstants.MSG.MSG58 // Cập nhật dữ liệu thất bại
+                    message = MessageConstants.MSG.MSG58, // Cập nhật dữ liệu thất bại
+                    detail = ex.Message
                 });
             }
+        }
+
+        [HttpGet("view-list-assistant")]
+        public async Task<IActionResult> ViewListAssistant()
+        {
+            try
+            {
+                var result = await _mediator.Send(new ViewListAssistantCommand());
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    message = MessageConstants.MSG.MSG26 
+                });
+            }
+
         }
 
 
