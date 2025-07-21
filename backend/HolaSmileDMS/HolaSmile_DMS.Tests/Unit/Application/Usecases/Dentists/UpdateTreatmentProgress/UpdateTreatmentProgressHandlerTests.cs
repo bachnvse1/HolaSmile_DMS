@@ -25,12 +25,13 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
         private (UpdateTreatmentProgressHandler Handler,
                  Mock<ITreatmentProgressRepository> RepoMock,
                  Mock<IUserCommonRepository> UserRepoMock,
-                 Mock<IMediator> MediatorMock)
+                 Mock<IMediator> MediatorMock, Mock<ITreatmentRecordRepository> TreatmentRecordRepoMock)
         Setup(string role, string currentStatus = "pending")
         {
             var repoMock     = new Mock<ITreatmentProgressRepository>();
             var userRepoMock = new Mock<IUserCommonRepository>();
             var mediatorMock = new Mock<IMediator>();
+            var TreatmentRecordRepoMock = new Mock<ITreatmentRecordRepository>();
 
             repoMock.Setup(r => r.GetByIdAsync(1, default))
                     .ReturnsAsync(new TreatmentProgress
@@ -57,9 +58,10 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
                 repoMock.Object,
                 httpMock.Object,
                 userRepoMock.Object,
-                mediatorMock.Object);
+                mediatorMock.Object,
+                TreatmentRecordRepoMock.Object);
 
-            return (handler, repoMock, userRepoMock, mediatorMock);
+            return (handler, repoMock, userRepoMock, mediatorMock, TreatmentRecordRepoMock);
         }
 
         /* ---------- tests ---------- */
@@ -67,7 +69,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
         [Fact(DisplayName = "Normal - UTCID01 - Dentist cập nhật hợp lệ trả về true")]
         public async System.Threading.Tasks.Task UTCID01_DentistValid_ShouldSuccess()
         {
-            var (handler, _, _, _) = Setup("Dentist");
+            var (handler, _, _, _, _) = Setup("Dentist");
             var ok = await handler.Handle(GetValidCmd(), default);
             Assert.True(ok);
         }
@@ -75,7 +77,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
         [Fact(DisplayName = "Normal - UTCID02 - Receptionist cập nhật trạng thái pending trả về true")]
         public async System.Threading.Tasks.Task UTCID02_ReceptionistPending_ShouldSuccess()
         {
-            var (handler, _, _, _) = Setup("Receptionist", "pending");
+            var (handler, _, _, _, _) = Setup("Receptionist", "pending");
             var ok = await handler.Handle(GetValidCmd(), default);
             Assert.True(ok);
         }
@@ -83,14 +85,14 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
         [Fact(DisplayName = "Abnormal - UTCID03 - Receptionist cập nhật status!=pending bị cấm")]
         public async System.Threading.Tasks.Task UTCID03_ReceptionistNotPending_ShouldThrow()
         {
-            var (handler, _, _, _) = Setup("Receptionist", "in-progress");
+            var (handler, _, _, _, _) = Setup("Receptionist", "in-progress");
             await Assert.ThrowsAsync<UnauthorizedAccessException>(() => handler.Handle(GetValidCmd(), default));
         }
 
         [Fact(DisplayName = "Abnormal - UTCID04 - Role không hợp lệ bị cấm")]
         public async System.Threading.Tasks.Task UTCID04_InvalidRole_ShouldThrow()
         {
-            var (handler, _, _, _) = Setup("Patient");
+            var (handler, _, _, _, _) = Setup("Patient");
             await Assert.ThrowsAsync<UnauthorizedAccessException>(() => handler.Handle(GetValidCmd(), default));
         }
 
@@ -99,7 +101,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
         {
             var cmd = GetValidCmd();
             cmd.Status = "unknown";
-            var (handler, _, _, _) = Setup("Dentist");
+            var (handler, _, _, _, _) = Setup("Dentist");
             await Assert.ThrowsAsync<ArgumentException>(() => handler.Handle(cmd, default));
         }
 
@@ -108,7 +110,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
         {
             var cmd = GetValidCmd();
             cmd.Duration = -5;
-            var (handler, _, _, _) = Setup("Dentist");
+            var (handler, _, _, _, _) = Setup("Dentist");
             await Assert.ThrowsAsync<ArgumentException>(() => handler.Handle(cmd, default));
         }
 
@@ -117,7 +119,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
         {
             var cmd = GetValidCmd();
             cmd.EndTime = DateTime.Now.AddDays(-10);
-            var (handler, _, _, _) = Setup("Dentist");
+            var (handler, _, _, _, _) = Setup("Dentist");
             await Assert.ThrowsAsync<ArgumentException>(() => handler.Handle(cmd, default));
         }
 
@@ -126,7 +128,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
         {
             var cmd = GetValidCmd();
             cmd.ProgressName = "   ";
-            var (handler, _, _, _) = Setup("Dentist");
+            var (handler, _, _, _, _) = Setup("Dentist");
             await Assert.ThrowsAsync<ArgumentException>(() => handler.Handle(cmd, default));
         }
     }

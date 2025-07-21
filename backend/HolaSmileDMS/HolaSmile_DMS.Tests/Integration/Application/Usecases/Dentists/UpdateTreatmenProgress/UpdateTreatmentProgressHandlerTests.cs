@@ -23,6 +23,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists
         private readonly IHttpContextAccessor _http;
         private readonly IMediator _mediator;
         private readonly IUserCommonRepository _userCommonRepository;
+        private readonly ITreatmentRecordRepository _treatmentRecordRepository;
 
         public UpdateTreatmentProgressIntegrationTests()
         {
@@ -43,6 +44,8 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists
 // Mock IUserCommonRepository
             var userRepoMock = new Mock<IUserCommonRepository>();
             svc.AddSingleton<IUserCommonRepository>(userRepoMock.Object);
+            var treatmentRecordRepoMock = new Mock<ITreatmentRecordRepository>();
+            svc.AddSingleton<ITreatmentRecordRepository>(treatmentRecordRepoMock.Object);
 
             var provider = svc.BuildServiceProvider();
             _ctx      = provider.GetRequiredService<ApplicationDbContext>();
@@ -53,7 +56,8 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists
                 provider.GetRequiredService<ITreatmentProgressRepository>(),
                 _http,
                 userRepoMock.Object,
-                _mediator
+                _mediator,
+                treatmentRecordRepoMock.Object
             );
 
         }

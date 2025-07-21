@@ -269,6 +269,24 @@ namespace HDMS_API.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return true;
         }
+        public async Task<List<Appointment>> GetAppointmentsByPatient(int userId)
+        {
+            return await _context.Appointments
+                .Include(a => a.Patient).ThenInclude(p => p.User)
+                .Include(a => a.Dentist).ThenInclude(d => d.User)
+                .Where(a => a.Patient.User.UserID == userId && !a.IsDeleted)
+                .ToListAsync();
+        }
+
+        public async Task<List<Appointment>> GetAllAppointments()
+        {
+            return await _context.Appointments
+                .Include(a => a.Patient).ThenInclude(p => p.User)
+                .Include(a => a.Dentist).ThenInclude(d => d.User)
+                .Where(a => !a.IsDeleted)
+                .ToListAsync();
+        }
+
 
         public async Task<List<Appointment>> GetAllCofirmAppoitmentAsync()
         {
