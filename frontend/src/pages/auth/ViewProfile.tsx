@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { useForm } from "react-hook-form"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Camera, User, Mail, Phone, MapPin, Calendar, Users, ArrowLeft, Edit3, Save, X } from "lucide-react"
@@ -11,7 +11,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import "react-toastify/dist/ReactToastify.css"
 import { Input } from "@/components/ui/input"
 
-// Types
 type Gender = "Nam" | "Nữ"
 
 interface FormValues {
@@ -36,11 +35,10 @@ interface ApiResponse {
   gender: boolean
 }
 
-// Constants
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024 
+const DEFAULT_AVATAR = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxjaXJjbGUgY3g9IjUwIiBjeT0iMzgiIHI9IjE4IiBmaWxsPSIjOUNBM0FGIi8+CjxwYXRoIGQ9Ik0yMCA4MEM0MCA3MCA2MCA3MCA4MCA4MFY5MEgyMFY4MFoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+"
 
-// Utilities
 const parseDob = (dobStr: string): string => {
   if (!dobStr || !dobStr.includes("/")) return ""
   
@@ -98,7 +96,7 @@ const updateUserProfile = async (formData: FormValues, token: string): Promise<v
     gender: formData.gender === "Nam",
     address: formData.address.trim(),
     dob: formData.dob,
-    avatar: formData.avatar,
+    avatar: formData.avatar === DEFAULT_AVATAR ? "" : formData.avatar,
   }
 
   await axiosInstance.put("/user/profile", payload, {
@@ -106,7 +104,6 @@ const updateUserProfile = async (formData: FormValues, token: string): Promise<v
   })
 }
 
-// Custom Hooks
 const useTokenValidation = () => {
   const [isValidToken, setIsValidToken] = useState(true)
   const token = localStorage.getItem("token") ?? localStorage.getItem("authToken") ?? ""
@@ -148,15 +145,15 @@ const useImageUpload = (setValue: (name: keyof FormValues, value: string) => voi
 
     const url = URL.createObjectURL(file)
     setValue("avatar", url)
+    
+    e.target.value = ""
 
-    // Cleanup function
     return () => URL.revokeObjectURL(url)
   }, [setValue])
 
   return { handleImageUpload, imageError }
 }
 
-// Components
 const LoadingState = () => (
   <div className="max-w-6xl mx-auto px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
     <div className="lg:col-span-2 space-y-4">
@@ -200,7 +197,6 @@ const TokenInvalidState = () => (
   </div>
 )
 
-// Main Component
 export default function ViewProfile() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -229,13 +225,20 @@ export default function ViewProfile() {
     }
   })
 
-  const avatar = watch("avatar")
+  const rawAvatar = watch("avatar")
+  
+  const displayAvatar = useMemo(() => {
+    return rawAvatar && rawAvatar.trim() !== "" ? rawAvatar : DEFAULT_AVATAR
+  }, [rawAvatar])
+  
+  const [imageLoadError, setImageLoadError] = useState(false)
+
   const { handleImageUpload, imageError } = useImageUpload(setValue)
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["user-profile"],
     queryFn: getUserProfile,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5, 
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     enabled: isValidToken,
@@ -244,6 +247,7 @@ export default function ViewProfile() {
   useEffect(() => {
     if (data) {
       reset(data)
+      setImageLoadError(false)
     }
   }, [data, reset])
 
@@ -354,7 +358,6 @@ export default function ViewProfile() {
     )
   }
 
-  // Early returns for loading and error states
   if (!isValidToken) {
     return <TokenInvalidState />
   }
@@ -370,7 +373,6 @@ export default function ViewProfile() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-6 py-6">
-        {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button 
             onClick={() => navigate(-1)} 
@@ -386,7 +388,6 @@ export default function ViewProfile() {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Info Section */}
           <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-8 border border-gray-200">
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-xl font-semibold text-gray-800">Thông tin cá nhân</h2>
@@ -405,12 +406,11 @@ export default function ViewProfile() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {renderInput("Tên đăng nhập", "username", "text", <User size={16} />, true)}
               {renderInput("Họ và tên", "fullname", "text", <User size={16} />)}
-              {renderInput("Email", "email", "email", <Mail size={16} />, true)}
+              {renderInput("Email", "email", "email", <Mail size={16} />)}
               {renderInput("Số điện thoại", "phone", "tel", <Phone size={16} />, true)}
               {renderInput("Địa chỉ", "address", "text", <MapPin size={16} />)}
               {renderInput("Ngày sinh", "dob", "date", <Calendar size={16} />)}
 
-              {/* Gender Selection */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700 block">
                   Giới tính <span className="text-red-500 ml-1">*</span>
@@ -439,7 +439,6 @@ export default function ViewProfile() {
               </div>
             </div>
 
-            {/* Action Buttons */}
             {isEditing && (
               <div className="flex justify-end gap-4 mt-8 pt-6 border-t">
                 <button
@@ -462,16 +461,20 @@ export default function ViewProfile() {
             )}
           </div>
 
-          {/* Avatar Section */}
           <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-200 text-center">
             <h3 className="text-lg font-semibold text-gray-900 mb-6">Ảnh đại diện</h3>
             <div className="relative w-48 h-64 mx-auto mb-6">
               <img
-                src={avatar || "/placeholder.svg"}
+                src={imageLoadError ? DEFAULT_AVATAR : displayAvatar}
                 alt="Avatar"
                 className="w-full h-full object-cover rounded-xl border-4 border-gray-100 shadow-sm"
                 onError={(e) => {
-                  e.currentTarget.src = "/placeholder.svg"
+                  if (!imageLoadError && e.currentTarget.src !== DEFAULT_AVATAR) {
+                    setImageLoadError(true)
+                  }
+                }}
+                onLoad={() => {
+                  setImageLoadError(false)
                 }}
               />
               {isEditing && (

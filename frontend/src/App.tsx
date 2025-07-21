@@ -54,11 +54,17 @@ import PaymentCancelled from "./components/invoice/PaymentCancel";
 import PatientTreatmentRecordsSection from "./components/patient/PatientTreatmentRecordsSection";
 import { PatientOrthodonticImagesPage } from "./pages/patient/PatientOrthodonticImagesPage";
 import { PatientTreatmentImagesPage } from "./pages/patient/PatientTreatmentImagesPage";
+
+import FloatingChatButton from './components/chatbox/FloatingChatButton';
+import { ChatHubProvider } from './components/chatbox/ChatHubProvider';
+import InstructionTemplateManagement from "./pages/instruction/InstructionTemplateManagement";
+import PatientInstructionsList from "./pages/instruction/PatientInstructionList";
+import InstructionsPage from "./pages/instruction/InstructionManagement";
+
 import ChatBox from "./components/chatbox/ChatBox";
 import { FinancialTransactionsPage } from './pages/financial/FinancialTransactionsPage';
 import { PromotionManagementPage } from './pages/promotion/PromotionManagementPage';
-import FloatingChatButton from './components/chatbox/FloatingChatButton';
-import { ChatHubProvider } from './components/chatbox/ChatHubProvider';
+
 function App() {
   return (
     <>
@@ -67,6 +73,7 @@ function App() {
         autoClose={3000}
         toastStyle={{ marginTop: "80px" }}
       />
+      
       <ChatHubProvider>
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -193,11 +200,10 @@ function App() {
           <Route path="/patient/treatment-records" element={<PatientTreatmentRecordsSection />} />
           <Route path="/financial-transactions" element={<FinancialTransactionsPage />} />
           <Route path="/promotions" element={<PromotionManagementPage />} />
+          <Route path="/instruction-templates" element={<InstructionTemplateManagement />} />
+          <Route path="/patient/instructions/:appointmentId" element={<PatientInstructionsList />} />
+          <Route path="/instructions/:appointmentId" element={<InstructionsPage />} />
         </Routes>
-        {/* ChatBox lơ lửng ở mọi trang */}
-        {/* <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 1000, width: 350 }}>
-          <ChatBox />
-        </div> */}
         <FloatingChatButton />
       </ChatHubProvider>
     </>

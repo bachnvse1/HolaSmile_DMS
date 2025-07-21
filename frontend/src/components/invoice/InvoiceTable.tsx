@@ -133,7 +133,6 @@ const EmptyState = () => (
 // Actions dropdown component
 const ActionsDropdown = ({
   invoice,
-  remainingAmount,
   openInvoiceDetail,
   onPayment,
   onPrint,
@@ -141,7 +140,6 @@ const ActionsDropdown = ({
   printLoading
 }: {
   invoice: Invoice
-  remainingAmount: number
   openInvoiceDetail: (invoice: Invoice) => void
   onPayment: () => void
   onPrint: () => void
@@ -149,6 +147,9 @@ const ActionsDropdown = ({
   printLoading: boolean
 }) => {
   const { role } = useUserInfo()
+
+  // Tính toán remainingAmount riêng cho invoice này
+  const remainingAmount = (invoice.totalAmount || 0) - (invoice.paidAmount || 0)
 
   return (
     <DropdownMenu>
@@ -206,7 +207,6 @@ const ActionsDropdown = ({
 // Individual invoice row component
 const InvoiceRow = ({
   invoice,
-  groupData,
   formatCurrency,
   formatDate,
   getStatusBadge,
@@ -214,7 +214,6 @@ const InvoiceRow = ({
   openInvoiceDetail
 }: {
   invoice: Invoice
-  groupData: GroupedInvoice
   formatCurrency: (amount: number | null) => string
   formatDate: (dateString: string | null) => string
   getStatusBadge: (status: string) => JSX.Element
@@ -223,6 +222,9 @@ const InvoiceRow = ({
 }) => {
   const [paymentLoading, setPaymentLoading] = useState(false)
   const [printLoading, setPrintLoading] = useState(false)
+
+  // Tính toán remainingAmount riêng cho invoice này từ dữ liệu API
+  const remainingAmount = (invoice.totalAmount || 0) - (invoice.paidAmount || 0)
 
   const handlePayment = async () => {
     if (!invoice.orderCode) {
@@ -318,7 +320,8 @@ const InvoiceRow = ({
         </div>
         
         <div className="text-sm text-gray-700 w-24 text-right">
-          {formatCurrency(groupData.remainingAmount)}
+          {/* Hiển thị remainingAmount của từng invoice riêng lẻ */}
+          {formatCurrency(remainingAmount)}
         </div>
         
         <div className="w-20">
@@ -341,7 +344,6 @@ const InvoiceRow = ({
         <div className="w-12 flex justify-center">
           <ActionsDropdown
             invoice={invoice}
-            remainingAmount={groupData.remainingAmount}
             openInvoiceDetail={openInvoiceDetail}
             onPayment={handlePayment}
             onPrint={handlePrint}
@@ -669,7 +671,6 @@ export function InvoiceTable({
                             <InvoiceRow
                               key={invoice.invoiceId}
                               invoice={invoice}
-                              groupData={treatmentGroup}
                               formatCurrency={formatCurrency}
                               formatDate={formatDate}
                               getStatusBadge={getStatusBadge}

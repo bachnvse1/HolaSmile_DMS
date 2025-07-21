@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import type { TreatmentRecord } from "@/types/treatment";
-import { formatCurrency } from "@/utils/format";
+import { formatCurrency } from "@/utils/currencyUtils";
 import { formatDateOnly } from "@/utils/date";
 import {
   DropdownMenu,

@@ -50,11 +50,6 @@ const schema = yup.object({
     })
     .required("Vui lòng chọn ngày sinh"),
   gender: yup.mixed<Gender>().oneOf(["Male", "Female"], "Vui lòng chọn giới tính").required("Vui lòng chọn giới tính"),
-  phone: yup
-    .string()
-    .trim()
-    .matches(/^(0|\+84)(3|5|7|8|9)[0-9]{8}$/, "Số điện thoại không hợp lệ (VD: 0901234567)")
-    .required("Số điện thoại không được để trống"),
   email: yup
     .string()
     .trim()
@@ -95,7 +90,6 @@ export default function EditPatientModal({ patient, open, onOpenChange, onSave }
       fullname: "",
       dob: new Date(),
       gender: "Male" as Gender,
-      phone: "",
       email: "",
       address: "",
       underlyingConditions: "",
@@ -114,7 +108,6 @@ export default function EditPatientModal({ patient, open, onOpenChange, onSave }
           fullname: patient.fullname || "",
           dob: parsedDate,
           gender: (patient.gender as Gender) || "Male",
-          phone: patient.phone || "",
           email: patient.email || "",
           address: patient.address || "",
           underlyingConditions: patient.underlyingConditions || "",
@@ -134,7 +127,6 @@ export default function EditPatientModal({ patient, open, onOpenChange, onSave }
       const formattedData = {
         ...data,
         fullname: data.fullname.trim(),
-        phone: data.phone.trim(),
         email: data.email.trim(),
         address: data.address?.trim() || "",
         underlyingConditions: data.underlyingConditions?.trim() || "",
@@ -142,7 +134,6 @@ export default function EditPatientModal({ patient, open, onOpenChange, onSave }
       }
       
       await onSave(patient.patientId, formattedData)
-      toast.success("Cập nhật thông tin bệnh nhân thành công!")
       onOpenChange(false)
     } catch (err) {
       console.error("Error saving patient:", err)
@@ -268,24 +259,6 @@ export default function EditPatientModal({ patient, open, onOpenChange, onSave }
                 <p className="text-red-500 text-sm flex items-center gap-1">
                   <span>⚠️</span>
                   {errors.gender.message}
-                </p>
-              )}
-            </div>
-
-            {/* Phone */}
-            <div className="flex flex-col gap-1">
-              <Label className="font-medium">
-                Số điện thoại <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                {...register("phone")}
-                placeholder="0901234567"
-                className={errors.phone ? "border-red-500" : ""}
-              />
-              {errors.phone && (
-                <p className="text-red-500 text-sm flex items-center gap-1">
-                  <span>⚠️</span>
-                  {errors.phone.message}
                 </p>
               )}
             </div>

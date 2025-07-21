@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import type { UseFormReturn } from "react-hook-form";
 import type { TreatmentFormData } from "@/types/treatment";
 import { useCalculateTotal } from "@/hooks/useCalculateTotal";
-import { formatCurrency } from "@/utils/format";
+import { formatCurrency } from "@/utils/currencyUtils";
 import {
   createTreatmentRecord,
   updateTreatmentRecord,
@@ -15,6 +15,7 @@ import { ProcedureSelectionModal } from "./ProcedureSelectionModal";
 import type { Procedure } from "@/types/procedure";
 import { SHIFT_TIME_MAP } from "@/utils/schedule";
 import { parseLocalDate } from "@/utils/dateUtils";
+import { ProcedureService } from "@/services/procedureService";
 
 interface TreatmentRecord {
   id: number;
@@ -69,8 +70,10 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [createdRecords, setCreatedRecords] = useState<TreatmentRecord[]>([]);
+  const [procedureLoading, setProcedureLoading] = useState(false);
 
   const selectedDentistId = watch("dentistID");
+  const selectedProcedureId = watch("procedureID");
   const unitPrice = watch("unitPrice") || 0;
   const quantity = watch("quantity") || 0;
   const discountAmount = watch("discountAmount") || 0;
@@ -90,6 +93,33 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
       setCreatedRecords([]);
     }
   }, [isOpen, isEditing]);
+
+  // Load procedure info when in editing mode
+  useEffect(() => {
+    const loadProcedureInfo = async () => {
+      if (isEditing && selectedProcedureId && !selectedProcedure) {
+        try {
+          setProcedureLoading(true);
+          const procedure = await ProcedureService.getById(selectedProcedureId);
+          setSelectedProcedure(procedure);
+        } catch (error) {
+          console.error("Error loading procedure:", error);
+          toast.error("Không thể tải thông tin thủ thuật");
+        } finally {
+          setProcedureLoading(false);
+        }
+      }
+    };
+
+    loadProcedureInfo();
+  }, [isEditing, selectedProcedureId, selectedProcedure]);
+
+  // Clear procedure when not editing and procedureID changes to null/undefined
+  useEffect(() => {
+    if (!isEditing && !selectedProcedureId) {
+      setSelectedProcedure(null);
+    }
+  }, [isEditing, selectedProcedureId]);
 
   if (!isOpen) return null;
 
@@ -158,6 +188,7 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
 
   const handleClose = () => {
     setCreatedRecords([]);
+    setSelectedProcedure(null);
     onClose();
   };
 
@@ -235,10 +266,13 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                         <button
                           type="button"
                           className="w-full border rounded-md px-3 py-2 bg-gray-50 text-left"
+                          disabled={procedureLoading}
                         >
-                          {selectedProcedure
-                            ? `${selectedProcedure.procedureName}`
-                            : "Chọn thủ thuật"}
+                          {procedureLoading 
+                            ? "Đang tải..." 
+                            : selectedProcedure
+                              ? `${selectedProcedure.procedureName}`
+                              : "Chọn thủ thuật"}
                         </button>
                       }
                     />
