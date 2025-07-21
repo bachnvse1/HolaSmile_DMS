@@ -58,6 +58,7 @@ import PaymentCancelled from "./components/invoice/PaymentCancel";
 import PatientTreatmentRecordsSection from "./components/patient/PatientTreatmentRecordsSection";
 import { PatientOrthodonticImagesPage } from "./pages/patient/PatientOrthodonticImagesPage";
 import { PatientTreatmentImagesPage } from "./pages/patient/PatientTreatmentImagesPage";
+import GuestSupportChatWrapper from "./components/chatbox/GuestSupportChatWrapper";
 
 function App() {
   return (
@@ -138,6 +139,7 @@ function App() {
                 </Routes>
 
                 {/* Floating chat chỉ hiển thị khi có ChatHubProvider */}
+                <GuestSupportChatWrapper />
                 <FloatingChatButton />
               </>
             </ChatHubProvider>
