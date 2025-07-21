@@ -52,11 +52,24 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("_myAllowSpecificOrigins");
+
+app.UseRouting();
 app.UseHttpsRedirection();
+
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
+
 app.MapHub<NotifyHub>("/notify");
 app.MapHub<ChatHub>("/chat").RequireAuthorization();;
+app.MapHub<GuestChatHub>("/guest-chat");
+
+app.Use(async (ctx, next) =>
+{
+    Console.WriteLine($"[DEBUG] Request: {ctx.Request.Path} - Authenticated: {ctx.User.Identity?.IsAuthenticated}");
+    await next();
+});
+
 app.Run();
 public partial class Program { }
