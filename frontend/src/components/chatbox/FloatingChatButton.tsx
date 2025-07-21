@@ -1,45 +1,56 @@
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import ChatPage from './ChatPage';
 import { useAuth } from '@/hooks/useAuth';
-import axiosInstance from '@/lib/axios';
 import { useChatHub } from './ChatHubProvider';
 import type { ChatMessage } from '@/hooks/useChatHubGuest';
 
 export default function FloatingChatButton() {
   const [open, setOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [customers, setCustomers] = useState<any[]>([]);
   const [unreadMap, setUnreadMap] = useState<Record<string, number>>({});
   const [hasNewMessage, setHasNewMessage] = useState(false);
-  const [history, setHistory] = useState<ChatMessage[]>([]); // ✅ Chat history
+  const [history, setHistory] = useState<ChatMessage[]>([]);
 
   const { userId } = useAuth();
-  const { messages:realtimeMessages, sendMessage, fetchChatHistory } = useChatHub();
+  const { 
+    messages: realtimeMessages, 
+    sendMessage, 
+    fetchChatHistory,
+    users,
+    fetchUsers
+  } = useChatHub();
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // 📥 Fetch danh sách người dùng
+  // Chỉ fetch users một lần khi component mount
   useEffect(() => {
-    const fetchCustomers = async () => {
-      try {
-        const res = await axiosInstance.get('/user/allUsersChat');
-        setCustomers(res.data || []);
-      } catch {
-        setCustomers([]);
+    fetchUsers();
+  }, [fetchUsers]);
+
+  // Chỉ fetch history khi selectedUser thay đổi
+  useEffect(() => {
+    if (!userId || !selectedUser?.userId) {
+      setHistory([]);
+      return;
+    }
+
+    let isCancelled = false;
+    
+    fetchChatHistory(userId, selectedUser.userId).then(data => {
+      if (!isCancelled) {
+        setHistory(data);
       }
+    });
+
+    return () => {
+      isCancelled = true;
     };
-    fetchCustomers();
-  }, []);
+  }, [selectedUser?.userId, userId, fetchChatHistory]);
 
-  // 📥 Fetch lịch sử khi chọn người chat
-  useEffect(() => {
-    if (!userId || !selectedUser?.userId) return;
-    fetchChatHistory(userId, selectedUser.userId).then(setHistory);
-  }, [selectedUser, userId, fetchChatHistory]);
-
-  // 🧠 Gộp history + realtime
+  // Gộp history + realtime với memoization
   const allMessages = useMemo(() => {
     if (!selectedUser) return [];
+    
     const merged = [
       ...history,
       ...realtimeMessages.filter(
@@ -48,19 +59,37 @@ export default function FloatingChatButton() {
           (m.receiverId === userId && m.senderId === selectedUser.userId)
       ),
     ];
-    return merged.sort((a, b) =>
+
+    // Loại bỏ duplicate
+    const unique = merged.filter((msg, idx, arr) =>
+      arr.findIndex((m) =>
+        m.senderId === msg.senderId &&
+        m.receiverId === msg.receiverId &&
+        m.message === msg.message &&
+        Math.abs(new Date(m.timestamp || '').getTime() - new Date(msg.timestamp || '').getTime()) < 1000
+      ) === idx
+    );
+
+    return unique.sort((a, b) =>
       new Date(a.timestamp || '').getTime() - new Date(b.timestamp || '').getTime()
     );
   }, [history, realtimeMessages, selectedUser, userId]);
 
-  // 🔔 Xử lý tin nhắn mới đến
+  // Xử lý tin nhắn mới với debounce
+  const lastProcessedMessage = useRef<string>('');
+  
   useEffect(() => {
     if (!userId || realtimeMessages.length === 0) return;
 
     const lastMsg = realtimeMessages[realtimeMessages.length - 1];
+    const messageKey = `${lastMsg.senderId}-${lastMsg.message}-${lastMsg.timestamp}`;
+    
+    // Tránh xử lý cùng một tin nhắn nhiều lần
+    if (lastProcessedMessage.current === messageKey) return;
+    lastProcessedMessage.current = messageKey;
 
     if (lastMsg.receiverId === userId) {
-      const sender = customers.find((u) => u.userId === lastMsg.senderId);
+      const sender = users.find((u) => u.userId === lastMsg.senderId);
       if (!sender) return;
 
       const isNotCurrentChat = !open || !selectedUser || selectedUser.userId !== sender.userId;
@@ -71,34 +100,30 @@ export default function FloatingChatButton() {
         }));
 
         setHasNewMessage(true);
-        audioRef.current?.play().catch((err) => {
-          console.warn('Không thể phát âm thanh:', err);
-        });
+        audioRef.current?.play().catch(() => {});
       }
     }
-  }, [realtimeMessages, customers, userId, open, selectedUser]);
+  }, [realtimeMessages, users, userId, open, selectedUser]);
 
-  // ✅ Reset chấm đỏ khi mở đúng người
-  useEffect(() => {
-    if (!open || !selectedUser) return;
-
-    const unreadCount = unreadMap[selectedUser.userId] || 0;
-    if (unreadCount > 0) {
-      setUnreadMap((prev) => ({
-        ...prev,
-        [selectedUser.userId]: 0,
-      }));
-    }
-
+  // Reset unread khi mở chat
+  const handleUserSelect = useCallback((user: any) => {
+    setSelectedUser(user);
+    setUnreadMap((prev) => ({
+      ...prev,
+      [user.userId]: 0,
+    }));
     setHasNewMessage(false);
-  }, [open, selectedUser, unreadMap]);
+  }, []);
 
-  const handleToggle = () => {
-    setOpen((prev) => !prev);
-    if (!open && customers.length > 0 && !selectedUser) {
-      setSelectedUser(customers[0]);
-    }
-  };
+  const handleToggle = useCallback(() => {
+    setOpen((prev) => {
+      const newOpen = !prev;
+      if (newOpen && users.length > 0 && !selectedUser) {
+        setSelectedUser(users[0]);
+      }
+      return newOpen;
+    });
+  }, [users, selectedUser]);
 
   return (
     <>
@@ -120,13 +145,13 @@ export default function FloatingChatButton() {
         >
           <ChatPage
             selectedUser={selectedUser}
-            customers={customers}
+            customers={users}
             onClose={() => setOpen(false)}
             unreadMap={unreadMap}
             setUnreadMap={setUnreadMap}
-            setSelectedUser={setSelectedUser}
+            setSelectedUser={handleUserSelect}
             setHasNewMessage={setHasNewMessage}
-            messages={allMessages} // ✅ full messages để hiển thị
+            messages={allMessages}
             sendMessage={sendMessage}
           />
         </div>

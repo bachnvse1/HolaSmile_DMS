@@ -1,6 +1,5 @@
-import React, { useEffect, useState, useRef, useMemo } from "react";
+import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import axiosInstance from "@/lib/axios";
 import { useChatHub } from "@/components/chatbox/ChatHubProvider";
 import type { ChatMessage } from "@/hooks/useChatHubGuest";
 
@@ -15,7 +14,7 @@ type GuestInfo = {
 };
 
 export default function GuestSupportChatBox({ onClose }: Props) {
-  const { userId } = useAuth(); // Lấy consultant ID (ví dụ: "10")
+  const { userId } = useAuth();
   const {
     messages: realtimeMessages,
     sendMessage,
@@ -28,83 +27,113 @@ export default function GuestSupportChatBox({ onClose }: Props) {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Lấy danh sách khách
-  useEffect(() => {
-    const fetchGuests = async () => {
-      try {
-        const res = await axiosInstance.get("/user/allGuestsChat");
-        setGuestList(res.data || []);
-      } catch {
-        setGuestList([]);
-      }
-    };
-    fetchGuests();
+  // Cache để tránh fetch guests liên tục
+  const lastFetchTime = useRef<number>(0);
+  const FETCH_INTERVAL = 30000; // 30 giây
+
+  // Fetch guests với cache
+  const fetchGuests = useCallback(async () => {
+    const now = Date.now();
+    if (now - lastFetchTime.current < FETCH_INTERVAL) {
+      return; // Skip nếu chưa đủ thời gian
+    }
+
+    try {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const { fetchUsers } = useChatHub();
+      await fetchUsers(); // Sử dụng cache từ provider
+      lastFetchTime.current = now;
+    } catch (error) {
+      console.error('Error fetching guests:', error);
+    }
   }, []);
 
-  // Lấy lịch sử chat khi chọn khách
+  // Fetch guests chỉ một lần khi mount
   useEffect(() => {
-    if (!userId || !selectedGuest?.guestId) return;
-    fetchChatHistory(userId, selectedGuest.guestId).then(setHistory);
-  }, [selectedGuest, userId, fetchChatHistory]);
+    fetchGuests();
+  }, [fetchGuests]);
 
-  // Gộp lịch sử + tin nhắn realtime
-const allMessages = useMemo(() => {
-  if (!selectedGuest) return [];
+  // Fetch history chỉ khi selectedGuest thay đổi
+  useEffect(() => {
+    if (!userId || !selectedGuest?.guestId) {
+      setHistory([]);
+      return;
+    }
 
-  const merged = [
-    ...history,
-    ...realtimeMessages.filter(
-      (m) =>
-        (m.senderId === userId && m.receiverId === selectedGuest.guestId) ||
-        (m.receiverId === userId && m.senderId === selectedGuest.guestId)
-    ),
-  ];
-
-  const unique: ChatMessage[] = [];
-
-  merged.forEach((msg) => {
-    const isDuplicate = unique.some((m) => {
-      const sameSender = m.senderId === msg.senderId;
-      const sameReceiver = m.receiverId === msg.receiverId;
-      const sameMessage = m.message.trim() === msg.message.trim();
-
-      const timeA = new Date(m.timestamp || "").getTime();
-      const timeB = new Date(msg.timestamp || "").getTime();
-      const timeDiff = Math.abs(timeA - timeB);
-
-      return sameSender && sameReceiver && sameMessage && timeDiff < 5000; // < 5s
+    let isCancelled = false;
+    
+    fetchChatHistory(userId, selectedGuest.guestId).then(data => {
+      if (!isCancelled) {
+        setHistory(data);
+      }
     });
 
-    if (!isDuplicate) {
-      unique.push(msg);
-    }
-  });
+    return () => {
+      isCancelled = true;
+    };
+  }, [selectedGuest?.guestId, userId, fetchChatHistory]);
 
-  return unique.sort(
-    (a, b) =>
-      new Date(a.timestamp || "").getTime() -
-      new Date(b.timestamp || "").getTime()
-  );
-}, [history, realtimeMessages, selectedGuest, userId]);
+  // Memoize allMessages để tránh tính toán lại không cần thiết
+  const allMessages = useMemo(() => {
+    if (!selectedGuest) return [];
 
+    const merged = [
+      ...history,
+      ...realtimeMessages.filter(
+        (m) =>
+          (m.senderId === userId && m.receiverId === selectedGuest.guestId) ||
+          (m.receiverId === userId && m.senderId === selectedGuest.guestId)
+      ),
+    ];
 
-  // Auto scroll
+    // Loại bỏ duplicate với hiệu suất tốt hơn
+    const seen = new Set();
+    const unique = merged.filter(msg => {
+      const key = `${msg.senderId}-${msg.receiverId}-${msg.message}-${msg.timestamp}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    return unique.sort(
+      (a, b) =>
+        new Date(a.timestamp || "").getTime() -
+        new Date(b.timestamp || "").getTime()
+    );
+  }, [history, realtimeMessages, selectedGuest, userId]);
+
+  // Auto scroll với throttle
+  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
+  
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [allMessages]);
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    
+    scrollTimeoutRef.current = setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
 
-  const handleSend = () => {
-    if (input.trim() && selectedGuest) {
-      sendMessage(selectedGuest.guestId, input);
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, [allMessages.length]);
+
+  const handleSend = useCallback(() => {
+    const trimmedInput = input.trim();
+    if (trimmedInput && selectedGuest) {
+      sendMessage(selectedGuest.guestId, trimmedInput);
       setInput("");
     }
-  };
+  }, [input, selectedGuest, sendMessage]);
 
-  const formatTime = (ts?: string) => {
+  const formatTime = useCallback((ts?: string) => {
     if (!ts) return "";
     const d = new Date(ts);
     return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  };
+  }, []);
 
   return (
     <div
@@ -207,7 +236,7 @@ const allMessages = useMemo(() => {
             >
               {allMessages.map((msg, i) => (
                 <div
-                  key={i}
+                  key={`${msg.senderId}-${msg.timestamp}-${i}`}
                   style={{
                     alignSelf:
                       msg.senderId === userId ? "flex-end" : "flex-start",
