@@ -20,7 +20,7 @@ export function useChatHubGuest(guestId: string) {
   // 🔌 Kết nối SignalR 1 lần
   useEffect(() => {
     const baseURL = import.meta.env.VITE_API_BASE_URL_Not_Api;
-    const hubUrl = `${baseURL}/guest-chat?guestId=${guestId}`;
+    const hubUrl = `${baseURL}/chat?guestId=${guestId}`;
 
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(hubUrl, {
@@ -68,9 +68,16 @@ export function useChatHubGuest(guestId: string) {
     }
 
     connectionRef.current
-      .invoke('SendMessageToConsultant', CONSULTANT_ID, message)
+      .invoke('SendMessage', CONSULTANT_ID, message, true) // true = isGuestSender
       .then(() => {
-        // Message sent successfully
+        console.log('✅ Guest đã gửi tin nhắn');
+        // Thêm tin nhắn vào local state
+        setRealtimeMessages(prev => [...prev, { 
+          senderId: guestId, 
+          receiverId: CONSULTANT_ID, 
+          message, 
+          timestamp: new Date().toISOString() 
+        }]);
       })
       .catch(err => {
         console.error('❌ Failed to send message via SignalR:', err);

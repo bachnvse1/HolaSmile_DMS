@@ -11,6 +11,12 @@ export interface ChatMessage {
   timestamp?: string;
 }
 
+type GuestInfo = {
+  guestId: string;
+  name?: string;
+  lastMessageAt?: string;
+};
+
 interface ChatContextType {
   messages: ChatMessage[];
   sendMessage: (receiverId: string, message: string) => void;
@@ -19,6 +25,8 @@ interface ChatContextType {
   clearHistoryCache: (key: string) => void;
   users: any[];
   fetchUsers: () => Promise<void>;
+  guests: GuestInfo[];
+  fetchGuests: () => Promise<void>;
 }
 
 const ChatContext = createContext<ChatContextType>({
@@ -28,6 +36,8 @@ const ChatContext = createContext<ChatContextType>({
   clearHistoryCache: () => {},
   users: [],
   fetchUsers: async () => {},
+  guests: [],
+  fetchGuests: async () => {},
 });
 
 export const ChatHubProvider = ({ children }: { children: React.ReactNode }) => {
@@ -39,7 +49,10 @@ export const ChatHubProvider = ({ children }: { children: React.ReactNode }) => 
   // Cache cho history để tránh gọi API liên tục
   const historyCache = useRef<Map<string, { data: ChatMessage[], timestamp: number }>>(new Map());
   const usersCache = useRef<{ data: any[], timestamp: number } | null>(null);
-  
+  const [guests, setGuests] = useState<GuestInfo[]>([]);
+  const guestsCache = useRef<{ data: GuestInfo[], timestamp: number } | null>(null);
+
+
   const CACHE_DURATION = 5 * 60 * 1000; // 5 phút
 
   useEffect(() => {
@@ -86,7 +99,7 @@ export const ChatHubProvider = ({ children }: { children: React.ReactNode }) => 
   const sendMessage = useCallback((receiverId: string, message: string) => {
     if (!connectionRef.current || !message.trim()) return;
     
-    connectionRef.current.invoke('SendMessageToUser', receiverId, message.trim())
+    connectionRef.current.invoke('SendMessage', receiverId, message.trim(), false)
       .catch(console.error);
   }, []);
 
@@ -139,6 +152,28 @@ export const ChatHubProvider = ({ children }: { children: React.ReactNode }) => 
     }
   }, []);
 
+
+    const fetchGuests = useCallback(async () => {
+      if (guestsCache.current && Date.now() - guestsCache.current.timestamp < CACHE_DURATION) {
+        return; // dùng cache
+      }
+
+      try {
+        const res = await axiosInstance.get('/user/allGuestsChat');
+        const guestData = res.data || [];
+
+        setGuests(guestData);
+        guestsCache.current = {
+          data: guestData,
+          timestamp: Date.now(),
+        };
+      } catch (err) {
+        console.error('Không thể tải danh sách guests:', err);
+        setGuests([]);
+      }
+    }, []);
+
+
   const clearHistoryCache = useCallback((key: string) => {
     historyCache.current.delete(key);
   }, []);
@@ -150,10 +185,13 @@ export const ChatHubProvider = ({ children }: { children: React.ReactNode }) => 
       fetchChatHistory, 
       clearHistoryCache,
       users,
-      fetchUsers
+      fetchUsers,
+      guests,
+      fetchGuests
     }}>
       {children}
-    </ChatContext.Provider>
+</ChatContext.Provider>
+
   );
 };
 
