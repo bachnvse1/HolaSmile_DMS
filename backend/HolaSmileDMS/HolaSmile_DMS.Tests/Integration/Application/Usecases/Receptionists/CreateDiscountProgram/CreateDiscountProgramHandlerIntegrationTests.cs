@@ -1,6 +1,7 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.Receptionist.CreateFinancialTransaction;
+using Application.Usecases.Receptionist.CreateDiscountProgram;
+using Domain.Entities;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;
 using MediatR;
@@ -12,24 +13,26 @@ using Moq;
 using System.Security.Claims;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionist.CreateFinancialTransaction
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
 {
-    public class CreateFinancialTransactionHandlerIntegrationTests
+    public class CreateDiscountProgramHandlerIntegrationTests
     {
         private readonly ApplicationDbContext _context;
-        private readonly ITransactionRepository _transactionRepository;
+        private readonly IPromotionrepository _promotionRepository;
+        private readonly IProcedureRepository _procedureRepository;
         private readonly IOwnerRepository _ownerRepository;
         private readonly Mock<IMediator> _mediatorMock;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CreateFinancialTransactionHandlerIntegrationTests()
+        public CreateDiscountProgramHandlerIntegrationTests()
         {
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
 
             _context = new ApplicationDbContext(options);
-            _transactionRepository = new TransactionRepository(_context);
+            _promotionRepository = new Promotionrepository(_context);
+            _procedureRepository = new ProcedureRepository(_context);
             _ownerRepository = new OwnerRepository(_context);
             _mediatorMock = new Mock<IMediator>();
 
@@ -56,50 +59,48 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionist.Crea
         private void SeedData()
         {
             _context.Users.AddRange(
-                new User
-                {
-                    UserID = 1,
-                    Username = "0111111111",
-                    Fullname = "Receptionist A",
-                    Phone = "0111111111"
-                },
-                new User
-                {
-                    UserID = 2,
-                    Username = "0999999999",
-                    Fullname = "Owner B",
-                    Phone = "0999999999"
-                }
+                new User { UserID = 1, Username = "0111111111", Fullname = "Receptionist A", Phone = "0111111111" },
+                new User { UserID = 2, Username = "0111111112", Fullname = "Owner B", Phone = "0111111112" }
             );
 
-            _context.Owners.Add(new Owner
+            _context.Owners.Add(new Owner { OwnerId = 1, UserId = 2 });
+
+            _context.Procedures.Add(new Procedure
             {
-                OwnerId = 1,
-                UserId = 2
+                ProcedureId = 10,
+                ProcedureName = "Tẩy trắng răng",
+                OriginalPrice = 1000000,
+                IsDeleted = false
             });
 
             _context.SaveChanges();
         }
 
-        [Fact(DisplayName = "ITCID01 - Should create financial transaction successfully")]
-        public async System.Threading.Tasks.Task ITCID01_CreateTransaction_Success()
+        [Fact(DisplayName = "ITCID01 - Should create discount program successfully")]
+        public async System.Threading.Tasks.Task ITCID01_CreateDiscountProgram_Success()
         {
             // Arrange
-            var handler = new CreateFinancialTransactionHandler(
-                _transactionRepository,
+            var handler = new CreateDiscountProgramHandler(
                 _httpContextAccessor,
+                _promotionRepository,
+                _procedureRepository,
                 _ownerRepository,
                 _mediatorMock.Object
             );
 
-            var command = new CreateFinancialTransactionCommand
+            var command = new CreateDiscountProgramCommand
             {
-                TransactionType = true,
-                Description = "Thu tiền dịch vụ",
-                Amount = 500000,
-                Category = "Dịch vụ khám",
-                PaymentMethod = true,
-                TransactionDate = DateTime.Now
+                ProgramName = "Summer Discount",
+                CreateDate = DateTime.Today,
+                EndDate = DateTime.Today.AddDays(10),
+                ListProcedure = new List<ProcedureDiscountProgramDTO>
+                {
+                    new ProcedureDiscountProgramDTO
+                    {
+                        ProcedureId = 10,
+                        DiscountAmount = 15
+                    }
+                }
             };
 
             // Act
@@ -107,14 +108,18 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionist.Crea
 
             // Assert
             Assert.True(result);
-            var transaction = _context.FinancialTransactions.FirstOrDefault();
-            Assert.NotNull(transaction);
-            Assert.Equal("Thu tiền dịch vụ", transaction.Description);
-            Assert.Equal(500000, transaction.Amount);
-            Assert.False(transaction.IsDelete);
+
+            var program = _context.DiscountPrograms.FirstOrDefault();
+            Assert.NotNull(program);
+            Assert.Equal("Summer Discount", program.DiscountProgramName);
+
+            var discount = _context.ProcedureDiscountPrograms.FirstOrDefault();
+            Assert.NotNull(discount);
+            Assert.Equal(10, discount.ProcedureId);
+            Assert.Equal(15, discount.DiscountAmount);
         }
 
-        [Fact(DisplayName = "ITCID02 - Should throw if role is invalid")]
+        [Fact(DisplayName = "ITCID02 - Should throw when role is not receptionist")]
         public async System.Threading.Tasks.Task ITCID02_InvalidRole_Throws()
         {
             _httpContextAccessor.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
@@ -123,107 +128,102 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionist.Crea
                 new Claim(ClaimTypes.Role, "patient")
             }, "TestAuth"));
 
-            var handler = new CreateFinancialTransactionHandler(
-                _transactionRepository,
+            var handler = new CreateDiscountProgramHandler(
                 _httpContextAccessor,
+                _promotionRepository,
+                _procedureRepository,
                 _ownerRepository,
                 _mediatorMock.Object
             );
 
-            var command = new CreateFinancialTransactionCommand
+            var command = new CreateDiscountProgramCommand
             {
-                Description = "Tiền đặt cọc",
-                Amount = 100000,
-                Category = "Khám",
-                PaymentMethod = true,
-                TransactionDate = DateTime.Now,
-                TransactionType = true
+                ProgramName = "Test",
+                CreateDate = DateTime.Today,
+                EndDate = DateTime.Today.AddDays(1),
+                ListProcedure = new List<ProcedureDiscountProgramDTO>
+                {
+                    new ProcedureDiscountProgramDTO { ProcedureId = 10, DiscountAmount = 10 }
+                }
             };
 
             var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => handler.Handle(command, default));
             Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
         }
 
-        [Fact(DisplayName = "ITCID03 - Should throw if description is empty")]
-        public async System.Threading.Tasks.Task ITCID03_EmptyDescription_Throws()
+        [Fact(DisplayName = "ITCID03 - Should throw if ProgramName is empty")]
+        public async System.Threading.Tasks.Task ITCID03_EmptyProgramName_Throws()
         {
-            var handler = new CreateFinancialTransactionHandler(
-                _transactionRepository,
+            var handler = new CreateDiscountProgramHandler(
                 _httpContextAccessor,
+                _promotionRepository,
+                _procedureRepository,
                 _ownerRepository,
                 _mediatorMock.Object
             );
 
-            var command = new CreateFinancialTransactionCommand
+            var command = new CreateDiscountProgramCommand
             {
-                Description = "   ",
-                Amount = 100000,
-                Category = "Khám",
-                PaymentMethod = true,
-                TransactionDate = DateTime.Now,
-                TransactionType = true
+                ProgramName = " ",
+                CreateDate = DateTime.Today,
+                EndDate = DateTime.Today.AddDays(1),
+                ListProcedure = new List<ProcedureDiscountProgramDTO>
+                {
+                    new ProcedureDiscountProgramDTO { ProcedureId = 10, DiscountAmount = 10 }
+                }
             };
 
             var ex = await Assert.ThrowsAsync<Exception>(() => handler.Handle(command, default));
             Assert.Equal(MessageConstants.MSG.MSG07, ex.Message);
         }
 
-        [Fact(DisplayName = "ITCID04 - Should throw if amount <= 0")]
-        public async System.Threading.Tasks.Task ITCID04_InvalidAmount_Throws()
+        [Fact(DisplayName = "ITCID04 - Should throw if EndDate < CreateDate")]
+        public async System.Threading.Tasks.Task ITCID04_EndDateBeforeCreateDate_Throws()
         {
-            var handler = new CreateFinancialTransactionHandler(
-                _transactionRepository,
+            var handler = new CreateDiscountProgramHandler(
                 _httpContextAccessor,
+                _promotionRepository,
+                _procedureRepository,
                 _ownerRepository,
                 _mediatorMock.Object
             );
 
-            var command = new CreateFinancialTransactionCommand
+            var command = new CreateDiscountProgramCommand
             {
-                Description = "Chi phí nhỏ",
-                Amount = 0,
-                Category = "Chi",
-                PaymentMethod = false,
-                TransactionDate = DateTime.Now,
-                TransactionType = false
+                ProgramName = "Test",
+                CreateDate = DateTime.Today,
+                EndDate = DateTime.Today.AddDays(-1),
+                ListProcedure = new List<ProcedureDiscountProgramDTO>
+                {
+                    new ProcedureDiscountProgramDTO { ProcedureId = 10, DiscountAmount = 10 }
+                }
             };
 
             var ex = await Assert.ThrowsAsync<Exception>(() => handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG95, ex.Message);
+            Assert.Equal(MessageConstants.MSG.MSG34, ex.Message);
         }
 
-        [Fact(DisplayName = "ITCID05 - Should allow owner to create transaction")]
-        public async System.Threading.Tasks.Task ITCID05_OwnerRole_CanCreate()
+        [Fact(DisplayName = "ITCID05 - Should throw if no procedures selected")]
+        public async System.Threading.Tasks.Task ITCID05_EmptyProcedureList_Throws()
         {
-            _httpContextAccessor.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, "2"),
-                new Claim(ClaimTypes.Role, "owner")
-            }, "TestAuth"));
-
-            var handler = new CreateFinancialTransactionHandler(
-                _transactionRepository,
+            var handler = new CreateDiscountProgramHandler(
                 _httpContextAccessor,
+                _promotionRepository,
+                _procedureRepository,
                 _ownerRepository,
                 _mediatorMock.Object
             );
 
-            var command = new CreateFinancialTransactionCommand
+            var command = new CreateDiscountProgramCommand
             {
-                Description = "Tự tạo",
-                Amount = 100000,
-                Category = "Khác",
-                PaymentMethod = true,
-                TransactionDate = DateTime.Now,
-                TransactionType = true
+                ProgramName = "Test",
+                CreateDate = DateTime.Today,
+                EndDate = DateTime.Today.AddDays(1),
+                ListProcedure = new List<ProcedureDiscountProgramDTO>()
             };
 
-            var result = await handler.Handle(command, default);
-            Assert.True(result);
-
-            var transaction = _context.FinancialTransactions.FirstOrDefault(t => t.Description == "Tự tạo");
-            Assert.NotNull(transaction);
-            Assert.Equal(100000, transaction.Amount);
+            var ex = await Assert.ThrowsAsync<Exception>(() => handler.Handle(command, default));
+            Assert.Equal(MessageConstants.MSG.MSG119, ex.Message);
         }
     }
 }

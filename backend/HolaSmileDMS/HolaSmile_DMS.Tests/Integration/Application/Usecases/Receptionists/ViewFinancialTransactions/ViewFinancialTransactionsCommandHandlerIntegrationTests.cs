@@ -8,8 +8,9 @@ using Xunit;
 using Domain.Entities;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Http;
+using Application.Constants;
 
-namespace IntegrationTests.Usecases.Receptionist
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
 {
     public class ViewFinancialTransactionsCommandHandlerIntegrationTests
     {
@@ -127,7 +128,7 @@ namespace IntegrationTests.Usecases.Receptionist
 
             // Act & Assert
             var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => handler.Handle(command, default));
-            Assert.Equal(Application.Constants.MessageConstants.MSG.MSG26, ex.Message);
+            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
         }
 
         [Fact(DisplayName = "ITCID04: Return empty list when no transactions")]

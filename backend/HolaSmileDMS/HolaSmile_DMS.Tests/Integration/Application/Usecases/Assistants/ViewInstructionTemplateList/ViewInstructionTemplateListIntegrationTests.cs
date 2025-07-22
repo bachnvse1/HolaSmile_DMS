@@ -13,7 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants.ViewInstructionTemplateList;
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants;
 
 public class ViewInstructionTemplateListIntegrationTests
 {

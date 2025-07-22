@@ -122,36 +122,10 @@ namespace HDMS_API.Infrastructure.Repositories
                 throw new Exception(MessageConstants.MSG.MSG79); // thời gian thực hiện hết hạn
             }
         }
-        public async Task<string> ResetPasswordAsync(ForgotPasswordCommand request)
+        public async Task<bool> ResetPasswordAsync(User user)
         {
-            if (_memoryCache.TryGetValue($"resetPasswordToken:{request.ResetPasswordToken}", out string email))
-            {
-                if (!FormatHelper.IsValidPassword(request.NewPassword))
-                {
-                    throw new Exception(MessageConstants.MSG.MSG02);
-                }
-                if (request.NewPassword != request.ConfirmPassword)
-                {
-                    throw new Exception(MessageConstants.MSG.MSG43);
-                }
-                var user = _context.Users.FirstOrDefault(u => u.Email == email);
-                if (user == null)
-                {
-                    throw new Exception(MessageConstants.MSG.MSG16);
-                }
-                user.Password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
-                user.UpdatedAt = DateTime.Now;
-                user.UpdatedBy = user.UserID;
                 _context.Users.Update(user);
-                _context.SaveChanges();
-                _memoryCache.Remove($"resetPasswordToken:{request.ResetPasswordToken}");
-                return MessageConstants.MSG.MSG10;
-                ;
-            }
-            else
-            {
-                throw new Exception(MessageConstants.MSG.MSG79); // thời gian thực hiện hết hạn
-            }
+               return await _context.SaveChangesAsync() > 0;
         }
         public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken)
         {

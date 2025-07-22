@@ -13,7 +13,7 @@ using Moq;
 using System.Security.Claims;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists.ViewFinancialTransactions
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
 {
 
 
