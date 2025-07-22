@@ -1,15 +1,29 @@
-namespace Infrastructure.Realtime;
+using System.Collections.Concurrent;
 
-public static partial class ChatConnectionManager
+public static class ChatConnectionManager
 {
-    private static readonly Dictionary<string, string> _userConnections = new();
+    private static readonly ConcurrentDictionary<string, string> _connections = new();
 
     public static void AddConnection(string userId, string connectionId)
-        => _userConnections[userId] = connectionId;
-
-    public static string? GetConnectionId(string userId)
-        => _userConnections.TryGetValue(userId, out var connId) ? connId : null;
+    {
+        _connections[userId] = connectionId;
+        Console.WriteLine($"✅ Added connection: {userId} -> {connectionId}");
+    }
 
     public static void RemoveConnection(string userId)
-        => _userConnections.Remove(userId);
+    {
+        _connections.TryRemove(userId, out _);
+        Console.WriteLine($"❌ Removed connection: {userId}");
+    }
+
+    public static string? GetConnectionId(string userId)
+    {
+        return _connections.TryGetValue(userId, out var connectionId) ? connectionId : null;
+    }
+
+    public static IEnumerable<string> GetConnections(string userId)
+    {
+        var connectionId = GetConnectionId(userId);
+        return connectionId != null ? new[] { connectionId } : Array.Empty<string>();
+    }
 }

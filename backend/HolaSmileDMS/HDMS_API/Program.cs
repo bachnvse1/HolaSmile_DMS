@@ -62,8 +62,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.MapHub<NotifyHub>("/notify");
-app.MapHub<ChatHub>("/chat").RequireAuthorization();;
-app.MapHub<GuestChatHub>("/guest-chat");
+app.MapHub<ChatHub>("/chat");
 
 app.Use(async (ctx, next) =>
 {

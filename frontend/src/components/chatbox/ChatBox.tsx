@@ -1,8 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState, memo } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import axiosInstance from "@/lib/axios";
 import dayjs from "dayjs";
-import { v4 as uuidv4 } from "uuid";
 
 type Receiver = {
   id: string;
@@ -19,92 +17,72 @@ type ChatMessage = {
 
 type Props = {
   receiver: Receiver;
-  messages: ChatMessage[];
+  messages: ChatMessage[]; // Nhận từ parent, không cần fetch lại
   sendMessage: (receiverId: string, msg: string) => void;
 };
 
-export default function ChatBox({ receiver, messages, sendMessage }: Props) {
+// Memoize MessageItem để tránh re-render
+const MessageItem = memo(({ 
+  message, 
+  isMine 
+}: { 
+  message: ChatMessage; 
+  isMine: boolean; 
+}) => (
+  <div
+    style={{
+      alignSelf: isMine ? "flex-end" : "flex-start",
+      background: isMine ? "#2563eb" : "#e0e7ff",
+      color: isMine ? "#fff" : "#1e293b",
+      borderRadius: 16,
+      padding: "8px 12px",
+      maxWidth: "80%",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+    }}
+  >
+    <div style={{ fontSize: 15, wordBreak: "break-word" }}>{message.message}</div>
+    <div style={{ fontSize: 11, marginTop: 4, textAlign: "right", opacity: 0.6 }}>
+      {message.timestamp ? dayjs(message.timestamp).format("HH:mm") : ""}
+    </div>
+  </div>
+));
+
+export default memo(function ChatBox({ receiver, messages, sendMessage }: Props) {
   const { userId } = useAuth();
   const [input, setInput] = useState("");
-  const [history, setHistory] = useState<ChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Load lịch sử từ server
+  // Auto scroll với throttle
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
   useEffect(() => {
-    const fetchHistory = async () => {
-      if (userId && receiver?.id) {
-        try {
-          console.log('📜 Loading chat history:', { userId, receiverId: receiver.id });
-          const res = await axiosInstance.get('/chats/history', {
-            params: { user1: userId, user2: receiver.id },
-          });
-          console.log('📜 History loaded:', res.data?.length || 0, 'messages');
-          setHistory(res.data || []);
-        } catch (err) {
-          console.error('❌ Error loading history:', err);
-          setHistory([]);
-        }
-      } else {
-        setHistory([]);
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    
+    scrollTimeoutRef.current = setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
       }
     };
-    fetchHistory();
-  }, [userId, receiver?.id]);
+  }, [messages.length]);
 
-  // Gộp lịch sử + realtime
-  const allMessages = useMemo(() => {
-    if (!receiver?.id) return [];
-
-    const realtimeMsgs = messages.filter(
-      (m) =>
-        (m.senderId === userId && m.receiverId === receiver.id) ||
-        (m.senderId === receiver.id && m.receiverId === userId)
-    );
-
-    console.log('🔄 Merging messages:', {
-      historyCount: history.length,
-      realtimeCount: realtimeMsgs.length,
-      receiver: receiver.id
-    });
-
-    const merged = [...history, ...realtimeMsgs];
-
-    // Remove duplicates
-    const unique = merged.filter((msg, idx, arr) =>
-      arr.findIndex((m) =>
-        m.messageId
-          ? m.messageId === msg.messageId
-          : (
-              m.senderId === msg.senderId &&
-              m.receiverId === msg.receiverId &&
-              m.message === msg.message &&
-              new Date(m.timestamp || '').toISOString() === new Date(msg.timestamp || '').toISOString()
-            )
-      ) === idx
-    );
-
-    // Sort by timestamp
-    unique.sort((a, b) =>
-      a.timestamp && b.timestamp
-        ? new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-        : 0
-    );
-
-    console.log('💬 Final messages count:', unique.length);
-    return unique;
-  }, [history, messages, userId, receiver?.id]);
-
-  // Auto scroll
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [allMessages]);
-
-  // Gửi tin nhắn
   const handleSend = () => {
-    if (input.trim()) {
-      console.log('📤 Sending message to:', receiver.id, input.trim());
-      sendMessage(receiver.id, input.trim());
+    const trimmedInput = input.trim();
+    if (trimmedInput && receiver.id) {
+      sendMessage(receiver.id, trimmedInput);
       setInput("");
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
     }
   };
 
@@ -139,34 +117,19 @@ export default function ChatBox({ receiver, messages, sendMessage }: Props) {
           gap: 6,
         }}
       >
-        {allMessages.length === 0 && (
+        {messages.length === 0 && (
           <div style={{ color: "#888", textAlign: "center", marginTop: 40 }}>
             Chưa có tin nhắn nào
           </div>
         )}
 
-        {allMessages.map((msg, i) => {
-          const isMine = msg.senderId === userId;
-          return (
-            <div
-              key={msg.messageId || `${msg.senderId}-${msg.timestamp}-${i}`}
-              style={{
-                alignSelf: isMine ? "flex-end" : "flex-start",
-                background: isMine ? "#2563eb" : "#e0e7ff",
-                color: isMine ? "#fff" : "#1e293b",
-                borderRadius: 16,
-                padding: "8px 12px",
-                maxWidth: "80%",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-              }}
-            >
-              <div style={{ fontSize: 15, wordBreak: "break-word" }}>{msg.message}</div>
-              <div style={{ fontSize: 11, marginTop: 4, textAlign: "right", opacity: 0.6 }}>
-                {msg.timestamp ? dayjs(msg.timestamp).format("HH:mm") : ""}
-              </div>
-            </div>
-          );
-        })}
+        {messages.map((msg, i) => (
+          <MessageItem
+            key={msg.messageId || `${msg.senderId}-${msg.timestamp}-${i}`}
+            message={msg}
+            isMine={msg.senderId === userId}
+          />
+        ))}
 
         <div ref={messagesEndRef} />
       </div>
@@ -185,12 +148,7 @@ export default function ChatBox({ receiver, messages, sendMessage }: Props) {
             background: "#fff",
             outline: "none",
           }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              handleSend();
-            }
-          }}
+          onKeyDown={handleKeyDown}
         />
         <button
           onClick={handleSend}
@@ -212,4 +170,4 @@ export default function ChatBox({ receiver, messages, sendMessage }: Props) {
       </div>
     </div>
   );
-}
+});

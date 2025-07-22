@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { useChatHubGuest } from "@/hooks/useChatHub";
+import { useChatHubGuest } from "@/hooks/useChatHubGuest";
 
 const CONSULTANT = { id: "10", name: "Nhân viên tư vấn" };
 
 type ChatMessage = {
+  messageId?: string;
   senderId: string;
   receiverId: string;
   message: string;
@@ -24,7 +25,6 @@ export default function ConsultantChatBox() {
   const guestId = getOrCreateGuestId();
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<ChatMessage[]>([]);
-  const [sentMessages, setSentMessages] = useState<ChatMessage[]>([]); // ✅ đúng chỗ
   const [isOpen, setIsOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -39,18 +39,36 @@ export default function ConsultantChatBox() {
     const merged = [
       ...history,
       ...realtimeMessages,
-      ...sentMessages,
     ].filter(
       (m) =>
         (m.senderId === guestId && m.receiverId === CONSULTANT.id) ||
         (m.receiverId === guestId && m.senderId === CONSULTANT.id)
     );
-    return merged.sort(
+
+    const seen = new Set<string>();
+    const unique = merged.filter(msg => {
+      // Ưu tiên dùng messageId nếu có
+      let key = msg.messageId;
+
+      if (!key) {
+        // Nếu không có messageId, tạo key theo nội dung
+        const ts = msg.timestamp
+          ? Math.floor(new Date(msg.timestamp).getTime() / 1000) // Làm tròn về giây
+          : "";
+        key = `${msg.senderId}-${msg.receiverId}-${msg.message}-${ts}`;
+      }
+
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    return unique.sort(
       (a, b) =>
         new Date(a.timestamp || "").getTime() -
         new Date(b.timestamp || "").getTime()
     );
-  }, [history, realtimeMessages, sentMessages, guestId]);
+  }, [history, realtimeMessages, guestId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -59,18 +77,9 @@ export default function ConsultantChatBox() {
   const handleSend = () => {
     const text = input.trim();
     if (!text) return;
-
-    // ✅ Gửi message & lưu tạm để hiển thị luôn
+    
+    // ✅ Gọi sendMessage từ hook
     sendMessage(text);
-    setSentMessages((prev) => [
-      ...prev,
-      {
-        senderId: guestId,
-        receiverId: CONSULTANT.id,
-        message: text,
-        timestamp: new Date().toISOString(),
-      },
-    ]);
     setInput("");
   };
 

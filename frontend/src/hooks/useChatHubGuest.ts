@@ -3,6 +3,7 @@ import * as signalR from '@microsoft/signalr';
 import axiosInstance from '@/lib/axios';
 
 export interface ChatMessage {
+  messageId?: string;
   senderId: string;
   receiverId: string;
   message: string;
@@ -20,7 +21,7 @@ export function useChatHubGuest(guestId: string) {
   // 🔌 Kết nối SignalR 1 lần
   useEffect(() => {
     const baseURL = import.meta.env.VITE_API_BASE_URL_Not_Api;
-    const hubUrl = `${baseURL}/guest-chat?guestId=${guestId}`;
+    const hubUrl = `${baseURL}/chat?guestId=${guestId}`;
 
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(hubUrl, {
@@ -33,18 +34,14 @@ export function useChatHubGuest(guestId: string) {
 
     connectionRef.current = connection;
 
-    let isMounted = true;
-    console.log('🔗 SignalR connecting to:', hubUrl);
-
-    connection.on('ReceiveMessage', (senderId, message, receiverId, timestamp) => {
+    connection.on('ReceiveMessage', (senderId: string, message: string, receiverId: string, timestamp?: string) => {
       setRealtimeMessages(prev => [...prev, { senderId, receiverId: receiverId || '', message, timestamp }]);
     });
 
+    connection.on('MessageSent', () => {});
+
     connection.start()
       .then(() => {
-        if (isMounted) {
-          console.log('✅ SignalR connected:', hubUrl);
-        }
       })
       .catch(err => {
         console.error('❌ SignalR failed to connect:', err);
@@ -55,7 +52,6 @@ export function useChatHubGuest(guestId: string) {
     });
 
     return () => {
-      isMounted = false;
       if (connection.state === signalR.HubConnectionState.Connected || connection.state === signalR.HubConnectionState.Connecting) {
         connection.stop();
       }
@@ -72,13 +68,13 @@ export function useChatHubGuest(guestId: string) {
     }
 
     connectionRef.current
-      .invoke('SendMessageToConsultant', CONSULTANT_ID, message)
-      .then(() => console.log('📤 Message sent'))
+      .invoke('SendMessage', CONSULTANT_ID, message, true) // true = isGuestSender
+      .then(() => {
+      })
       .catch(err => {
         console.error('❌ Failed to send message via SignalR:', err);
       });
   };
-
 
   // 📦 Lấy lịch sử chat giữa guest và consultant
   const fetchChatHistory = useCallback(async (consultantId: string): Promise<ChatMessage[]> => {
