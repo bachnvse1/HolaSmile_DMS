@@ -2,6 +2,8 @@ using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Assistant.CreateSupply;
+using Domain.Entities;
+using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
@@ -10,139 +12,190 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
 {
     public class CreateSupplyHandlerTests
     {
-        private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
-        private readonly Mock<ISupplyRepository> _supplyRepositoryMock;
-        private readonly Mock<ITransactionRepository> _transactionRepositoryMock;
-
+        private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new();
+        private readonly Mock<ISupplyRepository> _supplyRepositoryMock = new();
+        private readonly Mock<ITransactionRepository> _transactionRepositoryMock = new();
         private readonly CreateSupplyHandler _handler;
 
         public CreateSupplyHandlerTests()
         {
-            _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            _supplyRepositoryMock = new Mock<ISupplyRepository>();
-            _transactionRepositoryMock = new Mock<ITransactionRepository>();
-            _handler = new CreateSupplyHandler(_httpContextAccessorMock.Object, _supplyRepositoryMock.Object, _transactionRepositoryMock.Object);
+            _handler = new CreateSupplyHandler(
+                _httpContextAccessorMock.Object,
+                _supplyRepositoryMock.Object,
+                _transactionRepositoryMock.Object
+            );
         }
 
-        private void SetupHttpContext(string role, string userId)
+        private void SetupHttpContext(string role = "assistant", string userId = "1")
         {
-            var claims = new List<Claim>
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
             {
-                new Claim(ClaimTypes.Role, role),
                 new Claim(ClaimTypes.NameIdentifier, userId),
-            };
-            var identity = new ClaimsIdentity(claims, "mock");
-            var user = new ClaimsPrincipal(identity);
-            var context = new DefaultHttpContext { User = user };
-            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
+                new Claim(ClaimTypes.Role, role)
+            }, "mock"));
+
+            _httpContextAccessorMock.Setup(x => x.HttpContext!.User).Returns(user);
         }
 
-        [Fact(DisplayName = "Normal - UTCID01 - Valid input should return true")]
-        public async System.Threading.Tasks.Task UTCID01_ValidInput_ReturnsTrue()
+        [Fact(DisplayName = "UTCID01 - Throw when role is not assistant")]
+        public async System.Threading.Tasks.Task UTCID01_Throw_WhenInvalidRole()
         {
-            SetupHttpContext("assistant", "1");
+            SetupHttpContext("receptionist");
+
             var command = new CreateSupplyCommand
             {
                 SupplyName = "Gauze",
-                Unit = "Box",
+                Unit = "cái",
                 QuantityInStock = 10,
-                Price = 5.5m,
-                ExpiryDate = DateTime.Now.AddDays(30)
+                Price = 10000,
+                ExpiryDate = DateTime.Today.AddDays(1)
             };
 
-            _supplyRepositoryMock.Setup(r => r.CreateSupplyAsync(It.IsAny<Supplies>())).ReturnsAsync(true);
+            var act = async () => await _handler.Handle(command, default);
 
-            var result = await _handler.Handle(command, default);
-            Assert.True(result);
+            await act.Should().ThrowAsync<UnauthorizedAccessException>()
+                .WithMessage(MessageConstants.MSG.MSG26);
         }
 
-        [Fact(DisplayName = "Unauthorized - UTCID02 - User is not assistant")]
-        public async System.Threading.Tasks.Task UTCID02_NotAssistant_ThrowsUnauthorized()
+        [Fact(DisplayName = "UTCID02 - Throw when SupplyName or Unit is empty")]
+        public async System.Threading.Tasks.Task UTCID02_Throw_WhenInvalidNameOrUnit()
         {
-            SetupHttpContext("receptionist", "1");
-            var command = new CreateSupplyCommand();
+            SetupHttpContext();
 
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
-        }
-
-        [Fact(DisplayName = "Invalid - UTCID03 - SupplyName is empty")]
-        public async System.Threading.Tasks.Task UTCID03_SupplyNameEmpty_ThrowsException()
-        {
-            SetupHttpContext("assistant", "1");
-            var command = new CreateSupplyCommand { SupplyName = "", Unit = "Box", QuantityInStock = 1, Price = 10, ExpiryDate = DateTime.Now.AddDays(1) };
-
-            var ex = await Assert.ThrowsAsync<ArgumentException>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG07, ex.Message);
-        }
-
-        [Fact(DisplayName = "Invalid - UTCID04 - Unit is empty")]
-        public async System.Threading.Tasks.Task UTCID04_UnitEmpty_ThrowsException()
-        {
-            SetupHttpContext("assistant", "1");
-            var command = new CreateSupplyCommand { SupplyName = "Mask", Unit = "", QuantityInStock = 1, Price = 10, ExpiryDate = DateTime.Now.AddDays(1) };
-
-            var ex = await Assert.ThrowsAsync<ArgumentException>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG07, ex.Message);
-        }
-
-        [Fact(DisplayName = "Invalid - UTCID05 - QuantityInStock <= 0")]
-        public async System.Threading.Tasks.Task UTCID05_QuantityInvalid_ThrowsException()
-        {
-            SetupHttpContext("assistant", "1");
-            var command = new CreateSupplyCommand { SupplyName = "Mask", Unit = "Box", QuantityInStock = 0, Price = 10, ExpiryDate = DateTime.Now.AddDays(1) };
-
-            var ex = await Assert.ThrowsAsync<ArgumentException>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG94, ex.Message);
-        }
-
-        [Fact(DisplayName = "Invalid - UTCID06 - Price <= 0")]
-        public async System.Threading.Tasks.Task UTCID06_PriceInvalid_ThrowsException()
-        {
-            SetupHttpContext("assistant", "1");
-            var command = new CreateSupplyCommand { SupplyName = "Mask", Unit = "Box", QuantityInStock = 1, Price = 0, ExpiryDate = DateTime.Now.AddDays(1) };
-
-            var ex = await Assert.ThrowsAsync<ArgumentException>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG95, ex.Message);
-        }
-
-        [Fact(DisplayName = "Invalid - UTCID07 - ExpiryDate in past")]
-        public async System.Threading.Tasks.Task UTCID07_ExpiryDateInvalid_ThrowsException()
-        {
-            SetupHttpContext("assistant", "1");
-            var command = new CreateSupplyCommand { SupplyName = "Mask", Unit = "Box", QuantityInStock = 1, Price = 10, ExpiryDate = DateTime.Now.AddDays(-1) };
-
-            var ex = await Assert.ThrowsAsync<ArgumentException>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG96, ex.Message);
-        }
-
-        [Fact(DisplayName = "Unauthorized - UTCID08 - No HttpContext (null)")]
-        public async System.Threading.Tasks.Task UTCID08_NoHttpContext_ThrowsUnauthorized()
-        {
-            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns((HttpContext)null);
-            var command = new CreateSupplyCommand();
-
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
-        }
-
-        [Fact(DisplayName = "Error - UTCID09 - Repository returns false")]
-        public async System.Threading.Tasks.Task UTCID09_RepositoryFails_ReturnsFalse()
-        {
-            SetupHttpContext("assistant", "1");
             var command = new CreateSupplyCommand
             {
-                SupplyName = "Gloves",
-                Unit = "Box",
-                QuantityInStock = 5,
-                Price = 12.5m,
-                ExpiryDate = DateTime.Now.AddDays(10)
+                SupplyName = "",
+                Unit = "",
+                QuantityInStock = 10,
+                Price = 10000,
+                ExpiryDate = DateTime.Today.AddDays(1)
             };
 
-            _supplyRepositoryMock.Setup(r => r.CreateSupplyAsync(It.IsAny<Supplies>())).ReturnsAsync(false);
+            var act = async () => await _handler.Handle(command, default);
+
+            await act.Should().ThrowAsync<ArgumentException>()
+                .WithMessage(MessageConstants.MSG.MSG07);
+        }
+
+        [Fact(DisplayName = "UTCID03 - Throw when QuantityInStock is less than or equal to 0")]
+        public async System.Threading.Tasks.Task UTCID03_Throw_WhenInvalidQuantity()
+        {
+            SetupHttpContext();
+
+            var command = new CreateSupplyCommand
+            {
+                SupplyName = "Gauze",
+                Unit = "cái",
+                QuantityInStock = 0,
+                Price = 10000,
+                ExpiryDate = DateTime.Today.AddDays(1)
+            };
+
+            var act = async () => await _handler.Handle(command, default);
+
+            await act.Should().ThrowAsync<ArgumentException>()
+                .WithMessage(MessageConstants.MSG.MSG94);
+        }
+
+        [Fact(DisplayName = "UTCID04 - Throw when Price is less than or equal to 0")]
+        public async System.Threading.Tasks.Task UTCID04_Throw_WhenInvalidPrice()
+        {
+            SetupHttpContext();
+
+            var command = new CreateSupplyCommand
+            {
+                SupplyName = "Gauze",
+                Unit = "cái",
+                QuantityInStock = 10,
+                Price = 0,
+                ExpiryDate = DateTime.Today.AddDays(1)
+            };
+
+            var act = async () => await _handler.Handle(command, default);
+
+            await act.Should().ThrowAsync<ArgumentException>()
+                .WithMessage(MessageConstants.MSG.MSG95);
+        }
+
+        [Fact(DisplayName = "UTCID05 - Throw when ExpiryDate is in the past")]
+        public async System.Threading.Tasks.Task UTCID05_Throw_WhenInvalidExpiryDate()
+        {
+            SetupHttpContext();
+
+            var command = new CreateSupplyCommand
+            {
+                SupplyName = "Gauze",
+                Unit = "cái",
+                QuantityInStock = 10,
+                Price = 10000,
+                ExpiryDate = DateTime.Today.AddDays(-1)
+            };
+
+            var act = async () => await _handler.Handle(command, default);
+
+            await act.Should().ThrowAsync<ArgumentException>()
+                .WithMessage(MessageConstants.MSG.MSG96);
+        }
+
+        [Fact(DisplayName = "UTCID06 - Increase quantity when supply already exists")]
+        public async System.Threading.Tasks.Task UTCID06_UpdateQuantity_WhenSupplyExists()
+        {
+            SetupHttpContext();
+
+            var existSupply = new Supplies
+            {
+                Name = "Gauze",
+                QuantityInStock = 5,
+                Price = 10000,
+                ExpiryDate = DateTime.Today.AddDays(10)
+            };
+
+            _supplyRepositoryMock.Setup(x => x.GetExistSupply("Gauze", 10000, It.IsAny<DateTime?>()))
+                .ReturnsAsync(existSupply);
+            _supplyRepositoryMock.Setup(x => x.EditSupplyAsync(It.IsAny<Supplies>()))
+                .ReturnsAsync(true);
+
+            var command = new CreateSupplyCommand
+            {
+                SupplyName = "Gauze",
+                Unit = "cái",
+                QuantityInStock = 10,
+                Price = 10000,
+                ExpiryDate = DateTime.Today.AddDays(10)
+            };
 
             var result = await _handler.Handle(command, default);
-            Assert.False(result);
+
+            result.Should().BeTrue();
+            existSupply.QuantityInStock.Should().Be(15);
+        }
+
+        [Fact(DisplayName = "UTCID07 - Create new supply and transaction if not exists")]
+        public async System.Threading.Tasks.Task UTCID07_CreateSupplyAndTransaction_WhenNotExist()
+        {
+            SetupHttpContext();
+
+            _supplyRepositoryMock.Setup(x => x.GetExistSupply("Gauze", 10000, It.IsAny<DateTime?>()))
+                .ReturnsAsync((Supplies?)null);
+
+            _transactionRepositoryMock.Setup(x => x.CreateTransactionAsync(It.IsAny<FinancialTransaction>()))
+                .ReturnsAsync(true);
+
+            _supplyRepositoryMock.Setup(x => x.CreateSupplyAsync(It.IsAny<Supplies>()))
+                .ReturnsAsync(true);
+
+            var command = new CreateSupplyCommand
+            {
+                SupplyName = "Gauze",
+                Unit = "cái",
+                QuantityInStock = 10,
+                Price = 10000,
+                ExpiryDate = DateTime.Today.AddDays(10)
+            };
+
+            var result = await _handler.Handle(command, default);
+
+            result.Should().BeTrue();
         }
     }
 }

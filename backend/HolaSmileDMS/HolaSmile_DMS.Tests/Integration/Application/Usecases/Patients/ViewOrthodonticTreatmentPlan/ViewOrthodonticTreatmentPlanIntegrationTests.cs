@@ -13,7 +13,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Patients.ViewOrthodonticTreatmentPlan;
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Patients;
 
 public class ViewOrthodonticTreatmentPlanIntegrationTests
 {

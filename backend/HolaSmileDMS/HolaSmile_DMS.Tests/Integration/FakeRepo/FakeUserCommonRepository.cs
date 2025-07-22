@@ -140,12 +140,6 @@ public class FakeUserCommonRepository : IUserCommonRepository
     {
         throw new NotImplementedException();
     }
-
-    Task<string> IUserCommonRepository.ResetPasswordAsync(ForgotPasswordCommand request)
-    {
-        throw new NotImplementedException();
-    }
-
     Task<User?> IUserCommonRepository.GetUserByPhoneAsync(string phone)
     {
         throw new NotImplementedException();
@@ -192,6 +186,11 @@ public class FakeUserCommonRepository : IUserCommonRepository
     }
 
     Task<int?> IUserCommonRepository.GetUserIdByRoleTableIdAsync(string role, int id)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> ResetPasswordAsync(User user)
     {
         throw new NotImplementedException();
     }

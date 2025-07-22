@@ -72,6 +72,13 @@ namespace HDMS_API.Container.DependencyInjection
                         ? "AllowAnonymous"
                         : JwtBearerDefaults.AuthenticationScheme;
                 };
+            }).AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+            {
+                options.ClientId = configuration["Authentication:Google:ClientId"];
+                options.ClientSecret = configuration["Authentication:Google:ClientSecret"];
+                options.CallbackPath = "/signin-google";
+                options.SaveTokens = true;
             });
 
             services.AddHttpContextAccessor();

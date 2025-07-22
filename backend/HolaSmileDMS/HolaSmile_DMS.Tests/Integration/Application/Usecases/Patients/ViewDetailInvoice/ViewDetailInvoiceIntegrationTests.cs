@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Patients.ViewDetailInvoice;
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Patients;
 
 public class ViewDetailInvoiceIntegrationTests
 {
