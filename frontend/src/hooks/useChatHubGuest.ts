@@ -3,6 +3,7 @@ import * as signalR from '@microsoft/signalr';
 import axiosInstance from '@/lib/axios';
 
 export interface ChatMessage {
+  messageId?: string;
   senderId: string;
   receiverId: string;
   message: string;
@@ -34,7 +35,6 @@ export function useChatHubGuest(guestId: string) {
     connectionRef.current = connection;
 
     connection.on('ReceiveMessage', (senderId: string, message: string, receiverId: string, timestamp?: string) => {
-      console.log('📩 Tin nhắn mới:', { senderId, message, receiverId, timestamp });
       setRealtimeMessages(prev => [...prev, { senderId, receiverId: receiverId || '', message, timestamp }]);
     });
 
@@ -70,20 +70,11 @@ export function useChatHubGuest(guestId: string) {
     connectionRef.current
       .invoke('SendMessage', CONSULTANT_ID, message, true) // true = isGuestSender
       .then(() => {
-        console.log('✅ Guest đã gửi tin nhắn');
-        // Thêm tin nhắn vào local state
-        setRealtimeMessages(prev => [...prev, { 
-          senderId: guestId, 
-          receiverId: CONSULTANT_ID, 
-          message, 
-          timestamp: new Date().toISOString() 
-        }]);
       })
       .catch(err => {
         console.error('❌ Failed to send message via SignalR:', err);
       });
   };
-
 
   // 📦 Lấy lịch sử chat giữa guest và consultant
   const fetchChatHistory = useCallback(async (consultantId: string): Promise<ChatMessage[]> => {
