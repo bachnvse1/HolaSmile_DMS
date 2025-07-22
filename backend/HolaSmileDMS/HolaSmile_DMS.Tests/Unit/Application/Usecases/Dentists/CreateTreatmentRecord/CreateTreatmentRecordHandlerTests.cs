@@ -9,7 +9,7 @@ using Moq;
 using System.Security.Claims;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists.CreateTreatmentRecord;
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists;
 
 public class CreateTreatmentRecordHandlerTests
 {

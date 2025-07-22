@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿/*
+using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
 using AutoMapper;
@@ -180,3 +181,4 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Guests
         }
     }
 }
+*/

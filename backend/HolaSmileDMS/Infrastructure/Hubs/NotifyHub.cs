@@ -8,7 +8,6 @@ namespace Infrastructure.Hubs
         public override async System.Threading.Tasks.Task OnConnectedAsync()
         {
             var userId = Context.UserIdentifier;
-            Console.WriteLine($"User connected: {userId}");
             await base.OnConnectedAsync();
         }
     }

@@ -15,7 +15,7 @@ namespace Application.Interfaces
         Task<bool> SendOtpEmailAsync(string toEmail);
         Task<bool> ResendOtpAsync(string toEmail);
         Task<string> VerifyOtpAsync(VerifyOtpCommand otp);
-        Task<string> ResetPasswordAsync(ForgotPasswordCommand request);
+        Task<bool> ResetPasswordAsync(User user);
         Task<User?> GetUserByPhoneAsync(string phone);
         Task<User?> GetUserByEmailAsync(string email);
         public Task<User> GetByUsernameAsync(string username, CancellationToken cancellationToken);

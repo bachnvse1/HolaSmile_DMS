@@ -1,7 +1,6 @@
 ﻿using Application.Common.Mappings;
 using Application.Interfaces;
 using Application.Services;
-using Application.Usecases.Receptionist.SMS;
 using Application.Usecases.SendNotification;
 using DinkToPdf;
 using DinkToPdf.Contracts;
@@ -19,7 +18,6 @@ using Infrastructure.Hubs;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
 using MediatR;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.EntityFrameworkCore;
 
 

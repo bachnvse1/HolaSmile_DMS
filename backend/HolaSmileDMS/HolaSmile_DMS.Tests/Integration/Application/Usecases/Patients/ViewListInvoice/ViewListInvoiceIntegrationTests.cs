@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Patients.ViewListInvoice;
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Patients;
 
 public class ViewListInvoiceIntegrationTests
 {
@@ -43,7 +43,7 @@ public class ViewListInvoiceIntegrationTests
         );
         _context.Patients.Add(new Patient { PatientID = 1, UserID = 1 });
         _context.Patients.Add(new Patient { PatientID = 99, UserID = 3 });
-        _context.Receptionists.Add(new Receptionist { ReceptionistId = 2, UserId = 2 });
+        _context.Receptionists.Add(new global::Receptionist { ReceptionistId = 2, UserId = 2 });
 
         _context.Invoices.AddRange(
             new Invoice { InvoiceId = 201, PatientId = 1, CreatedAt = new DateTime(2024, 6, 1), IsDeleted = false },

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants.DeleteInstructionTemplate;
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants;
 
 public class DeactiveInstructionTemplateIntegrationTests
 {

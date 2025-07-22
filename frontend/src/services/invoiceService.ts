@@ -22,9 +22,27 @@ export const invoiceService = {
     return response.data
   },
 
+  async updateOrderCode(orderCode: string): Promise<any> {
+    const response = await axiosInstance.put("/invoice/updateOrderCode", { orderCode })
+    return response.data
+  },
+
   async createPaymentLink(orderCode: string): Promise<any> {
     const response = await axiosInstance.post("/payment/create-link", { orderCode })
     return response.data
+  },
+
+  async handlePayment(invoice: Invoice): Promise<string> {
+    if (invoice.paymentUrl) {
+      return invoice.paymentUrl
+    }
+
+    if (invoice.orderCode) {
+      const response = await this.createPaymentLink(invoice.orderCode)
+      return response.checkoutUrl
+    }
+
+    throw new Error('Không thể tạo link thanh toán: thiếu thông tin cần thiết')
   },
 
   async printInvoice(invoiceId: number): Promise<Blob> {

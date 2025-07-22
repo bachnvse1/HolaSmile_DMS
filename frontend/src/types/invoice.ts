@@ -14,6 +14,7 @@ export interface Invoice {
   transactionId: string | null
   createdAt: string
   patientName: string
+  paymentUrl?: string | null
 }
 
 export interface NewInvoice {

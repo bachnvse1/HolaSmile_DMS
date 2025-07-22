@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon.ReceiveNotification;
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon;
 
 public class SendNotificationHandlerTests
 {

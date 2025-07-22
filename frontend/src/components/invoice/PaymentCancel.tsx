@@ -1,8 +1,25 @@
-import { Link } from "react-router" 
+import { Link } from "react-router"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useEffect } from "react"
+import { invoiceService } from "@/services/invoiceService"
 
 export default function PaymentCancelled() {
+
+  useEffect(() => {
+    const orderCode = localStorage.getItem('orderCode')
+    if (orderCode) {
+      invoiceService.updateOrderCode(orderCode)
+        .then(response => {
+          console.log('Order code updated successfully:', response)
+        })
+        .catch(error => {
+          console.error('Failed to update order code:', error)
+        })
+    }
+    localStorage.removeItem('orderCode')
+  }, [])
+
   return (
     <div className="flex min-h-[calc(100vh-theme(spacing.16))] items-center justify-center bg-gray-100 dark:bg-gray-950">
       <Card className="w-full max-w-md text-center">
