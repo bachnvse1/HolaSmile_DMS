@@ -21,6 +21,7 @@ namespace Application.Usecases.Receptionist.UpdateInvoice
                 throw new KeyNotFoundException("Invoice not found.");
             var orderCode = $"{DateTime.Now:yyMMddHHmm}{new Random().Next(10, 99)}";
             invoice.OrderCode = orderCode;
+            invoice.PaymentUrl = "";
             await _invoiceRepository.UpdateAsync(invoice, cancellationToken);
 
             return "success";
