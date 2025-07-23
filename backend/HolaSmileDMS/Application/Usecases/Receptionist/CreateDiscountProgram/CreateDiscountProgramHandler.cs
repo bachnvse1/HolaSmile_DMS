@@ -91,15 +91,16 @@ namespace Application.Usecases.Receptionist.CreateDiscountProgram
                 }
             }
 
-            var owners = await _ownerRepository.GetAllOwnersAsync();
             try
             {
+                var owners = await _ownerRepository.GetAllOwnersAsync();
+
                 var notifyOwners = owners.Select(async o =>
                 await _mediator.Send(new SendNotificationCommand(
                       o.User.UserID,
                       "Taọ chương trình khuyến mãi",
                       $"Lễ tân {o.User.Fullname} đã tạo chương trình khuyến mãi {request.ProgramName} vào lúc {DateTime.Now}",
-                      null, null),
+                      "promotion", null),
                 cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);
             }

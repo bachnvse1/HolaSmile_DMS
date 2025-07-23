@@ -30,12 +30,6 @@ namespace Application.Usecases.Dentist.ManageSchedule
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-            // Check if the user is authenticated
-            if (currentUserId == 0 || string.IsNullOrEmpty(currentUserRole))
-            {
-                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // "Bạn cần đăng nhập để thực hiện chức năng này"
-            }
-
             // Check if the user is not a dentist return failed message
             if (!string.Equals(currentUserRole, "dentist", StringComparison.OrdinalIgnoreCase))
             {
@@ -90,28 +84,19 @@ namespace Application.Usecases.Dentist.ManageSchedule
 
             var owners = await _ownerRepository.GetAllOwnersAsync();
 
-            // Send notification to owner and dentist
+            // Send notification to owner
             try
             {
-                //await _mediator.Send(new SendNotificationCommand(
-                //      currentUserId,
-                //      "Đăng ký lịch làm việc",
-                //      $"Bạn đã đăng ký lịch làm việc vào lúc {DateTime.Now}",
-                //      "Đăng ký lịch làm việc",
-                //      null),
-                //      cancellationToken);
-
                 var notifyOwners = owners.Select(async o =>
                 await _mediator.Send(new SendNotificationCommand(
                       o.User.UserID,
                       "Đăng ký lịch làm việc",
                       $"Nha Sĩ {o.User.Fullname} đã đăng ký lịch làm việc vào lúc {DateTime.Now}",
-                      "Tạo lịch khám lần đầu", null),
+                      "schedule", null),
                 cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);  
             }
             catch { }
-
 
             return MessageConstants.MSG.MSG52; // "Tạo lịch làm việc thành công"
         }

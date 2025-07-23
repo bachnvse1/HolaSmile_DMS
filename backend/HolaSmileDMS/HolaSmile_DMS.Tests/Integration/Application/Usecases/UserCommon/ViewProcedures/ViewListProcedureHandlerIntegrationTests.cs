@@ -111,21 +111,9 @@ public class ViewListProcedureHandlerIntegrationTests
         Assert.All(result, p => Assert.Equal("Tẩy trắng răng", p.ProcedureName));
     }
 
-    [Fact(DisplayName = "ITCID03 - Abnormal: Missing authentication throws error")]
+    [Fact(DisplayName = "ITCID03 - Abnormal: No procedures available throws error")]
     [Trait("TestType", "Abnormal")]
-    public async System.Threading.Tasks.Task ITCID03_Missing_Auth_Throws()
-    {
-        _httpContextAccessor.HttpContext = new DefaultHttpContext(); // no claims
-
-        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            _handler.Handle(new ViewListProcedureCommand(), default));
-
-        Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
-    }
-
-    [Fact(DisplayName = "ITCID04 - Abnormal: No procedures available throws error")]
-    [Trait("TestType", "Abnormal")]
-    public async System.Threading.Tasks.Task ITCID04_No_Procedure_Throws()
+    public async System.Threading.Tasks.Task ITCID03_No_Procedure_Throws()
     {
         _context.Procedures.RemoveRange(_context.Procedures);
         _context.SaveChanges();

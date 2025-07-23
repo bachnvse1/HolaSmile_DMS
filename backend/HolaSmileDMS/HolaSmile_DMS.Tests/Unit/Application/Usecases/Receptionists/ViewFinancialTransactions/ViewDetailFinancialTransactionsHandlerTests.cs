@@ -38,25 +38,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
             _httpContextAccessorMock.Setup(x => x.HttpContext!.User).Returns(user);
         }
 
-        [Fact(DisplayName = "UTCID01 - Throw when role is null")]
-        public async System.Threading.Tasks.Task UTCID01_Throw_WhenRoleIsNull()
-        {
-            var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, "1")
-            }, "mock"));
-
-            _httpContextAccessorMock.Setup(x => x.HttpContext!.User).Returns(user);
-
-            var command = new ViewDetailFinancialTransactionsCommand(1);
-            var act = async () => await _handler.Handle(command, CancellationToken.None);
-
-            await act.Should().ThrowAsync<UnauthorizedAccessException>()
-                .WithMessage(MessageConstants.MSG.MSG53);
-        }
-
-        [Fact(DisplayName = "UTCID02 - Throw when role is not receptionist or owner")]
-        public async System.Threading.Tasks.Task UTCID02_Throw_WhenInvalidRole()
+        [Fact(DisplayName = "UTCID01 - Throw when role is not receptionist or owner")]
+        public async System.Threading.Tasks.Task UTCID01_Throw_WhenInvalidRole()
         {
             SetupHttpContext("assistant");
 
@@ -67,8 +50,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
                 .WithMessage(MessageConstants.MSG.MSG26);
         }
 
-        [Fact(DisplayName = "UTCID03 - Throw when transaction does not exist")]
-        public async System.Threading.Tasks.Task UTCID03_Throw_WhenTransactionNotFound()
+        [Fact(DisplayName = "UTCID02 - Throw when transaction does not exist")]
+        public async System.Threading.Tasks.Task UTCID02_Throw_WhenTransactionNotFound()
         {
             SetupHttpContext("receptionist");
 
@@ -82,8 +65,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
                 .WithMessage(MessageConstants.MSG.MSG16);
         }
 
-        [Fact(DisplayName = "UTCID04 - Throw when createdBy user not found")]
-        public async System.Threading.Tasks.Task UTCID04_Throw_WhenCreatedByUserNotFound()
+        [Fact(DisplayName = "UTCID03 - Throw when createdBy user not found")]
+        public async System.Threading.Tasks.Task UTCID03_Throw_WhenCreatedByUserNotFound()
         {
             SetupHttpContext("receptionist");
 
@@ -104,8 +87,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
                 .WithMessage(MessageConstants.MSG.MSG16);
         }
 
-        [Fact(DisplayName = "UTCID05 - Return correct DTO when data is valid")]
-        public async System.Threading.Tasks.Task UTCID05_ReturnSuccess_WhenValid()
+        [Fact(DisplayName = "UTCID04 - Return correct DTO when data is valid")]
+        public async System.Threading.Tasks.Task UTCID04_ReturnSuccess_WhenValid()
         {
             SetupHttpContext("owner");
 

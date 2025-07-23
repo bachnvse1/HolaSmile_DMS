@@ -30,11 +30,6 @@ public class ViewListProcedureHandler : IRequestHandler<ViewListProcedureCommand
         var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
         var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-        if (string.IsNullOrEmpty(currentUserRole))
-        {
-            throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // "Bạn cần đăng nhập..."
-        }
-
         var allProcedures = await _procedureRepository.GetAll(); // Repository trả về List<Procedure>
 
         var listProcedures = string.Equals(currentUserRole, "assistant", StringComparison.OrdinalIgnoreCase)

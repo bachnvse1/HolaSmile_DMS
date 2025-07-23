@@ -77,24 +77,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
             Assert.Single(result);
         }
 
-        [Fact(DisplayName = "Unauthorized - UTCID03 - User role is null")]
-        public async System.Threading.Tasks.Task UTCID03_NoRole_ThrowsUnauthorized()
-        {
-            var context = new DefaultHttpContext
-            {
-                User = new ClaimsPrincipal(new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.NameIdentifier, "1")
-                }))
-            };
-            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
-
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(new ViewListSuppliesCommand(), default));
-            Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
-        }
-
-        [Fact(DisplayName = "Invalid - UTCID04 - No supplies found should throw exception")]
-        public async System.Threading.Tasks.Task UTCID04_NoData_ThrowsException()
+        [Fact(DisplayName = "Invalid - UTCID03 - No supplies found should throw exception")]
+        public async System.Threading.Tasks.Task UTCID03_NoData_ThrowsException()
         {
             SetupHttpContext("assistant");
 

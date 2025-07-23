@@ -1,9 +1,12 @@
 ﻿using Application.Usecases.Dentists.EditPrescription;
 using HDMS_API.Infrastructure.Persistence;
+using HDMS_API.Infrastructure.Repositories;
 using Infrastructure.Repositories;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using System.Security.Claims;
 using Xunit;
 
@@ -30,7 +33,9 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists
 
             _handler = new EditPrescriptionHandler(
                 _httpContextAccessor,
-                new PrescriptionRepository(_context)
+                new PrescriptionRepository(_context),
+                new PatientRepository(_context),
+                new Mock<IMediator>().Object
             );
         }
 

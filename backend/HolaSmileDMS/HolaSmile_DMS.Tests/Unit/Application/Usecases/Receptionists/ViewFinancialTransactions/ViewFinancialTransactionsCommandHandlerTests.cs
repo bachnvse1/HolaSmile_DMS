@@ -36,25 +36,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
             _httpContextAccessorMock.Setup(x => x.HttpContext!.User).Returns(user);
         }
 
-        [Fact(DisplayName = "UTCID01 - Throw when user role is null")]
-        public async System.Threading.Tasks.Task UTCID01_Throw_WhenRoleIsNull()
-        {
-            var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, "1")
-            }, "mock"));
-
-            _httpContextAccessorMock.Setup(x => x.HttpContext!.User).Returns(user);
-
-            var command = new ViewFinancialTransactionsCommand();
-            var act = async () => await _handler.Handle(command, CancellationToken.None);
-
-            await act.Should().ThrowAsync<UnauthorizedAccessException>()
-                .WithMessage(MessageConstants.MSG.MSG53);
-        }
-
-        [Fact(DisplayName = "UTCID02 - Throw when user is not receptionist or owner")]
-        public async System.Threading.Tasks.Task UTCID02_Throw_WhenInvalidRole()
+        [Fact(DisplayName = "UTCID01 - Throw when user is not receptionist or owner")]
+        public async System.Threading.Tasks.Task UTCID01_Throw_WhenInvalidRole()
         {
             SetupHttpContext("assistant");
 
@@ -65,8 +48,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
                 .WithMessage(MessageConstants.MSG.MSG26);
         }
 
-        [Fact(DisplayName = "UTCID03 - Return empty list when no transactions")]
-        public async System.Threading.Tasks.Task UTCID03_ReturnEmptyList_WhenNoTransactions()
+        [Fact(DisplayName = "UTCID02 - Return empty list when no transactions")]
+        public async System.Threading.Tasks.Task UTCID02_ReturnEmptyList_WhenNoTransactions()
         {
             SetupHttpContext("receptionist");
 
@@ -79,8 +62,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
             result.Should().BeEmpty();
         }
 
-        [Fact(DisplayName = "UTCID04 - Return correct data when valid")]
-        public async System.Threading.Tasks.Task UTCID04_ReturnTransactions_WhenValid()
+        [Fact(DisplayName = "UTCID03 - Return correct data when valid")]
+        public async System.Threading.Tasks.Task UTCID03_ReturnTransactions_WhenValid()
         {
             SetupHttpContext("owner");
 

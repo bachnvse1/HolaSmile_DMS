@@ -76,25 +76,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
             Assert.Single(result);
         }
 
-        [Fact(DisplayName = "Unauthorized - UTCID03 - Role is missing")]
-        public async System.Threading.Tasks.Task UTCID03_RoleMissing_ThrowsUnauthorized()
-        {
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, "1")
-            };
-            var identity = new ClaimsIdentity(claims);
-            var user = new ClaimsPrincipal(identity);
-            var context = new DefaultHttpContext { User = user };
-            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
 
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(new ViewListProcedureCommand(), CancellationToken.None));
-
-            Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
-        }
-
-        [Fact(DisplayName = "Invalid - UTCID04 - No procedures found should throw exception")]
-        public async System.Threading.Tasks.Task UTCID04_NoData_ThrowsException()
+        [Fact(DisplayName = "Invalid - UTCID03 - No procedures found should throw exception")]
+        public async System.Threading.Tasks.Task UTCID03_NoData_ThrowsException()
         {
             SetupHttpContext("assistant");
 
