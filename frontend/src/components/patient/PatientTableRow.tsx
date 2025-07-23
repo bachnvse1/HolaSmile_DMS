@@ -24,19 +24,21 @@ interface Props {
 export default function PatientTableRow({ patient, index, onEdit }: Props) {
     const rowBg = index % 2 === 0 ? "bg-white" : "bg-gray-50"
     const navigate = useNavigate();
-    const userInfo = useUserInfo(); 
-    
+    const userInfo = useUserInfo();
+
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false)
-    
+
     const handleViewDetail = () => {
         setIsModalOpen(true)
     }
-    
+
     const handleCloseModal = () => {
         setIsModalOpen(false)
     }
-    
+
+    const isDentistOrAssistant = userInfo?.role === 'Dentist' || userInfo?.role === 'Assistant'; 
+
     return (
         <>
             <tr
@@ -90,27 +92,32 @@ export default function PatientTableRow({ patient, index, onEdit }: Props) {
                                     Chỉnh Sửa Bệnh Nhân
                                 </DropdownMenuItem>
                             )}
-                            <DropdownMenuItem
-                                onClick={() => navigate(`/patient/follow-up?patientId=${patient.patientId}`)}
-                            >
-                                Tạo Lịch Tái Khám
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onClick={() => navigate(`/patients/${patient.patientId}/orthodontic-treatment-plans`)}
-                            >
-                                Kế Hoạch Điều Trị
-                            </DropdownMenuItem>
+                            {userInfo?.role === "Receptionist" && (
+                                <DropdownMenuItem
+                                    onClick={() => navigate(`/patient/follow-up?patientId=${patient.patientId}`)}
+                                >
+                                    Tạo Lịch Tái Khám
+                                </DropdownMenuItem>
+                            )}
+                            {isDentistOrAssistant && (
+                                <DropdownMenuItem
+                                    onClick={() => navigate(`/patients/${patient.patientId}/orthodontic-treatment-plans`)}
+                                >
+                                    Kế Hoạch Điều Trị
+                                </DropdownMenuItem>
+                            )}
+
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </td>
             </tr>
-            
+
             {/* Patient Detail Modal */}
-            <PatientDetailModal 
+            <PatientDetailModal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
                 patientId={patient.patientId}
             />
         </>
     )
-}
+} 

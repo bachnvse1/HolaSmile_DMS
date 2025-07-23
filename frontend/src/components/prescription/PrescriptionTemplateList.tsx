@@ -35,6 +35,7 @@ export const PrescriptionTemplateList: React.FC = () => {
   const navigate = useNavigate();
   const userInfo = useUserInfo();
   const userRole = userInfo?.role || '';
+  const canEdit = userRole === 'Assistant' || userRole === 'Dentist';
 
   // Fetch all templates without search filter
   const { data: allTemplates = [], isLoading, error } = usePrescriptionTemplates();
@@ -160,7 +161,7 @@ export const PrescriptionTemplateList: React.FC = () => {
             Tổng cộng {templates.length} mẫu đơn thuốc
           </p>
         </div>
-        {userRole === 'Assistant' && (
+        {canEdit && (
           <Button
             onClick={() => navigate('/prescription-templates/create')}
             className="w-full sm:w-auto"
@@ -200,7 +201,7 @@ export const PrescriptionTemplateList: React.FC = () => {
                 : 'Bắt đầu tạo mẫu đơn thuốc đầu tiên để sử dụng trong điều trị'
               }
             </p>
-            {!searchQuery && userRole === 'Assistant' && (
+            {!searchQuery && canEdit && (
               <Button onClick={() => navigate('/prescription-templates/create')}>
                 <Plus className="h-4 w-4 mr-2" />
                 Tạo Mẫu Đơn Mới
@@ -244,7 +245,7 @@ export const PrescriptionTemplateList: React.FC = () => {
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      {userRole === 'Assistant' && (
+                      {canEdit && (
                         <Button
                           size="sm"
                           variant="ghost"
@@ -256,7 +257,7 @@ export const PrescriptionTemplateList: React.FC = () => {
                         </Button>
                       )}
                     </div>
-                    {userRole === 'Assistant' && (
+                    {canEdit && (
                       <Button
                         size="sm"
                         variant="ghost"

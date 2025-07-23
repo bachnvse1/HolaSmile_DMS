@@ -6,7 +6,7 @@ import { StaffLayout } from '@/layouts/staff/StaffLayout';
 export const OrthodonticTreatmentPlanDetailPage: React.FC = () => {
 
   return (
-    <AuthGuard requiredRoles={['Dentist', 'Assistant', 'Receptionist', 'Administrator', 'Owner']}>
+    <AuthGuard requiredRoles={['Dentist', 'Assistant']}>
       <StaffLayout userInfo={useUserInfo()}>
         <OrthodonticTreatmentPlanDetailForm mode="view" />
       </StaffLayout>
