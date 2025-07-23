@@ -1,23 +1,17 @@
 ﻿using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
-using HDMS_API.Application.Usecases.UserCommon.Otp;
-using Application.Usecases.Patients.ViewListPatient;
 using HDMS_API.Application.Usecases.UserCommon.Login;
 using Application.Usecases.Administrator.ViewListUser;
-using HDMS_API.Application.Usecases.UserCommon.ForgotPassword;
 
 namespace Application.Interfaces
 {
     public interface IUserCommonRepository
     {
         Task<User> CreatePatientAccountAsync(CreatePatientDto dto, string password);
-        Task<bool> SendPasswordForGuestAsync(string email);
-        Task<bool> SendOtpEmailAsync(string toEmail);
-        Task<bool> ResendOtpAsync(string toEmail);
-        Task<string> VerifyOtpAsync(VerifyOtpCommand otp);
         Task<bool> ResetPasswordAsync(User user);
         Task<User?> GetUserByPhoneAsync(string phone);
         Task<User?> GetUserByEmailAsync(string email);
+        Task<bool> SendPasswordForGuestAsync(string email);
         public Task<User> GetByUsernameAsync(string username, CancellationToken cancellationToken);
         Task<bool> EditProfileAsync(User user, CancellationToken cancellationToken);
         Task<ViewProfileDto?> GetUserProfileAsync(int userId, CancellationToken cancellationToken);

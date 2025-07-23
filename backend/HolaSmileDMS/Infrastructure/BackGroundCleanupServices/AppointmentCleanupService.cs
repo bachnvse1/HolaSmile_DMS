@@ -14,7 +14,7 @@ namespace Infrastructure.BackGroundServices
         {
             _scopeFactory = scopeFactory;
             // Cho test dễ override interval; production sẽ dùng 24h
-            _interval = interval ?? TimeSpan.FromMinutes(5);
+            _interval = interval ?? TimeSpan.FromHours(24);
         }
         protected override async System.Threading.Tasks.Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -45,7 +45,6 @@ namespace Infrastructure.BackGroundServices
                         }
                     }
                 }
-
                 await System.Threading.Tasks.Task.Delay(_interval, stoppingToken);
             }
         }

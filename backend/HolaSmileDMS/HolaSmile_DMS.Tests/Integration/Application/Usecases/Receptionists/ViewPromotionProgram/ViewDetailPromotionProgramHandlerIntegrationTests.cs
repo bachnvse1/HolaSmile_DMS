@@ -39,7 +39,7 @@ public class ViewDetailPromotionProgramHandlerIntegrationTests
         _context = new ApplicationDbContext(options);
         _promotionRepo = new Promotionrepository(_context);
         _procedureRepo = new ProcedureRepository(_context);
-        _userCommonRepo = new UserCommonRepository(_context, new Mock<IEmailService>().Object, memoryCache);
+        _userCommonRepo = new UserCommonRepository(_context, new Mock<IEmailService>().Object);
         _httpContextAccessor = new HttpContextAccessor();
 
         SeedData();

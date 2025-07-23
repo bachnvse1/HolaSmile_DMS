@@ -36,7 +36,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
 
             _context = new ApplicationDbContext(options);
             _transactionRepo = new TransactionRepository(_context);
-            _userCommonRepo = new UserCommonRepository(_context, new Mock<IEmailService>().Object, memoryCache);
+            _userCommonRepo = new UserCommonRepository(_context, new Mock<IEmailService>().Object);
             _httpContextAccessor = new HttpContextAccessor();
 
             SeedData();
