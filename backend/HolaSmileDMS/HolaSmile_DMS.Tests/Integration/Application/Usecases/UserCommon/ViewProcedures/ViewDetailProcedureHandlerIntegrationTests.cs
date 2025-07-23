@@ -42,8 +42,7 @@ public class ViewDetailProcedureHandlerIntegrationTests
 
         var userCommonRepo = new UserCommonRepository(
             _context,
-            new Mock<IEmailService>().Object,
-            memoryCache
+            new Mock<IEmailService>().Object
         );
 
         _handler = new ViewDetailProcedureHandler(

@@ -8,7 +8,7 @@ const ScheduleManagementPage: React.FC = () => {
     const userInfo = useUserInfo();
 
     return (
-        <AuthGuard requiredRoles={['Owner', 'Receptionist', 'Dentist']}>
+        <AuthGuard requiredRoles={['Owner', 'Receptionist', 'Dentist', 'Assistant', 'Administrator']}>
             <StaffLayout userInfo={userInfo}>
                 <ScheduleManagement />
             </StaffLayout>

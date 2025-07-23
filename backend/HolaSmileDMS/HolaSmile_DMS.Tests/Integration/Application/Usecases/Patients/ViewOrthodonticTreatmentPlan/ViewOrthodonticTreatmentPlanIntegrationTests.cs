@@ -57,7 +57,7 @@ public class ViewOrthodonticTreatmentPlanIntegrationTests
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
 
         var repo = new OrthodonticTreatmentPlanRepository(db, mapper);
-        var userRepo = new UserCommonRepository(db, emailServiceMock.Object, memoryCache);
+        var userRepo = new UserCommonRepository(db, emailServiceMock.Object);
 
         return new ViewOrthodonticTreatmentPlanHandler(repo, httpContextAccessor.Object, userRepo);
     }

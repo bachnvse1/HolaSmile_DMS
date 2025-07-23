@@ -85,7 +85,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           label: 'Quản Lý Lịch',
           icon: <UserCheck className="h-4 w-4" />,
           path: '/schedules',
-          roles: ['Owner', 'Receptionist', 'Dentist']
+          roles: ['Owner', 'Receptionist', 'Dentist', 'Assistant', 'Administrator']
         }
       ]
     },
@@ -187,14 +187,14 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       label: 'Kho Vật Tư',
       icon: <Package className="h-5 w-5" />,
       path: '/inventory',
-      roles: ['Administrator', 'Owner', 'Assistant', "Receptionist", 'Dentist'],
+      roles: ['Owner', 'Assistant', "Receptionist", 'Dentist'],
     },
     {
       id: 'promotions',
       label: 'Khuyến Mãi',
       icon: <Percent className="h-5 w-5" />,
       path: '/promotions',
-      roles: ['Receptionist']
+      roles: ['Receptionist', 'Owner', 'Assistant', 'Dentist']
     },
     // {
     //   id: 'reports',

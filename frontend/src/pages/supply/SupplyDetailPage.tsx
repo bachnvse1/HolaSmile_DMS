@@ -6,7 +6,7 @@ import { StaffLayout } from '@/layouts/staff/StaffLayout';
 export const SupplyDetailPage: React.FC = () => {
   const userInfo = useUserInfo();
   return (
-    <AuthGuard requiredRoles={['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']}>
+    <AuthGuard requiredRoles={['Owner', 'Receptionist', 'Assistant', 'Dentist']}>
       <StaffLayout userInfo={userInfo}>
         <SupplyDetail />
       </StaffLayout>

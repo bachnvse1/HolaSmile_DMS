@@ -94,6 +94,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
             {
                 DiscountProgramID = 1,
                 IsDelete = true,
+                DiscountProgramName = "Khuyến mãi hè",
+                CreateDate = DateTime.Now,
+                EndDate = DateTime.Now.AddDays(5),
                 ProcedureDiscountPrograms = new List<ProcedureDiscountProgram>
             {
                 new ProcedureDiscountProgram { ProcedureId = 1, DiscountAmount = 10 }

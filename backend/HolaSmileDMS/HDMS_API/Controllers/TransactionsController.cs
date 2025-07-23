@@ -1,4 +1,5 @@
 ﻿using Application.Constants;
+using Application.Usecases.Assistants.ExcelSupply;
 using Application.Usecases.Receptionist.CreateFinancialTransaction;
 using Application.Usecases.Receptionist.DeactiveFinancialTransaction;
 using Application.Usecases.Receptionist.EditFinancialTransaction;
@@ -97,6 +98,41 @@ namespace HDMS_API.Controllers
                 {
                     status = false,
                     message = ex.Message
+                });
+            }
+        }
+
+        //[Authorize]
+        [HttpPost("export-excel")]
+        public async Task<IActionResult> ExportSupply()
+        {
+            try
+            {
+                var bytes = await _mediator.Send(new ExportTransactionToExcelCommand());
+                return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "danh sách thu chi.xlsx");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    Message = false,
+                    Error = ex.Message
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    Message = false,
+                    Error = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    Message = false,
+                    Error = "An unexpected error occurred: " + ex.Message
                 });
             }
         }
