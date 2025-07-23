@@ -91,7 +91,7 @@ public class ViewInstructionTemplateListIntegrationTests
         var handler = new ViewInstructionTemplateListHandler(
             new InstructionTemplateRepository(_context),
             _httpContextAccessor,
-            new UserCommonRepository(_context, _emailService, _memoryCache));
+            new UserCommonRepository(_context, _emailService));
 
         var result = await handler.Handle(new ViewInstructionTemplateListQuery(), default);
 
@@ -108,7 +108,7 @@ public class ViewInstructionTemplateListIntegrationTests
         var handler = new ViewInstructionTemplateListHandler(
             new InstructionTemplateRepository(_context),
             _httpContextAccessor,
-            new UserCommonRepository(_context, _emailService, _memoryCache));
+            new UserCommonRepository(_context, _emailService));
 
         var result = await handler.Handle(new ViewInstructionTemplateListQuery(), default);
 
@@ -138,7 +138,7 @@ public class ViewInstructionTemplateListIntegrationTests
         var handler = new ViewInstructionTemplateListHandler(
             new InstructionTemplateRepository(_context),
             _httpContextAccessor,
-            new UserCommonRepository(_context, _emailService, _memoryCache));
+            new UserCommonRepository(_context, _emailService));
 
         var result = await handler.Handle(new ViewInstructionTemplateListQuery(), default);
 
@@ -167,7 +167,7 @@ public class ViewInstructionTemplateListIntegrationTests
         var handler = new ViewInstructionTemplateListHandler(
             new InstructionTemplateRepository(_context),
             _httpContextAccessor,
-            new UserCommonRepository(_context, _emailService, _memoryCache));
+            new UserCommonRepository(_context, _emailService));
 
         var result = await handler.Handle(new ViewInstructionTemplateListQuery(), default);
 
@@ -182,7 +182,7 @@ public class ViewInstructionTemplateListIntegrationTests
         var handler = new ViewInstructionTemplateListHandler(
             new InstructionTemplateRepository(_context),
             _httpContextAccessor,
-            new UserCommonRepository(_context, _emailService, _memoryCache));
+            new UserCommonRepository(_context, _emailService));
 
         var result = await handler.Handle(new ViewInstructionTemplateListQuery(), default);
 

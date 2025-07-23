@@ -42,7 +42,7 @@ public class EditProfileHandlerIntegrationTests
         fileStorageMock.Setup(fs => fs.SaveAvatar(It.IsAny<string>())).Returns("stored-avatar.jpg");
 
         _handler = new EditProfileHandler(
-            new UserCommonRepository(_context, new Mock<IEmailService>().Object, memoryCache),
+            new UserCommonRepository(_context, new Mock<IEmailService>().Object),
             _httpContextAccessor,
             fileStorageMock.Object
         );

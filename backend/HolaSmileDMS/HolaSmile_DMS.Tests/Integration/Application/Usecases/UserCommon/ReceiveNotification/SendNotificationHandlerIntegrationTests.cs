@@ -107,7 +107,7 @@ public class SendNotificationHandlerIntegrationTests
     {
         public System.Threading.Tasks.Task SendAsync(string to, string subject, string body) => System.Threading.Tasks.Task.CompletedTask;
         public System.Threading.Tasks.Task<string> GenerateOTP() => System.Threading.Tasks.Task.FromResult("123456");
-        public System.Threading.Tasks.Task<bool> SendOtpEmailAsync(string toEmail, string otp) => System.Threading.Tasks.Task.FromResult(true);
+        public System.Threading.Tasks.Task<bool> SendEmailAsync(string toEmail, string message) => System.Threading.Tasks.Task.FromResult(true);
         public System.Threading.Tasks.Task<bool> SendPasswordAsync(string toEmail, string password) => System.Threading.Tasks.Task.FromResult(true);
     }
 

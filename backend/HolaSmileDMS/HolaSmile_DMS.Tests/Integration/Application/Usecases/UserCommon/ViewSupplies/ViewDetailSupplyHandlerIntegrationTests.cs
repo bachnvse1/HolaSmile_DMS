@@ -39,7 +39,7 @@ public class ViewDetailSupplyHandlerIntegrationTests
         var memoryCache = provider.GetRequiredService<IMemoryCache>();
 
         SeedData();
-        _handler = new ViewDetailSupplyHandler(_httpContextAccessor, new UserCommonRepository(_context, new Mock<IEmailService>().Object, memoryCache), new SupplyRepository(_context), mapper);
+        _handler = new ViewDetailSupplyHandler(_httpContextAccessor, new UserCommonRepository(_context, new Mock<IEmailService>().Object), new SupplyRepository(_context), mapper);
     }
 
     private void SeedData()

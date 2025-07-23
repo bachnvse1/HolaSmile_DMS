@@ -32,7 +32,7 @@ public class CreateUserIntegrationTests
 
         SeedData();
         _handler = new CreateUserHandler(
-            new UserCommonRepository(_context, new Mock<IEmailService>().Object, memoryCache),
+            new UserCommonRepository(_context, new Mock<IEmailService>().Object),
             _httpContextAccessor
         );
     }

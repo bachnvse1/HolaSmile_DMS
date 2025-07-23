@@ -108,6 +108,8 @@ namespace HDMS_API.Container.DependencyInjection
             //background services
             services.AddHostedService<PromotionCleanupService>();
             services.AddHostedService<AppointmentCleanupService>();
+            services.AddHostedService<EmailCleanupService>();
+
 
 
             // Caching
