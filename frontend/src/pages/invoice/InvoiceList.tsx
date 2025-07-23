@@ -635,7 +635,7 @@ export default function InvoiceList() {
     ])
 
     return (
-        <AuthGuard requiredRoles={["Receptionist", "Patient"]}>
+        <AuthGuard requiredRoles={["Receptionist", "Owner", "Patient"]}>
             {isPatient ? (
                 <PatientLayout userInfo={userInfo}>
                     {InvoicePageContent}

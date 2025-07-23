@@ -78,12 +78,6 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
               >
                 Hóa Đơn
               </button>
-              <button
-                onClick={() => navigate('/instruction-templates')}
-                className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Chỉ Dẫn
-              </button>
             </div>
           </div>
 
@@ -195,12 +189,6 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
               className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
             >
               Hóa Đơn
-            </button>
-            <button
-              onClick={() => navigate('/instruction-templates')}
-              className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
-            >
-              Chỉ Dẫn
             </button>
             <div className="border-t pt-4 border-gray-300">
               <button

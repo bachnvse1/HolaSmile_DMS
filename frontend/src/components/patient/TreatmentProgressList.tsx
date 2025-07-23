@@ -257,7 +257,7 @@ export function TreatmentProgressList({ data, loading, onViewProgress, highlight
               <Eye className="h-4 w-4 mr-1" /> Xem
             </Button>
             
-            {!isPatient && (
+            {role == "Dentist" && (
               <Button
                 variant="secondary"
                 size="sm"
