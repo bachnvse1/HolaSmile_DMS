@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using Application.Usecases.SendNotification;
 
 namespace Application.Usecases.Dentists.CreatePrescription
 {
@@ -11,23 +12,21 @@ namespace Application.Usecases.Dentists.CreatePrescription
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IPrescriptionRepository _prescriptionRepository;
         private readonly IAppointmentRepository _appointmentRepository;
-        public CreatePrescriptionHandler(IHttpContextAccessor httpContextAccessor, IPrescriptionRepository prescriptionRepository, IAppointmentRepository appointmentRepository)
+        private readonly IPatientRepository _patientRepository;
+        private readonly IMediator _mediator;
+        public CreatePrescriptionHandler(IHttpContextAccessor httpContextAccessor, IPrescriptionRepository prescriptionRepository, IAppointmentRepository appointmentRepository, IPatientRepository patientRepository, IMediator mediator)
         {
             _httpContextAccessor = httpContextAccessor;
             _appointmentRepository = appointmentRepository;
             _prescriptionRepository = prescriptionRepository;
+            _patientRepository = patientRepository;
+            _mediator = mediator;
         }
         public async Task<bool> Handle(CreatePrescriptionCommand request, CancellationToken cancellationToken)
         {
             var user = _httpContextAccessor.HttpContext?.User;
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
-
-            //Check if the user is authenticated
-            if (currentUserId == 0 || string.IsNullOrEmpty(currentUserRole))
-            {
-                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // "Bạn cần đăng nhập để thực hiện chức năng này"
-            }
 
             //Check if the user is not a dentist return failed message
             if (!string.Equals(currentUserRole, "dentist", StringComparison.OrdinalIgnoreCase))
@@ -51,6 +50,18 @@ namespace Application.Usecases.Dentists.CreatePrescription
                 IsDeleted = false
             };
             var isCreated = await _prescriptionRepository.CreatePrescriptionAsync(prescription);
+            
+            try
+            {
+                var patient = await _patientRepository.GetPatientByPatientIdAsync(existApp.PatientId);
+                await _mediator.Send(new SendNotificationCommand(
+                      patient.User.UserID,
+                      "Taọ đơn thuốc",
+                      $"Bác sĩ đã tạo đơn thuốc cho cuộc hẹn ngày {existApp.AppointmentDate} vào lúc {DateTime.Now}",
+                      "schedule",
+                      null), cancellationToken);
+            }
+            catch { }
             return isCreated;
         }
     }

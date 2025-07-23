@@ -26,12 +26,6 @@ namespace Application.Usecases.UserCommon.ViewAppointment
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-            // Check if the user is authenticated
-            //if (currentUserRole == null)      
-            //{
-            //    throw new UnauthorizedAccessException("Bạn cần đăng nhập để thực hiện thao tác này.");
-            //}
-
             // Check if the user is a patient and has access to the appointment
             if (string.Equals(currentUserRole, "patient", StringComparison.OrdinalIgnoreCase))
             {
@@ -65,9 +59,7 @@ namespace Application.Usecases.UserCommon.ViewAppointment
 
             appointment.CreatedBy = createdby != null ? createdby.Fullname : "";
             appointment.UpdatedBy = "";
-            // Map data
-            //var result = _mapper.Map<AppointmentDTO>(appointment);
-            //result.AppointmentId = appointment.AppointmentId;
+
             return appointment;
         }
     }

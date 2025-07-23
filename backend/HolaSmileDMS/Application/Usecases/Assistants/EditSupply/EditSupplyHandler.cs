@@ -21,6 +21,7 @@ namespace Application.Usecases.Assistant.EditSupply
             var user = _httpContextAccessor.HttpContext?.User;
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
+
             if (!string.Equals(currentUserRole, "assistant", StringComparison.OrdinalIgnoreCase))
             {
                 throw new UnauthorizedAccessException("Bạn không có quyền truy cập chức năng này");

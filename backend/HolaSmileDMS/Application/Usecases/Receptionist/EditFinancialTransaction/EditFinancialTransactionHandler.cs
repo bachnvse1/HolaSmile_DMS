@@ -28,11 +28,6 @@ namespace Application.Usecases.Receptionist.EditFinancialTransaction
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-            if (currentUserRole == null)
-            {
-                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // Bạn không có quyền truy cập chức năng này
-            }
-
             if (!string.Equals(currentUserRole, "receptionist", StringComparison.OrdinalIgnoreCase) && !string.Equals(currentUserRole, "owner", StringComparison.OrdinalIgnoreCase))
             {
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
@@ -67,7 +62,7 @@ namespace Application.Usecases.Receptionist.EditFinancialTransaction
                 o.User.UserID,
                 "Chỉnh sửaphiếu thu/chi",
                 $"Lễ tân {o.User.Fullname} đã chỉnh sửa phiếu {(existingTransaction.TransactionType ? "thu" : "chi")} vào lúc {DateTime.Now}",
-                null, null), cancellationToken));
+                "transaction", null), cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);
             }
             catch { }

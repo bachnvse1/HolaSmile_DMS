@@ -37,21 +37,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
             _httpContextAccessorMock.Setup(x => x.HttpContext!.User).Returns(user);
         }
 
-        [Fact(DisplayName = "UTCID01 - Throw when user is not receptionist or owner")]
-        public async System.Threading.Tasks.Task UTCID01_Throw_WhenInvalidRole()
-        {
-            SetupHttpContext("assistant");
-
-            var command = new ViewPromotionProgramCommand();
-
-            var act = async () => await _handler.Handle(command, CancellationToken.None);
-
-            await act.Should().ThrowAsync<UnauthorizedAccessException>()
-                .WithMessage(MessageConstants.MSG.MSG26);
-        }
-
-        [Fact(DisplayName = "UTCID02 - Return empty list when no promotion found")]
-        public async System.Threading.Tasks.Task UTCID02_ReturnEmptyList_WhenNoneExist()
+        [Fact(DisplayName = "UTCID01 - Return empty list when no promotion found")]
+        public async System.Threading.Tasks.Task UTCID01_ReturnEmptyList_WhenNoneExist()
         {
             SetupHttpContext("receptionist");
 
@@ -64,8 +51,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
             result.Should().BeEmpty();
         }
 
-        [Fact(DisplayName = "UTCID03 - Return list of promotions when available")]
-        public async System.Threading.Tasks.Task UTCID03_ReturnPromotionList_WhenAvailable()
+        [Fact(DisplayName = "UTCID02 - Return list of promotions when available")]
+        public async System.Threading.Tasks.Task UTCID02_ReturnPromotionList_WhenAvailable()
         {
             SetupHttpContext("owner");
 

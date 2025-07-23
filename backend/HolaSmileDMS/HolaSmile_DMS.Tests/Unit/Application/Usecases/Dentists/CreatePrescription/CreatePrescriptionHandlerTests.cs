@@ -1,7 +1,10 @@
 ﻿using System.Security.Claims;
 using Application.Interfaces;
 using Application.Usecases.Dentists.CreatePrescription;
+using HDMS_API.Infrastructure.Repositories;
+using MediatR;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using Xunit;
 
@@ -12,6 +15,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new();
         private readonly Mock<IPrescriptionRepository> _prescriptionRepoMock = new();
         private readonly Mock<IAppointmentRepository> _appointmentRepoMock = new();
+        private readonly Mock<IPatientRepository> _patientRepoMock = new();
         private readonly CreatePrescriptionHandler _handler;
 
         public CreatePrescriptionHandlerTests()
@@ -19,7 +23,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
             _handler = new CreatePrescriptionHandler(
                 _httpContextAccessorMock.Object,
                 _prescriptionRepoMock.Object,
-                _appointmentRepoMock.Object
+                _appointmentRepoMock.Object,
+                _patientRepoMock.Object,
+                new Mock<IMediator>().Object
             );
         }
 
