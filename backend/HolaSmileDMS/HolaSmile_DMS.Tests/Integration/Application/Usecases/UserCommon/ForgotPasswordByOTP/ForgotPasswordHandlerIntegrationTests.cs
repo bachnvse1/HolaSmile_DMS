@@ -34,7 +34,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.UserCommon
             _memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
 
             var emailServiceMock = new Mock<IEmailService>();
-            _userCommonRepository = new UserCommonRepository(_context, emailServiceMock.Object, _memoryCache);
+            _userCommonRepository = new UserCommonRepository(_context, emailServiceMock.Object);
             _handler = new ForgotPasswordHandler(_userCommonRepository, _memoryCache);
 
             SeedData();

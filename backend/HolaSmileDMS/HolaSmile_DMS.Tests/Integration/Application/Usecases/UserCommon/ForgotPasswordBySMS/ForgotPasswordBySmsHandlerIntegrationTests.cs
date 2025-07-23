@@ -33,7 +33,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.UserCommon
             var memoryCache = serviceProvider.GetService<IMemoryCache>();
 
             _smsServiceMock = new Mock<IEsmsService>();
-            _userCommonRepository = new UserCommonRepository(_context, new Mock<IEmailService>().Object, memoryCache);
+            _userCommonRepository = new UserCommonRepository(_context, new Mock<IEmailService>().Object);
 
             _handler = new ForgotPasswordBySmsHandler(_userCommonRepository, _smsServiceMock.Object);
 
