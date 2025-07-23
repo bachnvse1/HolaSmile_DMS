@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Menu, User, LogOut, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { NotificationButton } from "@/components/notification/NotificationButton"; // cập nhật đúng path của bạn
@@ -21,6 +21,23 @@ interface StaffHeaderProps {
 export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSidebar, isSidebarOpen = false, isMobile = false, isCollapsed = false }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    if (isUserMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isUserMenuOpen]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -87,7 +104,7 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSide
         </div>
 
         {/* User Menu */}
-        <div className="relative">
+        <div className="relative" ref={userMenuRef}>
           <button
             onClick={toggleUserMenu}
             className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 p-2 rounded-lg hover:bg-gray-100"

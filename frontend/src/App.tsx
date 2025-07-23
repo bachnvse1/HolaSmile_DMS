@@ -7,7 +7,6 @@ import { Login } from './pages/auth/login';
 import { ForgotPassword } from './pages/auth/forgotPassword';
 import { HomePage } from './pages/homepage/HomePage';
 import { LearnMorePage } from './pages/homepage/LearnMorePage';
-// Các import khác như cũ
 import { CosmeticDentistryPage, GeneralDentistryPage, OralSurgeryPage, PediatricDentistryPage, PreventiveCare, RestorativeDentistryPage } from './pages/services';
 import { BookAppointmentPage } from './pages/appointment/BookAppoinmentPage';
 import VerifyOTPPage from './pages/auth/VerifyOTP';
@@ -63,7 +62,7 @@ import PatientInstructionsList from "./pages/instruction/PatientInstructionList"
 import InstructionsPage from "./pages/instruction/InstructionManagement";
 import { FinancialTransactionsPage } from './pages/financial/FinancialTransactionsPage';
 import { PromotionManagementPage } from './pages/promotion/PromotionManagementPage';
-
+import NotFound from './pages/error/NotFound';
 function App() {
   return (
     <>
@@ -145,6 +144,7 @@ function App() {
                   <Route path="/instruction-templates" element={<InstructionTemplateManagement />} />
                   <Route path="/patient/instructions/:appointmentId" element={<PatientInstructionsList />} />
                   <Route path="/instructions/:appointmentId" element={<InstructionsPage />} />
+                  <Route path="*" element={<NotFound />} />
                 </Routes>
 
                 {/* Floating chat chỉ hiển thị khi có ChatHubProvider */}

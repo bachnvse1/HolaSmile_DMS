@@ -79,7 +79,7 @@ export const SupplyList: React.FC = () => {
   // Filter supplies based on selected filter
   const filteredSupplies = supplies.filter(supply => {
     if (filter === 'low-stock') {
-      return supply.QuantityInStock <= 50;
+      return supply.QuantityInStock <= 10;
     }
     if (filter === 'expiring') {
       const futureDate = new Date();
