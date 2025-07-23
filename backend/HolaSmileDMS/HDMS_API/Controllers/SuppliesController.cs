@@ -191,7 +191,7 @@ namespace HDMS_API.Controllers
             try
             {
                 var bytes = await _mediator.Send(new ExportSupplyToExcelCommand());
-                return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Supplies.xlsx");
+                return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Danh sách vật tư.xlsx");
             }
             catch (UnauthorizedAccessException ex)
             {

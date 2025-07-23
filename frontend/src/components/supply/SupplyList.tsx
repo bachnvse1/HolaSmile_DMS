@@ -301,7 +301,7 @@ export const SupplyList: React.FC = () => {
         <div className="flex flex-col gap-2 sm:gap-3 sm:ml-auto">
           {/* Mobile layout: 2 rows */}
           <div className="grid grid-cols-2 gap-2 sm:hidden">
-            {supplies.length > 0 && (
+            {canModify && (supplies.length > 0) && (
               <Button
                 onClick={handleExportExcel}
                 disabled={isExportExcel}
@@ -339,7 +339,7 @@ export const SupplyList: React.FC = () => {
 
           {/* Desktop layout: Single row */}
           <div className="hidden sm:flex sm:gap-3">
-            {supplies.length > 0 && (
+            {canModify && supplies.length > 0 && (
               <Button
                 onClick={handleExportExcel}
                 disabled={isExportExcel}
