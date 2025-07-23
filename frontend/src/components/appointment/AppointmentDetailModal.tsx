@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
-import { X, Calendar, Clock, User, FileText, Tag, UserCheck, CheckCircle, XCircle, AlertTriangle, Plus, Eye } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Calendar, Clock, User, FileText, Tag, UserCheck, CheckCircle, XCircle, AlertTriangle, Plus, Eye } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { CancelAppointmentDialog } from './CancelAppointmentDialog';
 import { PrescriptionModal } from './PrescriptionModal';
 import { useAuth } from '../../hooks/useAuth';
 import { usePrescriptionByAppointment } from '../../hooks/usePrescription';
-import { useAppointmentDetail } from '../../hooks/useAppointments';
+import { useAppointmentDetail, useChangeAppointmentStatus } from '../../hooks/useAppointments';
+import { useDentistSchedule } from '../../hooks/useDentistSchedule';
 import { isAppointmentCancellable, getTimeUntilAppointment } from '../../utils/appointmentUtils';
-import type { Dentist } from '../../types/appointment';
-import { Link, useParams } from 'react-router';
+import { Link } from 'react-router';
 import { EditAppointmentDialog } from './EditAppointmentDialog';
 import { formatDateVN, formatTimeVN } from '../../utils/dateUtils';
 import TreatmentModal from '../patient/TreatmentModal';
@@ -17,26 +18,41 @@ import { useForm } from 'react-hook-form';
 import type { TreatmentFormData } from '@/types/treatment';
 import { useUserInfo } from '@/hooks/useUserInfo';
 import { useQueryClient } from '@tanstack/react-query';
+import { getPatientInstructions } from '@/services/instructionService';
+import { toast } from 'react-toastify';
+import { getErrorMessage } from '@/utils/formatUtils';
 
 interface AppointmentDetailModalProps {
   appointmentId: number | null;
   isOpen: boolean;
   onClose: () => void;
-  dentists: Dentist[];
+  onDataChange?: () => void;
 }
 
 export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
   appointmentId,
   isOpen,
   onClose,
-  dentists
+  onDataChange
 }) => {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [showTreatmentModal, setShowTreatmentModal] = useState(false);
-  const { role } = useAuth();
-  const { patientId } = useParams<{ patientId: string }>();
+  const [hasInstruction, setHasInstruction] = useState(false);
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    status: 'attended' | 'absented' | null;
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    status: null,
+    title: '',
+    message: ''
+  });
+
+  const { role, userId } = useAuth();
   const userInfo = useUserInfo();
   const queryClient = useQueryClient();
 
@@ -46,11 +62,18 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
   // Fetch appointment details
   const { data: appointment, isLoading: isAppointmentLoading } = useAppointmentDetail(appointmentId || 0);
 
-  // Check if prescription exists for this appointment
-  const { data: existingPrescription, isLoading: isPrescriptionLoading } = usePrescriptionByAppointment(appointment?.appointmentId || 0);
+  // Fetch dentist data for edit dialog
+  const { dentists } = useDentistSchedule();
+  const patientId = appointment?.patientId;
 
-  // Helper function to refresh data
-  const refreshData = async () => {
+  // Check if prescription exists for this appointment
+  const { isLoading: isPrescriptionLoading } = usePrescriptionByAppointment(appointmentId || 0);
+
+  // Change appointment status mutation
+  const { mutate: changeStatus, isPending: isChangingStatus } = useChangeAppointmentStatus();
+
+  // Helper function to refresh appointment data
+  const refreshAppointmentData = async () => {
     await Promise.all([
       queryClient.invalidateQueries({
         queryKey: ['appointment-detail', appointmentId]
@@ -62,6 +85,55 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
         queryKey: ['appointments']
       })
     ]);
+    onDataChange?.();
+  };
+
+  useEffect(() => {
+    const checkInstructions = async () => {
+      if (!appointmentId) return;
+      try {
+        const list = await getPatientInstructions(appointmentId);
+        if (list.length > 0) setHasInstruction(true);
+      } catch (err) {
+        console.error("Lỗi khi kiểm tra chỉ dẫn:", err);
+      }
+    };
+
+    if (role === 'Patient' && appointmentId) {
+      checkInstructions();
+    }
+  }, [appointmentId, role]);
+
+  const handleStatusChangeRequest = (newStatus: 'attended' | 'absented') => {
+    const statusText = newStatus === 'attended' ? 'đã đến' : 'vắng mặt';
+    const title = `Xác nhận ${statusText}`;
+    const message = `Bạn có chắc chắn muốn đánh dấu bệnh nhân ${appointment?.patientName} là "${statusText}"?`;
+    
+    setConfirmModal({
+      isOpen: true,
+      status: newStatus,
+      title,
+      message
+    });
+  };
+
+  const handleConfirmStatusChange = () => {
+    if (!confirmModal.status || !appointmentId) return;
+    
+    changeStatus(
+      { appointmentId, status: confirmModal.status },
+      {
+        onSuccess: () => {
+          toast.success(`Đã cập nhật trạng thái thành công`);
+          refreshAppointmentData();
+          setConfirmModal({ isOpen: false, status: null, title: '', message: '' });
+        },
+        onError: (error) => {
+          toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi cập nhật trạng thái');
+          setConfirmModal({ isOpen: false, status: null, title: '', message: '' });
+        }
+      }
+    );
   };
 
   if (!isOpen || !appointmentId) return null;
@@ -69,7 +141,7 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
   if (isAppointmentLoading) {
     return (
       <div className="fixed inset-0 z-50">
-        <div className="absolute inset-0 bg-gray-500 bg-opacity-75 backdrop-blur-sm" onClick={onClose} />
+        <div className="absolute inset-0 bg-black/20 bg-opacity-75" onClick={onClose} />
         <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
           <div className="bg-white rounded-2xl shadow-2xl p-8">
             <div className="flex justify-center">
@@ -85,7 +157,7 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
   if (!appointment) {
     return (
       <div className="fixed inset-0 z-50">
-        <div className="absolute inset-0 bg-gray-500 bg-opacity-75 backdrop-blur-sm" onClick={onClose} />
+        <div className="absolute inset-0 bg-black/20 bg-opacity-75" onClick={onClose} />
         <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
           <div className="bg-white rounded-2xl shadow-2xl p-8">
             <p className="text-center text-red-600">Không tìm thấy thông tin lịch hẹn</p>
@@ -135,20 +207,16 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
 
   const statusConfig = getStatusConfig(appointment.status);
 
-  const handleTreatmentSubmit = async () => {
-    try {
-      await refreshData();
-      setShowTreatmentModal(false);
-    } catch (error) {
-      console.error('Error handling treatment submit:', error);
-    }
+  const handleTreatmentSubmit = () => {
+    setShowTreatmentModal(false);
+    refreshAppointmentData();
   };
 
   return (
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-gray-500 bg-opacity-75 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/20 bg-opacity-75"
         onClick={onClose}
       />
 
@@ -156,57 +224,81 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
       <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <h2 className="text-2xl font-bold text-gray-900">
+          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
+            <h2 className="text-lg sm:text-2xl font-bold text-gray-900">
               Chi tiết lịch hẹn
             </h2>
-            <div className="flex items-center gap-3">
-              {/* Action Buttons */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setShowTreatmentModal(true);
-                  setTreatmentToday(false);
-                }}
-                className="flex items-center gap-2"
-              >
-                <FileText className="h-4 w-4" />
-                Tạo hồ sơ điều trị
-              </Button>
 
-              <Button
-                variant={existingPrescription ? "outline" : "default"}
-                size="sm"
-                onClick={() => setShowPrescriptionModal(true)}
-                className="flex items-center gap-2"
-                disabled={isPrescriptionLoading}
-              >
-                {isPrescriptionLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
-                    Đang tải...
-                  </>
-                ) : existingPrescription ? (
-                  <>
-                    <Eye className="h-4 w-4" />
-                    Xem đơn thuốc
-                  </>
-                ) : (
-                  <>
-                    <Plus className="h-4 w-4" />
-                    Thêm đơn thuốc
-                  </>
-                )}
-              </Button>
+            {/* Action Buttons - Similar to DetailView */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {role === 'Dentist' && appointment.status !== "canceled" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setShowTreatmentModal(true);
+                    setTreatmentToday(false);
+                  }}
+                  className="flex items-center gap-2 text-xs sm:text-sm"
+                >
+                  <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Tạo hồ sơ điều trị</span>
+                  <span className="sm:hidden">Hồ sơ</span>
+                </Button>
+              )}
 
-              <button
-                onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                title="Đóng"
-              >
-                <X className="h-5 w-5 text-gray-500" />
-              </button>
+              {/* Prescription Button - for both Dentist and Patient */}
+              {((role === 'Dentist') || (role !== 'Dentist' && appointment.isExistPrescription)) && (
+                <Button
+                  variant={appointment.isExistPrescription ? "outline" : "default"}
+                  size="sm"
+                  onClick={() => setShowPrescriptionModal(true)}
+                  className="flex items-center gap-2 text-xs sm:text-sm"
+                  disabled={isPrescriptionLoading}
+                >
+                  {isPrescriptionLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-gray-600"></div>
+                      <span className="hidden sm:inline">Đang tải...</span>
+                    </>
+                  ) : appointment.isExistPrescription ? (
+                    <>
+                      <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">Xem đơn thuốc</span>
+                      <span className="sm:hidden">Đơn thuốc</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">Thêm đơn thuốc</span>
+                      <span className="sm:hidden">Thêm</span>
+                    </>
+                  )}
+                </Button>
+              )}
+
+              {/* Instructions Button */}
+              {(role === 'Patient' ? hasInstruction : true) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    // TODO: Create InstructionModal instead of navigate
+                    // For now, keep navigate behavior but we should create nested modal
+                    if (role === 'Patient') {
+                      window.open(`/patient/instructions/${appointmentId}`, '_blank');
+                    } else {
+                      window.open(`/instructions/${appointmentId}`, '_blank');
+                    }
+                    // Don't close modal - keep it open
+                  }}
+                  className="flex items-center gap-2 text-xs sm:text-sm"
+                >
+                  <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Xem chỉ dẫn</span>
+                  <span className="sm:hidden">Chỉ dẫn</span>
+                </Button>
+              )}
             </div>
           </div>
 
@@ -337,35 +429,53 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
             </div>
           )}
 
-          <div className="flex justify-between p-6 border-t border-gray-200">
-            {/* Cancel Button for Patient - only show if appointment can be cancelled */}
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3 p-6 border-t border-gray-200">
             {canCancelAppointment && (
               <Button
                 variant="destructive"
                 onClick={() => setShowCancelDialog(true)}
-                className="flex-1 mr-3 text-white"
+                className='text-white'
               >
                 Hủy lịch hẹn
               </Button>
             )}
 
+            {role === 'Receptionist' && appointment.status === 'confirmed' && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => handleStatusChangeRequest('attended')}
+                  disabled={isChangingStatus}
+                  className="flex items-center gap-2"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  {isChangingStatus ? 'Đang cập nhật...' : 'Đánh dấu đã đến'}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleStatusChangeRequest('absented')}
+                  disabled={isChangingStatus}
+                  className="flex items-center gap-2 text-red-600 hover:text-red-700"
+                >
+                  <XCircle className="h-4 w-4" />
+                  {isChangingStatus ? 'Đang cập nhật...' : 'Đánh dấu vắng mặt'}
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={() => setShowEditDialog(true)}
+                >
+                  Cập nhật lịch hẹn
+                </Button>
+              </>
+            )}
+
             <Button
               variant="outline"
               onClick={onClose}
-              className='flex-1'
             >
               Đóng
             </Button>
-
-            {role === 'Receptionist' && appointment.status === 'confirmed' && (
-              <Button
-                variant="default"
-                onClick={() => setShowEditDialog(true)}
-                className="flex-1 ml-3"
-              >
-                Cập nhật lịch hẹn
-              </Button>
-            )}
           </div>
         </div>
       </div>
@@ -404,7 +514,7 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
           onClose={() => setShowPrescriptionModal(false)}
           onSuccess={() => {
             setShowPrescriptionModal(false);
-            refreshData();
+            refreshAppointmentData();
           }}
         />
       )}
@@ -425,6 +535,18 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
           patientId={Number(appointment.patientId)}
         />
       )}
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, status: null, title: '', message: '' })}
+        onConfirm={handleConfirmStatusChange}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.status === 'attended' ? 'Xác nhận đã đến' : 'Xác nhận vắng mặt'}
+        confirmVariant={confirmModal.status === 'attended' ? 'default' : 'destructive'}
+        isLoading={isChangingStatus}
+      />
     </div>
   );
 };

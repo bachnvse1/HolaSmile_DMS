@@ -7,7 +7,6 @@ import { Input } from '../ui/input';
 import { Pagination } from '../ui/Pagination';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { useAuth } from '../../hooks/useAuth';
-import { useNavigate } from 'react-router';
 import { isAppointmentCancellable } from '../../utils/appointmentUtils';
 import type { AppointmentDTO } from '../../types/appointment';
 import { useForm } from "react-hook-form";
@@ -18,6 +17,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useChangeAppointmentStatus } from '../../hooks/useAppointments';
 import { toast } from 'react-toastify';
 import { getErrorMessage } from '@/utils/formatUtils';
+import { AppointmentDetailModal } from './AppointmentDetailModal';
 
 interface AppointmentListViewProps {
   appointments: AppointmentDTO[];
@@ -33,11 +33,11 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   const [itemsPerPage, setItemsPerPage] = useState(5); // Make it configurable
   const [lastUserId, setLastUserId] = useState<string | null>(null);
   const { role, userId } = useAuth();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const [showTreatmentModal, setShowTreatmentModal] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<number | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     appointmentId: number | null;
@@ -353,16 +353,13 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                   </div>
                   
                   {/* Action buttons with improved responsive design */}
-                  <div className="flex flex-col gap-2 w-auto">
+                  <div className="flex flex-wrap gap-2 w-auto">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        if (role === 'Patient') {
-                          navigate(`/patient/appointments/${appointment.appointmentId}`);
-                        } else {
-                          navigate(`/appointments/${appointment.appointmentId}`);
-                        }
+                        setSelectedAppointmentId(appointment.appointmentId);
+                        setShowDetailModal(true);
                       }}
                       className="flex items-center justify-center gap-2 whitespace-nowrap"
                     >
@@ -371,16 +368,16 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                     </Button>
                 
                     {role === 'Receptionist' && appointment.status === 'confirmed' && (
-                      <div className="flex gap-2">
+                      <>
                         <Button
                           variant="default"
                           size="sm"
                           onClick={() => handleStatusChangeRequest(appointment.appointmentId, 'attended', appointment.patientName)}
                           disabled={isChangingStatus}
-                          className="flex items-center justify-center gap-1 bg-green-600 hover:bg-green-700 flex-1 min-w-0"
+                          className="flex items-center justify-center gap-1 bg-green-600 hover:bg-green-700"
                         >
                           <CheckCircle className="h-4 w-4 flex-shrink-0" />
-                          <span className="truncate">
+                          <span className="whitespace-nowrap">
                             <span className="hidden xs:inline">Đã đến</span>
                             <span className="xs:hidden">Đến</span>
                           </span>
@@ -390,15 +387,15 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                           size="sm"
                           onClick={() => handleStatusChangeRequest(appointment.appointmentId, 'absented', appointment.patientName)}
                           disabled={isChangingStatus}
-                          className="flex items-center justify-center gap-1 text-red-600 hover:text-red-700 border-red-300 flex-1 min-w-0"
+                          className="flex items-center justify-center gap-1 text-red-600 hover:text-red-700 border-red-300"
                         >
                           <XCircle className="h-4 w-4 flex-shrink-0" />
-                          <span className="truncate">
+                          <span className="whitespace-nowrap">
                             <span className="hidden xs:inline">Vắng</span>
                             <span className="xs:hidden">Vắng</span>
                           </span>
                         </Button>
-                      </div>
+                      </>
                     )}
                     
                     {role === 'Dentist' && appointment.status !== 'canceled' && (
@@ -524,6 +521,20 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
         defaultStatus="in-progress"
         onSubmit={() => {
           setShowTreatmentModal(false);
+        }}
+      />
+
+      {/* Appointment Detail Modal */}
+      <AppointmentDetailModal
+        appointmentId={selectedAppointmentId}
+        isOpen={showDetailModal}
+        onClose={() => {
+          setShowDetailModal(false);
+          setSelectedAppointmentId(null);
+        }}
+        onDataChange={() => {
+          // Refresh appointment list when data changes
+          queryClient.invalidateQueries({ queryKey: ['appointments'] });
         }}
       />
 
