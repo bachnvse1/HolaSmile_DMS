@@ -72,22 +72,24 @@ namespace Application.Usecases.Receptionist.CreateFUAppointment
             };
 
             var isbookappointment = await _appointmentRepository.CreateAppointmentAsync(appointment);
-            var dentist = await _dentistRepository.GetDentistByDentistIdAsync(request.DentistId);
-            var patient = await _patientRepository.GetPatientByPatientIdAsync(request.PatientId);
+
             // Send notification to patient and dentist
             try
             {
+                var dentist = await _dentistRepository.GetDentistByDentistIdAsync(request.DentistId);
+                var patient = await _patientRepository.GetPatientByPatientIdAsync(request.PatientId);
+
                 await _mediator.Send(new SendNotificationCommand(
                       patient.User.UserID,
                       "Đặt lịch hẹn tái khám",
                       $"Lễ tân đã đặt lịch hẹn tái khám cho bạn với bác sĩ {dentist.User.Fullname} vào lúc {appointment.AppointmentDate} {appointment.AppointmentTime}",
-                      "lịch hẹn",
+                      "schedule",
                       null),cancellationToken);
                 await _mediator.Send(new SendNotificationCommand(
                       dentist.User.UserID,
                       "Đặt lịch hẹn tái khám",
                       $"Lễ tân đã đặt lịch hẹn tái khám cho bệnh nhân {patient.User.Fullname} với bạn vào lúc {appointment.AppointmentDate} {appointment.AppointmentTime}",
-                      "lịch hẹn"
+                      "schedule"
                         , null), cancellationToken);
             }
             catch

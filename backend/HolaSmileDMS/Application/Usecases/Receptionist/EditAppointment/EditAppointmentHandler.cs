@@ -61,10 +61,6 @@ namespace Application.Usecases.Receptionist.EditAppointment
                 throw new Exception(MessageConstants.MSG.MSG16); // "Bác sĩ không tồn tại"
             }
 
-            var newDentist = await _dentistRepository.GetDentistByDentistIdAsync(request.DentistId);
-            var currentDentist = await _dentistRepository.GetDentistByDentistIdAsync(existApp.DentistId);
-            var currentPatient = await _patientRepository.GetPatientByPatientIdAsync(existApp.PatientId);
-
             existApp.DentistId = request.DentistId;
             existApp.AppointmentDate = request.AppointmentDate;
             existApp.AppointmentTime = request.AppointmentTime;
@@ -75,6 +71,10 @@ namespace Application.Usecases.Receptionist.EditAppointment
             var isUpdate = await _appointmentRepository.UpdateAppointmentAsync(existApp);
             try
             {
+                var newDentist = await _dentistRepository.GetDentistByDentistIdAsync(request.DentistId);
+                var currentDentist = await _dentistRepository.GetDentistByDentistIdAsync(existApp.DentistId);
+                var currentPatient = await _patientRepository.GetPatientByPatientIdAsync(existApp.PatientId);
+
                 await _mediator.Send(new SendNotificationCommand(
                     currentPatient.User.UserID,
                    "Thay đổi thông tin lịch khám",

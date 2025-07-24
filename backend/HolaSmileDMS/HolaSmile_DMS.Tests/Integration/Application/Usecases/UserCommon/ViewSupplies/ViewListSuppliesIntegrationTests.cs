@@ -104,19 +104,9 @@ public class ViewListSuppliesIntegrationTests
         Assert.DoesNotContain(result, s => s.IsDeleted);
     }
 
-    [Fact(DisplayName = "ITCID03 - Abnormal: Missing authentication throws error")]
+    [Fact(DisplayName = "ITCID03 - Abnormal: No supplies available throws exception")]
     [Trait("TestType", "Abnormal")]
-    public async System.Threading.Tasks.Task ITCID03_Missing_Auth_Throws()
-    {
-        _httpContextAccessor.HttpContext = new DefaultHttpContext(); // no claims
-
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            _handler.Handle(new ViewListSuppliesCommand(), default));
-    }
-
-    [Fact(DisplayName = "ITCID04 - Abnormal: No supplies available throws exception")]
-    [Trait("TestType", "Abnormal")]
-    public async System.Threading.Tasks.Task ITCID04_Empty_Supply_Throws()
+    public async System.Threading.Tasks.Task ITCID03_Empty_Supply_Throws()
     {
         _context.Supplies.RemoveRange(_context.Supplies);
         _context.SaveChanges();

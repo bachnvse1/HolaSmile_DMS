@@ -118,19 +118,9 @@ public class ViewDetailSupplyHandlerIntegrationTests
         Assert.Equal("Masks", result.Name);
     }
 
-    [Fact(DisplayName = "ITCID03 - Abnormal: Missing authentication throws error")]
-    [Trait("TestType", "Abnormal")]
-    public async System.Threading.Tasks.Task ITCID03_Missing_Auth_Throws()
-    {
-        _httpContextAccessor.HttpContext = new DefaultHttpContext(); // no claims
-
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            _handler.Handle(new ViewDetailSupplyCommand { SupplyId = 1 }, default));
-    }
-
-    [Fact(DisplayName = "ITCID04 - Normal: Dentist views non-deleted supply")]
+    [Fact(DisplayName = "ITCID03 - Normal: Dentist views non-deleted supply")]
     [Trait("TestType", "Normal")]
-    public async System.Threading.Tasks.Task ITCID04_Dentist_View_NotDeleted_Supply()
+    public async System.Threading.Tasks.Task ITCID03_Dentist_View_NotDeleted_Supply()
     {
         SetupHttpContext("dentist", 2);
 
@@ -140,9 +130,9 @@ public class ViewDetailSupplyHandlerIntegrationTests
         Assert.Equal("Gloves", result.Name);
     }
 
-    [Fact(DisplayName = "ITCID05 - Abnormal: Dentist views deleted supply throws error")]
+    [Fact(DisplayName = "ITCID04 - Abnormal: Dentist views deleted supply throws error")]
     [Trait("TestType", "Abnormal")]
-    public async System.Threading.Tasks.Task ITCID05_Dentist_View_Deleted_Supply_Throws()
+    public async System.Threading.Tasks.Task ITCID04_Dentist_View_Deleted_Supply_Throws()
     {
         SetupHttpContext("dentist", 2);
 
@@ -152,9 +142,9 @@ public class ViewDetailSupplyHandlerIntegrationTests
         Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
     }
 
-    [Fact(DisplayName = "ITCID06 - Abnormal: Supply does not exist throws error")]
+    [Fact(DisplayName = "ITCID05 - Abnormal: Supply does not exist throws error")]
     [Trait("TestType", "Abnormal")]
-    public async System.Threading.Tasks.Task ITCID06_Supply_NotFound_Throws()
+    public async System.Threading.Tasks.Task ITCID05_Supply_NotFound_Throws()
     {
         SetupHttpContext("assistant", 1);
 

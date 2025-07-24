@@ -25,7 +25,7 @@ namespace Application.Usecases.Assistants.ExcelSupply
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-            if (currentUserId == 0 || !string.Equals(currentUserRole, "assistant", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(currentUserRole, "administrator", StringComparison.OrdinalIgnoreCase) || string.Equals(currentUserRole, "patient", StringComparison.OrdinalIgnoreCase))
             {
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Bạn không có quyền truy cập chức năng này
             }

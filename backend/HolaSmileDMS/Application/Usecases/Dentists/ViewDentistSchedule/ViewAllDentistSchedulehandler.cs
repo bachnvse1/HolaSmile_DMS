@@ -24,11 +24,6 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
             var currentUserRole = user.FindFirst(ClaimTypes.Role)?.Value;
             var currentUserId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-            if (string.IsNullOrEmpty(currentUserRole) || currentUserId <= 0)
-            {
-                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53);
-            }
-
             var schedules = new List<Schedule>();
             if (string.Equals(currentUserRole, "owner", StringComparison.OrdinalIgnoreCase))
             {

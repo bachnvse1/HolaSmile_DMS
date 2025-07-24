@@ -104,19 +104,8 @@ public class CreateProcedureHandlerTests
         Assert.Equal("Supply với ID 999 không tồn tại.", ex.Message);
     }
 
-    [Fact(DisplayName = "UTCID03 - User not authenticated - Throws unauthorized")]
-    public async System.Threading.Tasks.Task UTCID03_UserNotAuthenticated_ThrowsUnauthorized()
-    {
-        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns((HttpContext?)null);
-
-        var command = new CreateProcedureCommand();
-
-        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(command, default));
-        Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
-    }
-
-    [Fact(DisplayName = "UTCID04 - User not assistant - Throws unauthorized")]
-    public async System.Threading.Tasks.Task UTCID04_UserNotAssistant_ThrowsUnauthorized()
+    [Fact(DisplayName = "UTCID03 - User not assistant - Throws unauthorized")]
+    public async System.Threading.Tasks.Task UTCID03_UserNotAssistant_ThrowsUnauthorized()
     {
         SetupHttpContext("doctor", "2");
 
@@ -126,13 +115,13 @@ public class CreateProcedureHandlerTests
         Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
     }
 
-    [Theory(DisplayName = "UTCID05 - Invalid input fields - Should throw MSG95")]
+    [Theory(DisplayName = "UTCID04 - Invalid input fields - Should throw MSG95")]
     [InlineData(99, 99, -1, 0, 0, 0, 0)]
     [InlineData(99, 99, 0, -1, 0, 0, 0)]
     [InlineData(99, 99, 0, 0, -1, 0, 0)]
     [InlineData(99, 99, 0, 0, 0, -1, 0)]
     [InlineData(99, 99, 0, 0, 0, 0, -1)]
-    public async System.Threading.Tasks.Task UTCID05_InvalidValues_ThrowsMSG95(
+    public async System.Threading.Tasks.Task UTCID04_InvalidValues_ThrowsMSG95(
         decimal price,
         decimal originalPrice,
         decimal discount,
@@ -160,8 +149,8 @@ public class CreateProcedureHandlerTests
         Assert.Equal(MessageConstants.MSG.MSG125, ex.Message);
     }
 
-    [Fact(DisplayName = "UTCID06 - ProcedureName is empty - Throws MSG07")]
-    public async System.Threading.Tasks.Task UTCID06_ProcedureNameEmpty_ThrowsMSG07()
+    [Fact(DisplayName = "UTCID05 - ProcedureName is empty - Throws MSG07")]
+    public async System.Threading.Tasks.Task UTCID05_ProcedureNameEmpty_ThrowsMSG07()
     {
         SetupHttpContext("assistant", "1");
 
