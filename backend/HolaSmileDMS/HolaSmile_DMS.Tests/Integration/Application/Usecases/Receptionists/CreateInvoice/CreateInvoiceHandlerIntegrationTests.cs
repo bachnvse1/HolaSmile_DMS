@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists.CreateInvoice;
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists;
 
 public class CreateInvoiceHandlerIntegrationTests
 {

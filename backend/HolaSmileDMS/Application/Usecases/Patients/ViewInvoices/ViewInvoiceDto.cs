@@ -16,6 +16,6 @@ public class ViewInvoiceDto
     public string? OrderCode { get; set; }
     public string? TransactionId { get; set; }
     public DateTime CreatedAt { get; set; }
-
     public string? PatientName { get; set; }
+    public string? PaymentUrl { get; set; }
 }

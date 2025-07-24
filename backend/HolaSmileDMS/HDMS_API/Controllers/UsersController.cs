@@ -239,6 +239,13 @@ namespace HDMS_API.Controllers
                 return StatusCode(500, new { message = "Có lỗi xảy ra, vui lòng thử lại sau." });
             }
         }
+        
+        [HttpGet("allGuestsChat")]
+        public async Task<IActionResult> AllGuestsChat()
+        {
+            var result = await _mediator.Send(new ViewAllGuestsChatCommand());
+            return Ok(result);
+        }
     }
 }
 

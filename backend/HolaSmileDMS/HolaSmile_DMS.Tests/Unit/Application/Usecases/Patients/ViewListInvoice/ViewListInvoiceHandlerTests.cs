@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients.ViewListInvoice;
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients;
 
 public class ViewListInvoiceHandlerTests
 {

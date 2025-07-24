@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists.UpdateInvoice;
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists;
 
 public class UpdateInvoiceHandlerIntegrationTests
 {

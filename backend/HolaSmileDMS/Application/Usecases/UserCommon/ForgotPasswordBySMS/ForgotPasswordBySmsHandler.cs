@@ -1,8 +1,9 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
 using Application.Services;
+using HDMS_API.Application.Common.Helpers;
 using MediatR;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.AspNetCore.Mvc.Razor;
 
 namespace Application.Usecases.UserCommon.ForgotPasswordBySMS
 {
@@ -10,17 +11,19 @@ namespace Application.Usecases.UserCommon.ForgotPasswordBySMS
     {
         private readonly IUserCommonRepository _userRepo;
         private readonly IEsmsService _smsService;
-        private readonly IMemoryCache _memoryCache;
 
-        public ForgotPasswordBySmsHandler(IUserCommonRepository userRepo, IEsmsService smsService,IMemoryCache memoryCache)
+        public ForgotPasswordBySmsHandler(IUserCommonRepository userRepo, IEsmsService smsService)
         {
             _userRepo = userRepo;
             _smsService = smsService;
-            _memoryCache = memoryCache;
         }
 
         public async Task<bool> Handle(ForgotPasswordBySmsCommand request, CancellationToken cancellationToken)
         {
+
+            if(FormatHelper.FormatPhoneNumber(request.PhoneNumber) == false)
+                throw new Exception(MessageConstants.MSG.MSG56);
+
             var user = await _userRepo.GetUserByPhoneAsync(request.PhoneNumber);
             if (user == null)
                 throw new Exception(MessageConstants.MSG.MSG16);

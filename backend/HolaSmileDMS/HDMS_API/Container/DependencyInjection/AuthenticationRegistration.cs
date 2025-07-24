@@ -14,17 +14,14 @@ namespace HDMS_API.Container.DependencyInjection
     {
         public static IServiceCollection AddAuthenticationServices(this IServiceCollection services, IConfiguration configuration)
         {
-            // ✅ Cấu hình rõ tất cả các scheme mặc định
             services.AddAuthentication(options =>
             {
-                options.DefaultScheme = "SmartScheme"; // để định tuyến giữa Bearer và AllowAnonymous
+                options.DefaultScheme = "SmartScheme";
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme; // ✅ Dùng cookie cho SignInAsync
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             })
-            .AddScheme<AuthenticationSchemeOptions, AllowAnonymousHandler>("AllowAnonymous", options => { })
-
-            // 2. JWT Bearer cho user thật
+            .AddScheme<AuthenticationSchemeOptions, AllowAnonymousHandler>("AllowAnonymous", _ => { })
             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters
@@ -35,7 +32,8 @@ namespace HDMS_API.Container.DependencyInjection
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = configuration["Jwt:Issuer"],
                     ValidAudience = configuration["Jwt:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
                 };
 
                 options.Events = new JwtBearerEvents
@@ -51,7 +49,6 @@ namespace HDMS_API.Container.DependencyInjection
                         }
                         return System.Threading.Tasks.Task.CompletedTask;
                     },
-
                     OnTokenValidated = context =>
                     {
                         var claimsIdentity = context.Principal?.Identity as ClaimsIdentity;
@@ -66,31 +63,26 @@ namespace HDMS_API.Container.DependencyInjection
                     }
                 };
             })
-
-            // 3. Cookie + Google (nếu cần)
-            .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddPolicyScheme("SmartScheme", "SmartScheme for SignalR", options =>
+            {
+                options.ForwardDefaultSelector = context =>
+                {
+                    var token = context.Request.Query["access_token"];
+                    return string.IsNullOrEmpty(token)
+                        ? "AllowAnonymous"
+                        : JwtBearerDefaults.AuthenticationScheme;
+                };
+            }).AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
             .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
             {
                 options.ClientId = configuration["Authentication:Google:ClientId"];
                 options.ClientSecret = configuration["Authentication:Google:ClientSecret"];
                 options.CallbackPath = "/signin-google";
                 options.SaveTokens = true;
-            })
-
-            // 4. SmartScheme: chọn JWT hoặc AllowAnonymous theo đường dẫn
-            .AddPolicyScheme("SmartScheme", "SmartScheme for SignalR", options =>
-            {
-                options.ForwardDefaultSelector = context =>
-                {
-                    var path = context.Request.Path;
-                    if (path.StartsWithSegments("/guest-chat"))
-                        return "AllowAnonymous";
-
-                    return JwtBearerDefaults.AuthenticationScheme;
-                };
             });
 
             services.AddHttpContextAccessor();
+
             return services;
         }
     }

@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { memo } from 'react';
 import ChatBox from './ChatBox';
-import axiosInstance from '@/lib/axios';
 
 type Customer = {
   userId: string;
@@ -24,13 +23,74 @@ type Props = {
   setUnreadMap: React.Dispatch<React.SetStateAction<Record<string, number>>>;
   setSelectedUser: (user: Customer | null) => void;
   setHasNewMessage: React.Dispatch<React.SetStateAction<boolean>>;
-  messages: ChatMessage[]; // 👈 truyền từ cha
-  sendMessage: (receiverId: string, msg: string) => void; // 👈 truyền từ cha
+  messages: ChatMessage[];
+  sendMessage: (receiverId: string, msg: string) => void;
 };
 
-export default function ChatPage({
+// Memoize UserItem để tránh re-render không cần thiết
+const UserItem = memo(({ 
+  user, 
+  isSelected, 
+  unreadCount, 
+  onClick 
+}: {
+  user: Customer;
+  isSelected: boolean;
+  unreadCount: number;
+  onClick: () => void;
+}) => (
+  <div
+    onClick={onClick}
+    style={{
+      padding: '8px 10px',
+      cursor: 'pointer',
+      borderRadius: 8,
+      background: isSelected ? '#2563eb' : '#fff',
+      color: isSelected ? '#fff' : '#111',
+      marginBottom: 6,
+      fontSize: 15,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      transition: 'all 0.2s',
+      position: 'relative',
+    }}
+  >
+    <img
+      src={
+        user.avatarUrl ||
+        "https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg"
+      }
+      alt="avatar"
+      style={{
+        width: 28,
+        height: 28,
+        borderRadius: '50%',
+        objectFit: 'cover',
+        border: '1px solid #e5e7eb',
+      }}
+    />
+    <span>{user.fullName}</span>
+    {unreadCount > 0 && (
+      <span
+        style={{
+          position: 'absolute',
+          right: 10,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          color: 'red',
+          fontSize: 18,
+        }}
+      >
+        🔔
+      </span>
+    )}
+  </div>
+));
+
+export default memo(function ChatPage({
   selectedUser,
-  customers: initialCustomers,
+  customers,
   onClose,
   setSelectedUser,
   unreadMap,
@@ -39,8 +99,6 @@ export default function ChatPage({
   messages,
   sendMessage
 }: Props) {
-  const [customers, setCustomers] = useState<Customer[]>(initialCustomers || []);
-
   const handleSelectUser = (user: Customer) => {
     setSelectedUser(user);
     setUnreadMap((prev) => ({
@@ -49,21 +107,6 @@ export default function ChatPage({
     }));
     setHasNewMessage(false);
   };
-
-  useEffect(() => {
-    if (initialCustomers.length === 0) {
-      const fetchCustomers = async () => {
-        try {
-          const res = await axiosInstance.get('/user/allUsersChat');
-          setCustomers(res.data || []);
-        } catch (err) {
-          console.error("Lỗi khi tải danh sách khách hàng", err);
-          setCustomers([]);
-        }
-      };
-      fetchCustomers();
-    }
-  }, [initialCustomers]);
 
   return (
     <div
@@ -94,56 +137,13 @@ export default function ChatPage({
           <div style={{ color: '#888', fontSize: 14 }}>Không có người dùng nào</div>
         )}
         {customers.map((user) => (
-          <div
+          <UserItem
             key={user.userId}
+            user={user}
+            isSelected={selectedUser?.userId === user.userId}
+            unreadCount={unreadMap?.[user.userId] || 0}
             onClick={() => handleSelectUser(user)}
-            style={{
-              padding: '8px 10px',
-              cursor: 'pointer',
-              borderRadius: 8,
-              background: selectedUser?.userId === user.userId ? '#2563eb' : '#fff',
-              color: selectedUser?.userId === user.userId ? '#fff' : '#111',
-              marginBottom: 6,
-              fontSize: 15,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              transition: 'all 0.2s',
-              position: 'relative',
-            }}
-          >
-            <img
-          src={
-            user.avatarUrl
-              ? user.avatarUrl
-              : "https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg"
-          }
-          alt="avatar"
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: '50%',
-            objectFit: 'cover',
-            border: '1px solid #e5e7eb',
-          }}
-        />
-
-            <span>{user.fullName}</span>
-            {unreadMap?.[user.userId] > 0 && (
-              <span
-                style={{
-                  position: 'absolute',
-                  right: 10,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: 'red',
-                  fontSize: 18,
-                }}
-              >
-                🔔
-              </span>
-            )}
-          </div>
+          />
         ))}
       </div>
 
@@ -186,4 +186,4 @@ export default function ChatPage({
       </div>
     </div>
   );
-}
+});

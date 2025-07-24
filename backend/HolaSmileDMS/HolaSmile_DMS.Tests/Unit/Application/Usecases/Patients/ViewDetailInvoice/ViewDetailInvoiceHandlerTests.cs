@@ -7,7 +7,7 @@ using Moq;
 using System.Security.Claims;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients.ViewDetailInvoice;
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients;
 
 public class ViewDetailInvoiceHandlerTests
 {
