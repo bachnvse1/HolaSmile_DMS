@@ -1,7 +1,6 @@
 ﻿using System.Net.Mail;
 using System.Net;
 using HDMS_API.Application.Interfaces;
-using static System.Net.WebRequestMethods;
 using Microsoft.Extensions.Configuration;
 
 namespace HDMS_API.Infrastructure.Services
@@ -15,14 +14,7 @@ namespace HDMS_API.Infrastructure.Services
             _config = config;
         }
 
-        public async Task<string> GenerateOTP()
-        {
-            Random random = new Random();
-            int otp = random.Next(100000, 999999);
-            return otp.ToString();
-        }
-
-        public async Task<bool> SendOtpEmailAsync(string toEmail, string otp)
+        public async Task<bool> SendEmailAsync(string toEmail, string message)
         {
             try
             {
@@ -40,12 +32,7 @@ namespace HDMS_API.Infrastructure.Services
                     {
                         From = new MailAddress(senderEmail),
                         Subject = "Your OTP Code",
-                        Body = $@"
-                                  <p>Xin chào,</p>
-                                  <p>Bạn đã yêu cầu xác thực bằng mã OTP.</p>
-                                  <p><strong>Mã OTP của bạn là:</strong> <b style='font-size: 18px; color: blue;'>{otp}</b></p>
-                                  <p>Mã này sẽ hết hạn sau <strong>5 phút</strong>. Vui lòng không chia sẻ mã với bất kỳ ai.</p>
-                                  <p>Trân trọng,<br><b>Phòng khám HolaSmile</b></p>",
+                        Body = message,
                         IsBodyHtml = true
                     };
 

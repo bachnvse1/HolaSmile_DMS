@@ -1,18 +1,12 @@
-﻿using Application.Constants;
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Application.Usecases.Administrator.ViewListUser;
-using Application.Usecases.Patients.ViewListPatient;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Common.Helpers;
 using HDMS_API.Application.Interfaces;
-using HDMS_API.Application.Usecases.UserCommon.ForgotPassword;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
 using HDMS_API.Application.Usecases.UserCommon.Login;
-using HDMS_API.Application.Usecases.UserCommon.Otp;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.IdentityModel.Tokens;
 
 namespace HDMS_API.Infrastructure.Repositories
 {
@@ -20,16 +14,12 @@ namespace HDMS_API.Infrastructure.Repositories
     {
         private readonly ApplicationDbContext _context;
         private readonly IEmailService _emailService;
-        private readonly IMemoryCache _memoryCache;
 
-        public UserCommonRepository(ApplicationDbContext context, IEmailService emailService, IMemoryCache memoryCache)
+        public UserCommonRepository(ApplicationDbContext context, IEmailService emailService)
         {
             _context = context;
             _emailService = emailService;
-            _memoryCache = memoryCache;
         }
-
-
         public async Task<User> CreatePatientAccountAsync(CreatePatientDto dto, string password)
         {
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
@@ -55,73 +45,9 @@ namespace HDMS_API.Infrastructure.Repositories
         }
         public async Task<bool> SendPasswordForGuestAsync(string email)
         {
-            if (email.IsNullOrEmpty() || !FormatHelper.IsValidEmail(email))
-            {
-                throw new Exception(MessageConstants.MSG.MSG08);
-            }
             return await _emailService.SendPasswordAsync(email, "123456"); ;
         }
-        public async Task<bool> SendOtpEmailAsync(string toEmail)
-        {
-            if (FormatHelper.IsValidEmail(toEmail) == false)
-            {
-                throw new Exception(MessageConstants.MSG.MSG08);
-            }
-            var OtpCode = await _emailService.GenerateOTP();
-            var IsSent = await _emailService.SendOtpEmailAsync(toEmail, OtpCode);
-            if (!IsSent)
-            {
-                throw new Exception(MessageConstants.MSG.MSG78); // Gửi email không thành công
-            }
-            var otp = new RequestOtpDto
-            {
-                Email = toEmail,
-                Otp = OtpCode,
-                ExpiryTime = DateTime.Now.AddMinutes(2)
-            };
-            _memoryCache.Set($"otp:{toEmail}", otp, otp.ExpiryTime - DateTime.Now);
 
-            return true;
-        }
-        public async Task<bool> ResendOtpAsync(string toEmail)
-        {
-            if (_memoryCache.TryGetValue($"otp:{toEmail}", out RequestOtpDto cachedOtp))
-            {
-                if (cachedOtp.SendTime.AddMinutes(1) < DateTime.Now)
-                {
-                    return await SendOtpEmailAsync(toEmail);
-                }
-                else
-                {
-                    throw new Exception("Bạn chỉ có thể gửi lại OTP sau 1 phút.");
-                }
-            }
-            else
-            {
-                throw new Exception(MessageConstants.MSG.MSG78); // Gửi mã OTP không thành công
-            }
-        }
-        public async Task<string> VerifyOtpAsync(VerifyOtpCommand otp)
-        {
-            if (_memoryCache.TryGetValue($"otp:{otp.Email}", out RequestOtpDto cachedOtp))
-            {
-                if (cachedOtp.Otp == otp.Otp && cachedOtp.ExpiryTime > DateTime.Now)
-                {
-                    _memoryCache.Remove($"otp:{otp.Email}");
-                    var resetPasswordToken = Guid.NewGuid().ToString();
-                    _memoryCache.Set($"resetPasswordToken:{resetPasswordToken}", otp.Email, TimeSpan.FromMinutes(15)); // Token hợp lệ trong 15 phút
-                    return resetPasswordToken;
-                }
-                else
-                {
-                    throw new Exception(MessageConstants.MSG.MSG04); // Mã OTP không đúng
-                }
-            }
-            else
-            {
-                throw new Exception(MessageConstants.MSG.MSG79); // thời gian thực hiện hết hạn
-            }
-        }
         public async Task<bool> ResetPasswordAsync(User user)
         {
                 _context.Users.Update(user);

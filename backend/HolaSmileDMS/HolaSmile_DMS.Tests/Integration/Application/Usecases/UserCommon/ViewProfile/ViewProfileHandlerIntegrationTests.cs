@@ -40,7 +40,7 @@ public class ViewProfileHandlerIntegrationTests
 
         // 👇 Khởi tạo handler
         _handler = new ViewProfileHandler(
-            new UserCommonRepository(_context, new Mock<IEmailService>().Object, memoryCache),
+            new UserCommonRepository(_context, new Mock<IEmailService>().Object),
             _httpContextAccessor
         );
     }
