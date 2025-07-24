@@ -31,14 +31,17 @@ public class DeactiveInstructionTemplateHandlerTests
     }
 
     [Fact]
-    public async System.Threading.Tasks.Task UTCID01_ShouldThrow_WhenRoleNotAssistant()
+    public async System.Threading.Tasks.Task UTCID01_ShouldThrow_WhenRoleisDentist()
     {
         SetupHttpContext("Dentist");
-
+        var template = new InstructionTemplate { Instruc_TemplateID = 1, IsDeleted = false };
+        _repoMock.Setup(r => r.GetByIdAsync(1, new CancellationToken())).ReturnsAsync(template);
+        _repoMock.Setup(r => r.UpdateAsync(It.IsAny<InstructionTemplate>()))
+            .Returns(System.Threading.Tasks.Task.CompletedTask);
         var command = new DeactiveInstructionTemplateCommand { Instruc_TemplateID = 1 };
-        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(command, default));
+        var ok = await _handler.Handle(command, default);
 
-        Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
+        Assert.Equal(MessageConstants.MSG.MSG41, ok);
     }
 
     [Fact]
