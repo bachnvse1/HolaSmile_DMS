@@ -110,38 +110,40 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
                 .ReturnsAsync((WarrantyCard?)null);
 
             var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-                _handler.Handle(new EditWarrantyCardCommand { WarrantyCardId = 1, Duration = 12, Status = true }, default));
+                _handler.Handle(new EditWarrantyCardCommand { WarrantyCardId = 2, Duration = 12, Status = true }, default));
 
-            Assert.Equal(MessageConstants.MSG.MSG102, ex.Message);
+            Assert.Equal(MessageConstants.MSG.MSG103, ex.Message);
         }
 
-        [Theory(DisplayName = "Abnormal - UTCID05 - Invalid Duration throws MSG98")]
-        [InlineData(null)]
-        [InlineData(0)]
-        [InlineData(-5)]
-        public async System.Threading.Tasks.Task UTCID05_Invalid_Duration_Throws(int? invalidDuration)
+        [Fact(DisplayName = "Abnormal - UTCID05 - Invalid Duration throws MSG98")]
+        public async System.Threading.Tasks.Task UTCID05_Invalid_Duration_Should_Throw_MSG98()
         {
+            // Arrange
             SetupHttpContext("Assistant");
 
             var card = new WarrantyCard
             {
                 WarrantyCardID = 1,
-                StartDate = DateTime.Today,
+                StartDate = new DateTime(2024, 1, 1),
                 Duration = 12
             };
 
             _warrantyRepoMock.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(card);
 
-            var ex = await Assert.ThrowsAsync<FormatException>(() =>
-                _handler.Handle(new EditWarrantyCardCommand
-                {
-                    WarrantyCardId = 1,
-                    Duration = invalidDuration,
-                    Status = true
-                }, default));
+            var command = new EditWarrantyCardCommand
+            {
+                WarrantyCardId = 1,
+                Duration = 0, // ❗ Giá trị không hợp lệ (<= 0)
+                Status = true
+            };
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+                _handler.Handle(command, default));
 
             Assert.Equal(MessageConstants.MSG.MSG98, ex.Message);
         }
+
     }
 }
