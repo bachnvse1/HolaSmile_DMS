@@ -22,6 +22,7 @@ export default function InstructionTemplateManagement() {
   const userInfo = useUserInfo()
   const isPatient = userInfo?.role === "Patient"
   const isAssistant = userInfo?.role === "Assistant"
+  const isDentist = userInfo?.role === "Dentist"
 
   const [templates, setTemplates] = useState<InstructionTemplate[]>([])
   const [loading, setLoading] = useState(true)
@@ -220,7 +221,7 @@ export default function InstructionTemplateManagement() {
                 <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
 
-              {isAssistant && (
+              {(isAssistant || isDentist) && (
                 <Button
                   size="sm"
                   onClick={openAddDialog}
@@ -267,6 +268,7 @@ export default function InstructionTemplateManagement() {
             onEdit={openEditDialog}
             onDelete={confirmDeleteTemplate}
             isAssistant={isAssistant}
+            isDentist={isDentist}
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
             actionLoading={editLoading || deleteLoading} 
@@ -319,7 +321,7 @@ export default function InstructionTemplateManagement() {
   )
 
   return (
-    <AuthGuard requiredRoles={["Administrator", "Owner", "Receptionist", "Assistant", "Dentist", "Patient"]}>
+    <AuthGuard requiredRoles={["Assistant", "Dentist", "Patient"]}>
       {isPatient ? (
         <PatientLayout userInfo={userInfo}>{content}</PatientLayout>
       ) : (

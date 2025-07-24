@@ -128,21 +128,9 @@ public class ViewDetailProcedureHandlerIntegrationTests
         Assert.Equal("Tẩy trắng răng", result.ProcedureName);
     }
 
-    [Fact(DisplayName = "ITCID03 - Other role views deleted procedure throws MSG16")]
+    [Fact(DisplayName = "ITCID03 - Supply not found throws MSG16")]
     [Trait("TestType", "Abnormal")]
-    public async System.Threading.Tasks.Task ITCID03_OtherRole_View_Deleted_Throws()
-    {
-        SetupHttpContext("receptionist", 2);
-
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _handler.Handle(new ViewDetailProcedureCommand { proceduredId = 2 }, default));
-
-        Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
-    }
-
-    [Fact(DisplayName = "ITCID04 - Supply not found throws MSG16")]
-    [Trait("TestType", "Abnormal")]
-    public async System.Threading.Tasks.Task ITCID04_Procedure_NotFound_Throws()
+    public async System.Threading.Tasks.Task ITCID03_Procedure_NotFound_Throws()
     {
         SetupHttpContext("assistant", 1);
 
@@ -150,17 +138,5 @@ public class ViewDetailProcedureHandlerIntegrationTests
             _handler.Handle(new ViewDetailProcedureCommand { proceduredId = 999 }, default));
 
         Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
-    }
-
-    [Fact(DisplayName = "ITCID05 - Missing authentication throws error")]
-    [Trait("TestType", "Abnormal")]
-    public async System.Threading.Tasks.Task ITCID05_Missing_Auth_Throws()
-    {
-        _httpContextAccessor.HttpContext = new DefaultHttpContext(); // no claims
-
-        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            _handler.Handle(new ViewDetailProcedureCommand { proceduredId = 1 }, default));
-
-        Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
     }
 }

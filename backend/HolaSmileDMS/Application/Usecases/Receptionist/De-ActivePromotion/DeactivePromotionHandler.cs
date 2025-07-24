@@ -82,7 +82,7 @@ namespace Application.Usecases.Receptionist.De_ActivePromotion
                      o.User.UserID,
                       "Cập nhật chương trình khuyến mãi",
                         $" chương trình khuyến mãi {discountProgram.DiscountProgramName} đã kết thúc vào lúc {DateTime.Now}",
-                      null, null),
+                      "promotion", null),
                      cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);
             }

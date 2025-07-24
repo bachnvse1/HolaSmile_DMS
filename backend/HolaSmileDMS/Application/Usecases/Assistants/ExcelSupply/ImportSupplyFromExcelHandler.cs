@@ -30,8 +30,7 @@ namespace Application.Usecases.Assistants.ExcelSupply
             if (request.File == null || request.File.Length == 0)
                 throw new ArgumentException("File import không hợp lệ.");
 
-            var user = _httpContextAccessor.HttpContext?.User
-                ?? throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53);
+            var user = _httpContextAccessor.HttpContext?.User;
 
             var currentUserId = int.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var currentUserRole = user.FindFirstValue(ClaimTypes.Role);

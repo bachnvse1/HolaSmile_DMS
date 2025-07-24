@@ -19,6 +19,7 @@ export const PrescriptionTemplateDetail: React.FC = () => {
 
    const userInfo = useUserInfo();
    const userRole = userInfo?.role || '';
+   const canEdit = userRole === 'Assistant' || userRole === 'Dentist';
   
   const templateId = id ? parseInt(id) : 0;
   const { data: template, isLoading } = usePrescriptionTemplate(templateId);
@@ -97,7 +98,7 @@ export const PrescriptionTemplateDetail: React.FC = () => {
         </div>
         
         <div className="flex gap-2">
-          {userRole === 'Assistant' && (
+          {canEdit && (
             <>
               <Button variant="outline" onClick={handleEdit} className="flex-1 sm:flex-none">
                 <Edit className="h-4 w-4 mr-2" />

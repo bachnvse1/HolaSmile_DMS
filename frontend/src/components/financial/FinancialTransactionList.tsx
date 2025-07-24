@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Download, Search, TrendingUp, TrendingDown, DollarSign, Calendar, Edit, Trash2 } from 'lucide-react';
+import { Plus, Download, Search, TrendingUp, TrendingDown, Receipt, Calendar, Edit, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,12 @@ export const FinancialTransactionList: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [filter, setFilter] = useState<'all' | 'thu' | 'chi'>('all');
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<'all' | 'cash' | 'transfer'>('all');
+  const [isFilterExpanded, setIsFilterExpanded] = useState(false);
+  const [dateFilter, setDateFilter] = useState({
+    startDate: '',
+    endDate: ''
+  });
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editTransaction, setEditTransaction] = useState<number | null>(null);
   const [viewTransaction, setViewTransaction] = useState<number | null>(null);
@@ -44,6 +50,32 @@ export const FinancialTransactionList: React.FC = () => {
       });
     }
 
+    // Filter by payment method
+    if (paymentMethodFilter !== 'all') {
+      filtered = filtered.filter(transaction => {
+        const isCash = typeof transaction.paymentMethod === 'boolean' 
+          ? transaction.paymentMethod 
+          : transaction.paymentMethod?.toLowerCase() === 'tiền mặt';
+        
+        if (paymentMethodFilter === 'cash') return isCash;
+        if (paymentMethodFilter === 'transfer') return !isCash;
+        return true;
+      });
+    }
+
+    // Filter by date range
+    if (dateFilter.startDate || dateFilter.endDate) {
+      filtered = filtered.filter(transaction => {
+        const transactionDate = new Date(transaction.transactionDate);
+        const startDate = dateFilter.startDate ? new Date(dateFilter.startDate) : null;
+        const endDate = dateFilter.endDate ? new Date(dateFilter.endDate) : null;
+        
+        if (startDate && transactionDate < startDate) return false;
+        if (endDate && transactionDate > endDate) return false;
+        return true;
+      });
+    }
+
     // Filter by search query
     if (searchQuery) {
       filtered = filtered.filter(transaction =>
@@ -52,15 +84,15 @@ export const FinancialTransactionList: React.FC = () => {
       );
     }
 
-    // Sort by transaction date (newest first)
+    // Sort by created date (newest first) - using createAt field
     filtered = filtered.sort((a, b) => {
-      const dateA = new Date(a.transactionDate);
-      const dateB = new Date(b.transactionDate);
+      const dateA = new Date(a.createAt || a.transactionDate);
+      const dateB = new Date(b.createAt || b.transactionDate);
       return dateB.getTime() - dateA.getTime();
     });
 
     return filtered;
-  }, [transactions, filter, searchQuery]);
+  }, [transactions, filter, paymentMethodFilter, searchQuery, dateFilter]);
 
   // Calculate statistics
   const stats = React.useMemo(() => {
@@ -222,7 +254,7 @@ export const FinancialTransactionList: React.FC = () => {
           
           <Button
             onClick={() => setShowCreateModal(true)}
-            className="text-sm bg-blue-600 hover:bg-blue-700"
+            className="text-sm"
           >
             <Plus className="h-4 w-4 mr-2" />
             Tạo Giao Dịch
@@ -239,7 +271,7 @@ export const FinancialTransactionList: React.FC = () => {
                 <p className="text-xs sm:text-sm font-medium text-gray-600">Tổng giao dịch</p>
                 <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.totalTransactions}</p>
               </div>
-              <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
+              <Receipt className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
@@ -250,7 +282,7 @@ export const FinancialTransactionList: React.FC = () => {
               <div>
                 <p className="text-xs sm:text-sm font-medium text-gray-600">Tổng thu</p>
                 <p className="text-sm sm:text-lg font-bold text-green-600 truncate">
-                  {formatCurrency(stats.totalIncome)} ₫
+                  {formatCurrency(stats.totalIncome) || 0} ₫
                 </p>
               </div>
               <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
@@ -264,7 +296,7 @@ export const FinancialTransactionList: React.FC = () => {
               <div>
                 <p className="text-xs sm:text-sm font-medium text-gray-600">Tổng chi</p>
                 <p className="text-sm sm:text-lg font-bold text-red-600 truncate">
-                  {formatCurrency(stats.totalExpense)} ₫
+                  {formatCurrency(stats.totalExpense) || 0} ₫
                 </p>
               </div>
               <TrendingDown className="h-6 w-6 sm:h-8 sm:w-8 text-red-600" />
@@ -296,47 +328,150 @@ export const FinancialTransactionList: React.FC = () => {
       {/* Search and Filter */}
       <Card className="mb-6">
         <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Tìm kiếm theo mô tả hoặc danh mục..."
-                value={searchQuery}
-                onChange={handleSearch}
-                className="pl-10"
-                autoComplete="off"
-              />
+          <div className="flex flex-col gap-4">
+            {/* Search Row */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Tìm kiếm theo mô tả hoặc danh mục..."
+                  value={searchQuery}
+                  onChange={handleSearch}
+                  className="pl-10"
+                  autoComplete="off"
+                />
+              </div>
+
+              {/* Filter Toggle Button */}
+              <Button
+                variant="outline"
+                onClick={() => setIsFilterExpanded(!isFilterExpanded)}
+                className="flex items-center gap-2"
+              >
+                <Filter className="h-4 w-4" />
+                Bộ lọc
+                {isFilterExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </Button>
             </div>
 
-            {/* Filter buttons */}
-            <div className="grid grid-cols-3 gap-2 sm:flex sm:gap-2">
-              <Button
-                variant={filter === 'all' ? 'default' : 'outline'}
-                onClick={() => handleFilterChange('all')}
-                size="sm"
-                className="text-xs sm:text-sm"
-              >
-                Tất cả
-              </Button>
-              <Button
-                variant={filter === 'thu' ? 'default' : 'outline'}
-                onClick={() => handleFilterChange('thu')}
-                size="sm"
-                className="text-xs sm:text-sm"
-              >
-                <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                Thu
-              </Button>
-              <Button
-                variant={filter === 'chi' ? 'default' : 'outline'}
-                onClick={() => handleFilterChange('chi')}
-                size="sm"
-                className="text-xs sm:text-sm"
-              >
-                <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                Chi
-              </Button>
-            </div>
+            {/* Expandable Filter Section */}
+            {isFilterExpanded && (
+              <div className="border-t border-gray-300 pt-4 space-y-4">
+                {/* Type Filter Row */}
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Loại giao dịch
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <Button
+                        variant={filter === 'all' ? 'default' : 'outline'}
+                        onClick={() => handleFilterChange('all')}
+                        size="sm"
+                        className="text-xs sm:text-sm"
+                      >
+                        Tất cả
+                      </Button>
+                      <Button
+                        variant={filter === 'thu' ? 'default' : 'outline'}
+                        onClick={() => handleFilterChange('thu')}
+                        size="sm"
+                        className="text-xs sm:text-sm"
+                      >
+                        <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                        Thu
+                      </Button>
+                      <Button
+                        variant={filter === 'chi' ? 'default' : 'outline'}
+                        onClick={() => handleFilterChange('chi')}
+                        size="sm"
+                        className="text-xs sm:text-sm"
+                      >
+                        <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                        Chi
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Payment Method Filter */}
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Phương thức thanh toán
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <Button
+                        variant={paymentMethodFilter === 'all' ? 'default' : 'outline'}
+                        onClick={() => setPaymentMethodFilter('all')}
+                        size="sm"
+                        className="text-xs sm:text-sm"
+                      >
+                        Tất cả
+                      </Button>
+                      <Button
+                        variant={paymentMethodFilter === 'cash' ? 'default' : 'outline'}
+                        onClick={() => setPaymentMethodFilter('cash')}
+                        size="sm"
+                        className="text-xs sm:text-sm"
+                      >
+                        Tiền mặt
+                      </Button>
+                      <Button
+                        variant={paymentMethodFilter === 'transfer' ? 'default' : 'outline'}
+                        onClick={() => setPaymentMethodFilter('transfer')}
+                        size="sm"
+                        className="text-xs sm:text-sm"
+                      >
+                        Chuyển khoản
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Date Filter Row */}
+                <div className="flex flex-col gap-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Từ ngày
+                      </label>
+                      <Input
+                        type="date"
+                        value={dateFilter.startDate}
+                        onChange={(e) => setDateFilter(prev => ({ ...prev, startDate: e.target.value }))}
+                        className="text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Đến ngày
+                      </label>
+                      <Input
+                        type="date"
+                        value={dateFilter.endDate}
+                        onChange={(e) => setDateFilter(prev => ({ ...prev, endDate: e.target.value }))}
+                        className="text-sm"
+                      />
+                    </div>
+                  </div>
+                  {(dateFilter.startDate || dateFilter.endDate || filter !== 'all' || paymentMethodFilter !== 'all') && (
+                    <div className="flex justify-center">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setDateFilter({ startDate: '', endDate: '' });
+                          setFilter('all');
+                          setPaymentMethodFilter('all');
+                        }}
+                        className="text-xs sm:text-sm"
+                      >
+                        Xóa tất cả bộ lọc
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -345,7 +480,7 @@ export const FinancialTransactionList: React.FC = () => {
       {filteredTransactions.length === 0 ? (
         <Card>
           <CardContent className="p-8 text-center">
-            <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <Receipt className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
               {searchQuery ? 'Không tìm thấy giao dịch' : 'Chưa có giao dịch nào'}
             </h3>
@@ -391,7 +526,7 @@ export const FinancialTransactionList: React.FC = () => {
                         Phương thức
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Ngày
+                        Thời gian
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Thao tác
@@ -508,7 +643,7 @@ export const FinancialTransactionList: React.FC = () => {
                       </div>
 
                       {/* Actions */}
-                      <div className="flex justify-end gap-2 pt-2 border-t">
+                      <div className="flex justify-end gap-2 pt-2">
                         <Button
                           variant="ghost"
                           size="sm"

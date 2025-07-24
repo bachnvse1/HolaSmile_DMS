@@ -145,7 +145,7 @@ export default function InstructionsPage() {
     }, [navigate, appointmentId])
 
     return (
-        <AuthGuard requiredRoles={["Administrator", "Owner", "Receptionist", "Assistant", "Dentist"]}>
+        <AuthGuard requiredRoles={["Receptionist", "Assistant", "Dentist"]}>
             <StaffLayout userInfo={userInfo}>
                 <div className="container mx-auto p-6 bg-gray-50 min-h-screen">
                     <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
@@ -157,7 +157,7 @@ export default function InstructionsPage() {
                             Chỉ dẫn cho Cuộc hẹn: <span className="text-blue-600">#{appointmentId}</span>
                         </h1>
                         <div className="flex gap-2">
-                            {!instruction && (
+                            {!instruction && userInfo?.role === "Dentist" && (
                                 <CreateInstructionDialog
                                     isCreateModalOpen={isCreateModalOpen}
                                     setIsCreateModalOpen={setIsCreateModalOpen}
@@ -259,7 +259,7 @@ export default function InstructionsPage() {
                         </div>
                     )}
 
-                    {instruction && (
+                    {instruction && userInfo?.role === "Dentist" && (
                         <EditInstructionDialog
                             isEditModalOpen={isEditModalOpen}
                             setIsEditModalOpen={setIsEditModalOpen}

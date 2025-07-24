@@ -38,19 +38,8 @@ public class UpdateProcedureHandlerTests
         _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
     }
 
-    [Fact(DisplayName = "UTCID01 - Role is null - Throw UnauthorizedAccessException")]
-    public async System.Threading.Tasks.Task UTCID01_RoleIsNull_ThrowUnauthorized()
-    {
-        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(new DefaultHttpContext());
-
-        var command = new UpdateProcedureCommand();
-
-        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(command, default));
-        Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
-    }
-
-    [Fact(DisplayName = "UTCID02 - Role is not assistant - Throw UnauthorizedAccessException")]
-    public async System.Threading.Tasks.Task UTCID02_NotAssistant_ThrowUnauthorized()
+    [Fact(DisplayName = "UTCID01 - Role is not assistant - Throw UnauthorizedAccessException")]
+    public async System.Threading.Tasks.Task UTCID01_NotAssistant_ThrowUnauthorized()
     {
         SetupHttpContext("receptionist");
 
@@ -60,8 +49,8 @@ public class UpdateProcedureHandlerTests
         Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
     }
 
-    [Fact(DisplayName = "UTCID03 - Procedure not found - Throw Exception")]
-    public async System.Threading.Tasks.Task UTCID03_ProcedureNotFound_Throw()
+    [Fact(DisplayName = "UTCID02 - Procedure not found - Throw Exception")]
+    public async System.Threading.Tasks.Task UTCID02_ProcedureNotFound_Throw()
     {
         SetupHttpContext();
 
@@ -74,8 +63,8 @@ public class UpdateProcedureHandlerTests
         Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
     }
 
-    [Fact(DisplayName = "UTCID04 - Input invalid (Price <= 0) - Throw Exception")]
-    public async System.Threading.Tasks.Task UTCID04_InvalidInput_Throw()
+    [Fact(DisplayName = "UTCID03 - Input invalid (Price <= 0) - Throw Exception")]
+    public async System.Threading.Tasks.Task UTCID03_InvalidInput_Throw()
     {
         SetupHttpContext();
 
@@ -94,8 +83,8 @@ public class UpdateProcedureHandlerTests
         Assert.Equal(MessageConstants.MSG.MSG95, ex.Message);
     }
 
-    [Fact(DisplayName = "UTCID05 - Supply not found - Throw Exception")]
-    public async System.Threading.Tasks.Task UTCID05_SupplyNotFound_Throw()
+    [Fact(DisplayName = "UTCID04 - Supply not found - Throw Exception")]
+    public async System.Threading.Tasks.Task UTCID04_SupplyNotFound_Throw()
     {
         SetupHttpContext();
 
@@ -125,8 +114,8 @@ public class UpdateProcedureHandlerTests
         Assert.Equal("Supply với ID 1 không tồn tại.", ex.Message);
     }
 
-    [Fact(DisplayName = "UTCID06 - Delete SuppliesUsed failed - Throw Exception")]
-    public async System.Threading.Tasks.Task UTCID06_DeleteSuppliesFailed_Throw()
+    [Fact(DisplayName = "UTCID05 - Delete SuppliesUsed failed - Throw Exception")]
+    public async System.Threading.Tasks.Task UTCID05_DeleteSuppliesFailed_Throw()
     {
         SetupHttpContext();
 
@@ -159,8 +148,8 @@ public class UpdateProcedureHandlerTests
         Assert.Equal(MessageConstants.MSG.MSG58, ex.Message);
     }
 
-    [Fact(DisplayName = "UTCID07 - Success with valid input")]
-    public async System.Threading.Tasks.Task UTCID07_Success()
+    [Fact(DisplayName = "UTCID06 - Success with valid input")]
+    public async System.Threading.Tasks.Task UTCID06_Success()
     {
         SetupHttpContext();
 

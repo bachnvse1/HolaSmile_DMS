@@ -8,7 +8,7 @@ export const InventoryPage: React.FC = () => {
 
 
   return (
-    <AuthGuard requiredRoles={['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']}>
+    <AuthGuard requiredRoles={['Owner', 'Receptionist', 'Assistant', 'Dentist']}>
       <StaffLayout userInfo={userInfo}>
         <SupplyList />
       </StaffLayout>

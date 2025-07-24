@@ -23,12 +23,8 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.CreateProcedure
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-            if (currentUserRole == null)
+            if (!string.Equals(currentUserRole, "assistant", StringComparison.OrdinalIgnoreCase) && !string.Equals(currentUserRole, "dentist", StringComparison.OrdinalIgnoreCase))
             {
-                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // "Bạn cần đăng nhập..."
-            }
-
-            if (!string.Equals(currentUserRole, "assistant", StringComparison.OrdinalIgnoreCase)){
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             }
 
@@ -84,6 +80,7 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.CreateProcedure
                 CreatedBy = currentUserId,
                 SuppliesUsed = suppliesUsed
             };
+
             return await _procedureRepository.CreateProcedure(procedure);
         }
     }

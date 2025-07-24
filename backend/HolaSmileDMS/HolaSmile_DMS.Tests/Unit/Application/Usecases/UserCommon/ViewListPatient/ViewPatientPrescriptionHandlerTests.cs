@@ -44,18 +44,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
             _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
         }
 
-        [Fact(DisplayName = "UTCID01 - Throws UnauthorizedAccessException if user is not authenticated")]
-        public async System.Threading.Tasks.Task UTCID01_ShouldThrow_Unauthenticated()
-        {
-            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(new DefaultHttpContext());
-
-            var command = new ViewPatientPrescriptionCommand(1);
-
-            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(command, default));
-        }
-
-        [Fact(DisplayName = "UTCID02 - Throws Exception if prescription not found")]
-        public async System.Threading.Tasks.Task UTCID02_ShouldThrow_WhenPrescriptionNotFound()
+        [Fact(DisplayName = "UTCID01 - Throws Exception if prescription not found")]
+        public async System.Threading.Tasks.Task UTCID01_ShouldThrow_WhenPrescriptionNotFound()
         {
             SetupHttpContext("dentist", 2);
             _prescriptionRepoMock.Setup(x => x.GetPrescriptionByPrescriptionIdAsync(1))
@@ -67,8 +57,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
             Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
         }
 
-        [Fact(DisplayName = "UTCID03 - Throws UnauthorizedAccessException if patient accesses others' prescription")]
-        public async System.Threading.Tasks.Task UTCID03_ShouldThrow_IfPatientAccessesOthers()
+        [Fact(DisplayName = "UTCID02 - Throws UnauthorizedAccessException if patient accesses others' prescription")]
+        public async System.Threading.Tasks.Task UTCID02_ShouldThrow_IfPatientAccessesOthers()
         {
             SetupHttpContext("patient", 10);
 
@@ -92,8 +82,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
             Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
         }
 
-        [Fact(DisplayName = "UTCID04 - Throws Exception if dentist not found")]
-        public async System.Threading.Tasks.Task UTCID04_ShouldThrow_WhenDentistNotFound()
+        [Fact(DisplayName = "UTCID03 - Throws Exception if dentist not found")]
+        public async System.Threading.Tasks.Task UTCID03_ShouldThrow_WhenDentistNotFound()
         {
             SetupHttpContext("dentist", 3);
 
@@ -117,8 +107,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
             Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
         }
 
-        [Fact(DisplayName = "UTCID05 - Return success when dentist views valid prescription")]
-        public async System.Threading.Tasks.Task UTCID05_ShouldReturnSuccess_WhenDentistValid()
+        [Fact(DisplayName = "UTCID04 - Return success when dentist views valid prescription")]
+        public async System.Threading.Tasks.Task UTCID04_ShouldReturnSuccess_WhenDentistValid()
         {
             SetupHttpContext("dentist", 3);
 

@@ -6,7 +6,6 @@ import {
   FileText,
   Settings,
   UserCheck,
-  TrendingUp,
   Stethoscope,
   CreditCard,
   Package,
@@ -85,7 +84,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           label: 'Quản Lý Lịch',
           icon: <UserCheck className="h-4 w-4" />,
           path: '/schedules',
-          roles: ['Owner', 'Receptionist', 'Dentist']
+          roles: ['Owner', 'Receptionist', 'Dentist', 'Assistant', 'Administrator']
         }
       ]
     },
@@ -157,7 +156,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           label: 'Hóa Đơn',
           icon: <FileText className="h-4 w-4" />,
           path: '/invoices',
-          roles: ['Receptionist']
+          roles: ['Receptionist', 'Owner']
         },
         {
           id: 'finance-payments',
@@ -173,7 +172,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       label: 'Mẫu Chỉ Dẫn',
       icon: <FileText className="h-5 w-5" />,
       path: '/instruction-templates',
-      roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
+      roles: [ 'Assistant', 'Dentist']
     },
     {
       id: "procedures",
@@ -187,14 +186,14 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       label: 'Kho Vật Tư',
       icon: <Package className="h-5 w-5" />,
       path: '/inventory',
-      roles: ['Administrator', 'Owner', 'Assistant', "Receptionist", 'Dentist'],
+      roles: ['Owner', 'Assistant', "Receptionist", 'Dentist'],
     },
     {
       id: 'promotions',
       label: 'Khuyến Mãi',
       icon: <Percent className="h-5 w-5" />,
       path: '/promotions',
-      roles: ['Receptionist']
+      roles: ['Receptionist', 'Owner', 'Assistant', 'Dentist']
     },
     // {
     //   id: 'reports',
@@ -223,7 +222,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       label: 'Quản Lý Người Dùng',
       icon: <UserCheck className="h-5 w-5" />,
       path: '/administrator/user-list',
-      roles: ['Administrator', 'Owner']
+      roles: ['Administrator']
     },
     {
       id: 'settings',

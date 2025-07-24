@@ -4,9 +4,11 @@ using Application.Usecases.Dentists.CreatePrescription;
 using HDMS_API.Infrastructure.Persistence;
 using HDMS_API.Infrastructure.Repositories;
 using Infrastructure.Repositories;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists
@@ -33,7 +35,9 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists
             _handler = new CreatePrescriptionHandler(
                 _httpContextAccessor,
                 new PrescriptionRepository(_context),
-                new AppointmentRepository(_context)
+                new AppointmentRepository(_context),
+                new PatientRepository(_context),
+                new Mock<IMediator>().Object
             );
         }
 

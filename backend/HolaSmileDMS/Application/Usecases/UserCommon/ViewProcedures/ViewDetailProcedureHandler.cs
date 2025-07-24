@@ -29,14 +29,13 @@ namespace Application.Usecases.UserCommon.ViewProcedures
             var currentUserRole = user.FindFirst(ClaimTypes.Role)?.Value;
             var currentUserId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-            if (currentUserRole == null)
+            if (string.Equals(currentUserRole, "patient", StringComparison.OrdinalIgnoreCase))
             {
-                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // "Bạn cần đăng nhập..."
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             }
 
             var existProcedure = await _procedureRepository.GetProcedureByProcedureId(request.proceduredId);
-            if (existProcedure == null ||
-            (!string.Equals(currentUserRole, "assistant", StringComparison.OrdinalIgnoreCase) && existProcedure.IsDeleted))
+            if (existProcedure == null)
             {
                 throw new Exception(MessageConstants.MSG.MSG16); // Không tìm thấy thủ thuật
             }

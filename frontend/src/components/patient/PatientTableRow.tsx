@@ -19,28 +19,34 @@ interface Props {
     patient: Patient
     index: number
     onEdit: (patient: Patient) => void
+    shouldHideTreatmentRecords?: boolean
 }
 
-export default function PatientTableRow({ patient, index, onEdit }: Props) {
-    const rowBg = index % 2 === 0 ? "bg-white" : "bg-gray-50"
-    const navigate = useNavigate();
-    const userInfo = useUserInfo(); 
+export default function PatientTableRow({ patient, index, onEdit, shouldHideTreatmentRecords = false }: Props) {
+    // Sử dụng màu xanh nhạt và tím nhạt thay vì trắng và xám
+    const rowBg = index % 2 === 0 ? "bg-blue-50/30" : "bg-purple-50/30"
+    const hoverBg = index % 2 === 0 ? "hover:bg-blue-100/50" : "hover:bg-purple-100/50"
     
+    const navigate = useNavigate();
+    const userInfo = useUserInfo();
+
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false)
-    
+
     const handleViewDetail = () => {
         setIsModalOpen(true)
     }
-    
+
     const handleCloseModal = () => {
         setIsModalOpen(false)
     }
-    
+
+    const isDentistOrAssistant = userInfo?.role === 'Dentist' || userInfo?.role === 'Assistant'; 
+
     return (
         <>
             <tr
-                className={`shadow-sm custom-row-shadow ${rowBg} hover:bg-gray-100 transition-colors duration-200`}
+                className={`shadow-sm custom-row-shadow ${rowBg} ${hoverBg} transition-colors duration-200`}
             >
                 <td className="p-4 first:rounded-l-md">{patient.fullname}</td>
                 <td className="p-4">
@@ -67,13 +73,15 @@ export default function PatientTableRow({ patient, index, onEdit }: Props) {
                         </div>
                     </div>
                 </td>
-                <td className="p-4">
-                    <Button asChild variant="outline" size="sm">
-                        <Link to={`/patient/view-treatment-records?patientId=${patient.patientId}`}>
-                            Xem Hồ Sơ Điều Trị
-                        </Link>
-                    </Button>
-                </td>
+                {!shouldHideTreatmentRecords && (
+                    <td className="p-4">
+                        <Button asChild variant="outline" size="sm">
+                            <Link to={`/patient/view-treatment-records?patientId=${patient.patientId}`}>
+                                Xem Hồ Sơ Điều Trị
+                            </Link>
+                        </Button>
+                    </td>
+                )}
                 <td className="p-4 last:rounded-r-md">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -90,23 +98,28 @@ export default function PatientTableRow({ patient, index, onEdit }: Props) {
                                     Chỉnh Sửa Bệnh Nhân
                                 </DropdownMenuItem>
                             )}
-                            <DropdownMenuItem
-                                onClick={() => navigate(`/patient/follow-up?patientId=${patient.patientId}`)}
-                            >
-                                Tạo Lịch Tái Khám
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onClick={() => navigate(`/patients/${patient.patientId}/orthodontic-treatment-plans`)}
-                            >
-                                Kế Hoạch Điều Trị
-                            </DropdownMenuItem>
+                            {userInfo?.role === "Receptionist" && (
+                                <DropdownMenuItem
+                                    onClick={() => navigate(`/patient/follow-up?patientId=${patient.patientId}`)}
+                                >
+                                    Tạo Lịch Tái Khám
+                                </DropdownMenuItem>
+                            )}
+                            {isDentistOrAssistant && (
+                                <DropdownMenuItem
+                                    onClick={() => navigate(`/patients/${patient.patientId}/orthodontic-treatment-plans`)}
+                                >
+                                    Kế Hoạch Điều Trị
+                                </DropdownMenuItem>
+                            )}
+
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </td>
             </tr>
-            
+
             {/* Patient Detail Modal */}
-            <PatientDetailModal 
+            <PatientDetailModal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
                 patientId={patient.patientId}

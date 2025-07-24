@@ -8,10 +8,13 @@
 
   <ItemGroup>
     <Compile Remove="Usecases\UserCommon\RefreshToken - Copy\**" />
+    <Compile Remove="Usecases\UserCommon\ViewMessage\**" />
     <EmbeddedResource Remove="Usecases\UserCommon\NewFolder1\**" />
     <EmbeddedResource Remove="Usecases\UserCommon\RefreshToken - Copy\**" />
+    <EmbeddedResource Remove="Usecases\UserCommon\ViewMessage\**" />
     <None Remove="Usecases\UserCommon\NewFolder1\**" />
     <None Remove="Usecases\UserCommon\RefreshToken - Copy\**" />
+    <None Remove="Usecases\UserCommon\ViewMessage\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -51,8 +54,5 @@
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.6" />
 		<PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
 
-	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="Usecases\UserCommon\ViewMessage\" />
 	</ItemGroup>
 </Project>

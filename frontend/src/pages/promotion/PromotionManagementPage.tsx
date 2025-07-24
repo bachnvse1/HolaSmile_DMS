@@ -8,7 +8,7 @@ export const PromotionManagementPage: React.FC = () => {
   const userInfo = useUserInfo();
 
   return (
-    <AuthGuard requiredRoles={['Receptionist']}>
+    <AuthGuard requiredRoles={['Receptionist', 'Owner', 'Assistant', 'Dentist']}>
       <StaffLayout userInfo={userInfo}>
         <PromotionList />
       </StaffLayout>
