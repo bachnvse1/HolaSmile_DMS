@@ -74,12 +74,11 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
             Assert.True(ok);
         }
 
-        [Fact(DisplayName = "Normal - UTCID02 - Receptionist cập nhật trạng thái pending trả về true")]
+        [Fact(DisplayName = "Normal - UTCID02 - Not permisstion")]
         public async System.Threading.Tasks.Task UTCID02_ReceptionistPending_ShouldSuccess()
         {
             var (handler, _, _, _, _) = Setup("Receptionist", "pending");
-            var ok = await handler.Handle(GetValidCmd(), default);
-            Assert.True(ok);
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => handler.Handle(GetValidCmd(), default));
         }
 
         [Fact(DisplayName = "Abnormal - UTCID03 - Receptionist cập nhật status!=pending bị cấm")]

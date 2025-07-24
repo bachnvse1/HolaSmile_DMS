@@ -31,13 +31,15 @@ public class EditInstructionTemplateHandlerTests
     }
 
     [Fact]
-    public async System.Threading.Tasks.Task UTCID01_ShouldThrow_WhenRoleNotAssistant()
+    public async System.Threading.Tasks.Task UTCID01_ShouldOK_WhenRoleDentist()
     {
-        SetupHttpContext("Dentist");
-
+        SetupHttpContext("Dentist", "2");
+        var template = new InstructionTemplate { Instruc_TemplateID = 1, Instruc_TemplateName = "New", Instruc_TemplateContext = "Context", IsDeleted = false };
+        _repoMock.Setup(r => r.GetByIdAsync(1, new CancellationToken())).ReturnsAsync(template);
+        _repoMock.Setup(r => r.UpdateAsync(It.IsAny<InstructionTemplate>())).Returns(System.Threading.Tasks.Task.CompletedTask);
         var command = new EditInstructionTemplateCommand { Instruc_TemplateID = 1, Instruc_TemplateName = "New", Instruc_TemplateContext = "Context" };
-        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(command, default));
-        Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
+        var ok = await _handler.Handle(command, default);
+        Assert.Equal(MessageConstants.MSG.MSG107, ok);
     }
 
     [Fact]
