@@ -138,10 +138,10 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Patients
                 _handler.Handle(command, default));
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID03 - Role không phải Patient sẽ bị chặn")]
+        [Fact(DisplayName = "Abnormal - UTCID03 - Role không có quyền sẽ bị chặn")]
         public async System.Threading.Tasks.Task Abnormal_UTCID03_InvalidRole_Throws()
         {
-            SetupHttpContext("Assistant", 1);
+            SetupHttpContext("Owner", 1);
 
             var command = new ViewInstructionCommand();
 

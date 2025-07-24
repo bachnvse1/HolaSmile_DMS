@@ -20,7 +20,7 @@ namespace Application.Usecases.Assistants.DeactivePatientDentalImage
         public async Task<string> Handle(DeactivePatientDentalImageCommand request, CancellationToken cancellationToken)
         {
             var role = _httpContext.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value;
-            if (role != "Assistant" && role != "Dentist")
+            if (role != "Assistant" && role != "Dentist" && role != "Patient")
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
             var userId = int.Parse(_httpContext.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");

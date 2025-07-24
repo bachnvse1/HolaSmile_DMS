@@ -1,5 +1,6 @@
 ﻿using Application.Usecases.Assistants.ViewPatientDentalImage;
 using HDMS_API.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -18,12 +19,17 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             services.AddDbContext<ApplicationDbContext>(opt =>
                 opt.UseInMemoryDatabase("ViewPatientDentalImageDb"));
 
+            // Register IHttpContextAccessor
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
             var provider = services.BuildServiceProvider();
             _context = provider.GetRequiredService<ApplicationDbContext>();
 
             var imageRepo = new ImageRepository(_context);
+            var httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
 
-            _handler = new ViewPatientDentalImageHandler(imageRepo);
+            // Pass httpContextAccessor to the handler
+            _handler = new ViewPatientDentalImageHandler(imageRepo, httpContextAccessor);
 
             SeedData();
         }
