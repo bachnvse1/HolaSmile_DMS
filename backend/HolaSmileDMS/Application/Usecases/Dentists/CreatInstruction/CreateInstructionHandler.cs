@@ -5,7 +5,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
-namespace Application.Usecases.Assistants.CreateInstruction
+namespace Application.Usecases.Dentists.CreatInstruction
 {
     public class CreateInstructionHandler : IRequestHandler<CreateInstructionCommand, string>
     {
@@ -36,7 +36,7 @@ namespace Application.Usecases.Assistants.CreateInstruction
             var userIdStr = user?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (user == null || string.IsNullOrEmpty(role) ||
-                (role.ToLower() != "dentist"))
+                role.ToLower() != "dentist")
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
 
             if (!int.TryParse(userIdStr, out var userId))

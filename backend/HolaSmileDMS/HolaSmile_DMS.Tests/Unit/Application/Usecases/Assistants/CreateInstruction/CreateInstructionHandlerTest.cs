@@ -1,6 +1,6 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.Assistants.CreateInstruction;
+using Application.Usecases.Dentists.CreatInstruction;
 using FluentAssertions;
 using MediatR;
 using Microsoft.AspNetCore.Http;

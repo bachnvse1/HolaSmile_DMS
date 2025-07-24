@@ -1,7 +1,7 @@
-﻿using Application.Usecases.Assistants.CreateInstruction;
-using Application.Usecases.Assistants.DeactiveInstruction;
+﻿using Application.Usecases.Assistants.DeactiveInstruction;
 using Application.Usecases.Assistants.UpdateInstruction;
 using Application.Usecases.Assistants.ViewListInstruction;
+using Application.Usecases.Dentists.CreatInstruction;
 using Application.Usecases.Patients.ViewInstruction;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

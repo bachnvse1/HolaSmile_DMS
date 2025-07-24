@@ -1,5 +1,5 @@
 ﻿using Application.Constants;
-using Application.Usecases.Assistants.CreateInstruction;
+using Application.Usecases.Dentists.CreatInstruction;
 using HDMS_API.Infrastructure.Persistence;
 using HDMS_API.Infrastructure.Repositories;
 using Infrastructure.Repositories;
@@ -11,7 +11,7 @@ using Moq;
 using System.Security.Claims;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists.CreatInstruction
 {
     public class CreateInstructionIntegrationTests
     {
