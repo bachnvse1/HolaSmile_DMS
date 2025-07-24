@@ -3,6 +3,7 @@ using HDMS_API.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System.Security.Claims;
 using Xunit;
 
 namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
@@ -19,16 +20,27 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             services.AddDbContext<ApplicationDbContext>(opt =>
                 opt.UseInMemoryDatabase("ViewPatientDentalImageDb"));
 
-            // Register IHttpContextAccessor
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            // Tạo mock HttpContext
+            var httpContext = new DefaultHttpContext();
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Role, "Assistant") 
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuth");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+            httpContext.User = claimsPrincipal;
+
+            var httpContextAccessor = new HttpContextAccessor
+            {
+                HttpContext = httpContext
+            };
+
+            services.AddSingleton<IHttpContextAccessor>(httpContextAccessor);
 
             var provider = services.BuildServiceProvider();
             _context = provider.GetRequiredService<ApplicationDbContext>();
 
             var imageRepo = new ImageRepository(_context);
-            var httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
-
-            // Pass httpContextAccessor to the handler
             _handler = new ViewPatientDentalImageHandler(imageRepo, httpContextAccessor);
 
             SeedData();
