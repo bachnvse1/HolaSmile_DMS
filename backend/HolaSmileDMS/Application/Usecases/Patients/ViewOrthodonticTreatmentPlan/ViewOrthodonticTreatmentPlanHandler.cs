@@ -35,7 +35,7 @@ namespace Application.Usecases.Patients.ViewOrthodonticTreatmentPlan
                 if (userId == 0 || userId != userIdCurrent)
                     throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Không có quyền truy cập
             }
-            else if (role != "Dentist" && role != "Receptionist" && role != "Assistant")
+            else if (role != "Dentist" && role != "Assistant")
             {
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Không có quyền truy cập
             }

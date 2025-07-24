@@ -35,14 +35,14 @@ public class CreateInstructionTemplateHandlerTests
     }
 
     [Fact]
-    public async System.Threading.Tasks.Task UTCID01_ShouldThrow_WhenRoleIsNotAssistant()
+    public async System.Threading.Tasks.Task UTCID01_ShouldOK_WhenRoleIsDentist()
     {
         SetupHttpContext("Dentist");
 
         var cmd = new CreateInstructionTemplateCommand { Instruc_TemplateName = "Test", Instruc_TemplateContext = "Context" };
 
-        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(cmd, default));
-        Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
+        var ok = await _handler.Handle(cmd, default);
+        Assert.Equal(MessageConstants.MSG.MSG114, ok);
     }
 
     [Fact]
