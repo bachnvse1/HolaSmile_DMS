@@ -32,7 +32,9 @@ namespace Application.Usecases.Patients.ViewInstruction
             var role = user?.FindFirst(ClaimTypes.Role)?.Value;
 
             if (!string.Equals(role, "Patient", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(role, "Assistant", StringComparison.OrdinalIgnoreCase))
+                !string.Equals(role, "Assistant", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(role, "Receptionist", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(role, "Dentist", StringComparison.OrdinalIgnoreCase))
             {
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             }
@@ -56,9 +58,9 @@ namespace Application.Usecases.Patients.ViewInstruction
                         .ToList();
                 }
             }
-            else // Assistant
+            else // Assistant, dentist , receptionist
             {
-                // Assistant được xem tất cả
+                // được xem tất cả
                 appointments = request.AppointmentId.HasValue
                     ? new List<Appointment> {
                           await _appointmentRepository.GetAppointmentByIdAsync(request.AppointmentId.Value)

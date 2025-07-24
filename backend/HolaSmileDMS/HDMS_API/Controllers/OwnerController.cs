@@ -1,4 +1,5 @@
-﻿using Application.Usecases.Owner.ViewDashboard;
+﻿using Application.Constants;
+using Application.Usecases.Owner.ViewDashboard;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,12 +21,22 @@ namespace HDMS_API.Controllers
         [HttpGet("dashboard")]
         public async Task<IActionResult> ViewDashboard([FromQuery] string? filter)
         {
-            var result = await _mediator.Send(new ViewDashboardCommand
+            try
             {
-                Filter = filter
-            });
+                var result = await _mediator.Send(new ViewDashboardCommand
+                {
+                    Filter = filter
+                });
 
-            return Ok(result);
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    message = MessageConstants.MSG.MSG26
+                });
+            }           
         }
     }
 }

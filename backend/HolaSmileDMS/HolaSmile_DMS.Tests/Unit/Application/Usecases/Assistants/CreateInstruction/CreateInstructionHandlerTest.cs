@@ -8,7 +8,7 @@ using Moq;
 using System.Security.Claims;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
 {
     public class CreateInstructionHandlerTest
     {
@@ -55,7 +55,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
         [Fact(DisplayName = "Abnormal - UTCID02 - UserId không hợp lệ sẽ bị chặn")]
         public async System.Threading.Tasks.Task Abnormal_UTCID02_InvalidUserId_Throws()
         {
-            var handler = CreateHandlerWithRole("Assistant", "abc"); // not an integer
+            var handler = CreateHandlerWithRole("Dentist", "abc"); // not an integer
             var command = new CreateInstructionCommand { AppointmentId = 1 };
 
             var act = async () => await handler.Handle(command, CancellationToken.None);
@@ -67,7 +67,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
         [Fact(DisplayName = "Abnormal - UTCID03 - Appointment không tồn tại sẽ bị chặn")]
         public async System.Threading.Tasks.Task Abnormal_UTCID03_AppointmentNotFound_Throws()
         {
-            var handler = CreateHandlerWithRole("Assistant", "2");
+            var handler = CreateHandlerWithRole("Dentist", "2");
 
             _appointmentRepoMock
                 .Setup(r => r.GetAppointmentByIdAsync(1))
@@ -84,7 +84,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
         [Fact(DisplayName = "Abnormal - UTCID04 - Đã có instruction cho appointment này sẽ bị chặn")]
         public async System.Threading.Tasks.Task Abnormal_UTCID04_InstructionAlreadyExists_Throws()
         {
-            var handler = CreateHandlerWithRole("Assistant", "2");
+            var handler = CreateHandlerWithRole("Dentist", "2");
 
             _appointmentRepoMock
                 .Setup(r => r.GetAppointmentByIdAsync(1))

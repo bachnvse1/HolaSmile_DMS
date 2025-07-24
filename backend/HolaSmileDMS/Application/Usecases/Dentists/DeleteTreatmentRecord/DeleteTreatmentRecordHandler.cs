@@ -32,7 +32,7 @@ namespace Application.Usecases.Dentist.DeleteTreatmentRecord
             var userId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var fullName = user?.FindFirst(ClaimTypes.GivenName)?.Value;
             
-            if (role != "Dentist")
+            if (role != "Dentist" && role != "Assistant")
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
             var record = _repository.GetTreatmentRecordByIdAsync(request.TreatmentRecordId, cancellationToken);

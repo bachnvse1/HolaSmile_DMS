@@ -23,7 +23,7 @@ public class ViewListWarrantyCardsHandler : IRequestHandler<ViewListWarrantyCard
         if (user == null)
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53);
 
-        if (role != "Assistant" && role != "Dentist" && role != "Receptionist")
+        if (role != "Assistant" && role != "Dentist" && role != "Receptionist" && role != "Patient")
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
         var cards = await _repository.GetAllWarrantyCardsWithProceduresAsync(cancellationToken);
