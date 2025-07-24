@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Search, Calendar, Edit, Eye, ToggleLeft, ToggleRight } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,7 +13,6 @@ import { formatDateShort, getDaysRemaining } from '@/utils/date';
 import { getErrorMessage } from '@/utils/formatUtils';
 import type { PromotionProgram } from '@/services/promotionApi';
 import { CreatePromotionModal } from './CreatePromotionModal';
-import { ViewPromotionModal } from './ViewPromotionModal';
 import { EditPromotionModal } from './EditPromotionModal';
 import { useUserInfo } from '@/hooks/useUserInfo';
 
@@ -21,6 +21,7 @@ export const PromotionList: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(8);
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const navigate = useNavigate();
 
   const userInfo = useUserInfo();
   const canEdit = userInfo?.role === 'Receptionist';
@@ -28,10 +29,6 @@ export const PromotionList: React.FC = () => {
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState<{ isOpen: boolean; programId: number | null }>({
-    isOpen: false,
-    programId: null
-  });
-  const [showViewModal, setShowViewModal] = useState<{ isOpen: boolean; programId: number | null }>({
     isOpen: false,
     programId: null
   });
@@ -112,7 +109,7 @@ export const PromotionList: React.FC = () => {
   };
 
   const handleView = (programId: number) => {
-    setShowViewModal({ isOpen: true, programId });
+    navigate(`/promotions/${programId}`);
   };
 
   const handleEdit = (programId: number) => {
@@ -473,15 +470,6 @@ export const PromotionList: React.FC = () => {
         <CreatePromotionModal
           isOpen={showCreateModal}
           onClose={() => setShowCreateModal(false)}
-        />
-      )}
-
-      {showViewModal.programId && (
-        <ViewPromotionModal
-          isOpen={showViewModal.isOpen}
-          onClose={() => setShowViewModal({ isOpen: false, programId: null })}
-          programId={showViewModal.programId}
-          onEdit={canEdit ? (programId) => setShowEditModal({ isOpen: true, programId }) : undefined}
         />
       )}
 
