@@ -140,9 +140,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients
 
             var cmd = new ViewInstructionCommand { AppointmentId = 999 };
 
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
                 _handler.Handle(cmd, default));
-            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
+            Assert.Equal("Lịch hẹn của bạn không tồn tại", ex.Message);
         }
 
         [Fact(DisplayName = "UTCID04 - Assistant xem chỉ dẫn của 1 lịch hẹn")]

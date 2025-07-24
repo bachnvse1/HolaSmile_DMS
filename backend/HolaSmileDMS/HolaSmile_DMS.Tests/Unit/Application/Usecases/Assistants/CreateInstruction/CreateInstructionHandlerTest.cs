@@ -40,7 +40,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
             );
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID01 - Role không phải Assistant/Dentist sẽ bị chặn")]
+        [Fact(DisplayName = "Abnormal - UTCID01 - Role không phải Dentist sẽ bị chặn")]
         public async System.Threading.Tasks.Task Abnormal_UTCID01_RoleIsNotAssistantOrDentist_Throws()
         {
             var handler = CreateHandlerWithRole("Patient", "1");

@@ -51,7 +51,7 @@ namespace Application.Usecases.Patients.ViewInstruction
                 {
                     var isValid = appointments.Any(a => a.AppointmentId == request.AppointmentId.Value);
                     if (!isValid)
-                        throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
+                        throw new ArgumentException("Lịch hẹn của bạn không tồn tại");
 
                     appointments = appointments
                         .Where(a => a.AppointmentId == request.AppointmentId.Value)
