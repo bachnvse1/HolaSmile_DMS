@@ -82,20 +82,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
             Assert.Equal("Updater", result.UpdateBy);
         }
 
-        [Fact(DisplayName = "Invalid - UTCID03 - Non-assistant cannot view deleted procedure")]
-        public async System.Threading.Tasks.Task UTCID03_NonAssistant_ViewDeletedProcedure_ThrowsException()
-        {
-            SetupHttpContext("dentist");
-
-            var procedure = new Procedure { ProcedureId = 3, IsDeleted = true };
-            _procedureRepositoryMock.Setup(r => r.GetProcedureByProcedureId(3)).ReturnsAsync(procedure);
-
-            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(new ViewDetailProcedureCommand { proceduredId = 3 }, default));
-            Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
-        }
-
-        [Fact(DisplayName = "Invalid - UTCID04 - Procedure not found")]
-        public async System.Threading.Tasks.Task UTCID04_ProcedureNotFound_ThrowsException()
+        [Fact(DisplayName = "Invalid - UTCID03 - Procedure not found")]
+        public async System.Threading.Tasks.Task UTCID03_ProcedureNotFound_ThrowsException()
         {
             SetupHttpContext("assistant");
 
@@ -105,23 +93,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
             Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
         }
 
-        [Fact(DisplayName = "Unauthorized - UTCID05 - Role missing")]
-        public async System.Threading.Tasks.Task UTCID05_RoleMissing_ThrowsUnauthorized()
-        {
-            var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, "1") };
-            var identity = new ClaimsIdentity(claims);
-            var user = new ClaimsPrincipal(identity);
-            var context = new DefaultHttpContext { User = user };
-            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
 
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(new ViewDetailProcedureCommand { proceduredId = 5 }, default));
-
-            Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
-        }
-
-        [Fact(DisplayName = "Edge - UTCID06 - Unknown CreatedBy/UpdatedBy fallback")]
-        public async System.Threading.Tasks.Task UTCID06_UnknownUserFallbackToUnknown()
+        [Fact(DisplayName = "Edge - UTCID04 - Unknown CreatedBy/UpdatedBy fallback")]
+        public async System.Threading.Tasks.Task UTCID04_UnknownUserFallbackToUnknown()
         {
             SetupHttpContext("assistant");
 

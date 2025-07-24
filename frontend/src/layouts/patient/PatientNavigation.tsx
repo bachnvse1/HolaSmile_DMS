@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { User, LogOut, Settings, Menu, X } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../../hooks/useAuth';
@@ -20,10 +20,27 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { fullName, logout } = useAuth();
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Use passed userInfo or fallback to auth data
   const displayName = userInfo?.name || fullName || 'User';
   const displayRole = 'Bệnh nhân';
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    if (isUserMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isUserMenuOpen]);
 
   const handleLogout = () => {
     logout();
@@ -78,12 +95,6 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
               >
                 Hóa Đơn
               </button>
-              <button
-                onClick={() => navigate('/instruction-templates')}
-                className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Chỉ Dẫn
-              </button>
             </div>
           </div>
 
@@ -106,7 +117,7 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
             </button>
 
             {/* User Menu */}
-            <div className="relative">
+            <div className="relative" ref={userMenuRef}>
               <button
                 onClick={toggleUserMenu}
                 className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 p-2 rounded-lg hover:bg-gray-100"
@@ -195,12 +206,6 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
               className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
             >
               Hóa Đơn
-            </button>
-            <button
-              onClick={() => navigate('/instruction-templates')}
-              className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
-            >
-              Chỉ Dẫn
             </button>
             <div className="border-t pt-4 border-gray-300">
               <button

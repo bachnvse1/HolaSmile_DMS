@@ -27,9 +27,10 @@ namespace Application.Usecases.UserCommon.ViewSupplies
             var user = _httpContextAccessor.HttpContext?.User;
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
-            if (currentUserRole == null)
+
+            if (string.Equals(currentUserRole, "administrator", StringComparison.OrdinalIgnoreCase) || string.Equals(currentUserRole, "patient", StringComparison.OrdinalIgnoreCase))
             {
-                throw new UnauthorizedAccessException("Bạn không có quyền truy cập chức năng này"); // Bạn không có quyền truy cập chức năng này
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Bạn không có quyền truy cập chức năng này
             }
 
             var existSupply = await _supplyRepository.GetSupplyBySupplyIdAsync(request.SupplyId);

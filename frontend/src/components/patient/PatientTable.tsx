@@ -6,6 +6,7 @@ import EditPatientModal from "./EditPatientModal"
 import { useState } from "react"
 import { updatePatient } from "@/services/patientService"
 import { toast } from "react-toastify"
+import { useUserInfo } from "@/hooks/useUserInfo"
 
 interface Props {
     patients: Patient[]
@@ -16,6 +17,10 @@ export default function PatientTable({ patients, refetchPatients }: Props) {
     const isEmpty = patients.length === 0
     const [editModalOpen, setEditModalOpen] = useState(false)
     const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
+    const userInfo = useUserInfo()
+
+    // Check if user role should hide treatment records
+    const shouldHideTreatmentRecords = userInfo?.role === "Administrator" || userInfo?.role === "Owner"
 
     const handleEditPatient = (patient: Patient) => {
         setSelectedPatient(patient)
@@ -53,7 +58,9 @@ export default function PatientTable({ patients, refetchPatients }: Props) {
                                 <TableHead className="p-4">Giới Tính</TableHead>
                                 <TableHead className="p-4">Ngày Sinh</TableHead>
                                 <TableHead className="p-4">Liên Hệ</TableHead>
-                                <TableHead className="p-4">Hồ Sơ Điều Trị</TableHead>
+                                {!shouldHideTreatmentRecords && (
+                                    <TableHead className="p-4">Hồ Sơ Điều Trị</TableHead>
+                                )}
                                 <TableHead className="p-4 w-[50px]"></TableHead>
                             </TableRow>
                         </TableHeader>
@@ -64,6 +71,7 @@ export default function PatientTable({ patients, refetchPatients }: Props) {
                                     patient={patient}
                                     index={index}
                                     onEdit={handleEditPatient}
+                                    shouldHideTreatmentRecords={shouldHideTreatmentRecords}
                                 />
                             ))}
                         </TableBody>

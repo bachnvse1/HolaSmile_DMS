@@ -25,10 +25,9 @@ namespace Application.Usecases.UserCommon.ViewPatientPrescription
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-            //Check if the user is authenticated
-            if (currentUserId == 0 || string.IsNullOrEmpty(currentUserRole))
+            if (string.Equals(currentUserRole, "administrator", StringComparison.OrdinalIgnoreCase))
             {
-                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53); // "Bạn cần đăng nhập để thực hiện chức năng này"
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             }
 
             var existPrescription = await _prescriptionRepository.GetPrescriptionByPrescriptionIdAsync(request.PrescriptionId) ?? throw new Exception(MessageConstants.MSG.MSG16);

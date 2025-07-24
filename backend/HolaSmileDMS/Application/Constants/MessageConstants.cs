@@ -128,6 +128,7 @@ public static class MessageConstants
                 public const string MSG123 = "Cập nhật phiếu thu chi thành công";
                 public const string MSG124 = "Captcha không hợp lệ";
                 public const string MSG125 = "Phải nằm trong từ 0%-100%";
+                public const string MSG126 = "Ngày bắt đầu hoặc kết thúc không hợp lệ";
     }
 }   
  

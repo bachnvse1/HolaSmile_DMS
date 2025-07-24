@@ -20,9 +20,7 @@ namespace Application.Usecases.Assistant.CreateSupply
         }
         public async Task<bool> Handle(CreateSupplyCommand request, CancellationToken cancellationToken)
         {
-            var user = _httpContextAccessor.HttpContext?.User
-                ?? throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53);
-
+            var user = _httpContextAccessor.HttpContext?.User;
             var currentUserId = int.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var currentUserRole = user.FindFirstValue(ClaimTypes.Role);
 

@@ -57,6 +57,9 @@ namespace Application.Usecases.Receptionist.De_ActivePromotion
                 var activeProgram = await _promotionRepository.GetProgramActiveAsync();
                 if (activeProgram != null && activeProgram.DiscountProgramID != discountProgram.DiscountProgramID)
                     throw new Exception(MessageConstants.MSG.MSG121); // "Chỉ được phép có 1 chương trình khuyến mãi tại 1 thời điểm"
+
+                if (discountProgram.EndDate <= DateTime.Now || discountProgram.CreateDate.Date < DateTime.Now.Date) throw new Exception(MessageConstants.MSG.MSG126);
+
                 foreach (var pd in discountProgram.ProcedureDiscountPrograms)
                 {
                     var proc = await _procedureRepository.GetProcedureByIdAsync(pd.ProcedureId, cancellationToken);
@@ -79,7 +82,7 @@ namespace Application.Usecases.Receptionist.De_ActivePromotion
                      o.User.UserID,
                       "Cập nhật chương trình khuyến mãi",
                         $" chương trình khuyến mãi {discountProgram.DiscountProgramName} đã kết thúc vào lúc {DateTime.Now}",
-                      null, null),
+                      "promotion", null),
                      cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);
             }

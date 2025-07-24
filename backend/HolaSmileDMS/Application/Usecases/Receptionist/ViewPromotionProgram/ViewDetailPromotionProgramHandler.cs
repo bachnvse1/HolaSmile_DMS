@@ -25,10 +25,10 @@ namespace Application.Usecases.Receptionist.ViewPromotionProgram
         {
             var user = _httpContextAccessor.HttpContext?.User;
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
-            //if (!string.Equals(currentUserRole, "receptionist", StringComparison.OrdinalIgnoreCase) && !string.Equals(currentUserRole, "owner", StringComparison.OrdinalIgnoreCase))
-            //{
-            //    throw new UnauthorizedAccessException("Bạn không có quyền truy cập chức năng này");
-            //}
+            if (string.Equals(currentUserRole, "administrator", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
+            }
             var discountProgram = await _promotionRepository.GetDiscountProgramByIdAsync(request.DiscountProgramId);
             if (discountProgram == null)
             {

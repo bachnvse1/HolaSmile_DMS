@@ -69,10 +69,10 @@ public class ViewPromotionProgramHandlerIntegrationTests
         _httpContextAccessor.HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(identity) };
     }
 
-    [Fact(DisplayName = "ITCID01 - Throw if role is not receptionist or owner")]
+    [Fact(DisplayName = "ITCID01 - Throw if role is administrator")]
     public async System.Threading.Tasks.Task ITCID01_Throw_if_role_is_not_receptionist_or_owner()
     {
-        SetupHttpContext("Patient", 3);
+        SetupHttpContext("administrator", 3);
         var handler = new ViewPromotionProgramHandler(_httpContextAccessor, _promotionRepo, null!);
 
         var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => handler.Handle(new ViewPromotionProgramCommand(), default));

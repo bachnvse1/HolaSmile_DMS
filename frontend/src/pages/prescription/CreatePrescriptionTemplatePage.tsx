@@ -6,7 +6,7 @@ import { StaffLayout } from '@/layouts/staff/StaffLayout';
 export const CreatePrescriptionTemplatePage: React.FC = () => {
   const userInfo = useUserInfo();
   return (
-    <AuthGuard requiredRoles={['Assistant']}>
+    <AuthGuard requiredRoles={['Assistant', 'Dentist']}>
       <StaffLayout userInfo={userInfo}>
         <PrescriptionTemplateForm />
       </StaffLayout>

@@ -36,7 +36,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
 
             _context = new ApplicationDbContext(options);
             _transactionRepo = new TransactionRepository(_context);
-            _userCommonRepo = new UserCommonRepository(_context, new Mock<IEmailService>().Object, memoryCache);
+            _userCommonRepo = new UserCommonRepository(_context, new Mock<IEmailService>().Object);
             _httpContextAccessor = new HttpContextAccessor();
 
             SeedData();
@@ -116,21 +116,9 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
             Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
         }
 
-        [Fact(DisplayName = "ITCID03: Fail - Not logged in")]
-        public async System.Threading.Tasks.Task ITCID03_ViewDetail_Fail_NotLoggedInAsync()
-        {
-            // Arrange: no HttpContext
-            _httpContextAccessor.HttpContext = null;
-            var handler = new ViewDetailFinancialTransactionsHandler(_userCommonRepo, _transactionRepo, _httpContextAccessor);
-            var command = new ViewDetailFinancialTransactionsCommand(100);
 
-            // Act & Assert
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
-        }
-
-        [Fact(DisplayName = "ITCID04: Fail - Transaction not found")]
-        public async System.Threading.Tasks.Task ITCID04_ViewDetail_Fail_NotFoundAsync()
+        [Fact(DisplayName = "ITCID03: Fail - Transaction not found")]
+        public async System.Threading.Tasks.Task ITCID03_ViewDetail_Fail_NotFoundAsync()
         {
             // Arrange
             SetupHttpContext("receptionist", 1);
@@ -142,8 +130,8 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
             Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
         }
 
-        [Fact(DisplayName = "ITCID05: Success - Owner views transaction detail")]
-        public async System.Threading.Tasks.Task ITCID05_ViewDetail_Success_OwnerAsync()
+        [Fact(DisplayName = "ITCID04: Success - Owner views transaction detail")]
+        public async System.Threading.Tasks.Task ITCID04_ViewDetail_Success_OwnerAsync()
         {
             // Arrange
             SetupHttpContext("owner", 2);

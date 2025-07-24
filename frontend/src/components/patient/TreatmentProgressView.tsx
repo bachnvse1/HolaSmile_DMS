@@ -144,7 +144,7 @@ export function TreatmentProgressView({ progress }: Props) {
   const { state: editState, updateState, startEditing, cancelEditing } = useEditState(progress)
   
   const isPatient = role === "Patient"
-  const canEdit = !isPatient && role && ["Administrator", "Owner", "Dentist"].includes(role)
+  const canEdit = !isPatient && role && ["Dentist"].includes(role)
 
   // Form setup
   const {

@@ -60,7 +60,6 @@ export const createFinancialTransaction = async (data: CreateTransactionRequest)
 };
 
 export const updateFinancialTransaction = async (data: UpdateTransactionRequest): Promise<ApiResponse> => {
-  console.log('API Update request:', data); // Debug log
   const response = await axiosInstance.put(`/transaction/edit-financial-transactions/${data.transactionID}`, data);
   return response.data;
 };
@@ -71,8 +70,18 @@ export const deactivateFinancialTransaction = async (transactionId: number): Pro
 };
 
 export const exportFinancialTransactions = async (): Promise<Blob> => {
-  const response = await axiosInstance.get('/transaction/export-financial-transactions', {
-    responseType: 'blob'
-  });
-  return response.data;
+  try {
+    const response = await axiosInstance.post('/transaction/export-excel', {}, {
+      responseType: 'blob'
+    });
+    // Kiểm tra xem response có phải là blob không
+    if (!(response.data instanceof Blob)) {
+      throw new Error('Response is not a blob');
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error('Export API error:', error);
+    throw error;
+  }
 };

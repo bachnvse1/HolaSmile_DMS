@@ -37,7 +37,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Administrators
             SeedData();
 
             _handler = new BanAndUnbanUserHandle(
-                new UserCommonRepository(_context, new Mock<IEmailService>().Object, memoryCache),
+                new UserCommonRepository(_context, new Mock<IEmailService>().Object),
                 _httpContextAccessor
             );
         }

@@ -152,7 +152,7 @@ export const useDownloadExcelSupplies = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `supplies_template_${new Date().toISOString().split('T')[0]}.xlsx`;
+      link.download = `mẫu danh sách vật tư_${new Date().toISOString().split('T')[0]}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -170,7 +170,7 @@ export const useExportSupplies = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `supplies_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+      link.download = `danh sách vật tư_${new Date().toISOString().split('T')[0]}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

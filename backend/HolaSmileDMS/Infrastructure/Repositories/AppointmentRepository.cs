@@ -287,7 +287,6 @@ namespace HDMS_API.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-
         public async Task<List<Appointment>> GetAllCofirmAppoitmentAsync()
         {
             return await _context.Appointments

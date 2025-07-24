@@ -1,6 +1,5 @@
 using Application.Interfaces;
 using Application.Usecases.Administrator.ViewListUser;
-using Application.Usecases.Patients.ViewListPatient;
 using Application.Usecases.UserCommon.ViewProfile;
 using HDMS_API.Application.Usecases.UserCommon.ForgotPassword;
 using HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount;
@@ -117,26 +116,6 @@ public class FakeUserCommonRepository : IUserCommonRepository
         throw new NotImplementedException();
     }
     Task<User> IUserCommonRepository.CreatePatientAccountAsync(CreatePatientDto dto, string password)
-    {
-        throw new NotImplementedException();
-    }
-
-    Task<bool> IUserCommonRepository.SendPasswordForGuestAsync(string email)
-    {
-        throw new NotImplementedException();
-    }
-
-    Task<bool> IUserCommonRepository.SendOtpEmailAsync(string toEmail)
-    {
-        throw new NotImplementedException();
-    }
-
-    Task<bool> IUserCommonRepository.ResendOtpAsync(string toEmail)
-    {
-        throw new NotImplementedException();
-    }
-
-    Task<string> IUserCommonRepository.VerifyOtpAsync(VerifyOtpCommand otp)
     {
         throw new NotImplementedException();
     }

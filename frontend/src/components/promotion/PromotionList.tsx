@@ -52,7 +52,7 @@ export const PromotionList: React.FC = () => {
 
     // Filter by status
     if (filter !== 'all') {
-      filtered = filtered.filter(program => 
+      filtered = filtered.filter(program =>
         filter === 'active' ? !program.isDelete : program.isDelete
       );
     }
@@ -159,7 +159,7 @@ export const PromotionList: React.FC = () => {
       return {
         variant: 'destructive' as const,
         text: 'Đã hết hạn',
-        color: 'text-red-600'
+        color: 'text-red-400'
       };
     }
 
@@ -193,9 +193,9 @@ export const PromotionList: React.FC = () => {
 
   if (error) {
     const apiError = error as { response?: { status?: number; data?: { message?: string } } };
-    const isEmptyDataError = apiError?.response?.status === 500 && 
-                             apiError?.response?.data?.message === "Không có dữ liệu phù hợp";
-    
+    const isEmptyDataError = apiError?.response?.status === 500 &&
+      apiError?.response?.data?.message === "Không có dữ liệu phù hợp";
+
     if (!isEmptyDataError) {
       return (
         <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
@@ -226,15 +226,16 @@ export const PromotionList: React.FC = () => {
             Tổng cộng {filteredPrograms.length} chương trình
           </p>
         </div>
-
-        <Button
-          onClick={() => setShowCreateModal(true)}
-          className="w-full sm:w-auto"
-          disabled={!canEdit}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Tạo Chương Trình Mới
-        </Button>
+        {canEdit && (
+          <Button
+            onClick={() => setShowCreateModal(true)}
+            className="w-full sm:w-auto"
+            disabled={!canEdit}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Tạo Chương Trình Mới
+          </Button>
+        )}
       </div>
 
       {/* Statistics Cards */}
@@ -350,7 +351,7 @@ export const PromotionList: React.FC = () => {
             {paginatedPrograms.map((program) => {
               const statusConfig = getStatusConfig(program);
               const daysRemaining = getDaysRemaining(program.endDate);
-              
+
               return (
                 <Card key={program.discountProgramID} className="hover:shadow-lg transition-shadow flex flex-col h-full">
                   <CardContent className="p-4 flex flex-col h-full">
@@ -360,9 +361,15 @@ export const PromotionList: React.FC = () => {
                         <h3 className="font-semibold text-gray-900 text-sm sm:text-base line-clamp-2 flex-1">
                           {program.discountProgramName}
                         </h3>
-                        <Badge variant={statusConfig.variant} className="text-xs shrink-0">
-                          {statusConfig.text}
-                        </Badge>
+                        {statusConfig.variant === 'destructive' ? (
+                          <div className="bg-red-100 text-red-600 px-2 py-1 rounded-md text-xs font-medium shrink-0">
+                            {statusConfig.text}
+                          </div>
+                        ) : (
+                          <Badge variant={statusConfig.variant} className="text-xs shrink-0">
+                            {statusConfig.text}
+                          </Badge>
+                        )}
                       </div>
 
                       {/* Dates - Fixed position */}
@@ -388,11 +395,10 @@ export const PromotionList: React.FC = () => {
                               </span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-1.5">
-                              <div 
-                                className={`h-1.5 rounded-full transition-all duration-300 ${
-                                  daysRemaining <= 3 ? 'bg-red-500 w-2/12' : 
+                              <div
+                                className={`h-1.5 rounded-full transition-all duration-300 ${daysRemaining <= 3 ? 'bg-red-500 w-2/12' :
                                   daysRemaining <= 7 ? 'bg-orange-500 w-4/12' : 'bg-green-500 w-8/12'
-                                }`}
+                                  }`}
                               />
                             </div>
                           </div>
@@ -411,7 +417,7 @@ export const PromotionList: React.FC = () => {
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button
+                          {canEdit && (<Button
                             size="sm"
                             variant="ghost"
                             onClick={() => handleEdit(program.discountProgramID)}
@@ -420,23 +426,25 @@ export const PromotionList: React.FC = () => {
                             disabled={!canEdit}
                           >
                             <Edit className="h-4 w-4" />
-                          </Button>
+                          </Button>)}
                         </div>
-                        
-                        <Button
+                        {canEdit && (<Button
                           size="sm"
                           variant="ghost"
                           onClick={() => handleDeactivate(program)}
                           disabled={isDeactivating || !canEdit}
-                          className="p-1"
+                          className={`p-2 rounded-full transition-all duration-200 ${program.isDelete
+                            ? 'bg-gray-100 hover:bg-gray-200 text-gray-500'
+                            : 'bg-green-100 text-green-600 hover:bg-green-200 hover:text-green-500'
+                            }`}
                           title={program.isDelete ? 'Kích hoạt' : 'Vô hiệu hóa'}
                         >
                           {program.isDelete ? (
-                            <ToggleLeft className="h-4 w-4 text-gray-500" />
+                            <ToggleLeft className="h-5 w-5" />
                           ) : (
-                            <ToggleRight className="h-4 w-4 text-green-500" />
+                            <ToggleRight className="h-5 w-5" />
                           )}
-                        </Button>
+                        </Button>)}
                       </div>
                     </div>
                   </CardContent>
