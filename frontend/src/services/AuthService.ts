@@ -3,6 +3,10 @@ import axios from "axios";
 import type { EnhancedUserInfo } from "../types/user.types";
 import { TokenUtils } from "../utils/tokenUtils";
 
+export interface OTPRequestPayload {
+  phoneNumber: string;
+}
+
 export interface LoginResponse {
   success: boolean;
   token: string;
@@ -168,24 +172,24 @@ export class AuthService {
 }
 
 // Setup axios interceptor to automatically add auth token
-  axiosInstance.interceptors.request.use(
-    (config) => {
-      const token =
-        localStorage.getItem("token") || localStorage.getItem("authToken");
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token =
+      localStorage.getItem("token") || localStorage.getItem("authToken");
 
-      // 👇 Đảm bảo headers có thể dùng .set()
-      if (config.headers && typeof config.headers.set === "function") {
-        config.headers.set("ngrok-skip-browser-warning", "true");
+    // 👇 Đảm bảo headers có thể dùng .set()
+    if (config.headers && typeof config.headers.set === "function") {
+      config.headers.set("ngrok-skip-browser-warning", "true");
 
-        if (token && !config.headers.has("Authorization")) {
-          config.headers.set("Authorization", `Bearer ${token}`);
-        }
+      if (token && !config.headers.has("Authorization")) {
+        config.headers.set("Authorization", `Bearer ${token}`);
       }
+    }
 
-      return config;
-    },
-    (error) => Promise.reject(error)
-  );
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // Response interceptor for automatic token refresh
 axiosInstance.interceptors.response.use(
@@ -211,3 +215,20 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+export const requestOtpSms = async (payload: OTPRequestPayload): Promise<string> => {
+  try {
+    const response = await axiosInstance.post<string>("/user/OTP-Request-sms", payload, {
+      headers: {
+        Accept: "*/*",
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    if (error.response) {
+      throw new Error(error.response.data || "OTP request failed");
+    }
+    throw new Error("Network error");
+  }
+};
