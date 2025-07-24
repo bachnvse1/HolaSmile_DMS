@@ -15,7 +15,8 @@ import {
   Activity,
   Pill,
   ChevronLeft,
-  Percent
+  Percent,
+  ArrowLeftRight
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 
@@ -93,15 +94,16 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       id: 'patients',
       label: 'Bệnh Nhân',
       icon: <Users className="h-5 w-5" />,
+      path: '/patients',
       roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist'],
-      children: [
-        {
-          id: 'patients-list',
-          label: 'Danh Sách',
-          icon: <Users className="h-4 w-4" />,
-          path: '/patients',
-          roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
-        },
+      // children: [
+      //   {
+      //     id: 'patients-list',
+      //     label: 'Danh Sách',
+      //     icon: <Users className="h-4 w-4" />,
+      //     path: '/patients',
+      //     roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
+      //   },
         // {
         //   id: 'patients-records',
         //   label: 'Hồ Sơ Y Tế',
@@ -109,7 +111,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
         //   path: '/patients/records',
         //   roles: ['Administrator', 'Owner', 'Assistant', 'Dentist']
         // }
-      ]
+      // ]
     },
     // {
     //   id: 'treatments',
@@ -143,14 +145,14 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       id: 'finance',
       label: 'Tài Chính',
       icon: <CreditCard className="h-5 w-5" />,
-      roles: ['Administrator', 'Owner', 'Receptionist'],
+      roles: ['Owner', 'Receptionist'],
       children: [
         {
           id: 'finance-transactions',
           label: 'Giao Dịch',
-          icon: <CreditCard className="h-4 w-4" />,
+          icon: <ArrowLeftRight className="h-4 w-4" />,
           path: '/financial-transactions',
-          roles: ['Administrator', 'Owner', 'Receptionist']
+          roles: ['Owner', 'Receptionist']
         },
         {
           id: 'finance-invoices',
@@ -159,13 +161,13 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           path: '/invoices',
           roles: ['Receptionist']
         },
-        {
-          id: 'finance-payments',
-          label: 'Thanh Toán',
-          icon: <CreditCard className="h-4 w-4" />,
-          path: '/finance/payments',
-          roles: ['Administrator', 'Owner', 'Receptionist']
-        }
+        // {
+        //   id: 'finance-payments',
+        //   label: 'Thanh Toán',
+        //   icon: <CreditCard className="h-4 w-4" />,
+        //   path: '/finance/payments',
+        //   roles: ['Owner', 'Receptionist']
+        // }
       ]
     },
     {
