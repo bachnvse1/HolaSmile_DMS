@@ -450,15 +450,16 @@ export default function InvoiceList() {
         const endItem = Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)
 
         return (
-            <div className="flex items-center justify-between px-2 py-4 border-t bg-gray-50">
-                <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between px-2 py-4 border-t bg-gray-50 gap-4">
+                {/* Mobile-first info display */}
+                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
                     <div className="text-sm text-gray-600">
                         Hiển thị {startItem} - {endItem} trong tổng số {pagination.totalItems} hóa đơn
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="text-sm text-gray-600">Hiển thị:</span>
                         <Select value={pagination.pageSize.toString()} onValueChange={handlePageSizeChange}>
-                            <SelectTrigger className="w-20">
+                            <SelectTrigger className="w-16 sm:w-20">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -469,16 +470,19 @@ export default function InvoiceList() {
                                 ))}
                             </SelectContent>
                         </Select>
-                        <span className="text-sm text-gray-600">mục</span>
+                        <span className="text-sm text-gray-600 hidden sm:inline">mục</span>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                {/* Responsive pagination controls */}
+                <div className="flex items-center gap-1 sm:gap-2">
+                    {/* First and Previous buttons */}
                     <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handlePageChange(1)}
                         disabled={pagination.currentPage === 1}
+                        className="hidden sm:flex"
                     >
                         <ChevronsLeft className="w-4 h-4" />
                     </Button>
@@ -491,17 +495,18 @@ export default function InvoiceList() {
                         <ChevronLeft className="w-4 h-4" />
                     </Button>
 
+                    {/* Page numbers - adaptive display */}
                     <div className="flex items-center gap-1">
-                        {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                        {Array.from({ length: Math.min(3, pagination.totalPages) }, (_, i) => {
                             let pageNumber
-                            if (pagination.totalPages <= 5) {
+                            if (pagination.totalPages <= 3) {
                                 pageNumber = i + 1
-                            } else if (pagination.currentPage <= 3) {
+                            } else if (pagination.currentPage <= 2) {
                                 pageNumber = i + 1
-                            } else if (pagination.currentPage >= pagination.totalPages - 2) {
-                                pageNumber = pagination.totalPages - 4 + i
+                            } else if (pagination.currentPage >= pagination.totalPages - 1) {
+                                pageNumber = pagination.totalPages - 2 + i
                             } else {
-                                pageNumber = pagination.currentPage - 2 + i
+                                pageNumber = pagination.currentPage - 1 + i
                             }
 
                             return (
@@ -510,7 +515,7 @@ export default function InvoiceList() {
                                     variant={pagination.currentPage === pageNumber ? "default" : "outline"}
                                     size="sm"
                                     onClick={() => handlePageChange(pageNumber)}
-                                    className="w-8 h-8 p-0"
+                                    className="w-8 h-8 p-0 text-xs sm:text-sm"
                                 >
                                     {pageNumber}
                                 </Button>
@@ -518,6 +523,7 @@ export default function InvoiceList() {
                         })}
                     </div>
 
+                    {/* Next and Last buttons */}
                     <Button
                         variant="outline"
                         size="sm"
@@ -531,6 +537,7 @@ export default function InvoiceList() {
                         size="sm"
                         onClick={() => handlePageChange(pagination.totalPages)}
                         disabled={pagination.currentPage === pagination.totalPages}
+                        className="hidden sm:flex"
                     >
                         <ChevronsRight className="w-4 h-4" />
                     </Button>
@@ -540,17 +547,17 @@ export default function InvoiceList() {
     }, [pagination, handlePageChange, handlePageSizeChange])
 
     const InvoicePageContent = useMemo(() => (
-        <Card className="w-full max-w-7xl mx-auto my-8 shadow-lg rounded-lg">
-            <CardHeader className="flex flex-row items-center justify-between p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
+        <Card className="w-full max-w-full sm:max-w-7xl mx-auto my-4 sm:my-8 shadow-lg rounded-lg">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-b space-y-4 sm:space-y-0">
                 <div>
-                    <CardTitle className="text-2xl font-bold text-gray-800">
+                    <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800">
                         Danh sách hóa đơn
                     </CardTitle>
                     <CardDescription className="text-gray-600 mt-1">
                         Quản lý và theo dõi các hóa đơn thanh toán điều trị
                     </CardDescription>
                 </div>
-                <div className="text-right space-y-1">
+                <div className="text-left sm:text-right space-y-1 w-full sm:w-auto">
                     <div className="text-sm text-gray-600">
                         Tổng giá trị: <span className="font-semibold text-green-600">
                             {formatCurrency(invoiceStats.totalAmount)}
@@ -569,7 +576,7 @@ export default function InvoiceList() {
                 </div>
             </CardHeader>
 
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-6">
                 {filterErrors.length > 0 && (
                     <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
                         <div className="text-red-700 text-sm">
@@ -589,12 +596,12 @@ export default function InvoiceList() {
                     isLoading={isLoading || isFilterLoading}
                 />
 
-                <div className="mb-4 flex justify-between items-center">
+                <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div className="text-sm text-gray-600 font-medium">
                         Tổng số {invoiceStats.total} hóa đơn, hiển thị {invoiceStats.displayed} hóa đơn
                         {isFilterLoading && <span className="ml-2 text-blue-600">đang lọc...</span>}
                     </div>
-                    <div className="flex gap-4 text-sm">
+                    <div className="flex flex-wrap gap-2 sm:gap-4 text-sm">
                         <span className="text-yellow-600">
                             Chờ thanh toán: {invoiceStats.pending}
                         </span>

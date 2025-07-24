@@ -121,14 +121,14 @@ export default function PatientDetailModal({ isOpen, onClose, patientId }: Patie
                 <Avatar className="w-24 h-24 border-4 border-primary/20 shadow-lg">
                   <AvatarImage 
                     src={patient.avatar || "/placeholder.svg?height=100&width=100"} 
-                    alt={patient.fullName} 
+                    alt={patient.fullname} 
                   />
                   <AvatarFallback className="text-3xl font-semibold bg-primary/10 text-primary">
-                    {patient.fullName}
+                    {patient.fullname}
                   </AvatarFallback>
                 </Avatar>
                 <h2 className="text-2xl font-extrabold text-gray-900 dark:text-gray-50">
-                  {patient.fullName}
+                  {patient.fullname}
                 </h2>
                 <Badge variant="secondary" className="px-3 py-1 text-base">
                   <User className="w-4 h-4 mr-2" />
