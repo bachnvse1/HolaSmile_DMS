@@ -25,6 +25,7 @@ interface InstructionTemplateTableProps {
   onEdit: (template: InstructionTemplate) => void
   onDelete: (id: number) => void
   isAssistant: boolean
+  isDentist: boolean
   searchTerm: string
   onSearchChange: (value: string) => void
   actionLoading?: boolean
@@ -37,6 +38,7 @@ export function InstructionTemplateTable({
   onEdit,
   onDelete,
   isAssistant,
+  isDentist,
   searchTerm,
   onSearchChange,
   actionLoading = false,
@@ -108,7 +110,7 @@ export function InstructionTemplateTable({
                   <TableHead><Skeleton className="h-4 w-32" /></TableHead>
                   <TableHead><Skeleton className="h-4 w-20" /></TableHead>
                   <TableHead><Skeleton className="h-4 w-28" /></TableHead>
-                  {isAssistant && <TableHead><Skeleton className="h-4 w-20" /></TableHead>}
+                  {(isAssistant || isDentist) && <TableHead><Skeleton className="h-4 w-20" /></TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -118,7 +120,7 @@ export function InstructionTemplateTable({
                     <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                    {isAssistant && <TableCell><Skeleton className="h-8 w-20" /></TableCell>}
+                    {(isAssistant || isDentist) && <TableCell><Skeleton className="h-8 w-20" /></TableCell>}
                   </TableRow>
                 ))}
               </TableBody>
@@ -223,7 +225,7 @@ export function InstructionTemplateTable({
                         <span>Người Tạo</span>
                       </div>
                     </TableHead>
-                    {isAssistant && (
+                    {(isAssistant || isDentist) && (
                       <TableHead className="font-semibold text-slate-700 text-right">Thao Tác</TableHead>
                     )}
                   </TableRow>
@@ -298,7 +300,7 @@ export function InstructionTemplateTable({
                         )}
                       </TableCell>
                       
-                      {isAssistant && (
+                      {(isAssistant || isDentist) && (
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Tooltip>

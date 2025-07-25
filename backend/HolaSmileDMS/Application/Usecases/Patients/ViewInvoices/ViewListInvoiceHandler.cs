@@ -43,7 +43,7 @@ public class ViewListInvoiceHandler : IRequestHandler<ViewListInvoiceCommand, Li
             invoices = await _invoiceRepo.GetFilteredInvoicesAsync(
                 request.Status, request.FromDate, request.ToDate, patientId);
         }
-        else if (role == "Receptionist")
+        else if (role == "Receptionist" || role == "Onwer")
         {
             // Có thể xem tất cả, hoặc lọc theo bệnh nhân cụ thể nếu request.PatientId có giá trị
             invoices = await _invoiceRepo.GetFilteredInvoicesAsync(

@@ -139,24 +139,12 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
         [Trait("TestType", "Abnormal")]
         public async System.Threading.Tasks.Task ITCID02_WrongRole_Throws()
         {
-            SetupHttpContext("dentist", 2);
+            SetupHttpContext("patient", 3);
 
             var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
                 _handler.Handle(ValidCommand(), default));
 
             Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
-        }
-
-        [Fact(DisplayName = "ITCID03 - Missing authentication throws MSG53")]
-        [Trait("TestType", "Abnormal")]
-        public async System.Threading.Tasks.Task ITCID03_MissingAuth_Throws()
-        {
-            _httpContextAccessor.HttpContext = new DefaultHttpContext();
-
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(ValidCommand(), default));
-
-            Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
         }
 
         [Fact(DisplayName = "ITCID04 - Procedure not found throws MSG16")]

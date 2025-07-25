@@ -3,9 +3,7 @@ using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Dentist.UpdateTreatmentProgress;
 using Application.Usecases.SendNotification;
-using AutoMapper;
 using HDMS_API.Infrastructure.Persistence;
-using HDMS_API.Infrastructure.Repositories;
 using Infrastructure.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -107,14 +105,13 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists
         }
 
         // 2. Normal: Receptionist + pending cập nhật thành công
-        [Fact(DisplayName = "[Integration - Normal] Receptionist_Pending_Should_Succeed")]
+        [Fact(DisplayName = "[Integration - Normal] Receptionist_Pending_Should_Fail")]
         [Trait("TestType", "Normal")]
         public async System.Threading.Tasks.Task N_ReceptionistPending_ShouldSuccess()
         {
             SetUser("Receptionist", 50);
             var cmd = new UpdateTreatmentProgressCommand { TreatmentProgressID = 1, Description = "Update" };
-            var ok = await _handler.Handle(cmd, default);
-            Assert.True(ok);
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(cmd, default));
         }
 
         // 3. Abnormal: Receptionist + status!=pending bị cấm

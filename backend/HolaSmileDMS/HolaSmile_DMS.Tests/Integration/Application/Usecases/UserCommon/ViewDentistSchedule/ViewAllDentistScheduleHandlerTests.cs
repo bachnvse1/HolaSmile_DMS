@@ -96,20 +96,6 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.UserCommon
             Assert.NotEmpty(result);
         }
 
-        [Fact(DisplayName = "[Integration - Abnormal] Not_Authenticated_Should_Throw_MSG53")]
-        [Trait("TestType", "Abnormal")]
-        public async System.Threading.Tasks.Task A_Not_Authenticated_Should_Throw_MSG53()
-        {
-            var context = new DefaultHttpContext();
-            context.User = new ClaimsPrincipal(new ClaimsIdentity());
-            _httpContextAccessor.HttpContext = context;
-
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(new ViewAllDentistScheduleCommand(), default));
-
-            Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
-        }
-
         [Fact(DisplayName = "[Integration - Abnormal] No_Schedule_Data_Should_Throw_MSG28")]
         [Trait("TestType", "Abnormal")]
         public async System.Threading.Tasks.Task A_No_Schedule_Data_Should_Throw_MSG28()

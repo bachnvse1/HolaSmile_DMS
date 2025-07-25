@@ -6,7 +6,6 @@ import {
   FileText,
   Settings,
   UserCheck,
-  TrendingUp,
   Stethoscope,
   CreditCard,
   Package,
@@ -192,7 +191,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           label: 'Hóa Đơn',
           icon: <FileText className="h-4 w-4" />,
           path: '/invoices',
-          roles: ['Receptionist']
+          roles: ['Receptionist', 'Owner']
         },
         // {
         //   id: 'finance-payments',
@@ -208,7 +207,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       label: 'Mẫu Chỉ Dẫn',
       icon: <FileText className="h-5 w-5" />,
       path: '/instruction-templates',
-      roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
+      roles: [ 'Assistant', 'Dentist']
     },
     {
       id: "procedures",
@@ -258,7 +257,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       label: 'Quản Lý Người Dùng',
       icon: <UserCheck className="h-5 w-5" />,
       path: '/administrator/user-list',
-      roles: ['Administrator', 'Owner']
+      roles: ['Administrator']
     },
     {
       id: 'settings',

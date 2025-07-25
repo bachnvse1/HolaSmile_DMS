@@ -2,6 +2,7 @@
 using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Dentists.EditPrescription;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
@@ -12,13 +13,15 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
     {
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private readonly Mock<IPrescriptionRepository> _prescriptionRepoMock;
+        private readonly Mock<IPatientRepository> _patientRepoMock;
         private readonly EditPrescriptionHandler _handler;
 
         public EditPrescriptionHandlerTests()
         {
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             _prescriptionRepoMock = new Mock<IPrescriptionRepository>();
-            _handler = new EditPrescriptionHandler(_httpContextAccessorMock.Object, _prescriptionRepoMock.Object);
+            _patientRepoMock = new Mock<IPatientRepository>();
+            _handler = new EditPrescriptionHandler(_httpContextAccessorMock.Object, _prescriptionRepoMock.Object,_patientRepoMock.Object, new Mock<IMediator>().Object);
         }
 
         private void SetupHttpContext(string role, string userId)

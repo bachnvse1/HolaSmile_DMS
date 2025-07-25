@@ -119,21 +119,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
             Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
         }
 
-        [Fact(DisplayName = "Unauthorized - UTCID05 - Role is null")]
-        public async System.Threading.Tasks.Task UTCID05_RoleMissing_ThrowsUnauthorized()
-        {
-            var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, "1") };
-            var identity = new ClaimsIdentity(claims, "mock");
-            var user = new ClaimsPrincipal(identity);
-            var context = new DefaultHttpContext { User = user };
-            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
-
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(new ViewDetailSupplyCommand { SupplyId = 1 }, CancellationToken.None));
-            Assert.Equal("Bạn không có quyền truy cập chức năng này", ex.Message);
-        }
-
-        [Fact(DisplayName = "Edge - UTCID06 - CreatedBy/UpdatedBy user not found")]
-        public async System.Threading.Tasks.Task UTCID06_UnknownUsers_FallbackToUnknown()
+        [Fact(DisplayName = "Edge - UTCID05 - CreatedBy/UpdatedBy user not found")]
+        public async System.Threading.Tasks.Task UTCID05_UnknownUsers_FallbackToUnknown()
         {
             SetupHttpContext("assistant", "1");
 

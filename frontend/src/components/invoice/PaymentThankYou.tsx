@@ -1,10 +1,15 @@
-import { Link } from "react-router" 
+import { Link } from "react-router"
 import { CheckCircle2 } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useEffect } from "react"
 
 export default function ThankYou() {
+
+  useEffect(() => {
+    localStorage.removeItem('orderCode')
+  }, [])
+  
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md text-center">

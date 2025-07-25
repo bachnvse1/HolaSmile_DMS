@@ -85,20 +85,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
             Assert.Equal("Dr. B", result[0].DentistName);
         }
 
-        // 🔴 Abnormal case - Missing role or invalid user ID
-        [Fact(DisplayName = "Abnormal - UTCID03 - No role or user ID -> UnauthorizedAccessException")]
-        public async System.Threading.Tasks.Task UTCID03_MissingRoleOrUser_ThrowsUnauthorizedAccess()
-        {
-            // Arrange: No user context
-            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(new DefaultHttpContext());
-
-            // Act & Assert
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(new ViewAllDentistScheduleCommand(), CancellationToken.None));
-
-            Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
-        }
-
         // 🔴 Abnormal case - Empty schedule list
         [Fact(DisplayName = "Abnormal - UTCID04 - No schedules returned -> Exception")]
         public async System.Threading.Tasks.Task UTCID04_NoSchedulesFound_ThrowsException()

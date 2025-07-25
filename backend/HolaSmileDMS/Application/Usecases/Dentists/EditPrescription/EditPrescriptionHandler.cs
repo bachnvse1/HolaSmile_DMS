@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
+using Application.Usecases.SendNotification;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
@@ -10,10 +11,14 @@ namespace Application.Usecases.Dentists.EditPrescription
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IPrescriptionRepository _prescriptionRepository;
-        public EditPrescriptionHandler(IHttpContextAccessor httpContextAccessor, IPrescriptionRepository prescriptionRepository)
+        private readonly IPatientRepository _patientRepository;
+        private readonly IMediator _mediator;
+        public EditPrescriptionHandler(IHttpContextAccessor httpContextAccessor, IPrescriptionRepository prescriptionRepository, IPatientRepository patientRepository, IMediator mediator)
         {
             _httpContextAccessor = httpContextAccessor;
             _prescriptionRepository = prescriptionRepository;
+            _patientRepository = patientRepository;
+            _mediator = mediator;
         }
         public async Task<bool> Handle(EditPrescriptionCommand request, CancellationToken cancellationToken)
         {
@@ -40,6 +45,20 @@ namespace Application.Usecases.Dentists.EditPrescription
             existPrescription.UpdatedAt = DateTime.Now;
             existPrescription.UpdatedBy = currentUserId;
             var isUpdated = await _prescriptionRepository.UpdatePrescriptionAsync(existPrescription);
+
+            try
+            {
+                var patient = await _patientRepository.GetPatientByPatientIdAsync(existPrescription.Appointment.PatientId);
+
+                await _mediator.Send(new SendNotificationCommand(
+                      patient.User.UserID,
+                      "Taọ đơn thuốc",
+                      $"Bác sĩ đã tạo đơn thuốc cho cuộc hẹn ngày {existPrescription.Appointment.AppointmentDate} vào lúc {DateTime.Now}",
+                      "schedule",
+                      null), cancellationToken);
+            }
+            catch { }
+
             return isUpdated;
         }
     }
