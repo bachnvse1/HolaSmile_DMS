@@ -2,7 +2,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button2"
 import { Card, CardContent } from "@/components/ui/card"
-import { Calendar, Clock, MoreHorizontal, CheckCircle, XCircle } from "lucide-react"
+import { Calendar, Clock, MoreHorizontal, CheckCircle, XCircle, Loader2 } from "lucide-react"
 import { format } from "date-fns"
 import { vi } from "date-fns/locale"
 import type { BasicTask, TaskStatus } from "@/types/task"
@@ -11,9 +11,11 @@ interface TaskCardProps {
   task: BasicTask
   onToggleStatus: (taskId: number) => void
   onDelete: (taskId: number) => void
+  onViewDetail: (task: BasicTask) => void
+  isUpdating?: boolean
 }
 
-export function TaskCard({ task, onToggleStatus, onDelete }: TaskCardProps) {
+export function TaskCard({ task, onToggleStatus, onDelete, onViewDetail, isUpdating = false }: TaskCardProps) {
   const statusText = task.status === "Completed" ? "Hoàn thành" : "Chưa hoàn thành"
 
   const getStatusIcon = (status: TaskStatus) =>
@@ -31,7 +33,7 @@ export function TaskCard({ task, onToggleStatus, onDelete }: TaskCardProps) {
   }
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className={`hover:shadow-md transition-shadow ${isUpdating ? 'opacity-70' : ''}`}>
       <CardContent className="p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 space-y-3">
@@ -43,7 +45,11 @@ export function TaskCard({ task, onToggleStatus, onDelete }: TaskCardProps) {
               </div>
               <Badge className={getStatusColor(task.status)}>
                 <div className="flex items-center gap-1">
-                  {getStatusIcon(task.status)}
+                  {isUpdating ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    getStatusIcon(task.status)
+                  )}
                   {statusText}
                 </div>
               </Badge>
@@ -77,26 +83,40 @@ export function TaskCard({ task, onToggleStatus, onDelete }: TaskCardProps) {
           </div>
 
           {/* Actions */}
-          <DropdownMenu>
+          <div className="flex items-center gap-2">
+
+            {/* More actions dropdown */}
+            <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreHorizontal className="h-4 w-4" />
+              <Button variant="ghost" size="icon" disabled={isUpdating}>
+                {isUpdating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <MoreHorizontal className="h-4 w-4" />
+                )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>Xem Chi Tiết</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onViewDetail(task)}>
+                Xem Chi Tiết
+              </DropdownMenuItem>
               <DropdownMenuItem>Chỉnh Sửa</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onToggleStatus(task.taskId)}>
+              <DropdownMenuItem 
+                onClick={() => onToggleStatus(task.taskId)}
+                disabled={isUpdating}
+              >
                 {task.status === "Completed" ? "Đánh dấu chưa hoàn thành" : "Đánh dấu hoàn thành"}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-red-600"
                 onClick={() => onDelete(task.taskId)}
+                disabled={isUpdating}
               >
                 Xóa Nhiệm Vụ
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -126,7 +126,7 @@ export default function AssignedTasks() {
     
     // Group tasks by date
     const groups = filteredTasks.reduce((acc, task) => {
-      const date = task.treatmentDate
+      const date = task.createdAt
       if (!acc[date]) {
         acc[date] = []
       }
