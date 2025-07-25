@@ -22,6 +22,7 @@ import {
   Phone
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
+import GuestConsultationPage from '@/pages/messages/guest-consultation';
 
 interface MenuItem {
   id: string;
@@ -30,6 +31,7 @@ interface MenuItem {
   path?: string;
   children?: MenuItem[];
   roles: string[];
+  element?: React.ReactNode;
 }
 
 interface StaffSidebarProps {
@@ -117,9 +119,11 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           id: 'messages-customer-consultation',
           label: 'Tư Vấn Khách Hàng',
           icon: <Phone className="h-4 w-4" />,
-          path: '/messages/customer-consultation',
+          path: '/messages/guest-consultation',
+          element: <GuestConsultationPage />,
           roles: ['Receptionist']
-        }
+        },
+        
       ]
     },
     {
