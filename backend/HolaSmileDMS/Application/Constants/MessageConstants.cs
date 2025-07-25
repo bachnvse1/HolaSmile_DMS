@@ -129,6 +129,8 @@ public static class MessageConstants
                 public const string MSG124 = "Captcha không hợp lệ";
                 public const string MSG125 = "Phải nằm trong từ 0%-100%";
                 public const string MSG126 = "Ngày bắt đầu hoặc kết thúc không hợp lệ";
+                public const string MSG127 = "Không tìm thấy phiếu thu chi";
+                public const string MSG128 = "Bạn đã tạo chương trình khuyến mãi trong khoảng thời gian này rồi";
     }
 }   
  

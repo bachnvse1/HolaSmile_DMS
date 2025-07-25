@@ -125,7 +125,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                     patient.User.UserID,
                         "Đăng ký khám",
                         $"Bạn đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
-                        "Tạo lịch khám lần đầu", null),
+                        "appointment", null),
                     cancellationToken);
 
                 //GỬI THÔNG BÁO CHO DENTIST
@@ -133,7 +133,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                     dentist.User.UserID,
                         "Đăng ký khám",
                         $"Bệnh nhân đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
-                        "Xoá hồ sơ",
+                        "appointment",
                         null),
                     cancellationToken);
 
@@ -142,7 +142,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                                r.UserId,
                                "Đăng ký khám",
                                 $"Bệnh nhân mới đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
-                                "Tạo lịch khám lần đầu", null),
+                                "appointment", null),
                                 cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyReceptionists);
             }
