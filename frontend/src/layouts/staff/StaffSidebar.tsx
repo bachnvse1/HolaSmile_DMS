@@ -16,7 +16,11 @@ import {
   Pill,
   ChevronLeft,
   Percent,
-  ArrowLeftRight
+  ArrowLeftRight,
+  MessageCircle,
+  Users2,
+  UserCircle,
+  Phone
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 
@@ -87,6 +91,35 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           icon: <UserCheck className="h-4 w-4" />,
           path: '/schedules',
           roles: ['Owner', 'Receptionist', 'Dentist', 'Assistant', 'Administrator']
+        }
+      ]
+    },
+    {
+      id: 'messages',
+      label: 'Tin Nhắn',
+      icon: <MessageCircle className="h-5 w-5" />,
+      roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist'],
+      children: [
+        {
+          id: 'messages-internal',
+          label: 'Tin Nhắn Nội Bộ',
+          icon: <Users2 className="h-4 w-4" />,
+          path: '/messages/internal',
+          roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
+        },
+        {
+          id: 'messages-patient-consultation',
+          label: 'Tư Vấn Bệnh Nhân',
+          icon: <UserCircle className="h-4 w-4" />,
+          path: '/messages/patient-consultation',
+          roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
+        },
+        {
+          id: 'messages-customer-consultation',
+          label: 'Tư Vấn Khách Hàng',
+          icon: <Phone className="h-4 w-4" />,
+          path: '/messages/customer-consultation',
+          roles: ['Receptionist']
         }
       ]
     },
