@@ -54,8 +54,6 @@ import PaymentCancelled from "./components/invoice/PaymentCancel";
 import PatientTreatmentRecordsSection from "./components/patient/PatientTreatmentRecordsSection";
 import { PatientOrthodonticImagesPage } from "./pages/patient/PatientOrthodonticImagesPage";
 import { PatientTreatmentImagesPage } from "./pages/patient/PatientTreatmentImagesPage";
-import GuestSupportChatWrapper from "./components/chatbox/GuestSupportChatWrapper";
-import FloatingChatButton from './components/chatbox/FloatingChatButton';
 import { ChatHubProvider } from './components/chatbox/ChatHubProvider';
 import InstructionTemplateManagement from "./pages/instruction/InstructionTemplateManagement";
 import PatientInstructionsList from "./pages/instruction/PatientInstructionList";
@@ -65,6 +63,8 @@ import { PromotionManagementPage } from './pages/promotion/PromotionManagementPa
 import { ViewTransactionPage } from './pages/financial/ViewTransactionPage';
 import { ViewPromotionPage } from './pages/promotion/ViewPromotionPage';
 import NotFound from './pages/error/NotFound';
+import GuestConsultationPage from "./pages/messages/guest-consultation";
+import PatientConsultationPage from "./pages/messages/patient-consultation";
 function App() {
   return (
     <>
@@ -146,11 +146,13 @@ function App() {
                   <Route path="/patient/instructions/:appointmentId" element={<PatientInstructionsList />} />
                   <Route path="/instructions/:appointmentId" element={<InstructionsPage />} />
                   <Route path="*" element={<NotFound />} />
+                  <Route path="/messages/guest-consultation" element={<GuestConsultationPage />} />
+                  <Route path="/messages/patient-consultation" element={<PatientConsultationPage />} />
                 </Routes>
 
                 {/* Floating chat chỉ hiển thị khi có ChatHubProvider */}
-                <GuestSupportChatWrapper />
-                <FloatingChatButton />
+                {/* <GuestSupportChatWrapper />
+                <FloatingChatButton /> */}
               </>
             </ChatHubProvider>
           }
