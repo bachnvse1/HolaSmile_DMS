@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button2"
 import { Pagination } from "../ui/Pagination"
 import TaskListModal from "@/components/task/TaskListModal"
 import { useAuth } from "@/hooks/useAuth"
+import { useUserInfo } from "@/hooks/useUserInfo"
 
 // Constants
 const STATUS_MAP = {
@@ -87,6 +88,7 @@ export function TreatmentProgressList({ data, loading, onViewProgress, highlight
   const { filterState, updateFilter } = useFilterState()
   const { modalState, openModal, closeModal } = useTaskModal()
   const { role } = useAuth()
+  const userInfo = useUserInfo()
   
   const isPatient = role === "Patient"
 
@@ -257,7 +259,7 @@ export function TreatmentProgressList({ data, loading, onViewProgress, highlight
               <Eye className="h-4 w-4 mr-1" /> Xem
             </Button>
             
-            {role == "Dentist" && (
+            {userInfo.role === "Dentist" && (
               <Button
                 variant="secondary"
                 size="sm"

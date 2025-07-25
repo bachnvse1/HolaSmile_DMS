@@ -1,12 +1,9 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.Owner.ViewDashboard;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
+
 
 namespace Application.Usecases.Owner.ViewDashboard
 {
@@ -16,16 +13,28 @@ namespace Application.Usecases.Owner.ViewDashboard
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly IUserCommonRepository _userCommonRepository;
         private readonly IOwnerRepository _ownerCommonRepository;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ViewDashboardHandler(IInvoiceRepository invoiceRepository, IAppointmentRepository appointmentRepository, IUserCommonRepository userCommonRepository, IOwnerRepository ownerCommonRepository)
+        public ViewDashboardHandler(IInvoiceRepository invoiceRepository, IAppointmentRepository appointmentRepository,
+            IUserCommonRepository userCommonRepository, IOwnerRepository ownerCommonRepository, IHttpContextAccessor httpContextAccessor)
         {
             _invoiceRepository = invoiceRepository;
             _appointmentRepository = appointmentRepository;
             _userCommonRepository = userCommonRepository;
             _ownerCommonRepository = ownerCommonRepository;
+            _httpContextAccessor = httpContextAccessor;
         }
         public async Task<ViewDashboardDTO> Handle(ViewDashboardCommand request, CancellationToken cancellationToken)
         {
+            var user = _httpContextAccessor.HttpContext?.User;
+            var userId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var role = user?.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (!string.Equals(role, "Owner", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
+            }
+
             string filter = request.Filter?.ToLower() ?? "today";
 
             var totalRevenue = await CalculateTotalRevenue(filter);

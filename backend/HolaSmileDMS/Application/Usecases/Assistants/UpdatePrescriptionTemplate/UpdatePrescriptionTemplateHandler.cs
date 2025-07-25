@@ -23,7 +23,7 @@ namespace Application.Usecases.Assistants.UpdatePrescriptionTemplate
             var user = _httpContextAccessor.HttpContext?.User;
             var role = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-            if (user == null || role != "Assistant")
+            if (user == null || role != "Assistant" && role != "Dentist")
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
 
             var existing = await _repository.GetByIdAsync(request.PreTemplateID, cancellationToken);

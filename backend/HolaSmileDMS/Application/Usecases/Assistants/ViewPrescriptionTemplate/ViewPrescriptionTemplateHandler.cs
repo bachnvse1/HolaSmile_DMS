@@ -22,7 +22,7 @@ namespace Application.Usecases.Assistant.ViewPrescriptionTemplate
             var user = _httpContextAccessor.HttpContext?.User;
             var role = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-            if (user == null || (role != "Assistant" && role != "Dentist" && role != "Receptionist"))
+            if (user == null || (role != "Assistant" && role != "Dentist"))
             {
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             }

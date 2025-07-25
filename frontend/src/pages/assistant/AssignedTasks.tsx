@@ -10,7 +10,18 @@ import { taskService } from "@/services/taskService"
 import { toast } from "react-toastify"
 import { ConfirmModal } from "@/components/common/ConfirmModal"
 import { Pagination } from "@/components/ui/Pagination"
+import { Calendar, ChevronDown, ChevronRight } from "lucide-react"
+import { Button } from "@/components/ui/button2"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import type { Task, TaskFilter } from "@/types/task"
+
+interface TaskGroup {
+  date: string
+  tasks: Task[]
+  displayDate: string
+  isToday: boolean
+  isPast: boolean
+}
 
 export default function AssignedTasks() {
   const { fullName, userId, role } = useAuth()
@@ -40,6 +51,7 @@ export default function AssignedTasks() {
   })
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(5)
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -56,6 +68,28 @@ export default function AssignedTasks() {
   useEffect(() => {
     setCurrentPage(1)
   }, [filters, searchTerm])
+
+  // Helper function to format date groups
+  const formatDateGroup = (dateString: string, isToday: boolean) => {
+    if (isToday) return "Hôm nay"
+    
+    const date = new Date(dateString)
+    const today = new Date()
+    const diffTime = date.getTime() - today.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    
+    if (diffDays === 1) return "Ngày mai"
+    if (diffDays === -1) return "Hôm qua"
+    if (diffDays > 0 && diffDays <= 7) return `${diffDays} ngày nữa`
+    if (diffDays < 0 && diffDays >= -7) return `${Math.abs(diffDays)} ngày trước`
+    
+    return date.toLocaleDateString("vi-VN", {
+      weekday: "long",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
+  }
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
@@ -85,17 +119,69 @@ export default function AssignedTasks() {
     })
   }, [tasks, filters, searchTerm])
 
-  const sortedTasks = useMemo(() => {
-    return [...filteredTasks].sort((a, b) => {
-      const dateCompare = new Date(a.treatmentDate).getTime() - new Date(b.treatmentDate).getTime()
-      return dateCompare !== 0 ? dateCompare : a.startTime.localeCompare(b.startTime)
-    })
-  }, [filteredTasks])
+  // Group tasks by date and sort
+  const groupedTasks = useMemo(() => {
+    const today = new Date()
+    const todayStr = today.toISOString().split('T')[0]
+    
+    // Group tasks by date
+    const groups = filteredTasks.reduce((acc, task) => {
+      const date = task.treatmentDate
+      if (!acc[date]) {
+        acc[date] = []
+      }
+      acc[date].push(task)
+      return acc
+    }, {} as Record<string, Task[]>)
 
-  const paginatedTasks = useMemo(() => {
+    // Convert to array and sort by date (newest first)
+    const sortedGroups: TaskGroup[] = Object.entries(groups)
+      .map(([date, tasks]) => {
+        const taskDate = new Date(date)
+        const isToday = date === todayStr
+        const isPast = taskDate < today && !isToday
+        
+        // Sort tasks within each group by time
+        const sortedTasks = tasks.sort((a, b) => a.startTime.localeCompare(b.startTime))
+        
+        return {
+          date,
+          tasks: sortedTasks,
+          displayDate: formatDateGroup(date, isToday),
+          isToday,
+          isPast
+        }
+      })
+      .sort((a, b) => {
+        // Sort groups: today first, then future dates, then past dates
+        if (a.isToday) return -1
+        if (b.isToday) return 1
+        
+        const dateA = new Date(a.date)
+        const dateB = new Date(b.date)
+        
+        // If both are future or both are past, sort by date
+        return dateB.getTime() - dateA.getTime()
+      })
+
+    return sortedGroups
+  }, [filteredTasks, formatDateGroup])
+
+  // Pagination for groups
+  const paginatedGroups = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage
-    return sortedTasks.slice(start, start + itemsPerPage)
-  }, [sortedTasks, currentPage, itemsPerPage])
+    return groupedTasks.slice(start, start + itemsPerPage)
+  }, [groupedTasks, currentPage, itemsPerPage])
+
+  const toggleGroupCollapse = (date: string) => {
+    const newCollapsed = new Set(collapsedGroups)
+    if (newCollapsed.has(date)) {
+      newCollapsed.delete(date)
+    } else {
+      newCollapsed.add(date)
+    }
+    setCollapsedGroups(newCollapsed)
+  }
 
   const clearFilters = () => {
     setFilters({
@@ -144,6 +230,8 @@ export default function AssignedTasks() {
     }
   }
 
+  const totalFilteredTasks = filteredTasks.length
+
   return (
     <AuthGuard requiredRoles={['Assistant']}>
       <StaffLayout userInfo={userInfo}>
@@ -155,7 +243,7 @@ export default function AssignedTasks() {
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
             totalTasks={tasks.length}
-            filteredCount={filteredTasks.length}
+            filteredCount={totalFilteredTasks}
             onClearFilters={clearFilters}
             hasActiveFilters={
               searchTerm !== "" ||
@@ -164,22 +252,68 @@ export default function AssignedTasks() {
             tasks={tasks}
           />
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-            {paginatedTasks.map((task) => (
-              <TaskCard
-                key={task.taskId}
-                task={task}
-                onStatusChange={askConfirmStatusChange}
-                onViewDetails={handleViewDetails}
-              />
-            ))}
+          <div className="space-y-4">
+            {paginatedGroups.map((group) => {
+              const isCollapsed = collapsedGroups.has(group.date)
+              const completedCount = group.tasks.filter(t => t.status === "Completed").length
+              
+              return (
+                <Card key={group.date} className={`${group.isToday ? 'ring-2 ring-blue-500' : ''}`}>
+                  <CardHeader 
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => toggleGroupCollapse(group.date)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Calendar className={`w-5 h-5 ${group.isToday ? 'text-blue-600' : 'text-muted-foreground'}`} />
+                        <div>
+                          <h3 className={`font-semibold text-lg ${group.isToday ? 'text-blue-600' : ''}`}>
+                            {group.displayDate}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {group.tasks.length} nhiệm vụ • {completedCount} hoàn thành
+                          </p>
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="sm">
+                        {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  
+                  {!isCollapsed && (
+                    <CardContent>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                        {group.tasks.map((task) => (
+                          <TaskCard
+                            key={task.taskId}
+                            task={task}
+                            onStatusChange={askConfirmStatusChange}
+                            onViewDetails={handleViewDetails}
+                          />
+                        ))}
+                      </div>
+                    </CardContent>
+                  )}
+                </Card>
+              )
+            })}
           </div>
+
+          {groupedTasks.length === 0 && (
+            <Card>
+              <CardContent className="p-8 text-center text-muted-foreground">
+                <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>Không có nhiệm vụ nào phù hợp với bộ lọc hiện tại</p>
+              </CardContent>
+            </Card>
+          )}
 
           <Pagination
             currentPage={currentPage}
-            totalPages={Math.ceil(filteredTasks.length / itemsPerPage)}
+            totalPages={Math.ceil(groupedTasks.length / itemsPerPage)}
             onPageChange={setCurrentPage}
-            totalItems={filteredTasks.length}
+            totalItems={groupedTasks.length}
             itemsPerPage={itemsPerPage}
             onItemsPerPageChange={(value) => {
               setItemsPerPage(value)
