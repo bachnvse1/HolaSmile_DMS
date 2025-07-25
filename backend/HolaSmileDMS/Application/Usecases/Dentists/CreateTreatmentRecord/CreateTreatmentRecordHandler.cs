@@ -46,7 +46,10 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
             var appointment = await _appointmentRepository.GetAppointmentByIdAsync(request.AppointmentId);
-            ValidateRequest(request, appointment);
+            if(appointment.AppointmentDate > DateTime.Now)
+            {
+                throw new Exception("Chưa tới ngày điều trị, không thể tạo hồ sơ điều trị.");
+            }
 
             if (request.treatmentToday == false)
             {
@@ -54,8 +57,10 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
             }
             else
             {
-                request.TreatmentDate = DateTime.Now;
+                request.TreatmentDate = appointment.AppointmentDate;
             }
+            
+            ValidateRequest(request, appointment);
 
             var record = _mapper.Map<TreatmentRecord>(request);
             record.CreatedAt = DateTime.Now;
@@ -127,7 +132,8 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
                 AppointmentTime = request.TreatmentDate.TimeOfDay,
                 CreatedAt = DateTime.Now,
                 CreatedBy = currentUserId,
-                IsDeleted = false
+                IsDeleted = false,
+                RescheduledFromAppointmentId = appointment.AppointmentId
             };
 
             var isBookAppointment = await _appointmentRepository.CreateAppointmentAsync(appointmentTreatment);
