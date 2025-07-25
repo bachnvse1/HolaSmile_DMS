@@ -1,5 +1,6 @@
 ﻿using Application.Constants;
 using Application.Usecases.Owner.ViewDashboard;
+using Application.Usecases.Owner.ViewDashBoard;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -37,6 +38,34 @@ namespace HDMS_API.Controllers
                     message = MessageConstants.MSG.MSG26
                 });
             }           
+        }
+
+        [HttpGet("column-chart")]
+        public async Task<IActionResult> GetColumnChart([FromQuery] string? filter)
+        {
+            var command = new ColumnChartCommand
+            {
+                Filter = filter
+            };
+
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
+        [HttpGet("line-chart")]
+        public async Task<IActionResult> GetLineChart()
+        {
+            var command = new LineChartCommand();
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
+        [HttpGet("pie-chart")]
+        public async Task<IActionResult> GetPieChart()
+        {
+            var command = new PieChartCommand();
+            var result = await _mediator.Send(command);
+            return Ok(result);
         }
     }
 }
