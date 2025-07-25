@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useChatHub } from '@/components/chatbox/ChatHubProvider';
 import type { ChatMessage } from '@/hooks/useChatHubGuest';
 
-type Customer = {
+type Staff = {
   userId: string;
   fullName: string;
   phone: string;
@@ -18,7 +18,7 @@ const UserItem = memo(({
   unreadCount, 
   onClick 
 }: {
-  user: Customer;
+  user: Staff;
   isSelected: boolean;
   unreadCount: number;
   onClick: () => void;
@@ -65,7 +65,7 @@ const UserItem = memo(({
         color: isSelected ? '#cbd5e1' : '#6b7280',
         marginTop: 2
       }}>
-        {user.role === 'Patient' ? user.phone : user.role}
+        {user.role}
       </div>
     </div>
     {unreadCount > 0 && (
@@ -87,7 +87,7 @@ const UserItem = memo(({
   </div>
 ));
 
-const PatientConsultationPage: React.FC = () => {
+const InternalMessagesPage: React.FC = () => {
   const { userId, role } = useAuth();
   const { 
     messages: realtimeMessages, 
@@ -97,47 +97,48 @@ const PatientConsultationPage: React.FC = () => {
     fetchUsers
   } = useChatHub();
 
-  const [selectedUser, setSelectedUser] = useState<Customer | null>(null);
+  const [selectedUser, setSelectedUser] = useState<Staff | null>(null);
   const [unreadMap, setUnreadMap] = useState<Record<string, number>>({});
   const [hasNewMessage, setHasNewMessage] = useState(false);
   const [history, setHistory] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
-  const [activeTab, setActiveTab] = useState<'all' | 'dentists' | 'staff'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'admin' | 'dentists' | 'staff'>('all');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastProcessedMessage = useRef<string>('');
 
   // Danh sách role được phép truy cập
   const STAFF_ROLES = ["Administrator", "Owner", "Receptionist", "Assistant", "Dentist"];
+  const ADMIN_ROLES = ["Administrator", "Owner"];
   const DENTIST_ROLES = ["Dentist"];
+  const SUPPORT_ROLES = ["Receptionist", "Assistant"];
 
   // Chỉ fetch users một lần khi component mount
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
 
-  // Filter users based on current user role and active tab
+  // Filter users based on active tab (chỉ hiện staff, không hiện Patient và chính mình)
   const filteredUsers = useMemo(() => {
     if (!users || users.length === 0) return [];
 
-    // Loại bỏ chính mình khỏi danh sách
-    const othersUsers = users.filter(user => user.userId !== userId);
+    // Loại bỏ chính mình và Patient khỏi danh sách
+    const staffUsers = users.filter(user => 
+      user.userId !== userId && 
+      user.role !== 'Patient' && 
+      STAFF_ROLES.includes(user.role)
+    );
 
-    if (role === 'Patient') {
-      // Patient có thể chat với tất cả staff
-      if (activeTab === 'dentists') {
-        return othersUsers.filter(user => DENTIST_ROLES.includes(user.role));
-      } else if (activeTab === 'staff') {
-        return othersUsers.filter(user => STAFF_ROLES.includes(user.role) && !DENTIST_ROLES.includes(user.role));
-      } else {
-        return othersUsers.filter(user => STAFF_ROLES.includes(user.role));
-      }
-    } else if (STAFF_ROLES.includes(role || '')) {
-      // Staff chỉ chat với Patient
-      return othersUsers.filter(user => user.role === 'Patient');
+    switch (activeTab) {
+      case 'admin':
+        return staffUsers.filter(user => ADMIN_ROLES.includes(user.role));
+      case 'dentists':
+        return staffUsers.filter(user => DENTIST_ROLES.includes(user.role));
+      case 'staff':
+        return staffUsers.filter(user => SUPPORT_ROLES.includes(user.role));
+      default:
+        return staffUsers;
     }
-
-    return [];
-  }, [users, userId, role, activeTab]);
+  }, [users, userId, activeTab]);
 
   // Chỉ fetch history khi selectedUser thay đổi
   useEffect(() => {
@@ -224,7 +225,7 @@ const PatientConsultationPage: React.FC = () => {
   }, [allMessages.length]);
 
   // Reset unread khi mở chat
-  const handleUserSelect = useCallback((user: Customer) => {
+  const handleUserSelect = useCallback((user: Staff) => {
     setSelectedUser(user);
     setUnreadMap((prev) => ({
       ...prev,
@@ -251,8 +252,8 @@ const PatientConsultationPage: React.FC = () => {
     }
   }, []);
 
-  // Kiểm tra quyền truy cập AFTER all hooks
-  if (!role || (!STAFF_ROLES.includes(role) && role !== 'Patient')) {
+  // Kiểm tra quyền truy cập - chỉ staff mới được vào
+  if (!role || !STAFF_ROLES.includes(role)) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
         <div className="max-w-md mx-auto">
@@ -266,7 +267,7 @@ const PatientConsultationPage: React.FC = () => {
               Không Có Quyền Truy Cập
             </h1>
             <p className="text-gray-600 mb-6">
-              Bạn không có quyền truy cập vào trang này.
+              Chỉ nhân viên mới có thể truy cập trang tin nhắn nội bộ này.
             </p>
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <p className="text-sm text-red-700 mt-1">
@@ -285,18 +286,13 @@ const PatientConsultationPage: React.FC = () => {
     );
   }
 
-  const getPageTitle = () => {
-    if (role === 'Patient') {
-      return 'Tư Vấn Y Tế';
+  const getTabLabel = (tab: string) => {
+    switch (tab) {
+      case 'admin': return '👑 Quản lý';
+      case 'dentists': return '🦷 Nha sĩ';
+      case 'staff': return '👥 Nhân viên hỗ trợ';
+      default: return '🏢 Tất cả nhân viên';
     }
-    return 'Tư Vấn Bệnh Nhân';
-  };
-
-  const getPageDescription = () => {
-    if (role === 'Patient') {
-      return 'Chat với đội ngũ y tế để được tư vấn và hỗ trợ';
-    }
-    return 'Quản lý và trả lời các tin nhắn tư vấn từ bệnh nhân';
   };
 
   return (
@@ -305,14 +301,14 @@ const PatientConsultationPage: React.FC = () => {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            {getPageTitle()}
+            Tin Nhắn Nội Bộ
           </h1>
           <p className="text-gray-600">
-            {getPageDescription()}
+            Giao tiếp và phối hợp công việc với đồng nghiệp
           </p>
           <div className="mt-2 text-sm text-green-600">
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100">
-              ✓ {role === 'Patient' ? 'Bệnh nhân' : `Nhân viên - ${role}`}
+              ✓ Nhân viên - {role}
             </span>
           </div>
         </div>
@@ -321,13 +317,10 @@ const PatientConsultationPage: React.FC = () => {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-gray-800 mb-2">
-              {role === 'Patient' ? 'Liên hệ với đội ngũ y tế' : 'Hộp thoại tư vấn bệnh nhân'}
+              Chat nội bộ với đồng nghiệp
             </h2>
             <p className="text-sm text-gray-600">
-              {role === 'Patient' 
-                ? 'Chọn nha sĩ hoặc nhân viên để bắt đầu tư vấn' 
-                : 'Chọn bệnh nhân từ danh sách bên trái để bắt đầu trò chuyện'
-              }
+              Chọn đồng nghiệp từ danh sách bên trái để bắt đầu trò chuyện
             </p>
           </div>
 
@@ -353,7 +346,7 @@ const PatientConsultationPage: React.FC = () => {
                     boxShadow: "none",
                   }}
                 >
-                  {/* Danh sách người dùng */}
+                  {/* Danh sách nhân viên */}
                   <div
                     style={{
                       width: 280,
@@ -363,49 +356,62 @@ const PatientConsultationPage: React.FC = () => {
                       overflowY: "auto",
                     }}
                   >
-                    {/* Tab buttons cho Patient */}
-                    {role === 'Patient' && (
-                      <div style={{ marginBottom: 12 }}>
-                        <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
-                          <button
-                            onClick={() => setActiveTab('all')}
-                            style={{
-                              flex: 1,
-                              padding: '6px 8px',
-                              fontSize: 12,
-                              fontWeight: 500,
-                              borderRadius: 6,
-                              border: 'none',
-                              background: activeTab === 'all' ? '#2563eb' : '#e5e7eb',
-                              color: activeTab === 'all' ? '#fff' : '#374151',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s'
-                            }}
-                          >
-                            Tất cả
-                          </button>
-                          <button
-                            onClick={() => setActiveTab('dentists')}
-                            style={{
-                              flex: 1,
-                              padding: '6px 8px',
-                              fontSize: 12,
-                              fontWeight: 500,
-                              borderRadius: 6,
-                              border: 'none',
-                              background: activeTab === 'dentists' ? '#2563eb' : '#e5e7eb',
-                              color: activeTab === 'dentists' ? '#fff' : '#374151',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s'
-                            }}
-                          >
-                            Nha sĩ
-                          </button>
-                        </div>
+                    {/* Tab buttons */}
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, marginBottom: 4 }}>
+                        <button
+                          onClick={() => setActiveTab('all')}
+                          style={{
+                            padding: '6px 8px',
+                            fontSize: 12,
+                            fontWeight: 500,
+                            borderRadius: 6,
+                            border: 'none',
+                            background: activeTab === 'all' ? '#2563eb' : '#e5e7eb',
+                            color: activeTab === 'all' ? '#fff' : '#374151',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          Tất cả
+                        </button>
+                        <button
+                          onClick={() => setActiveTab('admin')}
+                          style={{
+                            padding: '6px 8px',
+                            fontSize: 12,
+                            fontWeight: 500,
+                            borderRadius: 6,
+                            border: 'none',
+                            background: activeTab === 'admin' ? '#2563eb' : '#e5e7eb',
+                            color: activeTab === 'admin' ? '#fff' : '#374151',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          Quản lý
+                        </button>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
+                        <button
+                          onClick={() => setActiveTab('dentists')}
+                          style={{
+                            padding: '6px 8px',
+                            fontSize: 12,
+                            fontWeight: 500,
+                            borderRadius: 6,
+                            border: 'none',
+                            background: activeTab === 'dentists' ? '#2563eb' : '#e5e7eb',
+                            color: activeTab === 'dentists' ? '#fff' : '#374151',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          Nha sĩ
+                        </button>
                         <button
                           onClick={() => setActiveTab('staff')}
                           style={{
-                            width: '100%',
                             padding: '6px 8px',
                             fontSize: 12,
                             fontWeight: 500,
@@ -417,10 +423,10 @@ const PatientConsultationPage: React.FC = () => {
                             transition: 'all 0.2s'
                           }}
                         >
-                          Nhân viên
+                          Hỗ trợ
                         </button>
                       </div>
-                    )}
+                    </div>
 
                     <div style={{ 
                       fontWeight: 600, 
@@ -430,10 +436,7 @@ const PatientConsultationPage: React.FC = () => {
                       alignItems: "center",
                       gap: 6,
                     }}>
-                      {role === 'Patient' ? (
-                        activeTab === 'dentists' ? '🦷 Nha sĩ' : 
-                        activeTab === 'staff' ? '👥 Nhân viên' : '🏥 Đội ngũ y tế'
-                      ) : '👥 Bệnh nhân'}
+                      {getTabLabel(activeTab)}
                       <span style={{ 
                         fontSize: 12, 
                         background: "#2563eb", 
@@ -447,7 +450,7 @@ const PatientConsultationPage: React.FC = () => {
                     
                     {filteredUsers.length === 0 && (
                       <div style={{ color: "#888", fontSize: 14, textAlign: "center", marginTop: 20 }}>
-                        {role === 'Patient' ? 'Không có nhân viên y tế nào' : 'Chưa có bệnh nhân nào'}
+                        Không có nhân viên nào trong nhóm này
                       </div>
                     )}
                     
@@ -473,16 +476,14 @@ const PatientConsultationPage: React.FC = () => {
                           color: "#2563eb",
                         }}>
                           💬 Chat với {selectedUser.fullName}
-                          {selectedUser.role !== 'Patient' && (
-                            <span style={{ 
-                              fontSize: 12, 
-                              fontWeight: 400, 
-                              color: "#6b7280",
-                              marginLeft: 8
-                            }}>
-                              ({selectedUser.role})
-                            </span>
-                          )}
+                          <span style={{ 
+                            fontSize: 12, 
+                            fontWeight: 400, 
+                            color: "#6b7280",
+                            marginLeft: 8
+                          }}>
+                            ({selectedUser.role})
+                          </span>
                         </div>
 
                         <div
@@ -548,7 +549,7 @@ const PatientConsultationPage: React.FC = () => {
                           <input
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
-                            placeholder={role === 'Patient' ? "Nhập câu hỏi tư vấn..." : "Nhập tin nhắn cho bệnh nhân..."}
+                            placeholder="Nhập tin nhắn cho đồng nghiệp..."
                             style={{
                               flex: 1,
                               border: "1px solid #d1d5db",
@@ -601,10 +602,7 @@ const PatientConsultationPage: React.FC = () => {
                         marginTop: 200,
                         fontStyle: "italic"
                       }}>
-                        {role === 'Patient' 
-                          ? 'Chọn nhân viên y tế để bắt đầu tư vấn' 
-                          : 'Chọn một bệnh nhân để bắt đầu trò chuyện'
-                        }
+                        Chọn đồng nghiệp để bắt đầu trò chuyện
                       </div>
                     )}
                   </div>
@@ -624,25 +622,15 @@ const PatientConsultationPage: React.FC = () => {
             </div>
             <div className="ml-3">
               <h3 className="text-sm font-medium text-blue-800">
-                Hướng dẫn sử dụng
+                Hướng dẫn sử dụng tin nhắn nội bộ
               </h3>
               <div className="mt-2 text-sm text-blue-700">
                 <ul className="list-disc list-inside space-y-1">
-                  {role === 'Patient' ? (
-                    <>
-                      <li>Chọn tab "Nha sĩ" để tư vấn về vấn đề răng miệng</li>
-                      <li>Chọn tab "Nhân viên" để hỗ trợ về lịch hẹn, thanh toán</li>
-                      <li>Tin nhắn sẽ được trả lời trong giờ làm việc</li>
-                      <li>Mô tả rõ vấn đề để được tư vấn chính xác nhất</li>
-                    </>
-                  ) : (
-                    <>
-                      <li>Bệnh nhân sẽ xuất hiện trong danh sách khi họ gửi tin nhắn</li>
-                      <li>Nhấp vào tên bệnh nhân để xem lịch sử chat và trả lời</li>
-                      <li>Tin nhắn sẽ được cập nhật theo thời gian thực</li>
-                      <li>Sử dụng phím Enter để gửi tin nhắn nhanh</li>
-                    </>
-                  )}
+                  <li>Sử dụng tab "Quản lý" để liên hệ với lãnh đạo</li>
+                  <li>Tab "Nha sĩ" để trao đổi về ca khám, bệnh án</li>
+                  <li>Tab "Hỗ trợ" để phối hợp công việc lễ tân, trợ lý</li>
+                  <li>Tin nhắn được cập nhật theo thời gian thực</li>
+                  <li>Giữ thông tin bệnh nhân bảo mật khi trao đổi</li>
                 </ul>
               </div>
             </div>
@@ -653,4 +641,4 @@ const PatientConsultationPage: React.FC = () => {
   );
 };
 
-export default PatientConsultationPage;
+export default InternalMessagesPage;
