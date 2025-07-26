@@ -178,7 +178,7 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
                         "Tạo thủ thuật điều trị",
                         message,
                         "Xem hồ sơ",
-                        0, ""
+                        0, $"patient/view-treatment-records?patientId={appointment.PatientId}"
                     ), cancellationToken);
                 }
                 catch (Exception ex)
