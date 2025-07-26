@@ -29,41 +29,74 @@ interface Props {
 
 type Gender = "Male" | "Female"
 
-// Improved validation schema with better error messages
 const schema = yup.object({
   fullname: yup
     .string()
+    .nullable()
+    .transform((value, originalValue) => {
+      // Convert null/undefined to empty string
+      return originalValue === null || originalValue === undefined ? "" : value
+    })
     .trim()
     .min(2, "Họ tên phải có ít nhất 2 ký tự")
     .max(100, "Họ tên không được quá 100 ký tự")
-    .matches(/^[a-zA-ZÀ-ỹ\s]+$/, "Họ tên chỉ được chứa chữ cái và khoảng trắng")
+    .matches(/^[a-zA-ZÀ-ỹ\s]*$/, "Họ tên chỉ được chứa chữ cái và khoảng trắng")
     .required("Họ tên không được để trống"),
   dob: yup
     .date()
+    .nullable()
+    .transform((value, originalValue) => {
+      // Handle string dates from API
+      if (typeof originalValue === 'string' && originalValue) {
+        try {
+          return parse(originalValue, "dd/MM/yyyy", new Date())
+        } catch {
+          return null
+        }
+      }
+      return value
+    })
     .typeError("Ngày sinh không hợp lệ")
     .max(new Date(), "Ngày sinh không được trong tương lai")
-    .test('age-check', 'Tuổi phải từ 0 đến 120', function(value) {
+    .test('age-check', 'Tuổi phải từ 0 đến 120', function (value) {
       if (!value) return false
       const today = new Date()
       const age = today.getFullYear() - value.getFullYear()
       return age >= 0 && age <= 120
     })
     .required("Vui lòng chọn ngày sinh"),
-  gender: yup.mixed<Gender>().oneOf(["Male", "Female"], "Vui lòng chọn giới tính").required("Vui lòng chọn giới tính"),
+  gender: yup
+    .mixed<Gender>()
+    .nullable()
+    .transform((value) => value || "Male")
+    .oneOf(["Male", "Female"], "Vui lòng chọn giới tính")
+    .required("Vui lòng chọn giới tính"),
   email: yup
     .string()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === null || originalValue === undefined ? "" : value
+    })
     .trim()
     .email("Email không hợp lệ")
     .max(100, "Email không được quá 100 ký tự")
     .required("Email không được để trống"),
   address: yup
     .string()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === null || originalValue === undefined ? "" : value
+    })
     .trim()
     .max(200, "Địa chỉ không được quá 200 ký tự")
     .optional()
     .default(""),
   underlyingConditions: yup
     .string()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === null || originalValue === undefined ? "" : value
+    })
     .trim()
     .max(500, "Bệnh lý nền không được quá 500 ký tự")
     .optional()
@@ -99,11 +132,20 @@ export default function EditPatientModal({ patient, open, onOpenChange, onSave }
   useEffect(() => {
     setHasUnsavedChanges(isDirty)
   }, [isDirty])
-
   useEffect(() => {
     if (open && patient) {
       try {
-        const parsedDate = parse(patient.dob, "dd/MM/yyyy", new Date())
+        let parsedDate = new Date()
+
+        if (patient.dob) {
+          try {
+            parsedDate = parse(patient.dob, "dd/MM/yyyy", new Date())
+          } catch (dateError) {
+            console.warn("Could not parse date:", patient.dob)
+            parsedDate = new Date()
+          }
+        }
+
         reset({
           fullname: patient.fullname || "",
           dob: parsedDate,
@@ -115,13 +157,22 @@ export default function EditPatientModal({ patient, open, onOpenChange, onSave }
       } catch (error) {
         console.error("Error parsing patient data:", error)
         toast.error("Có lỗi khi tải dữ liệu bệnh nhân")
+
+        reset({
+          fullname: "",
+          dob: new Date(),
+          gender: "Male",
+          email: "",
+          address: "",
+          underlyingConditions: "",
+        })
       }
     }
   }, [open, patient, reset])
 
   const onSubmit = async (data: FormData) => {
     if (isSubmitting) return
-    
+
     setIsSubmitting(true)
     try {
       const formattedData = {
@@ -132,7 +183,7 @@ export default function EditPatientModal({ patient, open, onOpenChange, onSave }
         underlyingConditions: data.underlyingConditions?.trim() || "",
         dob: format(data.dob, "dd/MM/yyyy"),
       }
-      
+
       await onSave(patient.patientId, formattedData)
       onOpenChange(false)
     } catch (err) {
