@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Plus, Download, Search, TrendingUp, TrendingDown, Receipt, Calendar, Edit, Filter, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Download, Search, TrendingUp, TrendingDown, Receipt, Calendar, Edit, Eye, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,7 +12,6 @@ import { formatCurrency } from '@/utils/currencyUtils';
 import { getErrorMessage } from '@/utils/formatUtils';
 import { CreateTransactionModal } from './CreateTransactionModal';
 import { EditTransactionModal } from './EditTransactionModal';
-import { ViewTransactionModal } from './ViewTransactionModal';
 
 export const FinancialTransactionList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,8 +26,8 @@ export const FinancialTransactionList: React.FC = () => {
   });
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editTransaction, setEditTransaction] = useState<number | null>(null);
-  const [viewTransaction, setViewTransaction] = useState<number | null>(null);
   const [deleteTransaction, setDeleteTransaction] = useState<number | null>(null);
+  const navigate = useNavigate();
 
   const { data: transactions = [], isLoading, error } = useFinancialTransactions();
   const { mutate: exportTransactions, isPending: isExporting } = useExportFinancialTransactions();
@@ -547,9 +547,8 @@ export const FinancialTransactionList: React.FC = () => {
                           </td>
                           <td className="px-6 py-4">
                             <div 
-                              className="text-sm text-gray-900 max-w-xs truncate cursor-pointer hover:text-blue-600" 
+                              className="text-sm text-gray-900 max-w-xs truncate" 
                               title={transaction.description}
-                              onClick={() => setViewTransaction(transaction.transactionID)}
                             >
                               {transaction.description}
                             </div>
@@ -575,20 +574,21 @@ export const FinancialTransactionList: React.FC = () => {
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                onClick={() => navigate(`/financial-transactions/${transaction.transactionID}`)}
+                                className="text-gray-600 hover:text-gray-900"
+                                title="Xem chi tiết"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => setEditTransaction(transaction.transactionID)}
                                 className="text-blue-600 hover:text-blue-900"
+                                title="Chỉnh sửa"
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              {/* <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setDeleteTransaction(transaction.transactionID)}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                title="Xóa giao dịch"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button> */}
                             </div>
                           </td>
                         </tr>
@@ -622,11 +622,8 @@ export const FinancialTransactionList: React.FC = () => {
                       </div>
 
                       {/* Description */}
-                      <div 
-                        className="cursor-pointer"
-                        onClick={() => setViewTransaction(transaction.transactionID)}
-                      >
-                        <p className="text-sm font-medium text-gray-900 mb-1 hover:text-blue-600">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 mb-1">
                           {transaction.description}
                         </p>
                         <p className="text-xs text-gray-600">{transaction.category}</p>
@@ -647,21 +644,21 @@ export const FinancialTransactionList: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="sm"
+                          onClick={() => navigate(`/financial-transactions/${transaction.transactionID}`)}
+                          className="text-gray-600 hover:text-gray-900"
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          Xem
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => setEditTransaction(transaction.transactionID)}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           <Edit className="h-4 w-4 mr-1" />
                           Sửa
                         </Button>
-                        {/* <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDeleteTransaction(transaction.transactionID)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Xóa
-                        </Button> */}
                       </div>
                     </div>
                   </CardContent>
@@ -698,14 +695,6 @@ export const FinancialTransactionList: React.FC = () => {
           isOpen={!!editTransaction}
           onClose={() => setEditTransaction(null)}
           transactionId={editTransaction}
-        />
-      )}
-
-      {viewTransaction && (
-        <ViewTransactionModal
-          isOpen={!!viewTransaction}
-          onClose={() => setViewTransaction(null)}
-          transactionId={viewTransaction}
         />
       )}
 

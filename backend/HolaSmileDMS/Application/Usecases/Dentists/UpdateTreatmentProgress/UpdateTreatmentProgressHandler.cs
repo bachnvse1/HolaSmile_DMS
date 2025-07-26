@@ -109,11 +109,6 @@ namespace Application.Usecases.Dentist.UpdateTreatmentProgress
             {
                 case "Dentist":
                     return; // Luôn cho phép
-                case "Receptionist":
-                case "Assistant":
-                    if (!string.Equals(currentStatus, "pending", StringComparison.OrdinalIgnoreCase))
-                        throw new UnauthorizedAccessException("Chỉ được cập nhật khi tiến trình ở trạng thái 'pending'.");
-                    return;
                 default:
                     throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Không có quyền
             }
