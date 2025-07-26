@@ -6,6 +6,7 @@ using Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
+using NuGet.Protocol.Core.Types;
 
 namespace Application.Usecases.Receptionist.CreateFinancialTransaction
 {
@@ -13,13 +14,17 @@ namespace Application.Usecases.Receptionist.CreateFinancialTransaction
     {
         private readonly ITransactionRepository _transactionRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IImageRepository _imageRepository;
+        private readonly ICloudinaryService _cloudService;
         private readonly IOwnerRepository _ownerRepository;
         private readonly IMediator _mediator;
 
-        public CreateFinancialTransactionHandler(ITransactionRepository transactionRepository, IHttpContextAccessor httpContextAccessor,IOwnerRepository ownerRepository, IMediator mediator)
+        public CreateFinancialTransactionHandler(ITransactionRepository transactionRepository, IHttpContextAccessor httpContextAccessor, IImageRepository imageRepository, ICloudinaryService cloudinaryService, IOwnerRepository ownerRepository, IMediator mediator)
         {
             _transactionRepository = transactionRepository;
             _httpContextAccessor = httpContextAccessor;
+            _imageRepository = imageRepository;
+            _cloudService = cloudinaryService;
             _ownerRepository = ownerRepository;
             _mediator = mediator;
         }
@@ -37,6 +42,13 @@ namespace Application.Usecases.Receptionist.CreateFinancialTransaction
             if (request.Description.Trim().IsNullOrEmpty()) throw new Exception(MessageConstants.MSG.MSG07);
             if (request.Amount <= 0) throw new Exception(MessageConstants.MSG.MSG95);
 
+            var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/bmp", "image/webp", "image/tiff", "image/heic" };
+
+            if (!allowedTypes.Contains(request.EvidentImage.ContentType))
+                throw new ArgumentException("Vui lòng chọn ảnh có định dạng jpeg/png/bmp/gif/webp/tiff/heic");
+
+            var imageUrl = await _cloudService.UploadEvidentImageAsync(request.EvidentImage);
+
             var newTransaction = new FinancialTransaction
             {
                 TransactionType = request.TransactionType,
@@ -46,6 +58,7 @@ namespace Application.Usecases.Receptionist.CreateFinancialTransaction
                 Category = request.Category,
                 PaymentMethod = request.PaymentMethod,
                 TransactionDate = request.TransactionDate,
+                EvidenceImage = imageUrl,
                 CreatedBy = currentUserId,
                 CreatedAt = DateTime.Now,
                 IsDelete = false

@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
+using Application.Usecases.Owner.ApproveDentistSchedule;
 using Application.Usecases.Owner.AprroveDentistSchedule;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -16,7 +17,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Owners
         private readonly Mock<IDentistRepository> _dentistRepoMock;
         private readonly Mock<IOwnerRepository> _ownerRepoMock;
         private readonly Mock<IMediator> _mediatorMock;
-        private readonly ApproveScheduleHandle _handler;
+        private readonly ApproveDentistScheduleHandle _handler;
         public ApproveScheduleHandleTest()
         {
             _scheduleRepositoryMock = new Mock<IScheduleRepository>();
@@ -24,7 +25,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Owners
             _dentistRepoMock = new Mock<IDentistRepository>();
             _ownerRepoMock = new Mock<IOwnerRepository>();
             _mediatorMock = new Mock<IMediator>();
-            _handler = new ApproveScheduleHandle(
+            _handler = new ApproveDentistScheduleHandle(
                 _httpContextAccessorMock.Object,
                 _scheduleRepositoryMock.Object,
                 _mediatorMock.Object

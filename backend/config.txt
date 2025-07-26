@@ -3,5 +3,6 @@ dotnet ef database update
 npm i
 npm run dev
 
-dotnet ef migrations add AddIsActiveToSchedule --project Infrastructure --startup-project HDMS_API
+dotnet ef migrations add AddEvidenceImageToTransaction --project Infrastructure --startup-project HDMS_API
 dotnet ef database update --project Infrastructure --startup-project HDMS_API
+dotnet ef database drop --project Infrastructure --startup-project HDMS_API

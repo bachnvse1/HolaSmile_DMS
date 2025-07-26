@@ -8,13 +8,13 @@ using Microsoft.AspNetCore.Http;
 
 namespace Application.Usecases.Owner.AprroveDentistSchedule
 {
-    public class ApproveScheduleHandle : IRequestHandler<ApproveDentistScheduleCommand, string>
+    public class ApproveDentistScheduleHandle : IRequestHandler<ApproveDentistScheduleCommand, string>
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IScheduleRepository _scheduleRepository;
         private readonly IMediator _mediator;
 
-        public ApproveScheduleHandle(IHttpContextAccessor httpContextAccessor, IScheduleRepository scheduleRepository, IMediator mediator)
+        public ApproveDentistScheduleHandle(IHttpContextAccessor httpContextAccessor, IScheduleRepository scheduleRepository, IMediator mediator)
         {
             _httpContextAccessor = httpContextAccessor;
             _scheduleRepository = scheduleRepository;

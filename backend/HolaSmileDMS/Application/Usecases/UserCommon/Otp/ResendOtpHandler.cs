@@ -26,6 +26,8 @@ namespace Application.Usecases.UserCommon.Otp
                 if (cachedOtp.SendTime.AddMinutes(1) < DateTime.Now)
                 {
                     var OtpCode = GenerateOTPHelper.GenerateOTP();
+
+                    var subject = "Xác thực OTP từ Phòng khám HolaSmile";
                     var messasge = $@"
                                   <p>Xin chào,</p>
                                   <p>Bạn đã yêu cầu xác thực bằng mã OTP.</p>
@@ -37,7 +39,7 @@ namespace Application.Usecases.UserCommon.Otp
                     {
                         try
                         {
-                            await _emailService.SendEmailAsync(request.email, messasge);
+                            await _emailService.SendEmailAsync(request.email, messasge, subject);
                         }
                         catch (Exception ex)
                         {
