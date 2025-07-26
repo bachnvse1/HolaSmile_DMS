@@ -26,27 +26,40 @@ export default function ConsultantChatBox() {
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<ChatMessage[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [hasUnreadMessage, setHasUnreadMessage] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const lastProcessedMessage = useRef<string>("");
 
   const { realtimeMessages, sendMessage, fetchChatHistory } =
     useChatHubGuest(guestId);
+
+  // Khởi tạo audio cho notification
+  useEffect(() => {
+    audioRef.current = new Audio("/sound/inflicted-601.ogg");
+    audioRef.current.volume = 0.5;
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     fetchChatHistory(CONSULTANT.id).then(setHistory);
   }, [guestId, fetchChatHistory]);
 
   const allMessages = useMemo(() => {
-    const merged = [
-      ...history,
-      ...realtimeMessages,
-    ].filter(
+    const merged = [...history, ...realtimeMessages].filter(
       (m) =>
         (m.senderId === guestId && m.receiverId === CONSULTANT.id) ||
         (m.receiverId === guestId && m.senderId === CONSULTANT.id)
     );
 
     const seen = new Set<string>();
-    const unique = merged.filter(msg => {
+    const unique = merged.filter((msg) => {
       // Ưu tiên dùng messageId nếu có
       let key = msg.messageId;
 
@@ -70,6 +83,35 @@ export default function ConsultantChatBox() {
     );
   }, [history, realtimeMessages, guestId]);
 
+  // Xử lý tin nhắn mới với âm thanh và hiệu ứng đỏ
+  useEffect(() => {
+    if (realtimeMessages.length === 0) return;
+
+    const lastMsg = realtimeMessages[realtimeMessages.length - 1];
+    const messageKey = `${lastMsg.senderId}-${lastMsg.message}-${lastMsg.timestamp}`;
+
+    // Tránh xử lý cùng một tin nhắn nhiều lần
+    if (lastProcessedMessage.current === messageKey) return;
+    lastProcessedMessage.current = messageKey;
+
+    // Nếu tin nhắn đến từ consultant và chatbox đang đóng
+    if (
+      lastMsg.senderId === CONSULTANT.id &&
+      lastMsg.receiverId === guestId &&
+      !isOpen
+    ) {
+      setHasUnreadMessage(true);
+
+      // Phát âm thanh thông báo
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch((err) => {
+          console.log("Could not play notification sound:", err);
+        });
+      }
+    }
+  }, [realtimeMessages, guestId, isOpen]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [allMessages]);
@@ -77,10 +119,16 @@ export default function ConsultantChatBox() {
   const handleSend = () => {
     const text = input.trim();
     if (!text) return;
-    
+
     // ✅ Gọi sendMessage từ hook
     sendMessage(text);
     setInput("");
+  };
+
+  const handleOpenChat = () => {
+    setIsOpen(true);
+    // Tắt thông báo đỏ khi mở chat
+    setHasUnreadMessage(false);
   };
 
   const formatTime = (ts?: string) => {
@@ -93,24 +141,50 @@ export default function ConsultantChatBox() {
     <>
       {!isOpen && (
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={handleOpenChat}
           style={{
             position: "fixed",
             bottom: 24,
             right: 24,
-            background: "#2563eb",
+            background: hasUnreadMessage ? "#ef4444" : "#2563eb",
             color: "#fff",
             border: "none",
             borderRadius: "9999px",
             padding: "12px 20px",
             fontSize: 16,
             fontWeight: 600,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            boxShadow: hasUnreadMessage
+              ? "0 4px 12px rgba(239, 68, 68, 0.4), 0 0 20px rgba(239, 68, 68, 0.3)"
+              : "0 4px 12px rgba(0,0,0,0.2)",
             cursor: "pointer",
             zIndex: 999,
+            animation: hasUnreadMessage ? "pulse 2s infinite" : "none",
           }}
         >
           💬 Hỗ trợ
+          {hasUnreadMessage && (
+            <span
+              style={{
+                position: "absolute",
+                top: -8,
+                right: -8,
+                background: "#ffffff",
+                color: "#ef4444",
+                fontSize: 12,
+                fontWeight: "bold",
+                borderRadius: "50%",
+                width: 20,
+                height: 20,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                animation: "bounce 1s infinite",
+              }}
+            >
+              !
+            </span>
+          )}
         </button>
       )}
 
@@ -179,7 +253,13 @@ export default function ConsultantChatBox() {
             }}
           >
             {allMessages.length === 0 && (
-              <div style={{ color: "#888", textAlign: "center", marginTop: 40 }}>
+              <div
+                style={{
+                  color: "#888",
+                  textAlign: "center",
+                  marginTop: 40,
+                }}
+              >
                 Chưa có tin nhắn nào
               </div>
             )}
@@ -264,6 +344,35 @@ export default function ConsultantChatBox() {
           </div>
         </div>
       )}
+
+      {/* CSS Animations */}
+      <style>{`
+        @keyframes pulse {
+          0%,
+          100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.05);
+          }
+        }
+
+        @keyframes bounce {
+          0%,
+          20%,
+          50%,
+          80%,
+          100% {
+            transform: translateY(0);
+          }
+          40% {
+            transform: translateY(-4px);
+          }
+          60% {
+            transform: translateY(-2px);
+          }
+        }
+      `}</style>
     </>
   );
 }
