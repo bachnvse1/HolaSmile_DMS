@@ -36,4 +36,12 @@ public class TreatmentProgressRepository : ITreatmentProgressRepository
         _context.TreatmentProgresses.Update(progress);
         return await _context.SaveChangesAsync(cancellationToken) > 0;
     }
+    public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken)
+    {
+        var progress = await GetByIdAsync(id, cancellationToken);
+        if (progress == null) return false;
+
+        _context.TreatmentProgresses.Remove(progress);
+        return await _context.SaveChangesAsync(cancellationToken) > 0;
+    }
 }

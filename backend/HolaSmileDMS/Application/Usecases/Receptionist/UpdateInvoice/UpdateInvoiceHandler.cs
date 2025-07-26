@@ -92,7 +92,7 @@ public class UpdateInvoiceHandler : IRequestHandler<UpdateInvoiceCommand, string
                         "Thanh toán",
                         message,
                         "invoice",
-                        userId, ""
+                        userId, "invoices"
                     ), cancellationToken);
                 }
                 catch (Exception ex)
