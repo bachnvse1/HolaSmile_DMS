@@ -207,7 +207,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
 
             // Act & Assert
             var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, CancellationToken.None));
-            Assert.Equal(MessageConstants.MSG.MSG122, ex.Message);
+            Assert.Equal(MessageConstants.MSG.MSG127, ex.Message);
         }
     }
 

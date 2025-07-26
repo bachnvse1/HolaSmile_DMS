@@ -12,9 +12,10 @@ type GuestInfo = {
 
 type Props = {
   onClose?: () => void;
+  embedded?: boolean; 
 };
 
-export default function GuestSupportChatBox({ onClose }: Props) {
+export default function GuestSupportChatBox({ onClose, embedded = false }: Props) {
   const { userId } = useAuth();
   const chatHub = useChatHub();
 
@@ -174,28 +175,40 @@ export default function GuestSupportChatBox({ onClose }: Props) {
   // Safe check cho guests array
   const safeGuests = Array.isArray(guests) ? guests : [];
 
+  // Conditional styling based on embedded mode
+  const containerStyle = embedded ? {
+    position: "relative" as const,
+    display: "flex",
+    height: "100%",
+    width: "100%",
+    border: "none",
+    borderRadius: 0,
+    overflow: "hidden",
+    fontFamily: "inherit",
+    background: "#fff",
+    boxShadow: "none",
+  } : {
+    position: "fixed" as const,
+    bottom: 96,
+    right: 24,
+    zIndex: 1000,
+    display: "flex",
+    height: 500,
+    width: 700,
+    border: "1px solid #e5e7eb",
+    borderRadius: 12,
+    overflow: "hidden",
+    fontFamily: "inherit",
+    background: "#fff",
+    boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+  };
+
   return (
-    <div
-      style={{
-        position: "fixed",
-        bottom: 96,
-        right: 24,
-        zIndex: 1000,
-        display: "flex",
-        height: 500,
-        width: 700,
-        border: "1px solid #e5e7eb",
-        borderRadius: 12,
-        overflow: "hidden",
-        fontFamily: "inherit",
-        background: "#fff",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
-      }}
-    >
+    <div style={containerStyle}>
       {/* Danh sách khách */}
       <div
         style={{
-          width: 220,
+          width: embedded ? 280 : 220,
           borderRight: "1px solid #e5e7eb",
           padding: 12,
           background: "#f9fafb",
@@ -300,9 +313,9 @@ export default function GuestSupportChatBox({ onClose }: Props) {
         ))}
       </div>
 
-      {/* Chat box - phần này giữ nguyên */}
+      {/* Chat box */}
       <div style={{ flex: 1, padding: 16, position: "relative" }}>
-        {onClose && (
+        {onClose && !embedded && (
           <button
             onClick={onClose}
             style={{
@@ -332,14 +345,14 @@ export default function GuestSupportChatBox({ onClose }: Props) {
               fontSize: 16, 
               marginBottom: 12, 
               color: "#2563eb",
-              paddingRight: 40
+              paddingRight: embedded ? 0 : 40
             }}>
               💬 Chat với {selectedGuest.name || `Guest ${selectedGuest.guestId.slice(0, 8)}`}
             </div>
 
             <div
               style={{
-                height: 340,
+                height: embedded ? 440 : 340,
                 overflowY: "auto",
                 background: "#f8fafc",
                 borderRadius: 10,
@@ -450,7 +463,7 @@ export default function GuestSupportChatBox({ onClose }: Props) {
           <div style={{ 
             textAlign: "center", 
             color: "#6b7280", 
-            marginTop: 100,
+            marginTop: embedded ? 200 : 100,
             fontStyle: "italic"
           }}>
             Chọn một khách để bắt đầu trò chuyện

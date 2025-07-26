@@ -14,9 +14,15 @@ import {
   Activity,
   Pill,
   ChevronLeft,
-  Percent
+  Percent,
+  ArrowLeftRight,
+  MessageCircle,
+  Users2,
+  UserCircle,
+  Phone
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
+import GuestConsultationPage from '@/pages/messages/guest-consultation';
 
 interface MenuItem {
   id: string;
@@ -25,6 +31,7 @@ interface MenuItem {
   path?: string;
   children?: MenuItem[];
   roles: string[];
+  element?: React.ReactNode;
 }
 
 interface StaffSidebarProps {
@@ -89,18 +96,50 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       ]
     },
     {
-      id: 'patients',
-      label: 'Bệnh Nhân',
-      icon: <Users className="h-5 w-5" />,
+      id: 'messages',
+      label: 'Tin Nhắn',
+      icon: <MessageCircle className="h-5 w-5" />,
       roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist'],
       children: [
         {
-          id: 'patients-list',
-          label: 'Danh Sách',
-          icon: <Users className="h-4 w-4" />,
-          path: '/patients',
+          id: 'messages-internal',
+          label: 'Tin Nhắn Nội Bộ',
+          icon: <Users2 className="h-4 w-4" />,
+          path: '/messages/internal',
           roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
         },
+        {
+          id: 'messages-patient-consultation',
+          label: 'Tư Vấn Bệnh Nhân',
+          icon: <UserCircle className="h-4 w-4" />,
+          path: '/messages/patient-consultation',
+          roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
+        },
+        {
+          id: 'messages-customer-consultation',
+          label: 'Tư Vấn Khách Hàng',
+          icon: <Phone className="h-4 w-4" />,
+          path: '/messages/guest-consultation',
+          element: <GuestConsultationPage />,
+          roles: ['Receptionist']
+        },
+        
+      ]
+    },
+    {
+      id: 'patients',
+      label: 'Bệnh Nhân',
+      icon: <Users className="h-5 w-5" />,
+      path: '/patients',
+      roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist'],
+      // children: [
+      //   {
+      //     id: 'patients-list',
+      //     label: 'Danh Sách',
+      //     icon: <Users className="h-4 w-4" />,
+      //     path: '/patients',
+      //     roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
+      //   },
         // {
         //   id: 'patients-records',
         //   label: 'Hồ Sơ Y Tế',
@@ -108,7 +147,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
         //   path: '/patients/records',
         //   roles: ['Administrator', 'Owner', 'Assistant', 'Dentist']
         // }
-      ]
+      // ]
     },
     // {
     //   id: 'treatments',
@@ -142,14 +181,14 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       id: 'finance',
       label: 'Tài Chính',
       icon: <CreditCard className="h-5 w-5" />,
-      roles: ['Administrator', 'Owner', 'Receptionist'],
+      roles: ['Owner', 'Receptionist'],
       children: [
         {
           id: 'finance-transactions',
           label: 'Giao Dịch',
-          icon: <CreditCard className="h-4 w-4" />,
+          icon: <ArrowLeftRight className="h-4 w-4" />,
           path: '/financial-transactions',
-          roles: ['Administrator', 'Owner', 'Receptionist']
+          roles: ['Owner', 'Receptionist']
         },
         {
           id: 'finance-invoices',
@@ -158,13 +197,13 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           path: '/invoices',
           roles: ['Receptionist', 'Owner']
         },
-        {
-          id: 'finance-payments',
-          label: 'Thanh Toán',
-          icon: <CreditCard className="h-4 w-4" />,
-          path: '/finance/payments',
-          roles: ['Administrator', 'Owner', 'Receptionist']
-        }
+        // {
+        //   id: 'finance-payments',
+        //   label: 'Thanh Toán',
+        //   icon: <CreditCard className="h-4 w-4" />,
+        //   path: '/finance/payments',
+        //   roles: ['Owner', 'Receptionist']
+        // }
       ]
     },
     {

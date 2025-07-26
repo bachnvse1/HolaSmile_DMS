@@ -72,6 +72,9 @@ namespace Infrastructure.Migrations
                     b.Property<int?>("PatientId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("RescheduledFromAppointmentId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Status")
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
@@ -210,6 +213,13 @@ namespace Infrastructure.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("EvidenceImage")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("IsConfirmed")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<bool>("IsDelete")
                         .HasColumnType("tinyint(1)");
@@ -560,6 +570,9 @@ namespace Infrastructure.Migrations
 
                     b.Property<bool>("IsRead")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("MappingUrl")
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Message")
                         .HasColumnType("longtext");

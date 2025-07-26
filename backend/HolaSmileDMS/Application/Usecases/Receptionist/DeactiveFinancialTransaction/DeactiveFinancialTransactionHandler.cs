@@ -34,7 +34,7 @@ namespace Application.Usecases.Receptionist.DeactiveFinancialTransaction
             var existingTransaction = await _transactionRepository.GetTransactionByIdAsync(request.TransactionId);
             if (existingTransaction == null)
             {
-                throw new Exception(MessageConstants.MSG.MSG122);
+                throw new Exception(MessageConstants.MSG.MSG127);
             }
             existingTransaction.IsDelete = !existingTransaction.IsDelete;
             existingTransaction.UpdatedAt = DateTime.Now;
@@ -51,7 +51,7 @@ namespace Application.Usecases.Receptionist.DeactiveFinancialTransaction
                 o.User.UserID,
                 "Chỉnh sửa phiếu thu/chi",
                 $"Lễ tân {o.User.Fullname} đã xóa phiếu {(existingTransaction.TransactionType ? "thu" : "chi")} vào lúc {DateTime.Now}",
-                "transaction", null), cancellationToken));
+                "transaction", null, ""), cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);
             }
             catch { }

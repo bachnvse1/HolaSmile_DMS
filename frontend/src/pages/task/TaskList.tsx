@@ -3,8 +3,9 @@ import { TaskCard } from "@/components/task/TaskCard"
 import { TaskFilters } from "@/components/task/TaskFilters"
 import { TaskStats } from "@/components/task/TaskStats"
 import { AssignTaskModal } from "@/components/task/AssignTaskModal"
+import { TaskDetailModal } from "@/components/task/TaskDetailModal"
 import type { BasicTask } from "@/types/task"
-import { getAllTasks } from "@/services/taskService"
+import { getAllTasks, taskService } from "@/services/taskService"
 import { getAllAssistants } from "@/services/assistantService"
 import { toast } from "react-toastify"
 
@@ -13,6 +14,9 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
   const [assistants, setAssistants] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("Tất cả")
+  const [isUpdating, setIsUpdating] = useState<number | null>(null)
+  const [selectedTask, setSelectedTask] = useState<BasicTask | null>(null)
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -39,10 +43,69 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
           setAssistants([])
         }
       } catch (error: any) {
+        toast.error("Có lỗi xảy ra khi tải dữ liệu")
       }
     }
     fetchData()
   }, [])
+
+  // Hàm xử lý xem chi tiết task
+  const handleViewDetail = (task: BasicTask) => {
+    setSelectedTask(task)
+    setIsDetailModalOpen(true)
+  }
+
+  // Hàm xử lý thay đổi trạng thái task
+  const handleToggleStatus = async (taskId: number) => {
+    setIsUpdating(taskId)
+    
+    try {
+      // Tìm task hiện tại để xác định trạng thái
+      const currentTask = taskList.find(task => task.taskId === taskId)
+      if (!currentTask) {
+        toast.error("Không tìm thấy nhiệm vụ")
+        return
+      }
+
+      const isCompleted = currentTask.status !== "Completed"
+      
+      // Gọi API để cập nhật trạng thái
+      const result = await taskService.updateTaskStatus(taskId, isCompleted)
+      
+      // Cập nhật state local
+      setTaskList(prevTasks => 
+        prevTasks.map(task => 
+          task.taskId === taskId 
+            ? { ...task, status: isCompleted ? "Completed" : "Pending" }
+            : task
+        )
+      )
+      
+      toast.success(result.message || "Cập nhật trạng thái thành công")
+      
+    } catch (error: any) {
+      toast.error(error.message || "Không thể cập nhật trạng thái nhiệm vụ")
+    } finally {
+      setIsUpdating(null)
+    }
+  }
+
+  // Hàm refresh danh sách task sau khi assign
+  const handleTaskAssign = async () => {
+    try {
+      const rawTasks = await getAllTasks()
+      const tasks = rawTasks as any
+
+      if (Array.isArray(tasks)) {
+        setTaskList(tasks)
+        toast.success("Phân công nhiệm vụ thành công")
+      } else {
+        toast.warning(tasks?.message || "Không thể tải lại danh sách nhiệm vụ")
+      }
+    } catch (error: any) {
+      toast.error("Có lỗi xảy ra khi tải lại dữ liệu")
+    }
+  }
 
   const filteredTasks = taskList.filter((task) => {
     const searchMatch =
@@ -71,7 +134,7 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
           <p className="text-muted-foreground">Quản lý và theo dõi các nhiệm vụ được phân công</p>
         </div>
         <AssignTaskModal
-          onTaskAssign={() => { }}
+          onTaskAssign={handleTaskAssign}
           treatmentProgressID={treatmentProgressID}
           assistants={assistants}
         />
@@ -91,8 +154,9 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
           <TaskCard
             key={task.taskId}
             task={task}
-            onToggleStatus={() => { }}
-            onDelete={() => { }}
+            onToggleStatus={handleToggleStatus}
+            onViewDetail={handleViewDetail}
+            isUpdating={isUpdating === task.taskId}
           />
         ))}
 
@@ -102,6 +166,13 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
           </div>
         )}
       </div>
+
+      {/* Modal chi tiết task */}
+      <TaskDetailModal
+        task={selectedTask}
+        open={isDetailModalOpen}
+        onOpenChange={setIsDetailModalOpen}
+      />
     </div>
   )
 }

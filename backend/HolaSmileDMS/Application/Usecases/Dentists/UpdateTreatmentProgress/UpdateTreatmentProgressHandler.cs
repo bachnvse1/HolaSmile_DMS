@@ -83,7 +83,7 @@ namespace Application.Usecases.Dentist.UpdateTreatmentProgress
                     "Cập nhật tiến trình điều trị",
                     $"Tiến trình điều trị #{progress.TreatmentProgressID} của bạn đã được cập nhật sang ngày {treatmentDate}.",
                     "Tiến trình điều trị",
-                    0
+                    0, ""
                 ), cancellationToken);
 
                 // 2. Gửi cho bác sĩ
@@ -92,7 +92,7 @@ namespace Application.Usecases.Dentist.UpdateTreatmentProgress
                     "Tiến trình đã được cập nhật",
                      $"Tiến trình điều trị #{progress.TreatmentProgressID} của bệnh nhân đã được cập nhật.",
                     "Tiến trình điều trị",
-                    progress.TreatmentProgressID
+                    progress.TreatmentProgressID, ""
                 ), cancellationToken);
                 return true;
             }
@@ -132,7 +132,7 @@ namespace Application.Usecases.Dentist.UpdateTreatmentProgress
             // EndTime (nếu có) – không được nhỏ hơn CreatedAt hiện tại của entity
             var endTime = req.EndTime ?? current.EndTime;
             if (endTime.HasValue && endTime < current.CreatedAt)
-                throw new ArgumentException("EndTime không thể nhỏ hơn CreatedAt.");
+                throw new ArgumentException("Thời gian kết thúc không thể nhỏ hơn thời gian tạo");
         }
         private async System.Threading.Tasks.Task UpdateTreatmentRecordStatusIfCompleted(TreatmentProgress progress, CancellationToken cancellationToken)
         {

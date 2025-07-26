@@ -39,7 +39,7 @@ namespace Application.Usecases.Receptionist.EditFinancialTransaction
             var existingTransaction = await _transactionRepository.GetTransactionByIdAsync(request.TransactionId);
             if (existingTransaction == null)
             {
-                throw new Exception(MessageConstants.MSG.MSG122);
+                throw new Exception(MessageConstants.MSG.MSG127);
             }
             existingTransaction.TransactionType = request.TransactionType;
             existingTransaction.Description = request.Description;
@@ -60,9 +60,9 @@ namespace Application.Usecases.Receptionist.EditFinancialTransaction
                 await _mediator.Send(
                  new SendNotificationCommand(
                 o.User.UserID,
-                "Chỉnh sửaphiếu thu/chi",
+                "Chỉnh sửa phiếu thu/chi",
                 $"Lễ tân {o.User.Fullname} đã chỉnh sửa phiếu {(existingTransaction.TransactionType ? "thu" : "chi")} vào lúc {DateTime.Now}",
-                "transaction", null), cancellationToken));
+                "transaction", null, ""), cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);
             }
             catch { }

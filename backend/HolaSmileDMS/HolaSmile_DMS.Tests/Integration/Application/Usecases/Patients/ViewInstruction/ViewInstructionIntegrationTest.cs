@@ -156,7 +156,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Patients
 
             var command = new ViewInstructionCommand(999);
 
-            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            await Assert.ThrowsAsync<ArgumentException>(() =>
                 _handler.Handle(command, default));
         }
     }

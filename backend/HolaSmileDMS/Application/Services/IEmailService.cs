@@ -2,7 +2,7 @@
 {
     public interface IEmailService
     {
-        public Task<bool> SendEmailAsync(string toEmail, string otp);
+        public Task<bool> SendEmailAsync(string toEmail, string message, string subject);
         public Task<bool> SendPasswordAsync(string toEmail, string password);
     }
 }

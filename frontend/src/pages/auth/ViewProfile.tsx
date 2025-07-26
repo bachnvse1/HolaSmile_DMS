@@ -382,7 +382,7 @@ export default function ViewProfile() {
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">Hồ sơ cá nhân</h1>
+            <h1 className="text-3xl font-bold text-gray-800">Thông tin cá nhân</h1>
             <p className="text-sm text-gray-600">Quản lý và cập nhật thông tin cá nhân</p>
           </div>
         </div>
