@@ -35,7 +35,7 @@ namespace Application.Usecases.Assistant.CreateWarrantyCard
 
             var role = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-            if (user == null || (role != "Assistant" && role != "Dentist" && role != "Receptionist"))  
+            if (user == null || (role != "Assistant"))  
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
             var userId = int.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var uid) ? uid : (int?)null;

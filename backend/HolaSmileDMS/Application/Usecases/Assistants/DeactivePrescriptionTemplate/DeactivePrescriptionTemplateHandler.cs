@@ -21,7 +21,7 @@ namespace Application.Usecases.Assistants.DeactivePrescriptionTemplate
             var user = _httpContextAccessor.HttpContext?.User;
             var role = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-            if (user == null || role != "Assistant")
+            if (user == null || role != "Assistant" && role != "Dentist")
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Không có quyền
 
             var template = await _repository.GetByIdAsync(request.PreTemplateID, cancellationToken);

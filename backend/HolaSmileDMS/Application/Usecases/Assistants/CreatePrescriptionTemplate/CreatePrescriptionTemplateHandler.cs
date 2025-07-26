@@ -21,7 +21,7 @@ namespace Application.Usecases.Assistants.CreatePrescriptionTemplate
             var user = _httpContextAccessor.HttpContext?.User;
             var role = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-            if (user == null || role != "Assistant")
+            if (user == null || role != "Assistant" && role != "Dentist")
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
 
             var newTemplate = new PrescriptionTemplate
