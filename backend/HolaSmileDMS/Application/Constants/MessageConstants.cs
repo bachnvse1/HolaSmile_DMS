@@ -131,6 +131,8 @@ public static class MessageConstants
                 public const string MSG126 = "Ngày bắt đầu hoặc kết thúc không hợp lệ";
                 public const string MSG127 = "Không tìm thấy phiếu thu chi";
                 public const string MSG128 = "Bạn đã tạo chương trình khuyến mãi trong khoảng thời gian này rồi";
+                public const string MSG129 = "Phiếu chi đã được phê duyệt trước đó";
+                public const string MSG130 = "Phê duyệt thành công ";
     }
 }   
  

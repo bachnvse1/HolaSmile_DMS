@@ -40,6 +40,7 @@ namespace Application.Usecases.Receptionist.CreateFinancialTransaction
             var newTransaction = new FinancialTransaction
             {
                 TransactionType = request.TransactionType,
+                IsConfirmed = request.TransactionType, // Assuming IsConfirmed is true for thu and false for chi
                 Description = request.Description,
                 Amount = request.Amount,
                 Category = request.Category,

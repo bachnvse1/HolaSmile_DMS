@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.Owner;
+using Application.Usecases.Owner.AprroveDentistSchedule;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;
 using MediatR;

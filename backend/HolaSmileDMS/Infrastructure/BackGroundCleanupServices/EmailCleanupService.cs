@@ -19,10 +19,8 @@ namespace Infrastructure.BackGroundCleanupServices
         }
         protected override async System.Threading.Tasks.Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            Console.WriteLine("da hoat dong");
             while (!stoppingToken.IsCancellationRequested)
             {
-                Console.WriteLine("da vao ham");
                 using var scope = _scopeFactory.CreateScope();
                 var appointmentRepo = scope.ServiceProvider
                                             .GetRequiredService<IAppointmentRepository>();
