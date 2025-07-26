@@ -60,7 +60,9 @@ namespace Infrastructure.Repositories
                     // Treatment Record
                     TreatmentRecordId = t.TreatmentProgress!.TreatmentRecordID,
                     ProcedureName = t.TreatmentProgress!.TreatmentRecord!.Procedure.ProcedureName,
-                    DentistName = t.TreatmentProgress!.TreatmentRecord!.Dentist.User.Fullname
+                    DentistName = t.TreatmentProgress!.TreatmentRecord!.Dentist.User.Fullname,
+
+                    CreatedAt = t.CreatedAt.Date,
                 })
                 .AsNoTracking()
                 .ToListAsync(cancellationToken);

@@ -20,5 +20,7 @@
         public int TreatmentRecordId { get; set; }
         public string? ProcedureName { get; set; }
         public string? DentistName { get; set; }
+
+        public DateTime? CreatedAt { get; set; }
     }
 }
