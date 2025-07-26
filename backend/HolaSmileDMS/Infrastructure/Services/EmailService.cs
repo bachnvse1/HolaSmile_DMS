@@ -14,7 +14,7 @@ namespace HDMS_API.Infrastructure.Services
             _config = config;
         }
 
-        public async Task<bool> SendEmailAsync(string toEmail, string message)
+        public async Task<bool> SendEmailAsync(string toEmail, string message, string subject)
         {
             try
             {
@@ -31,7 +31,7 @@ namespace HDMS_API.Infrastructure.Services
                     var mailMessage = new MailMessage
                     {
                         From = new MailAddress(senderEmail),
-                        Subject = "Your OTP Code",
+                        Subject = subject,
                         Body = message,
                         IsBodyHtml = true
                     };

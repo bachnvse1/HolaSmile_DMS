@@ -1,6 +1,5 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
-using Azure;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;

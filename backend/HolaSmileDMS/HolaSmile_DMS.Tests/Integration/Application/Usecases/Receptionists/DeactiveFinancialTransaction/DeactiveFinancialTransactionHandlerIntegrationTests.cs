@@ -152,7 +152,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
             var command = new DeactiveFinancialTransactionCommand(999);
 
             var ex = await Assert.ThrowsAsync<Exception>(() => handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG122, ex.Message);
+            Assert.Equal(MessageConstants.MSG.MSG127, ex.Message);
         }
 
         [Fact(DisplayName = "ITCID04 - Should allow owner to deactive transaction")]
