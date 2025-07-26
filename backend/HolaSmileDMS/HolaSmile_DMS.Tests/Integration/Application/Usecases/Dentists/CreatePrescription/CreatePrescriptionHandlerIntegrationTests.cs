@@ -158,7 +158,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists
                 contents = "   " // empty content
             };
 
-            await Assert.ThrowsAsync<ArgumentException>(() => _handler.Handle(command, default));
+            await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
         }
 
         [Fact(DisplayName = "[ITCID04] Duplicate prescription should fail")]

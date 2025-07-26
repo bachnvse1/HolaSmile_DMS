@@ -28,6 +28,9 @@ public class FinancialTransaction
 
     [Column(TypeName = "decimal(18,2)")]
     public decimal Amount { get; set; }
+    public string EvidenceImage { get; set; } = string.Empty;
+
+    public bool IsConfirmed { get; set; } = false;
 
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }

@@ -34,5 +34,10 @@ namespace Infrastructure.Repositories
         {
             return await _context.FinancialTransactions.FindAsync(transactionId);
         }
+
+        public async Task<List<FinancialTransaction>> GetExpenseTransactionsAsync()
+        {
+            return await _context.FinancialTransactions.Where(t => !t.TransactionType && !t.IsConfirmed && !t.IsDelete).ToListAsync();
+        }
     }
 }

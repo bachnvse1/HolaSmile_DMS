@@ -39,7 +39,7 @@ namespace Application.Usecases.Receptionist.EditFinancialTransaction
             var existingTransaction = await _transactionRepository.GetTransactionByIdAsync(request.TransactionId);
             if (existingTransaction == null)
             {
-                throw new Exception(MessageConstants.MSG.MSG122);
+                throw new Exception(MessageConstants.MSG.MSG127);
             }
             existingTransaction.TransactionType = request.TransactionType;
             existingTransaction.Description = request.Description;
