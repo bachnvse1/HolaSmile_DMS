@@ -34,7 +34,7 @@ namespace Application.Usecases.Receptionist.DeactiveFinancialTransaction
             var existingTransaction = await _transactionRepository.GetTransactionByIdAsync(request.TransactionId);
             if (existingTransaction == null)
             {
-                throw new Exception(MessageConstants.MSG.MSG122);
+                throw new Exception(MessageConstants.MSG.MSG127);
             }
             existingTransaction.IsDelete = !existingTransaction.IsDelete;
             existingTransaction.UpdatedAt = DateTime.Now;

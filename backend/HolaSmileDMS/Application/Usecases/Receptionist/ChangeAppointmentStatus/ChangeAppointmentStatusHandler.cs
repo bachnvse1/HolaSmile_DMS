@@ -34,6 +34,10 @@ namespace Application.Usecases.Receptionist.ChangeAppointmentStatus
             {
                 throw new Exception(MessageConstants.MSG.MSG28); // "Không tìm thấy lịch hẹn"
             }
+            if (existApp.AppointmentDate.Date > DateTime.Now.Date || (existApp.AppointmentDate.Date == DateTime.Now.Date && existApp.AppointmentTime > DateTime.Now.TimeOfDay))
+            {
+                throw new Exception("Không thể đổi trạng thái lịch do chưa đến ngày"); // "Không thể đặt lịch hẹn ở thời gian quá khứ."
+            }
 
             if (request.Status.ToLower() == "attended")
             {
