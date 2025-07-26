@@ -105,7 +105,6 @@ const PatientTreatmentRecords: React.FC = () => {
   })
 
   const handleToggleDelete = async (id: number) => {
-    if (!confirm("Bạn có chắc chắn muốn xoá hồ sơ điều trị này?")) return
 
     const toastId = toast.loading("Đang xoá hồ sơ...")
 

@@ -522,6 +522,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
         onSubmit={() => {
           setShowTreatmentModal(false);
         }}
+        patientId={selectedAppointmentId ? Number(appointments.find(a => a.appointmentId === selectedAppointmentId)?.patientId) : undefined}
       />
 
       {/* Appointment Detail Modal */}
