@@ -60,9 +60,9 @@ namespace Application.Usecases.Receptionist.EditFinancialTransaction
                 await _mediator.Send(
                  new SendNotificationCommand(
                 o.User.UserID,
-                "Chỉnh sửaphiếu thu/chi",
+                "Chỉnh sửa phiếu thu/chi",
                 $"Lễ tân {o.User.Fullname} đã chỉnh sửa phiếu {(existingTransaction.TransactionType ? "thu" : "chi")} vào lúc {DateTime.Now}",
-                "transaction", null), cancellationToken));
+                "transaction", null, ""), cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);
             }
             catch { }

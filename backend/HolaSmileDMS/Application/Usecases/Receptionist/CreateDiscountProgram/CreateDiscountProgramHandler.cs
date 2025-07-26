@@ -103,7 +103,7 @@ namespace Application.Usecases.Receptionist.CreateDiscountProgram
                       o.User.UserID,
                       "Taọ chương trình khuyến mãi",
                       $"Lễ tân {o.User.Fullname} đã tạo chương trình khuyến mãi {request.ProgramName} bắt đầu từ ngày {request.CreateDate.Date} vào lúc {DateTime.Now}",
-                      "promotion", null),
+                      "promotion", null, ""),
                 cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);
             }

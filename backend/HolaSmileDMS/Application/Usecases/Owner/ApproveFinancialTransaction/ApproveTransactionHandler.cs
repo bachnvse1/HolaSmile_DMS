@@ -61,7 +61,7 @@ namespace Application.Usecases.Owner.ApproveFinancialTransaction
                 receptionist.UserID,
                 "Tạo phiếu thu/chi",
                 $"Chủ phòng đã duyệt phiếu chi {exisTransaction.Category} vào lúc {DateTime.Now}",
-                "transaction", null), cancellationToken);
+                "transaction", null, ""), cancellationToken);
             }
             catch { }
 

@@ -52,7 +52,7 @@ namespace Application.Usecases.Dentist.DeleteTreatmentRecord
                                 "Xóa hồ sơ điều trị",
                                 $"Hồ sơ điều trị #{request.TreatmentRecordId} của của bạn đã được nha sĩ {fullName} xoá!!!",
                                 "Xoá hồ sơ",
-                                request.TreatmentRecordId),
+                                request.TreatmentRecordId, ""),
                             cancellationToken);
                     }
                 }

@@ -132,7 +132,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                         "Đăng ký khám",
                         $"Bệnh nhân đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
                         "appointment",
-                        null),
+                        null, ""),
                     cancellationToken);
 
                 var notifyReceptionists = receptionists.Select(async r =>
@@ -140,7 +140,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                                r.UserId,
                                "Đăng ký khám",
                                 $"Bệnh nhân mới đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
-                                "appointment", null),
+                                "appointment", null, ""),
                                 cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyReceptionists);
             }

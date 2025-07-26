@@ -134,7 +134,7 @@ public class CreateInvoiceHandler : IRequestHandler<CreateInvoiceCommand, string
                         "Tạo hoá đơn thanh toán",
                         message,
                         "invoice",
-                        userId
+                        userId, ""
                     ), cancellationToken);
                 }
                 catch (Exception ex)

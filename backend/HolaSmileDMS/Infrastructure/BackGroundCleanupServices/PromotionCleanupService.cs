@@ -54,7 +54,7 @@ namespace Infrastructure.BackGroundCleanupServices
                                   o.User.UserID,
                                   "Taọ chương trình khuyến mãi",
                                   $"Chương trình khuyến mãi {promotion.DiscountProgramName} đã được áp dụng vào hôm nay",
-                                  "promotion", null),
+                                  "promotion", null, ""),
                             stoppingToken));
                             await System.Threading.Tasks.Task.WhenAll(notifyOwners);
                         }
