@@ -273,8 +273,8 @@ const RecordRow: React.FC<RecordRowProps> = ({
 
                 {!readonly && userInfo.role === "Dentist" && <DropdownMenuSeparator />}
 
-                {!readonly && (
-                  <DropdownMenuItem 
+                {userInfo.role === "Receptionist" && (
+                  <DropdownMenuItem
                     onClick={() => onOpenInvoiceModal(patientId, record.treatmentRecordID)}
                     className="text-green-600"
                   >
