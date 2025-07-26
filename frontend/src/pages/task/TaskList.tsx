@@ -90,12 +90,6 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
     }
   }
 
-  // Hàm xử lý xóa task (có thể implement sau)
-  const handleDeleteTask = async (taskId: number) => {
-    // TODO: Implement delete functionality
-    toast.info("Chức năng xóa sẽ được triển khai sau")
-  }
-
   // Hàm refresh danh sách task sau khi assign
   const handleTaskAssign = async () => {
     try {
@@ -161,7 +155,6 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
             key={task.taskId}
             task={task}
             onToggleStatus={handleToggleStatus}
-            onDelete={handleDeleteTask}
             onViewDetail={handleViewDetail}
             isUpdating={isUpdating === task.taskId}
           />

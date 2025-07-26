@@ -10,12 +10,11 @@ import type { BasicTask, TaskStatus } from "@/types/task"
 interface TaskCardProps {
   task: BasicTask
   onToggleStatus: (taskId: number) => void
-  onDelete: (taskId: number) => void
   onViewDetail: (task: BasicTask) => void
   isUpdating?: boolean
 }
 
-export function TaskCard({ task, onToggleStatus, onDelete, onViewDetail, isUpdating = false }: TaskCardProps) {
+export function TaskCard({ task, onToggleStatus, onViewDetail, isUpdating = false }: TaskCardProps) {
   const statusText = task.status === "Completed" ? "Hoàn thành" : "Chưa hoàn thành"
 
   const getStatusIcon = (status: TaskStatus) =>
@@ -109,7 +108,6 @@ export function TaskCard({ task, onToggleStatus, onDelete, onViewDetail, isUpdat
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-red-600"
-                onClick={() => onDelete(task.taskId)}
                 disabled={isUpdating}
               >
                 Xóa Nhiệm Vụ
