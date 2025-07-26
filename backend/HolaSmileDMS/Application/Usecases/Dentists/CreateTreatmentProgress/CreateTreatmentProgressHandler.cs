@@ -79,7 +79,8 @@ public class CreateTreatmentProgressHandler : IRequestHandler<CreateTreatmentPro
                         "Tạo tiến trình điều trị",
                         $"Tiến trình mới của thủ thuật #{request.ProgressDto.TreatmentRecordID}  của bạn đã được nha sĩ {fullName} tạo.",
                         "Xem hồ sơ",
-                        0
+                        0,
+                        $"patient/view-treatment-progress/{request.ProgressDto.TreatmentRecordID}?patientId={request.ProgressDto.PatientID}&dentistId={request.ProgressDto.DentistID}"
                     ), cancellationToken);
                 }
             }

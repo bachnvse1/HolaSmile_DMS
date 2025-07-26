@@ -41,6 +41,7 @@ export interface Task {
   dentistName: string
   symptoms: string
   diagnosis: string
+  createdAt: string
 }
 
 export interface AssignedTask extends BasicTask { }

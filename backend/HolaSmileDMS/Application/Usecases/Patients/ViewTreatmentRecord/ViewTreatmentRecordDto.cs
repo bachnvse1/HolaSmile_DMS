@@ -30,6 +30,9 @@ public class ViewTreatmentRecordDto
     public string? Diagnosis { get; set; }
     public DateTime TreatmentDate { get; set; }
 
+    // Reschedule Info
+    public DateTime? AppointmentRescheduleDate { get; set; }
+    
     // Audit
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }

@@ -102,7 +102,7 @@ namespace Application.Usecases.Dentist.UpdateSchedule
                       o.User.UserID,
                       "Đăng ký lịch làm việc",
                       $"Nha Sĩ {o.User.Fullname} đã thay đổi đăng ký lịch làm việc vào lúc {DateTime.Now}",
-                      "schedule", null),
+                      "schedule", null, ""),
                 cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);
             }

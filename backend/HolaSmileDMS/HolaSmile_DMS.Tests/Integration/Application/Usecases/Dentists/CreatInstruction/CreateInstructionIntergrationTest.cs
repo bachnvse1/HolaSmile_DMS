@@ -11,7 +11,7 @@ using Moq;
 using System.Security.Claims;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists.CreatInstruction
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists
 {
     public class CreateInstructionIntegrationTests
     {

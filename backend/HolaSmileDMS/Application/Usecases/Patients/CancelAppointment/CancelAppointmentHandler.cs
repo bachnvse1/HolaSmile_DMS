@@ -59,7 +59,7 @@ namespace Application.Usecases.Patients.CancelAppointment
                     "Hủy lịch khám",
                     $"Bệnh nhân đã hủy lịch khám vào giờ {existAppointment.AppointmentTime} ngày {existAppointment.AppointmentDate.Date}.",
                     "Hủy lịch khám",
-                    null),
+                    null, ""),
                 cancellationToken);
 
             // GỬI THÔNG BÁO CHO TẤT CẢ RECEPTIONIST
@@ -70,7 +70,7 @@ namespace Application.Usecases.Patients.CancelAppointment
                           r.UserId,
                           "Hủy lịch khám",
                            $"Bệnh nhân đã hủy lịch khám vào giờ {existAppointment.AppointmentTime} ngày {existAppointment.AppointmentDate.Date}.",
-                           "Hủy lịch khám", null),
+                           "Hủy lịch khám", null, ""),
                            cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyReceptionists);
             }

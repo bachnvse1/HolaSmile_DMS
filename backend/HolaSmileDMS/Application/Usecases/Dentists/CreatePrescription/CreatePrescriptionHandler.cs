@@ -59,7 +59,7 @@ namespace Application.Usecases.Dentists.CreatePrescription
                       "Taọ đơn thuốc",
                       $"Bác sĩ đã tạo đơn thuốc cho cuộc hẹn ngày {existApp.AppointmentDate} vào lúc {DateTime.Now}",
                       "schedule",
-                      null), cancellationToken);
+                      null, ""), cancellationToken);
             }
             catch { }
             return isCreated;
