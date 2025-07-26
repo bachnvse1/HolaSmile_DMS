@@ -62,7 +62,7 @@ namespace Application.Usecases.Receptionist.EditFinancialTransaction
                 o.User.UserID,
                 "Chỉnh sửa phiếu thu/chi",
                 $"Lễ tân {o.User.Fullname} đã chỉnh sửa phiếu {(existingTransaction.TransactionType ? "thu" : "chi")} vào lúc {DateTime.Now}",
-                "transaction", null, ""), cancellationToken));
+                "transaction", 0, $"financial-transactions/{existingTransaction.TransactionID}"), cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);
             }
             catch { }

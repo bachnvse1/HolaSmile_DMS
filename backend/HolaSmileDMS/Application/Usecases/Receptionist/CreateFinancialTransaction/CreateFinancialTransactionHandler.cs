@@ -75,7 +75,7 @@ namespace Application.Usecases.Receptionist.CreateFinancialTransaction
                 o.User.UserID,
                 "Tạo phiếu thu/chi",
                 $"Lễ tân {o.User.Fullname} đã tạo phiếu {(newTransaction.TransactionType ? "thu" : "chi")} vào lúc {DateTime.Now}",
-                "transaction",null, ""),cancellationToken));
+                "transaction",0, $"financial-transactions/{newTransaction.TransactionID}"),cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);
             }
             catch { }
