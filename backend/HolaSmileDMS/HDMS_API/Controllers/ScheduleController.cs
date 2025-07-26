@@ -2,10 +2,9 @@
 using Application.Usecases.Dentist.ManageSchedule;
 using Application.Usecases.Dentist.UpdateSchedule;
 using Application.Usecases.Dentist.ViewDentistSchedule;
-using Application.Usecases.Owner;
+using Application.Usecases.Owner.ApproveDentistSchedule;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HDMS_API.Controllers
@@ -140,7 +139,7 @@ namespace HDMS_API.Controllers
 
         [Authorize]
         [HttpPut("dentist/approve")]
-        public async Task<IActionResult> ApproveDentistSchedule([FromBody] ApproveDentistScheduleCommand command, CancellationToken cancellationToken)
+        public async Task<IActionResult> ApproveDentistSchedule([FromBody]ApproveDentistScheduleCommand command, CancellationToken cancellationToken)
         {
             try
             {

@@ -1,5 +1,6 @@
 ﻿using Application.Constants;
 using Application.Usecases.Assistants.ExcelSupply;
+using Application.Usecases.Owner.ApproveFinancialTransaction;
 using Application.Usecases.Receptionist.CreateFinancialTransaction;
 using Application.Usecases.Receptionist.DeactiveFinancialTransaction;
 using Application.Usecases.Receptionist.EditFinancialTransaction;
@@ -56,6 +57,33 @@ namespace HDMS_API.Controllers
             {
                 var result = await _mediator.Send(new ViewDetailFinancialTransactionsCommand(TransactionID));
                 return result == null ? NotFound(MessageConstants.MSG.MSG16) : Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("expense-transaction")]
+        public async Task<IActionResult> GetExpenseTransactions()
+        {
+            try
+            {
+                var result = await _mediator.Send(new ViewListExpenseCommand());
+                return Ok(result);
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -133,6 +161,33 @@ namespace HDMS_API.Controllers
                 {
                     Message = false,
                     Error = "An unexpected error occurred: " + ex.Message
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPost("approve-financial-transactions/{transactionId}")]
+        public async Task<IActionResult> ApproveTransaction([FromRoute] int transactionId)
+        {
+            try
+            {
+                var result = await _mediator.Send(new ApproveTransactionCommand(transactionId));
+                return result ? Ok(MessageConstants.MSG.MSG130) : BadRequest(MessageConstants.MSG.MSG58);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    status = false,
+                    message = ex.Message
                 });
             }
         }
