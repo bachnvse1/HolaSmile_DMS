@@ -27,7 +27,7 @@ namespace Application.Usecases.Assistants.ViewListInstruction
             var user = _httpContextAccessor.HttpContext?.User;
             var role = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-            if (user == null || role == "Assistant" && role == "Dentist")
+            if (user == null || role == "Assistant" && role == "Dentist" && role == "Receptionist")
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
 
             var instructions = await _instructionRepository.GetAllInstructionsAsync();

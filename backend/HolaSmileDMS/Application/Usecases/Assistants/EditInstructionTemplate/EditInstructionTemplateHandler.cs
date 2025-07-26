@@ -22,7 +22,7 @@ public class EditInstructionTemplateHandler : IRequestHandler<EditInstructionTem
         var user = _httpContextAccessor.HttpContext?.User;
         var role = user?.FindFirst(ClaimTypes.Role)?.Value;
         var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-        if (role != "Assistant") throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
+        if (role != "Assistant" && role != "Dentist") throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
         var template = await _repository.GetByIdAsync(request.Instruc_TemplateID);
         if (template == null || template.IsDeleted)

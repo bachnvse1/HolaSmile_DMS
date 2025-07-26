@@ -10,6 +10,7 @@ import { Stethoscope } from "lucide-react"
 import type { Procedure, ProcedureCreateForm, ProcedureUpdateForm } from "@/types/procedure"
 import { AuthGuard } from "@/components/AuthGuard"
 import { StaffLayout } from "@/layouts/staff"
+import { PatientLayout } from "@/layouts/patient"
 import { useAuth } from "@/hooks/useAuth"
 import { toast } from "react-toastify"
 import { ConfirmModal } from "@/components/common/ConfirmModal"
@@ -52,6 +53,8 @@ export default function ProcedureManagement() {
         role: role || "",
         avatar: undefined,
     }
+
+    const isPatient = role === "Patient"
 
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
     const [pendingToggleProcedure, setPendingToggleProcedure] = useState<{
@@ -173,95 +176,102 @@ export default function ProcedureManagement() {
         currentPage * itemsPerPage
     )
 
-    return (
-        <AuthGuard requiredRoles={["Administrator", "Owner", "Receptionist", "Assistant", "Dentist"]}>
-            <StaffLayout userInfo={userInfo}>
-                <div className="container mx-auto p-6 space-y-6">
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                            <Stethoscope className="w-6 h-6" />
-                            <div>
-                                <h1 className="text-3xl font-bold">Quản Lý Thủ Thuật</h1>
-                                <p className="text-muted-foreground">Danh sách & quản lý thủ thuật y tế</p>
-                            </div>
-                        </div>
-
-                        {role === "Assistant" && (
-                            <CreateProcedureModal
-                                isOpen={isCreateModalOpen}
-                                onOpenChange={setIsCreateModalOpen}
-                                form={createForm}
-                                onFormChange={setCreateForm}
-                                onSubmit={handleCreateProcedure}
-                            />
-                        )}
+    const content = (
+        <div className="container mx-auto p-6 space-y-6">
+            <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                    <Stethoscope className="w-6 h-6" />
+                    <div>
+                        <h1 className="text-3xl font-bold">Quản Lý Thủ Thuật</h1>
+                        <p className="text-muted-foreground">Danh sách & quản lý thủ thuật y tế</p>
                     </div>
-
-                    <ProcedureFilters
-                        searchTerm={searchTerm}
-                        onSearchChange={setSearchTerm}
-                        statusFilter={statusFilter}
-                        onStatusFilterChange={setStatusFilter}
-                        totalProcedures={procedures.length}
-                        filteredCount={filteredProcedures.length}
-                        isLoading={isLoading}
-                        onClearFilters={clearFilters}
-                        hasActiveFilters={searchTerm !== "" || statusFilter !== "all"}
-                    />
-
-                    <ProcedureTable
-                        procedures={paginatedProcedures}
-                        isLoading={isLoading}
-                        onEdit={handleEditProcedure}
-                        onToggleActive={handleToggleActive}
-                        onViewDetails={handleViewDetails}
-                        onClearFilters={clearFilters}
-                        totalProcedures={procedures.length}
-                        canEdit={role === "Assistant"}
-                    />
-
-                    <EditProcedureModal
-                        procedure={selectedProcedure}
-                        isOpen={isEditModalOpen}
-                        onOpenChange={setIsEditModalOpen}
-                        onSave={handleSaveProcedure}
-                    />
-
-                    <ProcedureDetailModal
-                        procedure={selectedProcedure}
-                        isOpen={isDetailModalOpen}
-                        onOpenChange={setIsDetailModalOpen}
-                        onEdit={(p) => {
-                            setIsDetailModalOpen(false)
-                            handleEditProcedure(p)
-                        }}
-                        role={role ?? ""}
-                    />
-
-                    {/* ConfirmModal integrated */}
-                    <ConfirmModal
-                        open={isConfirmModalOpen}
-                        onOpenChange={(open) => {
-                            setIsConfirmModalOpen(open)
-                            if (!open) setPendingToggleProcedure(null)
-                        }}
-                        onConfirm={handleConfirmToggle}
-                        title="Xác Nhận Cập Nhật Trạng Thái"
-                        message={`Bạn có chắc muốn ${pendingToggleProcedure?.isDeleted ? "kích hoạt" : "vô hiệu hóa"
-                            } thủ thuật này?`}
-                        confirmText="Xác Nhận"
-                        cancelText="Hủy"
-                    />
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        totalItems={filteredProcedures.length}
-                        itemsPerPage={itemsPerPage}
-                        onPageChange={setCurrentPage}
-                        onItemsPerPageChange={setItemsPerPage}
-                    />
                 </div>
-            </StaffLayout>
+
+                {(role === "Assistant" || role === "Dentist") && (
+                    <CreateProcedureModal
+                        isOpen={isCreateModalOpen}
+                        onOpenChange={setIsCreateModalOpen}
+                        form={createForm}
+                        onFormChange={setCreateForm}
+                        onSubmit={handleCreateProcedure}
+                    />
+                )}
+            </div>
+
+            <ProcedureFilters
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
+                totalProcedures={procedures.length}
+                filteredCount={filteredProcedures.length}
+                isLoading={isLoading}
+                onClearFilters={clearFilters}
+                hasActiveFilters={searchTerm !== "" || statusFilter !== "all"}
+            />
+
+            <ProcedureTable
+                procedures={paginatedProcedures}
+                isLoading={isLoading}
+                onEdit={handleEditProcedure}
+                onToggleActive={handleToggleActive}
+                onViewDetails={handleViewDetails}
+                onClearFilters={clearFilters}
+                totalProcedures={procedures.length}
+                canEdit={role === "Assistant"}
+            />
+
+            {(role === "Assistant" || role === "Dentist") && (
+                <EditProcedureModal
+                    procedure={selectedProcedure}
+                    isOpen={isEditModalOpen}
+                    onOpenChange={setIsEditModalOpen}
+                    onSave={handleSaveProcedure}
+                />
+            )}
+
+            <ProcedureDetailModal
+                procedure={selectedProcedure}
+                isOpen={isDetailModalOpen}
+                onOpenChange={setIsDetailModalOpen}
+                onEdit={(p) => {
+                    setIsDetailModalOpen(false)
+                    handleEditProcedure(p)
+                }}
+                role={role ?? ""}
+            />
+
+            <ConfirmModal
+                open={isConfirmModalOpen}
+                onOpenChange={(open) => {
+                    setIsConfirmModalOpen(open)
+                    if (!open) setPendingToggleProcedure(null)
+                }}
+                onConfirm={handleConfirmToggle}
+                title="Xác Nhận Cập Nhật Trạng Thái"
+                message={`Bạn có chắc muốn ${pendingToggleProcedure?.isDeleted ? "kích hoạt" : "vô hiệu hóa"
+                    } thủ thuật này?`}
+                confirmText="Xác Nhận"
+                cancelText="Hủy"
+            />
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filteredProcedures.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+                onItemsPerPageChange={setItemsPerPage}
+            />
+        </div>
+    )
+
+    return (
+        <AuthGuard requiredRoles={["Administrator", "Owner", "Receptionist", "Assistant", "Dentist", "Patient"]}>
+            {isPatient ? (
+                <PatientLayout userInfo={userInfo}>{content}</PatientLayout>
+            ) : (
+                <StaffLayout userInfo={userInfo}>{content}</StaffLayout>
+            )}
         </AuthGuard>
     )
 }

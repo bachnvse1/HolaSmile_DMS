@@ -58,7 +58,7 @@ public class CreateInstructionTemplateIntegrationTests
     }
 
     [Fact]
-    public async System.Threading.Tasks.Task ITCID02_Should_Throw_WhenNotAssistant()
+    public async System.Threading.Tasks.Task ITCID02_Should_OK_WhenDentist()
     {
         SetupHttpContext("Dentist", "102");
         var handler = new CreateInstructionTemplateHandler(
@@ -70,8 +70,10 @@ public class CreateInstructionTemplateIntegrationTests
             Instruc_TemplateContext = "Nội dung"
         };
 
-        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => handler.Handle(command, default));
-        Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
+        var result = await handler.Handle(command, default);
+        Assert.Equal(MessageConstants.MSG.MSG114, result);
+        var data = await _context.InstructionTemplates.FirstOrDefaultAsync(x => x.CreateBy == 102);
+        Assert.NotNull(data);
     }
 
     [Fact]

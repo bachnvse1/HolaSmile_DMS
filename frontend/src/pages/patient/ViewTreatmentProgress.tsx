@@ -26,7 +26,7 @@ const TREATMENT_PROGRESS_STATUS = {
   "pending": { label: "Đã lên lịch", className: "bg-gray-100 text-gray-800 border border-gray-200" },
 } as const
 
-const ROLES_CAN_CREATE = ["Administrator", "Owner", "Receptionist", "Assistant", "Dentist"] as const
+const ROLES_CAN_CREATE = ["Dentist"] as const
 
 interface PageState {
   selectedProgress: TreatmentProgress | null
@@ -269,7 +269,7 @@ export default function ViewTreatmentProgress() {
   )
 
   return (
-    <AuthGuard requiredRoles={["Administrator", "Owner", "Receptionist", "Assistant", "Dentist", "Patient"]}>
+    <AuthGuard requiredRoles={["Receptionist", "Assistant", "Dentist", "Patient"]}>
       {isPatient ? (
         <PatientLayout userInfo={userInfo}>
           <ContentComponent />

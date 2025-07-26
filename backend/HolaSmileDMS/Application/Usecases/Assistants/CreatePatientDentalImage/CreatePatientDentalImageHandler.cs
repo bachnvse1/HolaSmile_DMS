@@ -34,7 +34,7 @@ namespace Application.Usecases.Assistants.CreatePatientDentalImage
         public async Task<string> Handle(CreatePatientDentalImageCommand request, CancellationToken cancellationToken)
         {
             var role = _httpContext.HttpContext.User.FindFirst(ClaimTypes.Role)?.Value;
-            if (role != "Assistant" && role != "Dentist")
+            if (role != "Assistant" && role != "Dentist" && role != "Patient")
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
             var patient = await _patientRepo.GetPatientByPatientIdAsync(request.PatientId);

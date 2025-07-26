@@ -94,10 +94,10 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID03 - Role not Assistant should throw MSG26")]
+        [Fact(DisplayName = "Abnormal - UTCID03 - Role not Assistant or Dentist should throw MSG26")]
         public async System.Threading.Tasks.Task UTCID03_NotAssistantRole_Throws()
         {
-            SetupHttpContext("Dentist");
+            SetupHttpContext("Receptionist");
 
             var command = new CreatePrescriptionTemplateCommand
             {

@@ -5,12 +5,14 @@ import { Mail, ArrowLeft, CheckCircle } from "lucide-react"
 import { Link, useNavigate } from "react-router"
 import { toast } from "react-toastify"
 import axiosInstance from "@/lib/axios"
+import { requestOtpSms } from "@/services/AuthService"
 
 export function ForgotPassword() {
   const [isSuccess, setIsSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [submittedValue, setSubmittedValue] = useState("")
   const [serverMessage, setServerMessage] = useState("")
+  const [isPhoneNumber, setIsPhoneNumber] = useState(false)
   const navigate = useNavigate()
 
   const validationSchema = Yup.object({
@@ -28,6 +30,12 @@ export function ForgotPassword() {
       ),
   })
 
+  // Helper function to check if input is phone number
+  const checkIsPhoneNumber = (value: string): boolean => {
+    const phoneRegex = /^(?:\+84|0)\d{9,10}$/
+    return phoneRegex.test(value)
+  }
+
   const formik = useFormik({
     initialValues: {
       email: "",
@@ -35,19 +43,43 @@ export function ForgotPassword() {
     validationSchema,
     onSubmit: async (values) => {
       setIsLoading(true)
+      const isPhone = checkIsPhoneNumber(values.email)
+      setIsPhoneNumber(isPhone)
+      
       try {
-        const res = await axiosInstance.post("/user/OTP/Request", {
-          email: values.email,
-        })
+        if (isPhone) {
+          // Handle phone number - use SMS OTP
+          const response = await requestOtpSms({ phoneNumber: values.email })
+          
+          toast.success(response || "Đã gửi mật khẩu qua SMS")
+          setServerMessage(response || "Đã gửi mật khẩu qua SMS")
+          setSubmittedValue(values.email)
+          setIsSuccess(true)
+          
+          // For phone number, redirect to login page after showing success
+          setTimeout(() => {
+            navigate("/login")
+          }, 2000)
+          
+        } else {
+          // Handle email - use existing email OTP logic
+          const res = await axiosInstance.post("/user/OTP/Request", {
+            email: values.email,
+          })
 
-        toast.success(res.data.message || "Gửi thành công")
-        setServerMessage(res.data.message || "Gửi thành công")
-        setSubmittedValue(values.email)
-        setIsSuccess(true)
-        navigate(`/verify-otp?email=${encodeURIComponent(values.email)}`)
+          toast.success(res.data.message || "Gửi thành công")
+          setServerMessage(res.data.message || "Gửi thành công")
+          setSubmittedValue(values.email)
+          setIsSuccess(true)
+          
+          // For email, redirect to verify-otp page
+          navigate(`/verify-otp?email=${encodeURIComponent(values.email)}`)
+        }
       } catch (error: any) {
         if (error.response) {
-          toast.error(error.response.data.message || "Đã xảy ra lỗi.")
+          toast.error(error.response.data.message || error.response.data || "Đã xảy ra lỗi.")
+        } else if (error.message) {
+          toast.error(error.message)
         } else {
           toast.error("Không thể kết nối đến máy chủ.")
         }
@@ -83,7 +115,11 @@ export function ForgotPassword() {
               <span className="text-white font-medium">{submittedValue}</span>
             </p>
             <p className="text-sm text-white/60">
-              Nếu không thấy email, hãy kiểm tra mục spam hoặc thử lại sau vài phút.
+              {isPhoneNumber ? (
+                "Vui lòng kiểm tra tin nhắn SMS và sử dụng mã OTP để đăng nhập."
+              ) : (
+                "Nếu không thấy email, hãy kiểm tra mục spam hoặc thử lại sau vài phút."
+              )}
             </p>
             <div className="pt-4">
               <Link

@@ -4,7 +4,7 @@ import type { Patient } from "@/types/patient"
 // Interface cho patient detail response
 export interface PatientDetail {
   patientId: number
-  fullName: string
+  fullname: string
   phone: string
   email: string
   address: string

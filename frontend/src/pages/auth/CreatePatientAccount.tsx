@@ -8,6 +8,7 @@ import { toast } from "react-toastify"
 import { useAuth } from '../../hooks/useAuth';
 import { AuthGuard } from '../../components/AuthGuard';
 import { StaffLayout } from '../../layouts/staff/StaffLayout';
+import { Input } from "@/components/ui/input";
 
 interface FormData {
   customerName: string;
@@ -109,7 +110,7 @@ export default function AddPatient() {
   });
 
   return (
-    <AuthGuard requiredRoles={['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']}>
+    <AuthGuard requiredRoles={['Receptionist']}>
       <StaffLayout userInfo={userInfo}>
         <div className="min-h-screen bg-white py-10 px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
@@ -130,7 +131,7 @@ export default function AddPatient() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Tên khách hàng</label>
-                  <input
+                  <Input
                     type="text"
                     name="customerName"
                     value={formik.values.customerName}
@@ -144,7 +145,7 @@ export default function AddPatient() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
-                  <input
+                  <Input
                     type="tel"
                     name="phoneNumber"
                     value={formik.values.phoneNumber}
@@ -159,7 +160,7 @@ export default function AddPatient() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <input
+                  <Input
                     type="email"
                     name="email"
                     value={formik.values.email}
@@ -174,7 +175,7 @@ export default function AddPatient() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Ngày sinh</label>
-                  <input
+                  <Input
                     type="date"
                     name="dateOfBirth"
                     value={formik.values.dateOfBirth}

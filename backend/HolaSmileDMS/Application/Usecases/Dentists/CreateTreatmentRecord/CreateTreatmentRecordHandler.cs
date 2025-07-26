@@ -42,7 +42,7 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
             var role = user.FindFirstValue(ClaimTypes.Role);
             var fullName = user.FindFirst(ClaimTypes.GivenName)?.Value;
 
-            if (role is not ("Dentist" or "Assistant"))
+            if (role is not ("Dentist"))
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
             var appointment = await _appointmentRepository.GetAppointmentByIdAsync(request.AppointmentId);
