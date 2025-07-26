@@ -91,6 +91,7 @@ const RecordRow: React.FC<RecordRowProps> = ({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const statusConfig = getStatusConfig(record.treatmentStatus);
   const isUpcoming = isUpcomingAppointment(record.appointmentDate);
+  const userInfo = useUserInfo();
 
   const handleDeleteClick = () => {
     setShowDeleteDialog(true);
@@ -263,17 +264,17 @@ const RecordRow: React.FC<RecordRowProps> = ({
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end" className="w-48">
-                {!readonly && (
+                {!readonly && userInfo.role === "Dentist" && (
                   <DropdownMenuItem onClick={() => onEdit(record)}>
                     <Edit2 className="h-4 w-4 mr-2" />
                     Sửa thông tin
                   </DropdownMenuItem>
                 )}
-                
-                {!readonly && <DropdownMenuSeparator />}
-                
-                {!readonly && (
-                  <DropdownMenuItem 
+
+                {!readonly && userInfo.role === "Dentist" && <DropdownMenuSeparator />}
+
+                {userInfo.role === "Receptionist" && (
+                  <DropdownMenuItem
                     onClick={() => onOpenInvoiceModal(patientId, record.treatmentRecordID)}
                     className="text-green-600"
                   >

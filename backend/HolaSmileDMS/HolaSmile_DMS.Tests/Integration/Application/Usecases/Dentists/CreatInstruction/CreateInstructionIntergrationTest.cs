@@ -1,5 +1,5 @@
 ﻿using Application.Constants;
-using Application.Usecases.Assistants.CreateInstruction;
+using Application.Usecases.Dentists.CreatInstruction;
 using HDMS_API.Infrastructure.Persistence;
 using HDMS_API.Infrastructure.Repositories;
 using Infrastructure.Repositories;
@@ -11,7 +11,7 @@ using Moq;
 using System.Security.Claims;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists
 {
     public class CreateInstructionIntegrationTests
     {
@@ -103,10 +103,10 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             _context.SaveChanges();
         }
 
-        [Fact(DisplayName = "Normal - UTCID01 - Assistant tạo chỉ dẫn thành công")]
+        [Fact(DisplayName = "Normal - UTCID01 - Dentist tạo chỉ dẫn thành công")]
         public async System.Threading.Tasks.Task Normal_UTCID01_CreateInstruction_Success()
         {
-            SetupHttpContext("Assistant");
+            SetupHttpContext("Dentist");
 
             var command = new CreateInstructionCommand
             {
@@ -160,7 +160,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
         [Fact(DisplayName = "Abnormal - UTCID04 - Mẫu chỉ dẫn không tồn tại => MSG115")]
         public async System.Threading.Tasks.Task Abnormal_UTCID04_TemplateNotFound_Throws()
         {
-            SetupHttpContext("Assistant");
+            SetupHttpContext("Dentist");
 
             var command = new CreateInstructionCommand
             {
@@ -178,7 +178,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
         [Fact(DisplayName = "Abnormal - UTCID05 - Appointment không tồn tại => MSG28")]
         public async System.Threading.Tasks.Task Abnormal_UTCID05_AppointmentNotFound_Throws()
         {
-            SetupHttpContext("Assistant");
+            SetupHttpContext("Dentist");
 
             var command = new CreateInstructionCommand
             {
@@ -196,7 +196,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
         [Fact(DisplayName = "Abnormal - UTCID06 - Đã có instruction cho appointment này sẽ bị chặn")]
         public async System.Threading.Tasks.Task Abnormal_UTCID06_InstructionAlreadyExists_Throws()
         {
-            SetupHttpContext("Assistant");
+            SetupHttpContext("Dentist");
 
             // Thêm instruction cho appointmentId = 1
             _context.Instructions.Add(new Instruction

@@ -27,9 +27,9 @@ interface InvoiceFilterFormProps {
 
 // Status options configuration
 const STATUS_OPTIONS = [
-    { value: "all", label: "Tất cả", color: "bg-gray-100 text-gray-700" },
-    { value: "pending", label: "Chờ thanh toán", color: "bg-yellow-100 text-yellow-700" },
-    { value: "paid", label: "Đã thanh toán", color: "bg-green-100 text-green-700" },
+    { value: "all", label: "Tất cả", color: "bg-gray-100 text-gray-700", shortLabel: "Tất cả" },
+    { value: "pending", label: "Chờ thanh toán", color: "bg-yellow-100 text-yellow-700", shortLabel: "Chờ TT" },
+    { value: "paid", label: "Đã thanh toán", color: "bg-green-100 text-green-700", shortLabel: "Đã TT" },
 ] as const
 
 // Date validation helper
@@ -53,15 +53,16 @@ const getDateDaysAgo = (days: number): string => {
 // Quick filter presets - Define the type separately
 type QuickFilterPreset = {
     label: string
+    shortLabel: string
     fromDate: string
     toDate: string
 }
 
 const QUICK_FILTERS: QuickFilterPreset[] = [
-    { label: "Hôm nay", fromDate: getTodayDate(), toDate: getTodayDate() },
-    { label: "7 ngày qua", fromDate: getDateDaysAgo(7), toDate: getTodayDate() },
-    { label: "30 ngày qua", fromDate: getDateDaysAgo(30), toDate: getTodayDate() },
-    { label: "90 ngày qua", fromDate: getDateDaysAgo(90), toDate: getTodayDate() },
+    { label: "Hôm nay", shortLabel: "Hôm nay", fromDate: getTodayDate(), toDate: getTodayDate() },
+    { label: "7 ngày qua", shortLabel: "7 ngày", fromDate: getDateDaysAgo(7), toDate: getTodayDate() },
+    { label: "30 ngày qua", shortLabel: "30 ngày", fromDate: getDateDaysAgo(30), toDate: getTodayDate() },
+    { label: "90 ngày qua", shortLabel: "90 ngày", fromDate: getDateDaysAgo(90), toDate: getTodayDate() },
 ]
 
 export function InvoiceFilterForm({ 
@@ -118,74 +119,98 @@ export function InvoiceFilterForm({
     }, [filters.patientId, patientList])
 
     // Get selected status label
-    const selectedStatusLabel = React.useMemo(() => {
+    const selectedStatusInfo = React.useMemo(() => {
         const status = STATUS_OPTIONS.find(s => s.value === filters.status)
-        return status?.label || "Tất cả"
+        return status || STATUS_OPTIONS[0]
     }, [filters.status])
 
+    // Auto-collapse on mobile
+    React.useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 768) {
+                setIsCollapsed(true)
+            }
+        }
+        
+        handleResize() // Check on mount
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
+
     return (
-        <div className="mb-6 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+        <div className="mb-4 sm:mb-6 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden mx-2 sm:mx-0">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 bg-gray-50 border-b border-gray-200">
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2">
-                        <Filter className="h-5 w-5 text-gray-600" />
-                        <h3 className="text-lg font-semibold text-gray-700">Bộ lọc tìm kiếm</h3>
+            <div className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 border-b border-gray-200">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <Filter className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 flex-shrink-0" />
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-700 truncate">
+                            <span className="hidden sm:inline">Bộ lọc tìm kiếm</span>
+                            <span className="sm:hidden">Bộ lọc</span>
+                        </h3>
                     </div>
                     {activeFiltersCount > 0 && (
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                            {activeFiltersCount} bộ lọc đang áp dụng
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-700 text-xs flex-shrink-0">
+                            {activeFiltersCount}
                         </Badge>
                     )}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                     {activeFiltersCount > 0 && (
                         <Button
                             onClick={clearFilters}
                             variant="ghost"
                             size="sm"
-                            className="text-red-600 hover:bg-red-50"
+                            className="text-red-600 hover:bg-red-50 p-1 sm:p-2"
                             disabled={isLoading}
                         >
-                            <X className="h-4 w-4 mr-1" />
-                            Xóa bộ lọc
+                            <X className="h-4 w-4" />
+                            <span className="hidden sm:inline ml-1">Xóa bộ lọc</span>
                         </Button>
                     )}
                     <Button
                         onClick={() => setIsCollapsed(!isCollapsed)}
                         variant="ghost"
                         size="sm"
-                        className="text-gray-600"
+                        className="text-gray-600 p-1 sm:p-2"
                     >
-                        {isCollapsed ? "Mở rộng" : "Thu gọn"}
-                        <ChevronsUpDown className="h-4 w-4 ml-1" />
+                        <span className="hidden sm:inline mr-1">
+                            {isCollapsed ? "Mở rộng" : "Thu gọn"}
+                        </span>
+                        <ChevronsUpDown className="h-4 w-4" />
                     </Button>
                 </div>
             </div>
 
             {/* Filters Summary (always visible) */}
             {activeFiltersCount > 0 && (
-                <div className="p-4 bg-blue-50 border-b border-blue-200">
-                    <div className="flex flex-wrap gap-2 items-center">
-                        <span className="text-sm text-blue-700 font-medium">Đang lọc:</span>
+                <div className="p-3 sm:p-4 bg-blue-50 border-b border-blue-200">
+                    <div className="flex flex-wrap gap-1 sm:gap-2 items-center">
+                        <span className="text-xs sm:text-sm text-blue-700 font-medium whitespace-nowrap">
+                            Đang lọc:
+                        </span>
                         {filters.status && filters.status !== "all" && (
-                            <Badge variant="outline" className="bg-white">
-                                Trạng thái: {selectedStatusLabel}
+                            <Badge variant="outline" className="bg-white text-xs">
+                                <span className="hidden sm:inline">Trạng thái: {selectedStatusInfo.label}</span>
+                                <span className="sm:hidden">{selectedStatusInfo.shortLabel}</span>
                             </Badge>
                         )}
                         {filters.fromDate && (
-                            <Badge variant="outline" className="bg-white">
-                                Từ: {new Date(filters.fromDate).toLocaleDateString("vi-VN")}
+                            <Badge variant="outline" className="bg-white text-xs">
+                                <span className="hidden sm:inline">Từ: </span>
+                                {new Date(filters.fromDate).toLocaleDateString("vi-VN")}
                             </Badge>
                         )}
                         {filters.toDate && (
-                            <Badge variant="outline" className="bg-white">
-                                Đến: {new Date(filters.toDate).toLocaleDateString("vi-VN")}
+                            <Badge variant="outline" className="bg-white text-xs">
+                                <span className="hidden sm:inline">Đến: </span>
+                                {new Date(filters.toDate).toLocaleDateString("vi-VN")}
                             </Badge>
                         )}
                         {filters.patientId && !hidePatientSelect && selectedPatientName && (
-                            <Badge variant="outline" className="bg-white">
-                                Bệnh nhân: {selectedPatientName}
+                            <Badge variant="outline" className="bg-white text-xs max-w-32 sm:max-w-none">
+                                <span className="hidden sm:inline">BN: </span>
+                                <span className="truncate">{selectedPatientName}</span>
                             </Badge>
                         )}
                     </div>
@@ -194,13 +219,13 @@ export function InvoiceFilterForm({
 
             {/* Filter Controls */}
             {!isCollapsed && (
-                <div className="p-5">
+                <div className="p-3 sm:p-5">
                     {/* Quick Filter Buttons */}
-                    <div className="mb-6">
+                    <div className="mb-4 sm:mb-6">
                         <Label className="text-sm font-medium text-gray-700 mb-2 block">
                             Bộ lọc nhanh
                         </Label>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
                             {QUICK_FILTERS.map((preset) => (
                                 <Button
                                     key={preset.label}
@@ -208,18 +233,19 @@ export function InvoiceFilterForm({
                                     size="sm"
                                     onClick={() => applyQuickFilter(preset)}
                                     disabled={isLoading}
-                                    className="text-xs hover:bg-blue-50 hover:border-blue-300"
+                                    className="text-xs hover:bg-blue-50 hover:border-blue-300 justify-center"
                                 >
-                                    {preset.label}
+                                    <span className="hidden sm:inline">{preset.label}</span>
+                                    <span className="sm:hidden">{preset.shortLabel}</span>
                                 </Button>
                             ))}
                         </div>
                     </div>
 
-                    <Separator className="mb-6" />
+                    <Separator className="mb-4 sm:mb-6" />
 
                     {/* Main Filter Controls */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div className="space-y-4 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-4 lg:gap-6 sm:space-y-0">
                         {/* Status Filter */}
                         <div className="space-y-2">
                             <Label htmlFor="status" className="text-sm font-medium text-gray-700">
@@ -230,7 +256,7 @@ export function InvoiceFilterForm({
                                 onValueChange={(value) => handleFilterChange("status", value)}
                                 disabled={isLoading}
                             >
-                                <SelectTrigger className="w-full">
+                                <SelectTrigger className="w-full h-10">
                                     <SelectValue placeholder="Chọn trạng thái" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -238,7 +264,8 @@ export function InvoiceFilterForm({
                                         <SelectItem key={option.value} value={option.value}>
                                             <div className="flex items-center gap-2">
                                                 <div className={`w-2 h-2 rounded-full ${option.color}`} />
-                                                {option.label}
+                                                <span className="hidden sm:inline">{option.label}</span>
+                                                <span className="sm:hidden">{option.shortLabel}</span>
                                             </div>
                                         </SelectItem>
                                     ))}
@@ -258,7 +285,7 @@ export function InvoiceFilterForm({
                                     value={filters.fromDate}
                                     onChange={(e) => handleDateChange("fromDate", e.target.value)}
                                     className={cn(
-                                        "pr-10",
+                                        "pr-10 h-10",
                                         dateRangeError && "border-red-500 focus:border-red-500"
                                     )}
                                     disabled={isLoading}
@@ -280,7 +307,7 @@ export function InvoiceFilterForm({
                                     value={filters.toDate}
                                     onChange={(e) => handleDateChange("toDate", e.target.value)}
                                     className={cn(
-                                        "pr-10",
+                                        "pr-10 h-10",
                                         dateRangeError && "border-red-500 focus:border-red-500"
                                     )}
                                     disabled={isLoading}
@@ -293,7 +320,7 @@ export function InvoiceFilterForm({
 
                         {/* Patient Filter */}
                         {!hidePatientSelect && (
-                            <div className="space-y-2">
+                            <div className="space-y-2 sm:col-span-2 lg:col-span-1">
                                 <Label htmlFor="patientId" className="text-sm font-medium text-gray-700">
                                     Bệnh nhân
                                 </Label>
@@ -303,10 +330,10 @@ export function InvoiceFilterForm({
                                             variant="outline"
                                             role="combobox"
                                             aria-expanded={patientSelectOpen}
-                                            className="w-full justify-between bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                                            className="w-full justify-between bg-white text-gray-700 border-gray-300 hover:bg-gray-50 h-10"
                                             disabled={isLoading}
                                         >
-                                            <span className="truncate">
+                                            <span className="truncate text-left">
                                                 {filters.patientId
                                                     ? selectedPatientName || "Bệnh nhân không tồn tại"
                                                     : "Chọn bệnh nhân..."}
@@ -314,13 +341,16 @@ export function InvoiceFilterForm({
                                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                                    <PopoverContent 
+                                        className="w-[var(--radix-popover-trigger-width)] p-0 max-w-[calc(100vw-1rem)]"
+                                        align="start"
+                                    >
                                         <Command>
                                             <CommandInput 
                                                 placeholder="Tìm kiếm bệnh nhân..." 
                                                 className="h-9"
                                             />
-                                            <CommandList>
+                                            <CommandList className="max-h-60">
                                                 <CommandEmpty>
                                                     <div className="flex flex-col items-center py-4">
                                                         <Search className="h-8 w-8 text-gray-400 mb-2" />
@@ -381,7 +411,7 @@ export function InvoiceFilterForm({
                     {dateRangeError && (
                         <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
                             <div className="flex items-center gap-2 text-red-700">
-                                <X className="h-4 w-4" />
+                                <X className="h-4 w-4 flex-shrink-0" />
                                 <span className="text-sm font-medium">{dateRangeError}</span>
                             </div>
                         </div>

@@ -1,4 +1,5 @@
-﻿using Application.Usecases.Owner.ViewDashboard;
+using Application.Constants;
+using Application.Usecases.Owner.ViewDashboard;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,11 +21,49 @@ namespace HDMS_API.Controllers
         [HttpGet("dashboard")]
         public async Task<IActionResult> ViewDashboard([FromQuery] string? filter)
         {
-            var result = await _mediator.Send(new ViewDashboardCommand
+            try
+            {
+                var result = await _mediator.Send(new ViewDashboardCommand
+                {
+                    Filter = filter
+                });
+
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    message = MessageConstants.MSG.MSG26
+                });
+            }           
+        }
+
+        [HttpGet("column-chart")]
+        public async Task<IActionResult> GetColumnChart([FromQuery] string? filter)
+        {
+            var command = new ColumnChartCommand
             {
                 Filter = filter
-            });
+            };
 
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
+        [HttpGet("line-chart")]
+        public async Task<IActionResult> GetLineChart()
+        {
+            var command = new LineChartCommand();
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
+        [HttpGet("pie-chart")]
+        public async Task<IActionResult> GetPieChart()
+        {
+            var command = new PieChartCommand();
+            var result = await _mediator.Send(command);
             return Ok(result);
         }
     }

@@ -105,14 +105,13 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists
         }
 
         // 2. Normal: Receptionist + pending cập nhật thành công
-        [Fact(DisplayName = "[Integration - Normal] Receptionist_Pending_Should_Succeed")]
+        [Fact(DisplayName = "[Integration - Normal] Receptionist_Pending_Should_Fail")]
         [Trait("TestType", "Normal")]
         public async System.Threading.Tasks.Task N_ReceptionistPending_ShouldSuccess()
         {
             SetUser("Receptionist", 50);
             var cmd = new UpdateTreatmentProgressCommand { TreatmentProgressID = 1, Description = "Update" };
-            var ok = await _handler.Handle(cmd, default);
-            Assert.True(ok);
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(cmd, default));
         }
 
         // 3. Abnormal: Receptionist + status!=pending bị cấm
@@ -189,7 +188,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists
 
             // Act + Assert
             var ex = await Assert.ThrowsAsync<ArgumentException>(() => _handler.Handle(cmd, default));
-            Assert.Contains("EndTime không thể nhỏ hơn CreatedAt", ex.Message); // đảm bảo đúng lỗi
+            Assert.Contains("Thời gian kết thúc không thể nhỏ hơn thời gian tạo", ex.Message); // đảm bảo đúng lỗi
         }
 
         // 8. Boundary: Không tìm thấy progress

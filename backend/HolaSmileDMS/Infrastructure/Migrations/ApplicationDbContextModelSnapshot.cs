@@ -72,6 +72,9 @@ namespace Infrastructure.Migrations
                     b.Property<int?>("PatientId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("RescheduledFromAppointmentId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Status")
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");

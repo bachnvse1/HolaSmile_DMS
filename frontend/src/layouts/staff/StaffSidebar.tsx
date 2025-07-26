@@ -6,7 +6,6 @@ import {
   FileText,
   Settings,
   UserCheck,
-  TrendingUp,
   Stethoscope,
   CreditCard,
   Package,
@@ -16,9 +15,14 @@ import {
   Pill,
   ChevronLeft,
   Percent,
-  ArrowLeftRight
+  ArrowLeftRight,
+  MessageCircle,
+  Users2,
+  UserCircle,
+  Phone
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
+import GuestConsultationPage from '@/pages/messages/guest-consultation';
 
 interface MenuItem {
   id: string;
@@ -27,6 +31,7 @@ interface MenuItem {
   path?: string;
   children?: MenuItem[];
   roles: string[];
+  element?: React.ReactNode;
 }
 
 interface StaffSidebarProps {
@@ -88,6 +93,37 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           path: '/schedules',
           roles: ['Owner', 'Receptionist', 'Dentist', 'Assistant', 'Administrator']
         }
+      ]
+    },
+    {
+      id: 'messages',
+      label: 'Tin Nhắn',
+      icon: <MessageCircle className="h-5 w-5" />,
+      roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist'],
+      children: [
+        {
+          id: 'messages-internal',
+          label: 'Tin Nhắn Nội Bộ',
+          icon: <Users2 className="h-4 w-4" />,
+          path: '/messages/internal',
+          roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
+        },
+        {
+          id: 'messages-patient-consultation',
+          label: 'Tư Vấn Bệnh Nhân',
+          icon: <UserCircle className="h-4 w-4" />,
+          path: '/messages/patient-consultation',
+          roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
+        },
+        {
+          id: 'messages-customer-consultation',
+          label: 'Tư Vấn Khách Hàng',
+          icon: <Phone className="h-4 w-4" />,
+          path: '/messages/guest-consultation',
+          element: <GuestConsultationPage />,
+          roles: ['Receptionist']
+        },
+        
       ]
     },
     {
@@ -159,7 +195,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           label: 'Hóa Đơn',
           icon: <FileText className="h-4 w-4" />,
           path: '/invoices',
-          roles: ['Receptionist']
+          roles: ['Receptionist', 'Owner']
         },
         // {
         //   id: 'finance-payments',
@@ -175,7 +211,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       label: 'Mẫu Chỉ Dẫn',
       icon: <FileText className="h-5 w-5" />,
       path: '/instruction-templates',
-      roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
+      roles: [ 'Assistant', 'Dentist']
     },
     {
       id: "procedures",
@@ -225,7 +261,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       label: 'Quản Lý Người Dùng',
       icon: <UserCheck className="h-5 w-5" />,
       path: '/administrator/user-list',
-      roles: ['Administrator', 'Owner']
+      roles: ['Administrator']
     },
     {
       id: 'settings',

@@ -22,6 +22,7 @@ public class ViewAllUsersHandler : IRequestHandler<ViewAllUsersChatCommand, List
             FullName = u.FullName,
             Phone = u.PhoneNumber,
             AvatarUrl = u.ImageUrl,
+            Role = u.Role,
         }).ToList();
     }
 }

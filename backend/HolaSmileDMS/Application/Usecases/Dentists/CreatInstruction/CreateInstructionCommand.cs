@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Application.Usecases.Assistants.CreateInstruction
+namespace Application.Usecases.Dentists.CreatInstruction
 {
     public class CreateInstructionCommand : IRequest<string>
     {

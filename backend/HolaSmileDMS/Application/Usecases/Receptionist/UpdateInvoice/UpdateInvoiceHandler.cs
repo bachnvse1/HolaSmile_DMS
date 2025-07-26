@@ -42,7 +42,7 @@ public class UpdateInvoiceHandler : IRequestHandler<UpdateInvoiceCommand, string
         if (role == "Patient" && int.Parse(roleIdClaim ?? "0") != invoice.PatientId)
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
         
-        if (invoice.Status != "pending")
+        if (invoice.Status == "paid")
             throw new InvalidOperationException(MessageConstants.MSG.MSG55); // "Hoá đơn đã được thanh toán"
 
         // Validate allowed fields

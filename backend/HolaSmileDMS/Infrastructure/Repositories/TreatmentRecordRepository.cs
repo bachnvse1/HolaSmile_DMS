@@ -19,13 +19,31 @@ public class TreatmentRecordRepository : ITreatmentRecordRepository
 
     public async Task<List<ViewTreatmentRecordDto>> GetPatientTreatmentRecordsAsync(int patientId, CancellationToken cancellationToken)
     {
-        return await _context.TreatmentRecords
+        var records = await _context.TreatmentRecords
             .Include(tr => tr.Appointment)
             .Include(tr => tr.Dentist).ThenInclude(d => d.User)
             .Include(tr => tr.Procedure)
             .Where(tr => tr.Appointment.PatientId == patientId && !tr.IsDeleted)
-            .Select(tr => _mapper.Map<ViewTreatmentRecordDto>(tr))
+            .Select(tr => new
+            {
+                TreatmentRecord = tr,
+                // Tìm Appointment GỐC của Appointment hiện tại (nếu nó là reschedule)
+                OriginalAppointmentDate = _context.Appointments
+                    .Where(a => a.AppointmentId == tr.Appointment.RescheduledFromAppointmentId)
+                    .Select(a => (DateTime?)a.AppointmentDate) // cast nullable
+                    .FirstOrDefault()
+            })
             .ToListAsync(cancellationToken);
+
+        return records.Select(r =>
+        {
+            var dto = _mapper.Map<ViewTreatmentRecordDto>(r.TreatmentRecord);
+
+            // Nếu record đang thuộc appointment mới (có RescheduledFromAppointmentId) → gán ngày gốc
+            dto.AppointmentRescheduleDate = r.OriginalAppointmentDate;
+
+            return dto;
+        }).ToList();
     }
 
     public async Task<bool> DeleteTreatmentRecordAsync(int id, int? updatedBy, CancellationToken cancellationToken)

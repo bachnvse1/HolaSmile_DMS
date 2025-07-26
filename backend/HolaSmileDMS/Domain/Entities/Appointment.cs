@@ -44,6 +44,8 @@ public class Appointment
 
     [NotMapped]
     public bool IsExistInstruction { get; set; }
+    
+    public int? RescheduledFromAppointmentId { get; set; }
 
     public ICollection<TreatmentRecord> TreatmentRecords { get; set;}
 }
