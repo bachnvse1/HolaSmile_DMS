@@ -24,7 +24,7 @@ public class CreateInstructionTemplateHandler : IRequestHandler<CreateInstructio
         var user = _httpContextAccessor.HttpContext?.User;
         var role = user?.FindFirst(ClaimTypes.Role)?.Value;
         var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-        if (role != "Assistant")
+        if (role != "Assistant" && role != "Dentist")
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Không có quyền
 
         if (string.IsNullOrWhiteSpace(request.Instruc_TemplateName) ||

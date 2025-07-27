@@ -17,7 +17,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useChangeAppointmentStatus } from '../../hooks/useAppointments';
 import { toast } from 'react-toastify';
 import { getErrorMessage } from '@/utils/formatUtils';
-import { AppointmentDetailModal } from './AppointmentDetailModal';
+import { useNavigate } from 'react-router';
 
 interface AppointmentListViewProps {
   appointments: AppointmentDTO[];
@@ -37,7 +37,6 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
 
   const [showTreatmentModal, setShowTreatmentModal] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<number | null>(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     appointmentId: number | null;
@@ -52,6 +51,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
 
   const treatmentFormMethods = useForm<TreatmentFormData>();
   const [treatmentToday, setTreatmentToday] = useState<boolean | null>(null);
+  const navigate = useNavigate();
 
   // Change appointment status mutation
   const { mutate: changeStatus, isPending: isChangingStatus } = useChangeAppointmentStatus();
@@ -358,8 +358,11 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        setSelectedAppointmentId(appointment.appointmentId);
-                        setShowDetailModal(true);
+                        if (role === 'Patient') {
+                          navigate(`/patient/appointments/${appointment.appointmentId}`);
+                        } else {
+                          navigate(`/appointments/${appointment.appointmentId}`);
+                        }
                       }}
                       className="flex items-center justify-center gap-2 whitespace-nowrap"
                     >
@@ -523,20 +526,6 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
           setShowTreatmentModal(false);
         }}
         patientId={selectedAppointmentId ? Number(appointments.find(a => a.appointmentId === selectedAppointmentId)?.patientId) : undefined}
-      />
-
-      {/* Appointment Detail Modal */}
-      <AppointmentDetailModal
-        appointmentId={selectedAppointmentId}
-        isOpen={showDetailModal}
-        onClose={() => {
-          setShowDetailModal(false);
-          setSelectedAppointmentId(null);
-        }}
-        onDataChange={() => {
-          // Refresh appointment list when data changes
-          queryClient.invalidateQueries({ queryKey: ['appointments'] });
-        }}
       />
 
       {/* Confirm Modal */}

@@ -34,7 +34,7 @@ public class ViewAllOrthodonticTreatmentPlanHandler
 
         var role = user.FindFirst(ClaimTypes.Role)?.Value;
         var isPatient = role == "Patient";
-        var isAllowedRole = role is "Dentist" or "Assistant" or "Receptionist" or "Owner";
+        var isAllowedRole = role is "Dentist" or "Assistant";
 
         int patientId;
 

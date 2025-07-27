@@ -54,15 +54,18 @@ import PaymentCancelled from "./components/invoice/PaymentCancel";
 import PatientTreatmentRecordsSection from "./components/patient/PatientTreatmentRecordsSection";
 import { PatientOrthodonticImagesPage } from "./pages/patient/PatientOrthodonticImagesPage";
 import { PatientTreatmentImagesPage } from "./pages/patient/PatientTreatmentImagesPage";
-import GuestSupportChatWrapper from "./components/chatbox/GuestSupportChatWrapper";
-import FloatingChatButton from './components/chatbox/FloatingChatButton';
 import { ChatHubProvider } from './components/chatbox/ChatHubProvider';
 import InstructionTemplateManagement from "./pages/instruction/InstructionTemplateManagement";
 import PatientInstructionsList from "./pages/instruction/PatientInstructionList";
 import InstructionsPage from "./pages/instruction/InstructionManagement";
 import { FinancialTransactionsPage } from './pages/financial/FinancialTransactionsPage';
 import { PromotionManagementPage } from './pages/promotion/PromotionManagementPage';
+import { ViewTransactionPage } from './pages/financial/ViewTransactionPage';
+import { ViewPromotionPage } from './pages/promotion/ViewPromotionPage';
 import NotFound from './pages/error/NotFound';
+import GuestConsultationPage from "./pages/messages/guest-consultation";
+import PatientConsultationPage from "./pages/messages/patient-consultation";
+import InternalMessagesPage from "./pages/messages/internal";
 function App() {
   return (
     <>
@@ -73,20 +76,17 @@ function App() {
       />
 
       <Routes>
-        {/* ✅ Public routes (KHÔNG dùng ChatHubProvider) */}
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/learn-more" element={<LearnMorePage />} />
 
-        {/* ✅ Protected routes (DÙNG ChatHubProvider + chat) */}
         <Route
           path="*"
           element={
             <ChatHubProvider>
               <>
                 <Routes>
-                  {/* 👇 TẤT CẢ các route còn lại */}
                   <Route path="/services/general-dentistry" element={<GeneralDentistryPage />} />
                   <Route path="/services/cosmetic-dentistry" element={<CosmeticDentistryPage />} />
                   <Route path="/services/oral-surgery" element={<OralSurgeryPage />} />
@@ -140,16 +140,21 @@ function App() {
                   <Route path="/cancel" element={<PaymentCancelled />} />
                   <Route path="/patient/treatment-records" element={<PatientTreatmentRecordsSection />} />
                   <Route path="/financial-transactions" element={<FinancialTransactionsPage />} />
+                  <Route path="/financial-transactions/:transactionId" element={<ViewTransactionPage />} />
                   <Route path="/promotions" element={<PromotionManagementPage />} />
+                  <Route path="/promotions/:programId" element={<ViewPromotionPage />} />
                   <Route path="/instruction-templates" element={<InstructionTemplateManagement />} />
                   <Route path="/patient/instructions/:appointmentId" element={<PatientInstructionsList />} />
                   <Route path="/instructions/:appointmentId" element={<InstructionsPage />} />
                   <Route path="*" element={<NotFound />} />
+                  <Route path="/messages/guest-consultation" element={<GuestConsultationPage />} />
+                  <Route path="/messages/patient-consultation" element={<PatientConsultationPage />} />
+                  <Route path="/messages/internal" element={<InternalMessagesPage />} />
                 </Routes>
 
                 {/* Floating chat chỉ hiển thị khi có ChatHubProvider */}
-                <GuestSupportChatWrapper />
-                <FloatingChatButton />
+                {/* <GuestSupportChatWrapper />
+                <FloatingChatButton /> */}
               </>
             </ChatHubProvider>
           }

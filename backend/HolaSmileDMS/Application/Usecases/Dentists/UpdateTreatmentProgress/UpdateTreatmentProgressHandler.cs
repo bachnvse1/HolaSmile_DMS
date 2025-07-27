@@ -109,11 +109,6 @@ namespace Application.Usecases.Dentist.UpdateTreatmentProgress
             {
                 case "Dentist":
                     return; // Luôn cho phép
-                case "Receptionist":
-                case "Assistant":
-                    if (!string.Equals(currentStatus, "pending", StringComparison.OrdinalIgnoreCase))
-                        throw new UnauthorizedAccessException("Chỉ được cập nhật khi tiến trình ở trạng thái 'pending'.");
-                    return;
                 default:
                     throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Không có quyền
             }
@@ -137,7 +132,7 @@ namespace Application.Usecases.Dentist.UpdateTreatmentProgress
             // EndTime (nếu có) – không được nhỏ hơn CreatedAt hiện tại của entity
             var endTime = req.EndTime ?? current.EndTime;
             if (endTime.HasValue && endTime < current.CreatedAt)
-                throw new ArgumentException("EndTime không thể nhỏ hơn CreatedAt.");
+                throw new ArgumentException("Thời gian kết thúc không thể nhỏ hơn thời gian tạo");
         }
         private async System.Threading.Tasks.Task UpdateTreatmentRecordStatusIfCompleted(TreatmentProgress progress, CancellationToken cancellationToken)
         {

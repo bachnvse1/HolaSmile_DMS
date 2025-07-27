@@ -76,7 +76,7 @@ public class CreateTreatmentRecordIntegrationTests
 
         _context.Dentists.Add(new global::Dentist { DentistId = 2, UserId = 10 });
         _context.Procedures.Add(new Procedure { ProcedureId = 1, ProcedureName = "Trám răng" });
-        _context.Appointments.Add(new Appointment { AppointmentId = 10, PatientId = 1, DentistId = 2 });
+        _context.Appointments.Add(new Appointment { AppointmentId = 10, PatientId = 1, DentistId = 2 , AppointmentDate = DateTime.Now});
 
         _context.SaveChanges();
     }

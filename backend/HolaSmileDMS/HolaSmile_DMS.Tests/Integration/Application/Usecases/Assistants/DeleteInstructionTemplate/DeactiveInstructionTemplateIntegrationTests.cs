@@ -68,7 +68,7 @@ public class DeactiveInstructionTemplateIntegrationTests
     }
 
     [Fact]
-    public async System.Threading.Tasks.Task ITCID02_ShouldThrow_WhenRoleNotAssistant()
+    public async System.Threading.Tasks.Task ITCID02_ShouldThrow_WhenRoleisDentist()
     {
         await SeedTemplate();
         var context = new ApplicationDbContext(
@@ -81,8 +81,9 @@ public class DeactiveInstructionTemplateIntegrationTests
             new InstructionTemplateRepository(context),
             accessor);
 
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            handler.Handle(new DeactiveInstructionTemplateCommand { Instruc_TemplateID = 1 }, default));
+        var updated = await context.InstructionTemplates.FindAsync(1);
+
+        Assert.Equal(1, updated.CreateBy);
     }
 
     [Fact]

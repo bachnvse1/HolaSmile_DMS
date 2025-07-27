@@ -27,14 +27,18 @@ namespace Application.Usecases.UserCommon.ViewListPatient
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG17); // Phiên làm việc đã hết hạn
 
             var role = user.FindFirst(ClaimTypes.Role)?.Value;
+            var currentUserId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
+            var patient = await _patientRepository.GetPatientByPatientIdAsync(request.PatientId)
+                         ?? throw new KeyNotFoundException(MessageConstants.MSG.MSG12); // Không tìm thấy bệnh nhân
+
+            // Kiểm tra quyền:
             if (role == "Patient")
-                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Không có quyền truy cập
-
-            var patient = await _patientRepository.GetPatientByPatientIdAsync(request.PatientId);
-
-            if (patient == null)
-                throw new KeyNotFoundException(MessageConstants.MSG.MSG12); // Không tìm thấy bệnh nhân
+            {
+                // Chỉ cho xem nếu PatientID thuộc về chính mình
+                if (patient.UserID != currentUserId)
+                    throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
+            }
 
             var userInfo = patient.User;
 
@@ -52,5 +56,6 @@ namespace Application.Usecases.UserCommon.ViewListPatient
                 Avatar = userInfo?.Avatar
             };
         }
+
     }
 }
