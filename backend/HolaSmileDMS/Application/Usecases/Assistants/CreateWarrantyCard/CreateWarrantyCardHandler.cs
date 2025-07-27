@@ -1,6 +1,5 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.Assistant.CreateWarrantyCard;
 using Application.Usecases.SendNotification;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -15,17 +14,20 @@ namespace Application.Usecases.Assistant.CreateWarrantyCard
         private readonly ITreatmentRecordRepository _treatmentRepo;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly INotificationsRepository _notificationRepo;
+        private readonly IMediator _mediator;
 
         public CreateWarrantyCardHandler(
             IWarrantyCardRepository warrantyRepo,
             ITreatmentRecordRepository treatmentRepo,
             IHttpContextAccessor httpContextAccessor,
-            INotificationsRepository notificationRepo)
+            INotificationsRepository notificationRepo,
+             IMediator mediator)
         {
             _warrantyRepo = warrantyRepo;
             _treatmentRepo = treatmentRepo;
             _httpContextAccessor = httpContextAccessor;
             _notificationRepo = notificationRepo;
+            _mediator = mediator;
         }
 
         public async Task<CreateWarrantyCardDto> Handle(CreateWarrantyCardCommand request, CancellationToken ct)
@@ -83,16 +85,14 @@ namespace Application.Usecases.Assistant.CreateWarrantyCard
                     var patient = await _treatmentRepo.GetPatientByPatientIdAsync(patientId.Value);
                     if (patient?.UserID is int notifyUserId)
                     {
-                        await _notificationRepo.AddAsync(new Notification
-                        {
-                            UserId = notifyUserId,
-                            Title = "Thẻ bảo hành đã được tạo",
-                            Message = $"Bạn đã được tạo thẻ bảo hành cho thủ thuật: {procedure.ProcedureName}",
-                            Type = "warranty-card",
-                            RelatedObjectId = createdCard.WarrantyCardID,
-                            CreatedAt = now,
-                            IsRead = false
-                        }, ct);
+                        await _mediator.Send(new SendNotificationCommand(
+                            notifyUserId,
+                            "Thẻ bảo hành đã được tạo",
+                            $"Bạn đã được tạo thẻ bảo hành cho thủ thuật: {procedure.ProcedureName}",
+                            "Create",
+                            createdCard.WarrantyCardID,
+                            $"/patient/warranty-cards/{createdCard.WarrantyCardID}"
+                        ), ct);
                     }
                 }
             }
@@ -100,6 +100,7 @@ namespace Application.Usecases.Assistant.CreateWarrantyCard
             {
                 Console.WriteLine($"[Notification Error] {ex.Message}");
             }
+
 
             return new CreateWarrantyCardDto
             {
