@@ -155,61 +155,98 @@ const PatientTreatmentRecords: React.FC = () => {
     }
   }, [patientId])
 
-  const handlePatientUpdate = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!editingPatientData || !patientId) return
+const handlePatientUpdate = async (e: React.FormEvent) => {
+  e.preventDefault()
+  if (!editingPatientData || !patientId) return
 
-    setIsUpdatingPatient(true)
-    const toastId = toast.loading("Đang cập nhật thông tin bệnh nhân...")
+  setIsUpdatingPatient(true)
+  const toastId = toast.loading("Đang cập nhật thông tin bệnh nhân...")
 
-    try {
-      let formattedDob = null
-      if (editingPatientData.dob) {
-        if (editingPatientData.dob.includes('-')) {
-          const dateValue = new Date(editingPatientData.dob + 'T00:00:00')
-          if (!isNaN(dateValue.getTime())) {
-            formattedDob = dateValue.toISOString()
-          }
-        } else if (editingPatientData.dob.includes('/')) {
-          const parts = editingPatientData.dob.split('/')
-          if (parts.length === 3) {
-            const [day, month, year] = parts
-            const dateValue = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
-            if (!isNaN(dateValue.getTime())) {
-              formattedDob = dateValue.toISOString()
-            }
-          }
+  try {
+    let formattedDob = null
+    
+    if (editingPatientData.dob && editingPatientData.dob.trim() !== '') {
+      if (editingPatientData.dob.includes('-')) {
+        const [year, month, day] = editingPatientData.dob.split('-')
+        formattedDob = `${day}/${month}/${year}`
+      } else if (editingPatientData.dob.includes('/')) {
+        formattedDob = editingPatientData.dob
+      }
+    }
+
+    console.log('Original dob:', editingPatientData.dob)
+    console.log('Formatted dob:', formattedDob)
+
+    const formattedData = {
+      ...editingPatientData,
+      dob: formattedDob
+    }
+
+    await updatePatient(patientId, formattedData)
+
+    await fetchPatientInfo()
+    setIsEditingPatient(false)
+
+    toast.update(toastId, {
+      render: "Cập nhật thông tin bệnh nhân thành công",
+      type: "success",
+      isLoading: false,
+      autoClose: 3000,
+    })
+  } catch (error: any) {
+    console.error("Error updating patient:", error)
+    toast.update(toastId, {
+      render: error.response?.data?.message || "Không thể cập nhật thông tin bệnh nhân",
+      type: "error",
+      isLoading: false,
+      autoClose: 3000,
+    })
+  } finally {
+    setIsUpdatingPatient(false)
+  }
+}
+
+const formatDateForInput = (dateString: string | null): string => {
+  if (!dateString || dateString.trim() === '') return ''
+  
+  try {
+    if (dateString.includes('/')) {
+      const parts = dateString.split('/')
+      if (parts.length === 3) {
+        let [day, month, year] = parts
+        
+        const dayNum = parseInt(day)
+        const monthNum = parseInt(month)
+        const yearNum = parseInt(year)
+        
+        if (!isNaN(dayNum) && !isNaN(monthNum) && !isNaN(yearNum)) {
+          return `${yearNum}-${String(monthNum).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`
         }
       }
-
-      const formattedData = {
-        ...editingPatientData,
-        dob: formattedDob
+    } else if (dateString.includes('-')) {
+      const date = new Date(dateString)
+      if (!isNaN(date.getTime())) {
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+        return `${year}-${month}-${day}`
       }
-
-      await updatePatient(patientId, formattedData)
-
-      setPatient(editingPatientData)
-      setIsEditingPatient(false)
-
-      toast.update(toastId, {
-        render: "Cập nhật thông tin bệnh nhân thành công",
-        type: "success",
-        isLoading: false,
-        autoClose: 3000,
-      })
-    } catch (error: any) {
-      console.error("Error updating patient:", error)
-      toast.update(toastId, {
-        render: error.response?.data?.message || "Không thể cập nhật thông tin bệnh nhân",
-        type: "error",
-        isLoading: false,
-        autoClose: 3000,
-      })
-    } finally {
-      setIsUpdatingPatient(false)
     }
+    
+    const date = new Date(dateString)
+    if (!isNaN(date.getTime())) {
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    }
+    
+    return ''
+  } catch (error) {
+    console.error('Error formatting date for input:', error)
+    return ''
   }
+}
 
   const fetchRecords = useCallback(async () => {
     if (!patientId || isNaN(patientId)) return
