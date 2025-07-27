@@ -130,7 +130,7 @@ namespace HDMS_API.Controllers
             }
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPost("export-excel")]
         public async Task<IActionResult> ExportSupply()
         {
@@ -166,13 +166,13 @@ namespace HDMS_API.Controllers
         }
 
         [Authorize]
-        [HttpPost("approve-financial-transactions/{transactionId}")]
-        public async Task<IActionResult> ApproveTransaction([FromRoute] int transactionId)
+        [HttpPost("approve-financial-transactions")]
+        public async Task<IActionResult> ApproveTransaction([FromBody] ApproveTransactionCommand command)
         {
             try
             {
-                var result = await _mediator.Send(new ApproveTransactionCommand(transactionId));
-                return result ? Ok(MessageConstants.MSG.MSG130) : BadRequest(MessageConstants.MSG.MSG58);
+                var result = await _mediator.Send(command);
+                return result ? Ok(MessageConstants.MSG.MSG123) : BadRequest(MessageConstants.MSG.MSG58);
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -193,17 +193,13 @@ namespace HDMS_API.Controllers
         }
 
         [Authorize]
-        [HttpPut("edit-financial-transactions/{transactionId}")]
-        public async Task<IActionResult> EditTransaction([FromRoute] int transactionId, [FromBody] EditFinancialTransactionCommand command)
+        [HttpPut("edit-financial-transactions")]
+        public async Task<IActionResult> EditTransaction([FromForm] EditFinancialTransactionCommand command)
         {
-            if (transactionId != command.TransactionId)
-            {
-                return BadRequest(MessageConstants.MSG.MSG58);
-            }
             try
             {
                 var result = await _mediator.Send(command);
-                return result ? Ok(MessageConstants.MSG.MSG122) : BadRequest(MessageConstants.MSG.MSG58);
+                return result ? Ok(MessageConstants.MSG.MSG123) : BadRequest(MessageConstants.MSG.MSG58);
             }
             catch (UnauthorizedAccessException ex)
             {

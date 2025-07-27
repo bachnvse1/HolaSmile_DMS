@@ -21,6 +21,9 @@ namespace Application.Usecases.Receptionist.ViewFinancialTransactions
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal Amount { get; set; }
+        public string EvidenceImage { get; set; } = string.Empty;
+
+        public string Status { get; set; } = string.Empty;
         public string CreateBy { get; set; } = string.Empty;
         public string UpdateBy { get; set; } = string.Empty;
         public DateTime CreateAt { get; set; }
