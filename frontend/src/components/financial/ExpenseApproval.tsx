@@ -8,6 +8,7 @@ import { formatCurrency } from '@/utils/currencyUtils';
 import { toast } from 'react-toastify';
 import { getErrorMessage } from '@/utils/formatUtils';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { Pagination } from '@/components/ui/Pagination';
 
 interface ExpenseApprovalProps {
   viewOnlyApproved?: boolean;
@@ -18,6 +19,8 @@ export const ExpenseApproval: React.FC<ExpenseApprovalProps> = ({
 }) => {
   const [approveTransactionId, setApproveTransactionId] = useState<number | null>(null);
   const [viewTransactionId, setViewTransactionId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   const { data: transactions = [], isLoading, error, refetch } = useExpenseTransactions();
   const { data: viewTransaction, isLoading: isLoadingDetail } = useFinancialTransactionDetail(viewTransactionId || 0);
@@ -27,6 +30,17 @@ export const ExpenseApproval: React.FC<ExpenseApprovalProps> = ({
   const filteredTransactions = viewOnlyApproved 
     ? transactions.filter(t => t.isConfirmed) 
     : transactions.filter(t => !t.isConfirmed);
+
+  // Pagination logic
+  const totalItems = filteredTransactions.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedTransactions = filteredTransactions.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const formatDate = (dateString: string) => {
     try {
@@ -129,7 +143,7 @@ export const ExpenseApproval: React.FC<ExpenseApprovalProps> = ({
         </Card>
       ) : (
         <div className="grid gap-4">
-          {filteredTransactions.map((transaction) => (
+          {paginatedTransactions.map((transaction) => (
             <Card key={transaction.transactionID} className="hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
@@ -172,7 +186,7 @@ export const ExpenseApproval: React.FC<ExpenseApprovalProps> = ({
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <Clock className="h-4 w-4 text-gray-500" />
-                          <span>Tạo lúc: {formatDate(transaction.createAt)}</span>
+                          <span>Tạo lúc: {formatDate(transaction.createdAt || transaction.createAt || '')}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <span>PT: {getPaymentMethodLabel(transaction.paymentMethod)}</span>
@@ -215,6 +229,21 @@ export const ExpenseApproval: React.FC<ExpenseApprovalProps> = ({
               </CardContent>
             </Card>
           ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-6 border-t border-gray-200 bg-white px-4 py-3">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={() => {}} // No items per page change for approval
+            className="justify-center"
+          />
         </div>
       )}
 
@@ -295,6 +324,22 @@ export const ExpenseApproval: React.FC<ExpenseApprovalProps> = ({
                     </p>
                   </div>
                 </div>
+
+                {/* Evidence Image */}
+                {viewTransaction.evidenceImage && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-600">Ảnh chứng từ</label>
+                    <div className="border border-gray-300 rounded-lg overflow-hidden">
+                      <img
+                        src={viewTransaction.evidenceImage}
+                        alt="Evidence"
+                        className="w-full max-w-md mx-auto h-auto object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() => window.open(viewTransaction.evidenceImage, '_blank')}
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500">Click để xem ảnh kích thước đầy đủ</p>
+                  </div>
+                )}
 
                 <div className="flex justify-end pt-4 border-t border-gray-300">
                   <Button variant="outline" onClick={() => setViewTransactionId(null)}>

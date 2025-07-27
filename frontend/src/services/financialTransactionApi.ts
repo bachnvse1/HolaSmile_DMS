@@ -9,11 +9,17 @@ export interface FinancialTransaction {
   category: string;
   paymentMethod: string | boolean; 
   amount: number;
-  createBy: string;
-  updateBy: string;
-  createAt: string;
-  updateAt: string | null;
+  createBy?: string;
+  updateBy?: string;
+  createAt?: string;
+  updateAt?: string | null;
   isConfirmed?: boolean;
+  evidenceImage?: string;
+  createdAt?: string;
+  updatedAt?: string | null;
+  createdBy?: number;
+  updatedBy?: number | null;
+  isDelete?: boolean;
 }
 
 export interface CreateTransactionRequest {

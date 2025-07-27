@@ -500,6 +500,9 @@ export const FinancialTransactionList: React.FC = () => {
                         Loại
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Trạng thái
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Mô tả
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -530,6 +533,21 @@ export const FinancialTransactionList: React.FC = () => {
                               {typeConfig.icon}
                               {typeConfig.label}
                             </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {transaction.isConfirmed !== undefined ? (
+                              <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-md ${
+                                transaction.isConfirmed 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {transaction.isConfirmed ? 'Đã duyệt' : 'Chờ duyệt'}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-md bg-gray-100 text-gray-800">
+                                N/A
+                              </span>
+                            )}
                           </td>
                           <td className="px-6 py-4">
                             <div 
@@ -597,10 +615,21 @@ export const FinancialTransactionList: React.FC = () => {
                     <div className="space-y-3">
                       {/* Header */}
                       <div className="flex items-center justify-between">
-                        <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-md ${typeConfig.badgeClass}`}>
-                          {typeConfig.icon}
-                          {typeConfig.label}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-md ${typeConfig.badgeClass}`}>
+                            {typeConfig.icon}
+                            {typeConfig.label}
+                          </span>
+                          {transaction.isConfirmed !== undefined && (
+                            <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-md ${
+                              transaction.isConfirmed 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {transaction.isConfirmed ? 'Đã duyệt' : 'Chờ duyệt'}
+                            </span>
+                          )}
+                        </div>
                         <div className="text-xs text-gray-500">
                           <Calendar className="h-3 w-3 inline mr-1" />
                           {formatDate(transaction.transactionDate)}
