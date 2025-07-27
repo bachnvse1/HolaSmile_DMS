@@ -73,7 +73,6 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.CreateProcedure
                 ProcedureName = request.ProcedureName,
                 Description = request.Description,
                 Discount = request.Discount,
-                WarrantyPeriod = request.WarrantyPeriod,
                 OriginalPrice = Math.Round(request.OriginalPrice, 2),
                 ConsumableCost = consumableTotal,
                 Price = priceTotal,

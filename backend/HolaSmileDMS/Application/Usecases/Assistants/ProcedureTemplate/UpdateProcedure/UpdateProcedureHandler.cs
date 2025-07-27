@@ -74,7 +74,6 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure
             procedure.Price = priceTotal;
             procedure.Description = request.Description;
             procedure.Discount = request.Discount;
-            procedure.WarrantyPeriod = request.WarrantyPeriod;
             procedure.OriginalPrice = Math.Round(request.OriginalPrice,2);
             procedure.ConsumableCost = consumableTotal;
             procedure.ReferralCommissionRate = request.ReferralCommissionRate;
