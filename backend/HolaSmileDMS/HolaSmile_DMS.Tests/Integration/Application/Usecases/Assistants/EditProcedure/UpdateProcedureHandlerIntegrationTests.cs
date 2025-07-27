@@ -72,7 +72,6 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
                 DoctorCommissionRate = 10,
                 AssistantCommissionRate = 7,
                 TechnicianCommissionRate = 3,
-                WarrantyPeriod = "12 tháng",
                 CreatedBy = 1,
                 CreatedAt = DateTime.UtcNow
             });
