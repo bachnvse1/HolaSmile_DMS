@@ -43,19 +43,21 @@ namespace Application.Usecases.Receptionist.EditFinancialTransaction
             {
                 throw new Exception(MessageConstants.MSG.MSG127);
             }
+            var imageUrl = "";
 
             var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/bmp", "image/webp", "image/tiff", "image/heic" };
 
-            if (!allowedTypes.Contains(request.EvidenceImage.ContentType))
-                throw new ArgumentException("Vui lòng chọn ảnh có định dạng jpeg/png/bmp/gif/webp/tiff/heic");
-
-            var imageUrl = await _cloudService.UploadEvidenceImageAsync(request.EvidenceImage);
+            if (request.EvidenceImage != null)
+            {
+                if (!allowedTypes.Contains(request.EvidenceImage.ContentType))
+                    throw new ArgumentException("Vui lòng chọn ảnh có định dạng jpeg/png/bmp/gif/webp/tiff/heic");
+                imageUrl = await _cloudService.UploadEvidenceImageAsync(request.EvidenceImage);
+            }
 
             if (existingTransaction.status != "pending")
             {
                 throw new Exception(MessageConstants.MSG.MSG129 + ", không thể chỉnh sửa"); // "Không thể chỉnh sửa giao dịch đã được xác nhận"
             }
-            existingTransaction.TransactionType = request.TransactionType;
             existingTransaction.Description = request.Description;
             existingTransaction.Amount = request.Amount;
             existingTransaction.Category = request.Category;

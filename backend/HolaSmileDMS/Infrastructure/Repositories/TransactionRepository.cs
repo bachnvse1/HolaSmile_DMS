@@ -27,7 +27,7 @@ namespace Infrastructure.Repositories
 
         public async Task<List<FinancialTransaction>> GetAllFinancialTransactionsAsync()
         {
-            return await _context.FinancialTransactions.ToListAsync();
+            return await _context.FinancialTransactions.Where(t => !t.IsDelete).ToListAsync();
         }
 
         public async Task<FinancialTransaction> GetTransactionByIdAsync(int transactionId)
@@ -37,7 +37,7 @@ namespace Infrastructure.Repositories
 
         public async Task<List<FinancialTransaction>> GetExpenseTransactionsAsync()
         {
-            return await _context.FinancialTransactions.Where(t => !t.TransactionType && t.status == "pending" && !t.IsDelete).ToListAsync();
+            return await _context.FinancialTransactions.Where(t => t.status == "pending" && !t.IsDelete).ToListAsync();
         }
     }
 }
