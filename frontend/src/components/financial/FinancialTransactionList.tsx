@@ -194,12 +194,10 @@ export const FinancialTransactionList: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
-        <div className="flex justify-center items-center min-h-[400px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-600">Đang tải dữ liệu...</p>
-          </div>
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Đang tải dữ liệu...</p>
         </div>
       </div>
     );
@@ -212,18 +210,16 @@ export const FinancialTransactionList: React.FC = () => {
     
     if (!isEmptyDataError) {
       return (
-        <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
-          <div className="flex justify-center items-center min-h-[400px]">
-            <div className="text-center">
-              <p className="text-red-600">Có lỗi xảy ra khi tải dữ liệu: {(error as Error).message}</p>
-              <Button
-                variant="outline"
-                onClick={() => window.location.reload()}
-                className="mt-2"
-              >
-                Thử lại
-              </Button>
-            </div>
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="text-center">
+            <p className="text-red-600">Có lỗi xảy ra khi tải dữ liệu: {(error as Error).message}</p>
+            <Button
+              variant="outline"
+              onClick={() => window.location.reload()}
+              className="mt-2"
+            >
+              Thử lại
+            </Button>
           </div>
         </div>
       );
@@ -231,35 +227,25 @@ export const FinancialTransactionList: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Quản Lý Giao Dịch Tài Chính</h1>
-          <p className="text-gray-600 mt-1 text-sm sm:text-base">
-            Tổng cộng {filteredTransactions.length} giao dịch
-          </p>
-        </div>
-
-        {/* Action buttons */}
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-          <Button
-            onClick={handleExport}
-            disabled={isExporting || transactions.length === 0}
-            className="text-sm bg-green-600 hover:bg-green-700 text-white"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            {isExporting ? 'Đang xuất...' : 'Xuất Excel'}
-          </Button>
-          
-          <Button
-            onClick={() => setShowCreateModal(true)}
-            className="text-sm"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Tạo Giao Dịch
-          </Button>
-        </div>
+    <div className="space-y-6">
+      {/* Action buttons */}
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-end">
+        <Button
+          onClick={handleExport}
+          disabled={isExporting || transactions.length === 0}
+          className="text-sm bg-green-600 hover:bg-green-700 text-white"
+        >
+          <Download className="h-4 w-4 mr-2" />
+          {isExporting ? 'Đang xuất...' : 'Xuất Excel'}
+        </Button>
+        
+        <Button
+          onClick={() => setShowCreateModal(true)}
+          className="text-sm"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Tạo Giao Dịch
+        </Button>
       </div>
 
       {/* Statistics Cards */}

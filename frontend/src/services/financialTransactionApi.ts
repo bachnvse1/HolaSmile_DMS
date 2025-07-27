@@ -13,6 +13,7 @@ export interface FinancialTransaction {
   updateBy: string;
   createAt: string;
   updateAt: string | null;
+  isConfirmed?: boolean;
 }
 
 export interface CreateTransactionRequest {
@@ -22,6 +23,7 @@ export interface CreateTransactionRequest {
   category: string;
   paymentMethod: boolean; // true: Tiền mặt, false: Chuyển khoản
   transactionDate: string;
+  evidentImage?: File; // Optional for FormData
 }
 
 export interface UpdateTransactionRequest {
@@ -49,13 +51,29 @@ export const getFinancialTransactions = async (): Promise<FinancialTransaction[]
   return response.data;
 };
 
+export const getExpenseTransactions = async (): Promise<FinancialTransaction[]> => {
+  const response = await axiosInstance.get('/transaction/expense-transaction');
+  return response.data;
+};
+
+export const approveFinancialTransaction = async (transactionId: number): Promise<ApiResponse> => {
+  const response = await axiosInstance.post(`/transaction/approve-financial-transactions/${transactionId}`);
+  return response.data;
+};
+
 export const getFinancialTransactionDetail = async (transactionId: number): Promise<FinancialTransaction> => {
   const response = await axiosInstance.get(`/transaction/financial-transactions/${transactionId}`);
   return response.data;
 };
 
-export const createFinancialTransaction = async (data: CreateTransactionRequest): Promise<ApiResponse> => {
-  const response = await axiosInstance.post('/transaction/financial-transactions', data);
+export const createFinancialTransaction = async (data: CreateTransactionRequest | FormData): Promise<ApiResponse> => {
+  const config = data instanceof FormData ? {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  } : {};
+  
+  const response = await axiosInstance.post('/transaction/financial-transactions', data, config);
   return response.data;
 };
 
@@ -65,7 +83,7 @@ export const updateFinancialTransaction = async (data: UpdateTransactionRequest)
 };
 
 export const deactivateFinancialTransaction = async (transactionId: number): Promise<ApiResponse> => {
-  const response = await axiosInstance.put(`/transaction/Deactive-financial-transactions/${transactionId}`);
+  const response = await axiosInstance.put(`/transaction/deactive-financial-transactions/${transactionId}`);
   return response.data;
 };
 
