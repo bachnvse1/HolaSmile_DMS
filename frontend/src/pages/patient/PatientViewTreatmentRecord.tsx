@@ -25,32 +25,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { Skeleton } from "@/components/ui/skeleton"
 
-const formatDateForInput = (dateString: string | null): string => {
-  if (!dateString) return ''
-  
-  try {
-    if (dateString.includes('/')) {
-      const parts = dateString.split('/')
-      if (parts.length === 3) {
-        const [day, month, year] = parts
-        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
-      }
-    }
-    
-    const date = new Date(dateString)
-    if (isNaN(date.getTime())) return ''
-    
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    
-    return `${year}-${month}-${day}`
-  } catch (error) {
-    console.error('Error formatting date for input:', error)
-    return ''
-  }
-}
-
 const formatDateForDisplay = (dateString: string | null): string => {
   if (!dateString) return 'N/A'
   
