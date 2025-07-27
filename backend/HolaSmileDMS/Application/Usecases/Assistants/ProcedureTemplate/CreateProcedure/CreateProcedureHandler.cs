@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
+using Application.Usecases.SendNotification;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
@@ -10,12 +11,16 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.CreateProcedure
     {
         private readonly IProcedureRepository _procedureRepository;
         private readonly ISupplyRepository _supplyRepository;
+        private readonly IOwnerRepository _ownerRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public CreateProcedureHandler(IProcedureRepository procedureRepository, ISupplyRepository supplyRepository, IHttpContextAccessor httpContextAccessor)
+        private readonly IMediator _mediator;
+        public CreateProcedureHandler(IProcedureRepository procedureRepository, ISupplyRepository supplyRepository, IOwnerRepository ownerRepository, IHttpContextAccessor httpContextAccessor, IMediator mediator)
         {
             _procedureRepository = procedureRepository;
             _supplyRepository = supplyRepository;
+            _ownerRepository = ownerRepository;
             _httpContextAccessor = httpContextAccessor;
+            _mediator = mediator;
         }
         public async Task<bool> Handle(CreateProcedureCommand request, CancellationToken cancellationToken)
         {
@@ -79,6 +84,20 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.CreateProcedure
                 CreatedBy = currentUserId,
                 SuppliesUsed = suppliesUsed
             };
+
+            try
+            {
+                var owners = await _ownerRepository.GetAllOwnersAsync();
+                var notifyOwners = owners.Select(async o =>
+                await _mediator.Send(new SendNotificationCommand(
+                      o.User.UserID,
+                      "Tạo thủ thuật mới",
+                      $"Trợ lý {o.User.Fullname} tạo thủ thuật mới {procedure.ProcedureName} vào lúc {DateTime.Now}",
+                      "procedure", 0, $"proceduces"),
+                cancellationToken));
+                await System.Threading.Tasks.Task.WhenAll(notifyOwners);
+            }
+            catch { }
 
             return await _procedureRepository.CreateProcedure(procedure);
         }
