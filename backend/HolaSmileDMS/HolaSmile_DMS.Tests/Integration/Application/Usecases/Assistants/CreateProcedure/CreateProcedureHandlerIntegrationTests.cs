@@ -2,6 +2,7 @@
 using Application.Usecases.Assistant.ProcedureTemplate.CreateProcedure;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +15,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
         private readonly ApplicationDbContext _context;
         private readonly CreateProcedureHandler _handler;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IMediator _mediator;
 
         public CreateProcedureHandlerIntegrationTests()
         {
@@ -25,13 +27,16 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             var provider = services.BuildServiceProvider();
             _context = provider.GetRequiredService<ApplicationDbContext>();
             _httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
+            _mediator = provider.GetRequiredService<IMediator>();
 
             SeedData();
 
             _handler = new CreateProcedureHandler(
                 new ProcedureRepository(_context),
                 new SupplyRepository(_context),
-                _httpContextAccessor
+                new OwnerRepository(_context),
+                _httpContextAccessor,
+                _mediator
             );
         }
 

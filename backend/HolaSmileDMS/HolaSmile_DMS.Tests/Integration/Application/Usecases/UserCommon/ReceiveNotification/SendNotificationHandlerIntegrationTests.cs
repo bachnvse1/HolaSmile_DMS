@@ -43,7 +43,8 @@ public class SendNotificationHandlerIntegrationTests
                           n.Type,
                           n.IsRead,
                           n.CreatedAt,
-                          n.RelatedObjectId
+                          n.RelatedObjectId,
+                          n.MappingUrl
                       ));
             return mockMapper.Object;
         });
@@ -115,7 +116,7 @@ public class SendNotificationHandlerIntegrationTests
     [Trait("TestType", "Integration")]
     public async System.Threading.Tasks.Task ITCID01_Send_Valid_Notification()
     {
-        var cmd = new SendNotificationCommand(10, "Title", "Message", "Info", 123);
+        var cmd = new SendNotificationCommand(10, "Title", "Message", "Info", 123, "");
         await _handler.Handle(cmd, default);
 
         var noti = _context.Notifications.FirstOrDefault(n => n.UserId == 10);
@@ -130,7 +131,7 @@ public class SendNotificationHandlerIntegrationTests
     [Trait("TestType", "Integration")]
     public async System.Threading.Tasks.Task ITCID02_Empty_Title()
     {
-        var cmd = new SendNotificationCommand(11, "", "Hello", "Alert", null);
+        var cmd = new SendNotificationCommand(11, "", "Hello", "Alert", null, "");
         await _handler.Handle(cmd, default);
 
         var noti = _context.Notifications.FirstOrDefault(n => n.UserId == 11);
@@ -142,7 +143,7 @@ public class SendNotificationHandlerIntegrationTests
     [Trait("TestType", "Integration")]
     public async System.Threading.Tasks.Task ITCID03_Empty_Message()
     {
-        var cmd = new SendNotificationCommand(12, "Note", "", "Reminder", null);
+        var cmd = new SendNotificationCommand(12, "Note", "", "Reminder", null, "");
         await _handler.Handle(cmd, default);
 
         var noti = _context.Notifications.FirstOrDefault(n => n.UserId == 12);
@@ -154,7 +155,7 @@ public class SendNotificationHandlerIntegrationTests
     [Trait("TestType", "Integration")]
     public async System.Threading.Tasks.Task ITCID04_Null_RelatedObjectId()
     {
-        var cmd = new SendNotificationCommand(13, "Info", "Some note", "Warning", null);
+        var cmd = new SendNotificationCommand(13, "Info", "Some note", "Warning", null, "");
         await _handler.Handle(cmd, default);
 
         var noti = _context.Notifications.FirstOrDefault(n => n.UserId == 13);
@@ -166,7 +167,7 @@ public class SendNotificationHandlerIntegrationTests
     [Trait("TestType", "Integration")]
     public async System.Threading.Tasks.Task ITCID05_User_Not_Found()
     {
-        var cmd = new SendNotificationCommand(999, "T", "M", "Error", null);
+        var cmd = new SendNotificationCommand(999, "T", "M", "Error", null, "");
         var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() => _handler.Handle(cmd, default));
         Assert.Equal("UserId 999 không tồn tại.", ex.Message);
     }

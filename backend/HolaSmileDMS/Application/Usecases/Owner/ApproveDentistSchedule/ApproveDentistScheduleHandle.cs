@@ -57,7 +57,7 @@ namespace Application.Usecases.Owner.AprroveDentistSchedule
                         "Đăng ký lịch làm việc",
                         $"Bạn đã được duyệt lịch làm việc vào ngày {schedule.WorkDate.Date:dd/MM/yyyy} lúc {DateTime.Now:HH:mm}",
                         "Đăng ký lịch làm việc",
-                        null), cancellationToken);
+                        null, ""), cancellationToken);
                     }
                     catch { }
                 }
@@ -70,7 +70,7 @@ namespace Application.Usecases.Owner.AprroveDentistSchedule
                         "Đăng ký lịch làm việc",
                         $"Bạn đã bị từ chối lịch làm việc vào ngày {schedule.WorkDate.Date:dd/MM/yyyy} lúc {DateTime.Now:HH:mm}",
                         "Đăng ký lịch làm việc",
-                        null), cancellationToken);
+                        null, ""), cancellationToken);
                     }
                     catch { }
                 }

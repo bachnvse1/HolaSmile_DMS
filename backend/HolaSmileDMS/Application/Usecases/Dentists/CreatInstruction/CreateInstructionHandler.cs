@@ -82,7 +82,7 @@ namespace Application.Usecases.Dentists.CreatInstruction
                         "Chỉ dẫn điều trị mới",
                         "Bạn vừa nhận được chỉ dẫn điều trị mới từ phòng khám.",
                         "Chỉ dẫn điều trị",
-                        null // Có thể truyền thêm thông tin nếu cần
+                        null, "" // Có thể truyền thêm thông tin nếu cần
                     ), cancellationToken);
                 }
                 catch (Exception ex)

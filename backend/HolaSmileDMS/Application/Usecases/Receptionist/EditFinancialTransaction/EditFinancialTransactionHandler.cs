@@ -41,6 +41,11 @@ namespace Application.Usecases.Receptionist.EditFinancialTransaction
             {
                 throw new Exception(MessageConstants.MSG.MSG127);
             }
+
+            if(existingTransaction.IsConfirmed)
+            {
+                throw new Exception(MessageConstants.MSG.MSG129+", không thể chỉnh sửa"); // "Không thể chỉnh sửa giao dịch đã được xác nhận"
+            }
             existingTransaction.TransactionType = request.TransactionType;
             existingTransaction.Description = request.Description;
             existingTransaction.Amount = request.Amount;
@@ -60,9 +65,9 @@ namespace Application.Usecases.Receptionist.EditFinancialTransaction
                 await _mediator.Send(
                  new SendNotificationCommand(
                 o.User.UserID,
-                "Chỉnh sửaphiếu thu/chi",
+                "Chỉnh sửa phiếu thu/chi",
                 $"Lễ tân {o.User.Fullname} đã chỉnh sửa phiếu {(existingTransaction.TransactionType ? "thu" : "chi")} vào lúc {DateTime.Now}",
-                "transaction", null), cancellationToken));
+                "transaction", 0, $"financial-transactions/{existingTransaction.TransactionID}"), cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);
             }
             catch { }

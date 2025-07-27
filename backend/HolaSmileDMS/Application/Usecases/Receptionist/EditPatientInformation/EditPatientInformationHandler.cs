@@ -78,8 +78,8 @@ namespace Application.Usecases.Receptionist.EditPatientInformation
                       patient.User.UserID,
                       "Cập nhật hồ sơ bệnh nhân",
                       $"Lễ Tân đã thay đổi hồ sơ bệnh án của bạn vào lúc {DateTime.Now}",
-                      "Cập nhật hồ sơ bệnh nhân",
-                      request.PatientID),
+                      "patient",0,
+                       $"patient/view-treatment-records?patientId={request.PatientID}"),
                       cancellationToken);
             }
             catch { }

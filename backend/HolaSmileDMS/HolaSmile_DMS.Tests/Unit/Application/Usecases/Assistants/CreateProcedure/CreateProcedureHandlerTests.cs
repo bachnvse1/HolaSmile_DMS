@@ -2,6 +2,7 @@
 using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Assistant.ProcedureTemplate.CreateProcedure;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
@@ -12,7 +13,9 @@ public class CreateProcedureHandlerTests
 {
     private readonly Mock<IProcedureRepository> _procedureRepoMock;
     private readonly Mock<ISupplyRepository> _supplyRepoMock;
+    private readonly Mock<IOwnerRepository> _ownerRepoMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
+    private readonly Mock<IMediator> _mediatorMock;
     private readonly CreateProcedureHandler _handler;
 
     public CreateProcedureHandlerTests()
@@ -23,7 +26,9 @@ public class CreateProcedureHandlerTests
         _handler = new CreateProcedureHandler(
             _procedureRepoMock.Object,
             _supplyRepoMock.Object,
-            _httpContextAccessorMock.Object
+            _ownerRepoMock.Object,
+            _httpContextAccessorMock.Object,
+            _mediatorMock.Object
         );
     }
 

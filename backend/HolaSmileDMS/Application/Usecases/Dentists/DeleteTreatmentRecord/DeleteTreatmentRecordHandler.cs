@@ -32,13 +32,13 @@ namespace Application.Usecases.Dentist.DeleteTreatmentRecord
             var userId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var fullName = user?.FindFirst(ClaimTypes.GivenName)?.Value;
             
-            if (role != "Dentist" && role != "Assistant")
+            if (role != "Dentist")
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
-            var record = _repository.GetTreatmentRecordByIdAsync(request.TreatmentRecordId, cancellationToken);
+            var record =  await _repository.GetTreatmentRecordByIdAsync(request.TreatmentRecordId, cancellationToken);
             if (record is null) throw new KeyNotFoundException(MessageConstants.MSG.MSG27);
             
-            var appointment = await _appointmentRepository.GetAppointmentByIdAsync(record.Result.AppointmentID);
+            var appointment = await _appointmentRepository.GetAppointmentByIdAsync(record.AppointmentID);
             if (appointment != null)
             {
                 var patient = await _patientRepository.GetPatientByPatientIdAsync(appointment.PatientId ?? 0);
@@ -47,13 +47,20 @@ namespace Application.Usecases.Dentist.DeleteTreatmentRecord
                     int userIdNotification = patient?.UserID ?? 0;
                     if (userIdNotification > 0)
                     {
-                        await _mediator.Send(new SendNotificationCommand(
-                                userIdNotification,
-                                "Xóa hồ sơ điều trị",
-                                $"Hồ sơ điều trị #{request.TreatmentRecordId} của của bạn đã được nha sĩ {fullName} xoá!!!",
-                                "Xoá hồ sơ",
-                                request.TreatmentRecordId),
-                            cancellationToken);
+                        try
+                        {
+                            await _mediator.Send(new SendNotificationCommand(
+                                    userIdNotification,
+                                    "Xóa hồ sơ điều trị",
+                                    $"Hồ sơ điều trị #{request.TreatmentRecordId} của {patient.User.Fullname} đã được nha sĩ {fullName} xoá!!!",
+                                    "Xoá hồ sơ",
+                                    request.TreatmentRecordId, $"patient/view-treatment-records?patientId={appointment.PatientId}"),
+                                cancellationToken);
+                        } catch(Exception ex)
+                        {
+                            // Log the exception or handle it as needed
+                        }
+                        
                     }
                 }
             }
