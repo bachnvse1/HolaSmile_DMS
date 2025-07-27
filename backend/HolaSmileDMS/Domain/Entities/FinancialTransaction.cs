@@ -30,7 +30,8 @@ public class FinancialTransaction
     public decimal Amount { get; set; }
     public string EvidenceImage { get; set; } = string.Empty;
 
-    public bool IsConfirmed { get; set; } = false;
+    [Column(TypeName = "nvarchar(255)")]
+    public string status { get; set; }
 
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }

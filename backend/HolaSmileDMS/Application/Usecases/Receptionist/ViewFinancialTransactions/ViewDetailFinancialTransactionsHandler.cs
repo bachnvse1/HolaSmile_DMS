@@ -54,6 +54,8 @@ namespace Application.Usecases.Receptionist.ViewFinancialTransactions
                 PaymentMethod = existTransaction.PaymentMethod ? "Tiền mặt" : "Chuyển khoản",
                 Amount = existTransaction.Amount,
                 Description = existTransaction.Description,
+                EvidenceImage = existTransaction.EvidenceImage,
+                Status = existTransaction.status,
                 CreateAt = existTransaction.CreatedAt,
                 UpdateAt = existTransaction.UpdatedAt,
                 CreateBy = createdByUser.Fullname,

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.SendNotification;
@@ -16,14 +11,14 @@ namespace Application.Usecases.Owner.ApproveFinancialTransaction
     {
         private readonly ITransactionRepository _transactionRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IUserCommonRepository userCommonRepository;
+        private readonly IUserCommonRepository _userCommonRepository;
         private readonly IMediator _mediator;
 
         public ApproveTransactionHandler(ITransactionRepository transactionRepository, IHttpContextAccessor httpContextAccessor, IUserCommonRepository userCommonRepository, IMediator mediator)
         {
             _transactionRepository = transactionRepository;
             _httpContextAccessor = httpContextAccessor;
-            this.userCommonRepository = userCommonRepository;
+            _userCommonRepository = userCommonRepository;
             _mediator = mediator;
         }
         public async Task<bool> Handle(ApproveTransactionCommand request, CancellationToken cancellationToken)
@@ -43,25 +38,29 @@ namespace Application.Usecases.Owner.ApproveFinancialTransaction
                 throw new Exception(MessageConstants.MSG.MSG127); // "Giao dịch không tồn tại"
             }
 
-            if (exisTransaction.IsConfirmed)
+            if (exisTransaction.status != "pending")
             {
                 throw new Exception(MessageConstants.MSG.MSG129); // "Giao dịch đã được phê duyệt trước đó"
             }
-            exisTransaction.IsConfirmed = true;
+
+            exisTransaction.status = request.Action ? "approved" : "rejected";
             exisTransaction.UpdatedAt = DateTime.Now;
             exisTransaction.UpdatedBy = currentUserId;
             var isUpdated = await _transactionRepository.UpdateTransactionAsync(exisTransaction);
 
             try
             {
-                var receptionist = await userCommonRepository.GetByIdAsync(exisTransaction.CreatedBy, cancellationToken);
+                var receptionist = await _userCommonRepository.GetByIdAsync(exisTransaction.CreatedBy, cancellationToken);
 
-                await _mediator.Send(
-                 new SendNotificationCommand(
-                receptionist.UserID,
-                "Tạo phiếu thu/chi",
-                $"Chủ phòng đã duyệt phiếu chi {exisTransaction.Category} vào lúc {DateTime.Now}",
-                "transaction", null, ""), cancellationToken);
+                var transactionTypeText = exisTransaction.TransactionType ? "thu" : "chi";
+                await _mediator.Send(new SendNotificationCommand(
+                    receptionist.UserID,
+                    "Phê duyệt phiếu thu/chi",
+                    $"Chủ phòng {(request.Action ? "đã phê duyệt" : "đã từ chối")} phiếu {transactionTypeText} {exisTransaction.TransactionID} vào lúc {DateTime.Now}",
+                    "transaction",
+                    0,
+                    $"financial-transactions/{exisTransaction.TransactionID}"), cancellationToken);
+
             }
             catch { }
 
