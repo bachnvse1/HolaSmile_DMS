@@ -19,6 +19,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
         private readonly ApplicationDbContext _context;
         private readonly UpdateProcedureHandler _handler;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IMediator _mediator;
 
         public UpdateProcedureHandlerIntegrationTests()
         {
@@ -31,13 +32,16 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             var provider = services.BuildServiceProvider();
             _context = provider.GetRequiredService<ApplicationDbContext>();
             _httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
+            _mediator = provider.GetRequiredService<IMediator>();
 
             SeedData();
 
             _handler = new UpdateProcedureHandler(
                 new ProcedureRepository(_context),
                 new SupplyRepository(_context),
-                _httpContextAccessor
+                new OwnerRepository(_context),
+                _httpContextAccessor,
+                _mediator
             );
         }
 

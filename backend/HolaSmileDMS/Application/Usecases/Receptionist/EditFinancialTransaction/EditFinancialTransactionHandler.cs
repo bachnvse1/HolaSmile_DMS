@@ -41,6 +41,11 @@ namespace Application.Usecases.Receptionist.EditFinancialTransaction
             {
                 throw new Exception(MessageConstants.MSG.MSG127);
             }
+
+            if(existingTransaction.IsConfirmed)
+            {
+                throw new Exception(MessageConstants.MSG.MSG129+", không thể chỉnh sửa"); // "Không thể chỉnh sửa giao dịch đã được xác nhận"
+            }
             existingTransaction.TransactionType = request.TransactionType;
             existingTransaction.Description = request.Description;
             existingTransaction.Amount = request.Amount;
