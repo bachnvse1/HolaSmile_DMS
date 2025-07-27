@@ -20,7 +20,7 @@ interface Props {
     shouldHideTreatmentRecords?: boolean
 }
 
-export default function PatientTableRow({ patient, index, onEdit, shouldHideTreatmentRecords = false }: Props) {
+export default function PatientTableRow({ patient, index, shouldHideTreatmentRecords = false }: Props) {
     // Sử dụng màu xanh nhạt và tím nhạt thay vì trắng và xám
     const rowBg = index % 2 === 0 ? "bg-blue-50/30" : "bg-purple-50/30"
     const hoverBg = index % 2 === 0 ? "hover:bg-blue-100/50" : "hover:bg-purple-100/50"
