@@ -69,7 +69,6 @@ export default function PatientTreatmentRecordsSection() {
     setPatientLoading(true)
     try {
       const patientData = await getPatientById(Number(patientId))
-      console.log("Patient data:", patientData)
       setPatient(patientData)
     } catch (error: any) {
       console.error("Error fetching patient:", error)
