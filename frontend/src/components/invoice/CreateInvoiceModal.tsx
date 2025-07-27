@@ -145,21 +145,18 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
             <h3 className="font-semibold text-gray-900 mb-3">Thông tin điều trị</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
               <div className="flex items-start gap-2">
-                <span className="text-blue-600">🦷</span>
                 <div>
                   <p className="font-medium text-gray-700">Triệu chứng:</p>
                   <p className="text-gray-600">{treatmentRecord.symptoms}</p>
                 </div>
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-green-600">💰</span>
                 <div>
                   <p className="font-medium text-gray-700">Tổng tiền:</p>
                   <p className="text-gray-900 font-semibold">{formatCurrency(treatmentRecord.totalAmount)}</p>
                 </div>
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-purple-600">📅</span>
                 <div>
                   <p className="font-medium text-gray-700">Ngày điều trị:</p>
                   <p className="text-gray-600">{treatmentRecord.treatmentDate}</p>
