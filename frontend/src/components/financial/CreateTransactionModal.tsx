@@ -96,36 +96,36 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
         return;
       }
 
-      // For requests with file upload, we need to use FormData
-      if (selectedImage) {
-        const formData = new FormData();
-        formData.append('transactionType', (data.transactionType === 'thu').toString());
-        formData.append('description', data.description);
-        formData.append('category', data.category);
-        formData.append('paymentMethod', (data.paymentMethod === 'cash').toString());
-        formData.append('amount', numericAmount.toString());
-        formData.append('transactionDate', data.transactionDate + 'T' + data.transactionTime + ':00');
-        formData.append('evidentImage', selectedImage);
-
-        await createTransactionMutation.mutateAsync(formData);
-      } else {
-        // For requests without file, use regular JSON
-        const requestData = {
-          transactionType: data.transactionType === 'thu',
-          description: data.description,
-          category: data.category,
-          paymentMethod: data.paymentMethod === 'cash',
-          amount: numericAmount,
-          transactionDate: data.transactionDate + 'T' + data.transactionTime + ':00'
-        };
-
-        await createTransactionMutation.mutateAsync(requestData);
+      // Check if description is provided
+      if (!data.description || data.description.trim() === '') {
+        toast.error('Vui lòng nhập mô tả');
+        return;
       }
+
+      // Check if category is provided
+      if (!data.category || data.category.trim() === '') {
+        toast.error('Vui lòng nhập danh mục');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('TransactionType', (data.transactionType === 'thu').toString());
+      formData.append('Description', data.description.trim());
+      formData.append('Amount', numericAmount.toString());
+      formData.append('Category', data.category.trim());
+      formData.append('PaymentMethod', (data.paymentMethod === 'cash').toString());
+      formData.append('TransactionDate', data.transactionDate + 'T' + data.transactionTime + ':00');
       
+      if (selectedImage) {
+        formData.append('EvidenceImage', selectedImage);
+      }
+
       toast.success(`Đã tạo giao dịch ${data.transactionType} thành công`);
       form.reset();
+      setSelectedImage(null);
+      setImagePreview('');
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       toast.error(getErrorMessage(error) || `Có lỗi xảy ra khi tạo giao dịch`);
     }
   };
@@ -206,7 +206,10 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
             <Textarea
               id="description"
               placeholder="Nhập mô tả cho giao dịch..."
-              {...form.register('description', { required: 'Vui lòng nhập mô tả' })}
+              {...form.register('description', { 
+                required: 'Vui lòng nhập mô tả',
+                validate: value => value.trim().length > 0 || 'Mô tả không được để trống'
+              })}
               rows={3}
             />
             {form.formState.errors.description && (
@@ -278,14 +281,14 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
             </div>
           </div>
 
-          {/* Image Upload - Only for expense (chi) transactions */}
+          {/* Image Upload - For all expense (chi) transactions */}
           {transactionType === 'chi' && (
             <div className="space-y-2">
-              <Label htmlFor="evidentImage">Ảnh chứng từ *</Label>
+              <Label htmlFor="evidenceImage">Ảnh chứng từ *</Label>
               <div className="space-y-3">
                 {/* Upload Button */}
                 <div className="flex items-center gap-4">
-                  <label htmlFor="evidentImage" className="cursor-pointer">
+                  <label htmlFor="evidenceImage" className="cursor-pointer">
                     <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors">
                       <Upload className="h-5 w-5 text-gray-500" />
                       <span className="text-sm text-gray-700">
@@ -294,7 +297,7 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
                     </div>
                   </label>
                   <input
-                    id="evidentImage"
+                    id="evidenceImage"
                     type="file"
                     accept="image/*"
                     onChange={handleImageChange}

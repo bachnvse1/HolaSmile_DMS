@@ -175,6 +175,24 @@ export const ViewTransactionPage: React.FC = () => {
             </CardContent>
           </Card>
 
+          {/* Evidence Image */}
+          {transaction.evidenceImage && (
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-lg mb-4">Ảnh chứng từ</h3>
+                <div className="border border-gray-300 rounded-lg overflow-hidden">
+                  <img
+                    src={transaction.evidenceImage}
+                    alt="Evidence"
+                    className="w-full max-w-md mx-auto h-auto object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => window.open(transaction.evidenceImage, '_blank')}
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-2">Click để xem ảnh kích thước đầy đủ</p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* System Information */}
           <Card>
             <CardContent className="p-6">

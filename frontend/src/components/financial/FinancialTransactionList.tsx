@@ -84,10 +84,11 @@ export const FinancialTransactionList: React.FC = () => {
       );
     }
 
-    // Sort by created date (newest first) - using createAt field
+    // Sort by created date (newest first) - using proper priority order
     filtered = filtered.sort((a, b) => {
-      const dateA = new Date(a.createAt || a.transactionDate);
-      const dateB = new Date(b.createAt || b.transactionDate);
+      // Priority order: createdAt > createAt > transactionDate
+      const dateA = new Date(a.createdAt || a.createAt || a.transactionDate);
+      const dateB = new Date(b.createdAt || b.createAt || b.transactionDate);
       return dateB.getTime() - dateA.getTime();
     });
 
@@ -535,7 +536,18 @@ export const FinancialTransactionList: React.FC = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            {transaction.isConfirmed !== undefined ? (
+                            {transaction.status ? (
+                              <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-md ${
+                                transaction.status === 'approved' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : transaction.status === 'rejected'
+                                  ? 'bg-red-100 text-red-800'
+                                  : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {transaction.status === 'approved' ? 'Đã duyệt' : 
+                                 transaction.status === 'rejected' ? 'Đã từ chối' : 'Chờ duyệt'}
+                              </span>
+                            ) : transaction.isConfirmed !== undefined ? (
                               <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-md ${
                                 transaction.isConfirmed 
                                   ? 'bg-green-100 text-green-800' 
@@ -590,6 +602,7 @@ export const FinancialTransactionList: React.FC = () => {
                                 onClick={() => setEditTransaction(transaction.transactionID)}
                                 className="text-blue-600 hover:text-blue-900"
                                 title="Chỉnh sửa"
+                                disabled={transaction.status === 'approved' || transaction.status === 'rejected'}
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
@@ -620,7 +633,19 @@ export const FinancialTransactionList: React.FC = () => {
                             {typeConfig.icon}
                             {typeConfig.label}
                           </span>
-                          {transaction.isConfirmed !== undefined && (
+                          {transaction.status && (
+                            <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-md ${
+                              transaction.status === 'approved' 
+                                ? 'bg-green-100 text-green-800' 
+                                : transaction.status === 'rejected'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {transaction.status === 'approved' ? 'Đã duyệt' : 
+                               transaction.status === 'rejected' ? 'Đã từ chối' : 'Chờ duyệt'}
+                            </span>
+                          )}
+                          {!transaction.status && transaction.isConfirmed !== undefined && (
                             <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-md ${
                               transaction.isConfirmed 
                                 ? 'bg-green-100 text-green-800' 
@@ -670,6 +695,7 @@ export const FinancialTransactionList: React.FC = () => {
                           size="sm"
                           onClick={() => setEditTransaction(transaction.transactionID)}
                           className="text-blue-600 hover:text-blue-900"
+                          disabled={transaction.status === 'approved' || transaction.status === 'rejected'}
                         >
                           <Edit className="h-4 w-4 mr-1" />
                           Sửa

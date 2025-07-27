@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Eye, Check, X, TrendingDown, Calendar, User, Clock, DollarSign } from 'lucide-react';
-import { useExpenseTransactions, useApproveFinancialTransaction, useFinancialTransactionDetail } from '@/hooks/useFinancialTransactions';
+import { useExpenseTransactions, useApproveFinancialTransaction, useFinancialTransactionDetail, useFinancialTransactions } from '@/hooks/useFinancialTransactions';
 import { formatCurrency } from '@/utils/currencyUtils';
 import { toast } from 'react-toastify';
 import { getErrorMessage } from '@/utils/formatUtils';
@@ -18,18 +18,42 @@ export const ExpenseApproval: React.FC<ExpenseApprovalProps> = ({
   viewOnlyApproved = false
 }) => {
   const [approveTransactionId, setApproveTransactionId] = useState<number | null>(null);
+  const [rejectTransactionId, setRejectTransactionId] = useState<number | null>(null);
   const [viewTransactionId, setViewTransactionId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
 
-  const { data: transactions = [], isLoading, error, refetch } = useExpenseTransactions();
+  // Use different API endpoint based on view mode
+  const { data: expenseTransactions = [], isLoading: isLoadingExpense, error: expenseError, refetch: refetchExpense } = useExpenseTransactions();
+  const { data: allTransactions = [], isLoading: isLoadingAll, error: allError, refetch: refetchAll } = useFinancialTransactions();
+  
+  // Choose the right data source and loading state
+  const rawTransactions = viewOnlyApproved ? allTransactions : expenseTransactions;
+  const isLoading = viewOnlyApproved ? isLoadingAll : isLoadingExpense;
+  const error = viewOnlyApproved ? allError : expenseError;
+  const refetch = viewOnlyApproved ? refetchAll : refetchExpense;
+
   const { data: viewTransaction, isLoading: isLoadingDetail } = useFinancialTransactionDetail(viewTransactionId || 0);
   const approveMutation = useApproveFinancialTransaction();
 
   // Filter transactions based on view mode
-  const filteredTransactions = viewOnlyApproved 
-    ? transactions.filter(t => t.isConfirmed) 
-    : transactions.filter(t => !t.isConfirmed);
+  const filteredTransactions = React.useMemo(() => {
+    let filtered = viewOnlyApproved 
+      ? rawTransactions.filter(t => 
+          t.status === 'approved' && 
+          (typeof t.transactionType === 'boolean' ? !t.transactionType : t.transactionType?.toLowerCase() === 'chi')
+        )
+      : rawTransactions.filter(t => t.status === 'pending');
+
+    // Sort by created date (newest first)
+    filtered = filtered.sort((a, b) => {
+      const dateA = new Date(a.createAt || a.createdAt || a.transactionDate);
+      const dateB = new Date(b.createAt || b.createdAt || b.transactionDate);
+      return dateB.getTime() - dateA.getTime();
+    });
+
+    return filtered;
+  }, [viewOnlyApproved, rawTransactions]);
 
   // Pagination logic
   const totalItems = filteredTransactions.length;
@@ -68,12 +92,25 @@ export const ExpenseApproval: React.FC<ExpenseApprovalProps> = ({
     if (!approveTransactionId) return;
     
     try {
-      await approveMutation.mutateAsync(approveTransactionId);
+      await approveMutation.mutateAsync({ transactionId: approveTransactionId, action: true });
       toast.success('Đã phê duyệt phiếu chi thành công');
       setApproveTransactionId(null);
       refetch();
     } catch (error) {
       toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi phê duyệt');
+    }
+  };
+
+  const handleReject = async () => {
+    if (!rejectTransactionId) return;
+    
+    try {
+      await approveMutation.mutateAsync({ transactionId: rejectTransactionId, action: false });
+      toast.success('Đã từ chối phiếu chi thành công');
+      setRejectTransactionId(null);
+      refetch();
+    } catch (error) {
+      toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi từ chối');
     }
   };
 
@@ -142,94 +179,218 @@ export const ExpenseApproval: React.FC<ExpenseApprovalProps> = ({
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
-          {paginatedTransactions.map((transaction) => (
-            <Card key={transaction.transactionID} className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <TrendingDown className="h-5 w-5 text-red-600" />
-                      <Badge variant="destructive" className="bg-red-100 text-red-800">
-                        Phiếu Chi
-                      </Badge>
-                      {!viewOnlyApproved && (
-                        <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
-                          Chờ phê duyệt
-                        </Badge>
-                      )}
-                      {viewOnlyApproved && (
-                        <Badge variant="outline" className="bg-green-100 text-green-800">
-                          Đã phê duyệt
-                        </Badge>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <h3 className="font-semibold text-lg text-gray-900 mb-1">
-                          {transaction.category}
-                        </h3>
-                        <p className="text-gray-600 text-sm mb-2">
-                          {transaction.description}
-                        </p>
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <User className="h-4 w-4" />
-                          <span>Tạo bởi: {transaction.createBy}</span>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Calendar className="h-4 w-4 text-gray-500" />
-                          <span>Ngày GD: {formatDate(transaction.transactionDate)}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Clock className="h-4 w-4 text-gray-500" />
-                          <span>Tạo lúc: {formatDate(transaction.createdAt || transaction.createAt || '')}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <span>PT: {getPaymentMethodLabel(transaction.paymentMethod)}</span>
-                        </div>
-                      </div>
-
-                      <div className="text-right">
-                        <div className="flex items-center gap-2 justify-end mb-2">
-                          <DollarSign className="h-5 w-5 text-red-600" />
-                          <span className="text-2xl font-bold text-red-600">
-                            {formatCurrency(transaction.amount)} ₫
+        <>
+          {/* Desktop Table */}
+          <Card className="hidden lg:block">
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Loại
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Trạng thái
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Mô tả
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Danh mục
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Số tiền
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Phương thức
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Thời gian
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Thao tác
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {paginatedTransactions.map((transaction) => (
+                      <tr key={transaction.transactionID} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-md bg-red-100 text-red-800">
+                            <TrendingDown className="h-4 w-4" />
+                            Chi
                           </span>
-                        </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-md ${
+                            transaction.status === 'approved' 
+                              ? 'bg-green-100 text-green-800' 
+                              : transaction.status === 'rejected'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {transaction.status === 'approved' ? 'Đã duyệt' : 
+                             transaction.status === 'rejected' ? 'Đã từ chối' : 'Chờ duyệt'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div 
+                            className="text-sm text-gray-900 max-w-xs truncate" 
+                            title={transaction.description}
+                          >
+                            {transaction.description}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{transaction.category}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-red-600">
+                            {formatCurrency(transaction.amount)} ₫
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{getPaymentMethodLabel(transaction.paymentMethod)}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">
+                            {formatDate(transaction.transactionDate)}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                          <div className="flex items-center justify-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setViewTransactionId(transaction.transactionID)}
+                              className="text-gray-600 hover:text-gray-900"
+                              title="Xem chi tiết"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            
+                            {!viewOnlyApproved && transaction.status === 'pending' && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setApproveTransactionId(transaction.transactionID)}
+                                  className="text-green-600 hover:text-green-900"
+                                  title="Phê duyệt"
+                                >
+                                  <Check className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setRejectTransactionId(transaction.transactionID)}
+                                  className="text-red-600 hover:text-red-900"
+                                  title="Từ chối"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Mobile Cards */}
+          <div className="lg:hidden space-y-3 sm:space-y-4">
+            {paginatedTransactions.map((transaction) => (
+              <Card key={transaction.transactionID} className="hover:shadow-lg transition-shadow">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="space-y-3">
+                    {/* Header */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-md bg-red-100 text-red-800">
+                          <TrendingDown className="h-4 w-4" />
+                          Chi
+                        </span>
+                        <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-md ${
+                          transaction.status === 'approved' 
+                            ? 'bg-green-100 text-green-800' 
+                            : transaction.status === 'rejected'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {transaction.status === 'approved' ? 'Đã duyệt' : 
+                           transaction.status === 'rejected' ? 'Đã từ chối' : 'Chờ duyệt'}
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        <Calendar className="h-3 w-3 inline mr-1" />
+                        {formatDate(transaction.transactionDate)}
                       </div>
                     </div>
-                  </div>
 
-                  <div className="flex gap-2 ml-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setViewTransactionId(transaction.transactionID)}
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      Xem
-                    </Button>
-                    
-                    {!viewOnlyApproved && (
+                    {/* Description */}
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 mb-1">
+                        {transaction.description}
+                      </p>
+                      <p className="text-xs text-gray-600">{transaction.category}</p>
+                    </div>
+
+                    {/* Amount and Payment Method */}
+                    <div className="flex items-center justify-between">
+                      <div className="text-lg font-bold text-red-600">
+                        {formatCurrency(transaction.amount)} ₫
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        {getPaymentMethodLabel(transaction.paymentMethod)}
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex justify-end gap-2 pt-2">
                       <Button
+                        variant="ghost"
                         size="sm"
-                        onClick={() => setApproveTransactionId(transaction.transactionID)}
-                        className="bg-green-600 hover:bg-green-700 text-white"
+                        onClick={() => setViewTransactionId(transaction.transactionID)}
+                        className="text-gray-600 hover:text-gray-900"
                       >
-                        <Check className="h-4 w-4 mr-1" />
-                        Duyệt
+                        <Eye className="h-4 w-4 mr-1" />
+                        Xem
                       </Button>
-                    )}
+                      
+                      {!viewOnlyApproved && transaction.status === 'pending' && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setApproveTransactionId(transaction.transactionID)}
+                            className="text-green-600 hover:text-green-900"
+                          >
+                            <Check className="h-4 w-4 mr-1" />
+                            Duyệt
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setRejectTransactionId(transaction.transactionID)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            <X className="h-4 w-4 mr-1" />
+                            Từ chối
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </>
       )}
 
       {/* Pagination */}
@@ -370,6 +531,18 @@ export const ExpenseApproval: React.FC<ExpenseApprovalProps> = ({
         message="Bạn có chắc chắn muốn phê duyệt phiếu chi này?"
         confirmText="Phê duyệt"
         confirmVariant="default"
+        isLoading={approveMutation.isPending}
+      />
+
+      {/* Reject Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!rejectTransactionId}
+        onClose={() => setRejectTransactionId(null)}
+        onConfirm={handleReject}
+        title="Xác nhận từ chối"
+        message="Bạn có chắc chắn muốn từ chối phiếu chi này?"
+        confirmText="Từ chối"
+        confirmVariant="destructive"
         isLoading={approveMutation.isPending}
       />
     </div>

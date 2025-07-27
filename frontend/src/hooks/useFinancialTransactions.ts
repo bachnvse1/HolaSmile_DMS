@@ -43,7 +43,8 @@ export const useApproveFinancialTransaction = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: approveFinancialTransaction,
+    mutationFn: ({ transactionId, action }: { transactionId: number; action: boolean }) => 
+      approveFinancialTransaction(transactionId, action),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.expense() });
       queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.lists() });
@@ -81,7 +82,7 @@ export const useUpdateFinancialTransaction = () => {
     mutationFn: updateFinancialTransaction,
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.lists() });
-      queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.detail(variables.transactionID) });
+      queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.detail((variables as any).id) });
     },
   });
 };
