@@ -105,7 +105,7 @@ namespace HDMS_API.Controllers
 
         [Authorize]
         [HttpPost("financial-transactions")]
-        public async Task<IActionResult> CreateTransaction([FromBody] CreateFinancialTransactionCommand command)
+        public async Task<IActionResult> CreateTransaction([FromForm] CreateFinancialTransactionCommand command)
         {
             try
             {

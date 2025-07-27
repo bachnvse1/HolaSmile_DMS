@@ -68,7 +68,7 @@ namespace Infrastructure.BackGroundCleanupServices
                                 r.User.UserID,
                                 "Tạo chương trình khuyến mãi",
                                 $"Chương trình khuyến mãi {promotion.DiscountProgramName} đã {(promotion.IsDelete ? "kết thúc" : "áp dụng")} vào lúc {DateTime.Now}",
-                                "promotion", null, ""));
+                                "promotion", null, $"promotions/{promotion.DiscountProgramID}"), stoppingToken));
 
                         await System.Threading.Tasks.Task.WhenAll(notifyReceps);
                     }
