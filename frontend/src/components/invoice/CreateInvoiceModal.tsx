@@ -17,6 +17,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { formatCurrency, handleCurrencyInput, parseCurrency } from "@/utils/currencyUtils";
+import { toast } from "react-toastify";
 
 // Improved type definitions
 interface TreatmentRecord {
@@ -45,7 +46,6 @@ interface CreateInvoiceModalProps {
   isCreating?: boolean; 
 }
 
-// Constants for better maintainability
 const PAYMENT_METHODS = [
   { value: "cash", label: "Tiền mặt" },
   { value: "PayOS", label: "Chuyển khoản" },
@@ -66,10 +66,8 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
   handleCreateInvoice,
   isCreating = false,
 }) => {
-  // State để lưu trữ giá trị formatted cho input
   const [formattedAmount, setFormattedAmount] = React.useState<string>('');
 
-  // Sync formatted amount khi paidAmount thay đổi từ bên ngoài
   React.useEffect(() => {
     if (newInvoice.paidAmount > 0) {
       setFormattedAmount(formatCurrency(newInvoice.paidAmount));
@@ -78,7 +76,6 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
     }
   }, [newInvoice.paidAmount]);
 
-  // Validation helper
   const isFormValid = () => {
     return (
       newInvoice.paymentMethod &&
@@ -116,6 +113,19 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
     } else if (value === 'partial' && newInvoice.paidAmount === treatmentRecord.totalAmount) {
       handleFieldChange('paidAmount', 0);
       setFormattedAmount('');
+    }
+  };
+
+ const handleCreateInvoiceWithNavigation = async () => {
+    try {
+      await handleCreateInvoice();
+      toast.success('Hóa đơn đã được tạo thành công');
+      setTimeout(() => {
+        window.location.href = '/invoices';
+      }, 1000);
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || error?.message || 'Lỗi khi tạo hóa đơn';
+      toast.error(errorMessage);
     }
   };
 
@@ -272,7 +282,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
               Hủy
             </Button>
             <Button
-              onClick={handleCreateInvoice}
+              onClick={handleCreateInvoiceWithNavigation}
               disabled={!isFormValid() || isCreating}
               className="min-w-[100px]"
             >
