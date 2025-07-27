@@ -6,6 +6,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
@@ -16,13 +17,17 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
         private readonly CreateProcedureHandler _handler;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMediator _mediator;
+        private readonly Mock<IMediator> _mediatorMock;
 
         public CreateProcedureHandlerIntegrationTests()
         {
+            _mediatorMock = new Mock<IMediator>();
             var services = new ServiceCollection();
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseInMemoryDatabase("TestDb_CreateProcedure"));
             services.AddHttpContextAccessor();
+
+            services.AddSingleton<IMediator>(_mediatorMock.Object);
 
             var provider = services.BuildServiceProvider();
             _context = provider.GetRequiredService<ApplicationDbContext>();

@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
 using Application.Constants;
-using Application.Interfaces;
 using Application.Usecases.Dentist.ManageSchedule;
-using Application.Usecases.Dentist.ViewAllDentistSchedule;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;
 using MediatR;
