@@ -93,16 +93,9 @@ export default function ViewTreatmentProgress() {
         }, 100)
       }
     } catch (err) {
-      console.error("Lỗi load tiến trình:", err)
+      console.error("Error fetching treatment progress:", err)
       updateState({
-        error:
-          typeof err === "object" &&
-          err !== null &&
-          "response" in err &&
-          typeof (err as any).response?.data?.message === "string"
-            ? (err as any).response.data.message
-            : "Không thể tải dữ liệu tiến trình điều trị",
-        isLoading: false,
+        isLoading: false
       })
     }
   }, [updateState])

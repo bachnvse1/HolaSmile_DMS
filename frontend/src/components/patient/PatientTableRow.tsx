@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button2"
 import {
@@ -7,13 +6,12 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Phone, Mail, MoreHorizontal } from "lucide-react"
+import { Phone, Mail, MoreHorizontal, FileText } from "lucide-react"
 import type { Patient } from "@/types/patient"
 import { Link } from "react-router"
 import { formatDateWithDay } from "@/utils/dateUtils"
 import { useNavigate } from "react-router"
 import { useUserInfo } from "@/hooks/useUserInfo"
-import PatientDetailModal from "./PatientDetailModal" // Import modal component
 
 interface Props {
     patient: Patient
@@ -22,24 +20,13 @@ interface Props {
     shouldHideTreatmentRecords?: boolean
 }
 
-export default function PatientTableRow({ patient, index, onEdit, shouldHideTreatmentRecords = false }: Props) {
+export default function PatientTableRow({ patient, index, shouldHideTreatmentRecords = false }: Props) {
     // Sử dụng màu xanh nhạt và tím nhạt thay vì trắng và xám
     const rowBg = index % 2 === 0 ? "bg-blue-50/30" : "bg-purple-50/30"
     const hoverBg = index % 2 === 0 ? "hover:bg-blue-100/50" : "hover:bg-purple-100/50"
     
     const navigate = useNavigate();
     const userInfo = useUserInfo();
-
-    // Modal state
-    const [isModalOpen, setIsModalOpen] = useState(false)
-
-    const handleViewDetail = () => {
-        setIsModalOpen(true)
-    }
-
-    const handleCloseModal = () => {
-        setIsModalOpen(false)
-    }
 
     const isDentistOrAssistant = userInfo?.role === 'Dentist' || userInfo?.role === 'Assistant'; 
 
@@ -75,8 +62,17 @@ export default function PatientTableRow({ patient, index, onEdit, shouldHideTrea
                 </td>
                 {!shouldHideTreatmentRecords && (
                     <td className="p-4">
-                        <Button asChild variant="outline" size="sm">
-                            <Link to={`/patient/view-treatment-records?patientId=${patient.patientId}`}>
+                        <Button 
+                            asChild 
+                            variant="default" 
+                            size="sm"
+                            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 border-0"
+                        >
+                            <Link 
+                                to={`/patient/view-treatment-records?patientId=${patient.patientId}`}
+                                className="flex items-center gap-2"
+                            >
+                                <FileText className="h-4 w-4" />
                                 Xem Hồ Sơ Điều Trị
                             </Link>
                         </Button>
@@ -90,14 +86,6 @@ export default function PatientTableRow({ patient, index, onEdit, shouldHideTrea
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={handleViewDetail}>
-                                Xem Chi Tiết
-                            </DropdownMenuItem>
-                            {userInfo?.role === "Receptionist" && (
-                                <DropdownMenuItem onClick={() => onEdit(patient)}>
-                                    Chỉnh Sửa Bệnh Nhân
-                                </DropdownMenuItem>
-                            )}
                             {userInfo?.role === "Receptionist" && (
                                 <DropdownMenuItem
                                     onClick={() => navigate(`/patient/follow-up?patientId=${patient.patientId}`)}
@@ -117,13 +105,6 @@ export default function PatientTableRow({ patient, index, onEdit, shouldHideTrea
                     </DropdownMenu>
                 </td>
             </tr>
-
-            {/* Patient Detail Modal */}
-            <PatientDetailModal
-                isOpen={isModalOpen}
-                onClose={handleCloseModal}
-                patientId={patient.patientId}
-            />
         </>
     )
 }

@@ -102,7 +102,7 @@ namespace Application.Usecases.Receptionist.UpdateDiscountProgram
                      o.User.UserID,
                       "Cập nhật chương trình khuyến mãi",
                         $"Lễ tân {o.User.Fullname} đã cập nhật chương trình khuyến mãi {request.ProgramName} vào lúc {DateTime.Now}",
-                      null, null, ""),
+                      "promotions", 0, $"promotions/{discountProgram.DiscountProgramID}"),
                      cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);
             }

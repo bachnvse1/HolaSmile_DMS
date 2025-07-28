@@ -1,6 +1,7 @@
 using Application.Constants;
 using Application.Usecases.Dentist.CreateTreatmentProgress;
 using Application.Usecases.Dentist.UpdateTreatmentProgress;
+using Application.Usecases.Dentists.DeleteTreatmentProgress;
 using Application.Usecases.Patients.ViewTreatmentProgress;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -95,6 +96,38 @@ public class TreatmentProgressController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, new { message = "Đã xảy ra lỗi không mong muốn.", detail = ex.Message });
+        }
+    }
+    
+    [HttpDelete("{id}")]
+    [Authorize]
+    public async Task<IActionResult> DeleteProgress(int id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new DeleteTreatmentProgressCommand()
+            {
+                TreatmentProgressId = id
+            };
+
+            var result = await _mediator.Send(command, cancellationToken);
+
+            return Ok(new
+            {
+                success = result,
+                message = MessageConstants.MSG.MSG57
+            });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new
+            {
+                message = MessageConstants.MSG.MSG27
+            });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return StatusCode(403, new { message = MessageConstants.MSG.MSG26 });
         }
     }
 }

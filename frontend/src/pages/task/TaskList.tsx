@@ -30,7 +30,11 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
         const assistantList = rawAssistants as any
 
         if (Array.isArray(tasks)) {
-          setTaskList(tasks)
+          // Lọc chỉ lấy các task thuộc về treatmentProgressID này
+          const filteredTasks = tasks.filter(task => 
+            task.treatmentProgressId === treatmentProgressID
+          )
+          setTaskList(filteredTasks)
         } else {
           toast.warning(tasks?.message || "Không thể tải danh sách nhiệm vụ")
           setTaskList([])
@@ -47,7 +51,7 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
       }
     }
     fetchData()
-  }, [])
+  }, [treatmentProgressID]) // Thêm treatmentProgressID vào dependency array
 
   // Hàm xử lý xem chi tiết task
   const handleViewDetail = (task: BasicTask) => {
@@ -97,7 +101,11 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
       const tasks = rawTasks as any
 
       if (Array.isArray(tasks)) {
-        setTaskList(tasks)
+        // Lọc chỉ lấy các task thuộc về treatmentProgressID này
+        const filteredTasks = tasks.filter(task => 
+          task.treatmentProgressId === treatmentProgressID
+        )
+        setTaskList(filteredTasks)
         toast.success("Phân công nhiệm vụ thành công")
       } else {
         toast.warning(tasks?.message || "Không thể tải lại danh sách nhiệm vụ")

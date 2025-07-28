@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   getFinancialTransactions, 
+  getExpenseTransactions,
+  approveFinancialTransaction,
   getFinancialTransactionDetail,
   createFinancialTransaction,
   updateFinancialTransaction,
@@ -13,6 +15,7 @@ export const FINANCIAL_TRANSACTION_KEYS = {
   all: ['financialTransactions'] as const,
   lists: () => [...FINANCIAL_TRANSACTION_KEYS.all, 'list'] as const,
   list: (filters: string) => [...FINANCIAL_TRANSACTION_KEYS.lists(), { filters }] as const,
+  expense: () => [...FINANCIAL_TRANSACTION_KEYS.all, 'expense'] as const,
   details: () => [...FINANCIAL_TRANSACTION_KEYS.all, 'detail'] as const,
   detail: (id: number) => [...FINANCIAL_TRANSACTION_KEYS.details(), id] as const,
 };
@@ -23,6 +26,42 @@ export const useFinancialTransactions = () => {
     queryKey: FINANCIAL_TRANSACTION_KEYS.lists(),
     queryFn: getFinancialTransactions,
     staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+// Get expense transactions (Chi only - for backward compatibility)
+export const useExpenseTransactions = () => {
+  return useQuery({
+    queryKey: FINANCIAL_TRANSACTION_KEYS.expense(),
+    queryFn: getExpenseTransactions,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+// Get all pending transactions (both Thu and Chi) for approval
+export const usePendingTransactions = () => {
+  return useQuery({
+    queryKey: [...FINANCIAL_TRANSACTION_KEYS.all, 'pending'],
+    queryFn: async () => {
+      const allTransactions = await getFinancialTransactions();
+      return allTransactions.filter(t => t.status === 'pending');
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+// Approve financial transaction
+export const useApproveFinancialTransaction = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ transactionId, action }: { transactionId: number; action: boolean }) => 
+      approveFinancialTransaction(transactionId, action),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.expense() });
+      queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.lists() });
+      queryClient.invalidateQueries({ queryKey: [...FINANCIAL_TRANSACTION_KEYS.all, 'pending'] });
+    },
   });
 };
 
@@ -44,6 +83,7 @@ export const useCreateFinancialTransaction = () => {
     mutationFn: createFinancialTransaction,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.lists() });
+      queryClient.invalidateQueries({ queryKey: [...FINANCIAL_TRANSACTION_KEYS.all, 'pending'] });
     },
   });
 };
@@ -55,8 +95,22 @@ export const useUpdateFinancialTransaction = () => {
   return useMutation({
     mutationFn: updateFinancialTransaction,
     onSuccess: (_, variables) => {
+      // Invalidate all transaction queries
       queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.lists() });
-      queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.detail(variables.transactionID) });
+      queryClient.invalidateQueries({ queryKey: [...FINANCIAL_TRANSACTION_KEYS.all, 'pending'] });
+      
+      // Invalidate detail query for the specific transaction
+      if (variables instanceof FormData) {
+        const transactionId = variables.get('TransactionId');
+        if (transactionId) {
+          queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.detail(Number(transactionId)) });
+        }
+      } else if ('TransactionId' in variables) {
+        queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.detail(variables.TransactionId) });
+      }
+      
+      // Invalidate all details queries as fallback
+      queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.details() });
     },
   });
 };

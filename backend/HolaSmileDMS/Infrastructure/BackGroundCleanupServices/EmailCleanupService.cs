@@ -8,14 +8,10 @@ namespace Infrastructure.BackGroundCleanupServices
     public class EmailCleanupService : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory;
-        private readonly TimeSpan _interval;
         public EmailCleanupService(
-            IServiceScopeFactory scopeFactory,
-            TimeSpan? interval = null)
+            IServiceScopeFactory scopeFactory)
         {
             _scopeFactory = scopeFactory;
-            // Cho test dễ override interval; production sẽ dùng 24h
-            _interval = interval ?? TimeSpan.FromHours(24);
         }
         protected override async System.Threading.Tasks.Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -26,13 +22,10 @@ namespace Infrastructure.BackGroundCleanupServices
                                             .GetRequiredService<IAppointmentRepository>();
                 var emailRepo = scope.ServiceProvider
                                             .GetRequiredService<IEmailService>();
-                var appointments =await appointmentRepo.GetAllAppointments();
-                if (appointments == null) {
-                    appointments = new List<Appointment>(); ;
-                }
-               foreach (var app in appointments)
+                var appointments = await appointmentRepo.GetAllAppointments() ?? new List<Appointment>();
+                foreach (var app in appointments)
                 {
-                    if(app.AppointmentDate.Date == DateTime.Now.Date.AddDays(1) && app.Status == "confirmed")
+                    if(app.AppointmentDate.Date == DateTime.Now.Date.AddDays(1) && app.Status == "confirmed" && app.Patient?.User?.Email != null)
                     {
                         var subject = $"Nhắc lịch hẹn nha khoa tại HolaSmile vào {app.AppointmentDate:HH:mm dd/MM/yyyy}";
                         // Gửi email thông báo
@@ -43,7 +36,11 @@ namespace Infrastructure.BackGroundCleanupServices
                         await emailRepo.SendEmailAsync(app.Patient.User.Email,message,subject);
                     }
                 }
-                await System.Threading.Tasks.Task.Delay(_interval, stoppingToken);
+
+                var now = DateTime.Now;
+                var nextMidnight = now.Date.AddDays(1);
+                var delay = nextMidnight - now;
+                await System.Threading.Tasks.Task.Delay(delay, stoppingToken);
             }
         }
     }

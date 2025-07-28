@@ -350,6 +350,31 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
     return buttons;
   };
 
+  // Tính số thứ tự cho mỗi record
+  const calculateRecordOrder = (groupIndex: number, recordIndex: number) => {
+    let orderNumber = 0;
+    
+    // Tính tổng số records từ các groups trước đó
+    for (let i = 0; i < groupIndex; i++) {
+      orderNumber += paginatedGroups[i].records.length;
+    }
+    
+    // Cộng thêm index của record hiện tại trong group + 1
+    orderNumber += recordIndex + 1;
+    
+    // Cộng thêm offset từ pagination (số records từ các trang trước)
+    const pageOffset = (currentPage - 1) * itemsPerPage;
+    let totalRecordsFromPreviousPages = 0;
+    
+    for (let i = 0; i < pageOffset; i++) {
+      if (groupedRecords[i]) {
+        totalRecordsFromPreviousPages += groupedRecords[i].records.length;
+      }
+    }
+    
+    return totalRecordsFromPreviousPages + orderNumber;
+  };
+
   return (
     <div className="space-y-4">
       {records.length > 0 && (
@@ -391,6 +416,9 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
               <table className="w-full relative">
                 <thead className="bg-gray-50">
                   <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                      STT
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Lịch hẹn
                     </th>
@@ -430,7 +458,7 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
                       <React.Fragment key={group.date}>
                         {/* Date Group Header Row */}
                         <tr className="bg-blue-50 border-t-2 border-blue-200">
-                          <td colSpan={readonly ? 8 : 8} className="px-6 py-4">
+                          <td colSpan={readonly ? 9 : 9} className="px-6 py-4">
                             <div className="flex items-center justify-between">
                               <div
                                 className="flex items-center gap-3 cursor-pointer hover:bg-blue-100 transition-colors rounded px-2 py-1"
@@ -478,7 +506,7 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
                         </tr>
 
                         {/* Records for this date - Only show if expanded */}
-                        {isExpanded && group.records.map((record) => (
+                        {isExpanded && group.records.map((record, recordIndex) => (
                           <RecordRow
                             key={record.treatmentRecordID}
                             record={record}
@@ -487,13 +515,14 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
                             onOpenInvoiceModal={handleOpenInvoiceModal}
                             patientId={patientId}
                             readonly={readonly}
+                            orderNumber={calculateRecordOrder(groupIndex, recordIndex)}
                           />
                         ))}
 
                         {/* Add spacing between groups (except last group) */}
                         {groupIndex < paginatedGroups.length - 1 && (
                           <tr className="bg-gray-50">
-                            <td colSpan={readonly ? 8 : 8} className="px-6 py-1"></td>
+                            <td colSpan={readonly ? 9 : 9} className="px-6 py-1"></td>
                             {!readonly && (
                               <td className="sticky right-0 px-6 py-1 bg-gray-50 border-l border-gray-200 shadow-[-4px_0_8px_rgba(0,0,0,0.1)] z-10">
                                 {/* Empty cell for alignment */}

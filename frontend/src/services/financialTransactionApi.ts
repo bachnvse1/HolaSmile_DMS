@@ -8,11 +8,19 @@ export interface FinancialTransaction {
   transactionType: string | boolean;
   category: string;
   paymentMethod: string | boolean; 
+  evidenceImage?: string;
   amount: number;
   createBy: string;
   updateBy: string;
   createAt: string;
   updateAt: string | null;
+  isConfirmed?: boolean;
+  status?: string;
+  createdBy?: number;
+  updatedBy?: number | null;
+  createById?: number; // Added for backend compatibility
+  createdAt?: string;
+  updatedAt?: string | null;
 }
 
 export interface CreateTransactionRequest {
@@ -22,20 +30,18 @@ export interface CreateTransactionRequest {
   category: string;
   paymentMethod: boolean; // true: Tiền mặt, false: Chuyển khoản
   transactionDate: string;
+  evidentImage?: File; // Optional for FormData
 }
 
 export interface UpdateTransactionRequest {
-  transactionID: number; // Backend expect transactionID
-  transactionDate: string;
-  description: string;
-  transactionType: boolean; // true: Thu, false: Chi
-  category: string;
-  paymentMethod: boolean; // true: Tiền mặt, false: Chuyển khoản
-  amount: number;
-  createBy: string;
-  updateBy: string;
-  createAt: string;
-  updateAt: string | null;
+  TransactionId: number; // Use capital case to match backend
+  TransactionDate: string;
+  Description: string;
+  TransactionType: boolean; // true: Thu, false: Chi
+  Category: string;
+  PaymentMethod: boolean; // true: Tiền mặt, false: Chuyển khoản
+  Amount: number;
+  EvidenceImage?: File; // Optional for FormData
 }
 
 export interface ApiResponse {
@@ -49,18 +55,43 @@ export const getFinancialTransactions = async (): Promise<FinancialTransaction[]
   return response.data;
 };
 
+export const getExpenseTransactions = async (): Promise<FinancialTransaction[]> => {
+  const response = await axiosInstance.get('/transaction/expense-transaction');
+  return response.data;
+};
+
+export const approveFinancialTransaction = async (transactionId: number, action: boolean = true): Promise<ApiResponse> => {
+  const response = await axiosInstance.post('/transaction/approve-financial-transactions', {
+    transactionId,
+    action
+  });
+  return response.data;
+};
+
 export const getFinancialTransactionDetail = async (transactionId: number): Promise<FinancialTransaction> => {
   const response = await axiosInstance.get(`/transaction/financial-transactions/${transactionId}`);
   return response.data;
 };
 
-export const createFinancialTransaction = async (data: CreateTransactionRequest): Promise<ApiResponse> => {
-  const response = await axiosInstance.post('/transaction/financial-transactions', data);
+export const createFinancialTransaction = async (data: CreateTransactionRequest | FormData): Promise<ApiResponse> => {
+  const config = data instanceof FormData ? {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  } : {};
+  
+  const response = await axiosInstance.post('/transaction/financial-transactions', data, config);
   return response.data;
 };
 
-export const updateFinancialTransaction = async (data: UpdateTransactionRequest): Promise<ApiResponse> => {
-  const response = await axiosInstance.put(`/transaction/edit-financial-transactions/${data.transactionID}`, data);
+export const updateFinancialTransaction = async (data: UpdateTransactionRequest | FormData): Promise<ApiResponse> => {
+  const config = data instanceof FormData ? {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  } : {};
+  
+  const response = await axiosInstance.put('/transaction/edit-financial-transactions', data, config);
   return response.data;
 };
 
