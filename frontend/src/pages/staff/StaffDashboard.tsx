@@ -98,7 +98,7 @@ export const StaffDashboard = () => {
       { name: 'Đã đến', value: pieData.attended, color: '#10b981' },
       { name: 'Vắng mặt', value: pieData.absented, color: '#f59e0b' },
       { name: 'Đã hủy', value: pieData.canceled, color: '#ef4444' },
-    ];
+    ].filter(item => item.value > 0);;
   }, [pieData]);
 
   const formatCurrency = (value: number) => {
@@ -118,7 +118,7 @@ export const StaffDashboard = () => {
           title: 'Tổng Quan Hệ Thống',
           stats: [
             {
-              label: 'Tổng Doanh Thu',
+              label: 'Tổng Doanh Thu Tuần',
               value: dashboardStats ? formatCurrency(dashboardStats.totalRevenue) : '0 VNĐ',
               // change: '+12.5%',
               icon: DollarSign,

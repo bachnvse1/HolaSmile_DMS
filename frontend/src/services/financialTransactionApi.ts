@@ -18,6 +18,7 @@ export interface FinancialTransaction {
   status?: string;
   createdBy?: number;
   updatedBy?: number | null;
+  createById?: number; // Added for backend compatibility
   createdAt?: string;
   updatedAt?: string | null;
 }
@@ -33,17 +34,14 @@ export interface CreateTransactionRequest {
 }
 
 export interface UpdateTransactionRequest {
-  transactionID: number; // Backend expect transactionID
-  transactionDate: string;
-  description: string;
-  transactionType: boolean; // true: Thu, false: Chi
-  category: string;
-  paymentMethod: boolean; // true: Tiền mặt, false: Chuyển khoản
-  amount: number;
-  createBy: string;
-  updateBy: string;
-  createAt: string;
-  updateAt: string | null;
+  TransactionId: number; // Use capital case to match backend
+  TransactionDate: string;
+  Description: string;
+  TransactionType: boolean; // true: Thu, false: Chi
+  Category: string;
+  PaymentMethod: boolean; // true: Tiền mặt, false: Chuyển khoản
+  Amount: number;
+  EvidenceImage?: File; // Optional for FormData
 }
 
 export interface ApiResponse {
@@ -87,26 +85,18 @@ export const createFinancialTransaction = async (data: CreateTransactionRequest 
 };
 
 export const updateFinancialTransaction = async (data: UpdateTransactionRequest | FormData): Promise<ApiResponse> => {
-  if (data instanceof FormData) {
-    // Use axiosInstance for FormData requests 
-    const response = await axiosInstance.post('/transaction/edit-financial-transactions', data, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
-  } else {
-    // Use axiosInstance for regular JSON requests
-    const response = await axiosInstance.post('/transaction/edit-financial-transactions', data);
-    return response.data;
-  }
+  const config = data instanceof FormData ? {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  } : {};
+  
+  const response = await axiosInstance.put('/transaction/edit-financial-transactions', data, config);
+  return response.data;
 };
 
 export const deactivateFinancialTransaction = async (transactionId: number): Promise<ApiResponse> => {
-  const response = await axiosInstance.put(`/transaction/Deactive-financial-transactions/${transactionId}`, {
-    transactionId: transactionId,
-    action: true
-  });
+  const response = await axiosInstance.put(`/transaction/Deactive-financial-transactions/${transactionId}`);
   return response.data;
 };
 

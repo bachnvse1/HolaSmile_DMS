@@ -57,7 +57,7 @@ export const ViewTransactionPage: React.FC = () => {
   };
 
   // Check if user can edit transaction
-  const canEdit = transaction && transaction.status === 'pending' && transaction.createdBy === Number(userInfo?.id);
+  const canEdit = transaction && transaction.status === 'pending' && transaction.createById === Number(userInfo?.id);
 
   if (isLoading) {
     return (
