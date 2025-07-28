@@ -82,7 +82,7 @@ WeeklyLineChart.displayName = 'WeeklyLineChart';
 
 export const StaffDashboard = () => {
   const userInfo = useUserInfo();
-  const [filter] = useState('month');
+  const [filter] = useState('week');
 
   // Fetch data from API
   const { data: dashboardStats } = useDashboardStats(filter);

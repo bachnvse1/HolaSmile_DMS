@@ -52,17 +52,22 @@ namespace Application.Usecases.Owner.ApproveFinancialTransaction
             {
                 var receptionist = await _userCommonRepository.GetByIdAsync(exisTransaction.CreatedBy, cancellationToken);
 
-                var transactionTypeText = exisTransaction.TransactionType ? "thu" : "chi";
-                await _mediator.Send(new SendNotificationCommand(
-                    receptionist.UserID,
-                    "Phê duyệt phiếu thu/chi",
-                    $"Chủ phòng {(request.Action ? "đã phê duyệt" : "đã từ chối")} phiếu {transactionTypeText} {exisTransaction.TransactionID} vào lúc {DateTime.Now}",
-                    "transaction",
-                    0,
-                    $"financial-transactions/{exisTransaction.TransactionID}"), cancellationToken);
-
+                if (receptionist != null)
+                {
+                    var transactionTypeText = exisTransaction.TransactionType ? "thu" : "chi";
+                    await _mediator.Send(new SendNotificationCommand(
+                        receptionist.UserID,
+                        "Phê duyệt phiếu thu/chi",
+                        $"Chủ phòng {(request.Action ? "đã phê duyệt" : "đã từ chối")} phiếu {transactionTypeText} {exisTransaction.TransactionID} vào lúc {DateTime.Now:dd/MM/yyyy HH:mm}",
+                        "transaction",
+                        0,
+                        $"financial-transactions/{exisTransaction.TransactionID}"), cancellationToken);
+                }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Notification error: {ex.Message}");
+            }
 
             return isUpdated;
         }

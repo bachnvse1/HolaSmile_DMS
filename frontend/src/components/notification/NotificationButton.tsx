@@ -11,26 +11,102 @@ type NotificationDto = {
   type: string;
   message: string;
   targetUrl?: string;
+  mappingUrl?: string;
+  relatedObjectId?: number;
   createdAt: string;
 };
 
-// ✅ Mapping keyword → route
-const titleRouteMappings: { keyword: string; route: string }[] = [
-  { keyword: "invoice", route: "/invoices" }, // ✅ match route khai báo
-  { keyword: "lịch hẹn", route: "/appointments" },
-  { keyword: "điều trị", route: "/patient/treatment-records" },
-  { keyword: "thẻ bảo hành", route: "/assistant/warranty-cards" },
-  { keyword: "đơn thuốc", route: "/prescription-templates" },
-  { keyword: "nhiệm vụ", route: "/assistant/assigned-tasks" },
-];
+// ✅ Mapping type → route based on backend notification types
+const typeToRouteMapping: { [key: string]: string } = {
+  // Financial transactions
+  "transaction": "/financial-transactions",
+  
+  // Appointments
+  "appointment": "/appointments",
+  
+  // Patients
+  "patient": "/patients",
+  
+  // Promotions
+  "promotion": "/promotions",
+  "promotions": "/promotions",
+  
+  // Invoices
+  "invoice": "/invoices",
+  
+  // Schedules
+  "schedule": "/schedules",
+  
+  // Procedures
+  "procedure": "/procedures",
+  
+  // Tasks
+  "task_assigned": "/assistant/assigned-tasks",
+  
+  // Warranty cards
+  "warranty-card": "/assistant/warranty-cards",
+  
+  // Treatment records and progress
+  "Tiến trình điều trị": "/patient/treatment-records",
+  "Xem hồ sơ": "/patient/treatment-records",
+  "Xoá hồ sơ": "/patient/treatment-records",
+  "Xem chi tiết": "/patient/orthodontic-treatment-plans",
+  
+  // Prescriptions
+  "Chỉ dẫn điều trị": "/prescription-templates",
+  
+  // Work registration
+  "Đăng ký lịch làm việc": "/schedules",
+  
+  // Default fallback
+  "Info": "/",
+  "Error": "/",
+  "Reminder": "/",
+  "Alert": "/"
+};
 
-function mapTitleToRoute(type: string): string {
-  const lower = type.toLowerCase().trim();
-  for (const mapping of titleRouteMappings) {
-    if (lower.includes(mapping.keyword.toLowerCase())) {
-      return mapping.route;
-    }
+function mapTypeToRoute(type: string): string {
+  // Direct mapping first
+  if (typeToRouteMapping[type]) {
+    return typeToRouteMapping[type];
   }
+  
+  // Fallback to keyword matching for compatibility
+  const lower = type.toLowerCase().trim();
+  
+  // Check for keywords in type
+  if (lower.includes("transaction") || lower.includes("thu") || lower.includes("chi")) {
+    return "/financial-transactions";
+  }
+  if (lower.includes("appointment") || lower.includes("lịch hẹn") || lower.includes("hẹn")) {
+    return "/appointments";
+  }
+  if (lower.includes("patient") || lower.includes("bệnh nhân")) {
+    return "/patients";
+  }
+  if (lower.includes("promotion") || lower.includes("khuyến mãi")) {
+    return "/promotions";
+  }
+  if (lower.includes("invoice") || lower.includes("hóa đơn") || lower.includes("thanh toán")) {
+    return "/invoices";
+  }
+  if (lower.includes("schedule") || lower.includes("lịch làm việc")) {
+    return "/schedules";
+  }
+  if (lower.includes("điều trị") || lower.includes("treatment")) {
+    return "/patient/treatment-records";
+  }
+  if (lower.includes("đơn thuốc") || lower.includes("prescription")) {
+    return "/prescription-templates";
+  }
+  if (lower.includes("nhiệm vụ") || lower.includes("task")) {
+    return "/assistant/assigned-tasks";
+  }
+  if (lower.includes("bảo hành") || lower.includes("warranty")) {
+    return "/assistant/warranty-cards";
+  }
+  
+  // Default fallback
   return "/";
 }
 
@@ -79,8 +155,26 @@ export function NotificationButton() {
   };
 
   const handleNotificationClick = (notification: NotificationDto) => {
-    const route = mapTitleToRoute(notification.type);
-    console.log("Navigating to:", route);
+    let route: string;
+    
+    // Priority 1: Use MappingUrl from backend if available (already contains full path)
+    if (notification.mappingUrl && notification.mappingUrl.trim() !== "") {
+      route = notification.mappingUrl.startsWith('/') ? notification.mappingUrl : `/${notification.mappingUrl}`;
+    } 
+    // Priority 2: Extract route and ID from MappingUrl pattern like "financial-transactions/123"
+    else if (notification.type && notification.mappingUrl && notification.mappingUrl.includes('/')) {
+      route = `/${notification.mappingUrl}`;
+    }
+    // Priority 3: Build route from type + relatedObjectId
+    else if (notification.relatedObjectId && notification.relatedObjectId > 0) {
+      const baseRoute = mapTypeToRoute(notification.type);
+      route = `${baseRoute}/${notification.relatedObjectId}`;
+    }
+    // Priority 4: Fallback to type mapping
+    else {
+      route = mapTypeToRoute(notification.type);
+    }
+    
     navigate(route);
     setShowList(false);
   };
