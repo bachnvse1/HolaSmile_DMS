@@ -80,7 +80,7 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
     }
   };
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: FormData) => { 
     try {
       // Convert amount to number (remove formatting)
       const numericAmount = parseInt(data.amount.replace(/[^\d]/g, '')) || 0;
@@ -119,6 +119,8 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
       if (selectedImage) {
         formData.append('EvidenceImage', selectedImage);
       }
+      const result = await createTransactionMutation.mutateAsync(formData);
+      console.log('Backend response:', result);
 
       toast.success(`Đã tạo giao dịch ${data.transactionType} thành công`);
       form.reset();

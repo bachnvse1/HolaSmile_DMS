@@ -95,18 +95,22 @@ export const useUpdateFinancialTransaction = () => {
   return useMutation({
     mutationFn: updateFinancialTransaction,
     onSuccess: (_, variables) => {
+      // Invalidate all transaction queries
       queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.lists() });
       queryClient.invalidateQueries({ queryKey: [...FINANCIAL_TRANSACTION_KEYS.all, 'pending'] });
       
-      // Invalidate detail if we can get the transaction ID
+      // Invalidate detail query for the specific transaction
       if (variables instanceof FormData) {
-        const transactionId = variables.get('TransactionID');
+        const transactionId = variables.get('TransactionId');
         if (transactionId) {
           queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.detail(Number(transactionId)) });
         }
-      } else if ('transactionID' in variables) {
-        queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.detail(variables.transactionID) });
+      } else if ('TransactionId' in variables) {
+        queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.detail(variables.TransactionId) });
       }
+      
+      // Invalidate all details queries as fallback
+      queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.details() });
     },
   });
 };

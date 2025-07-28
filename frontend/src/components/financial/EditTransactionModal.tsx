@@ -57,24 +57,36 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
       const transactionDate = transactionDateTime.toISOString().split('T')[0]; // YYYY-MM-DD
       const transactionTime = transactionDateTime.toTimeString().split(' ')[0].substring(0, 5); // HH:MM
       
-      const transactionType = transaction.transactionType === 'Thu' ? 'thu' : 'chi';
-      const paymentMethod = transaction.paymentMethod === 'Tiền mặt' ? 'cash' : 'transfer';  
+      // Handle different backend response formats for transactionType
+      let transactionType: 'thu' | 'chi';
+      if (typeof transaction.transactionType === 'boolean') {
+        transactionType = transaction.transactionType ? 'thu' : 'chi';
+      } else {
+        transactionType = transaction.transactionType?.toLowerCase() === 'thu' ? 'thu' : 'chi';
+      }
+      
+      // Handle different backend response formats for paymentMethod
+      let paymentMethod: 'cash' | 'transfer';
+      if (typeof transaction.paymentMethod === 'boolean') {
+        paymentMethod = transaction.paymentMethod ? 'cash' : 'transfer';
+      } else {
+        paymentMethod = transaction.paymentMethod?.toLowerCase() === 'tiền mặt' ? 'cash' : 'transfer';
+      }
       
       const formData = {
-        transactionType: transactionType as 'thu' | 'chi',
-        description: transaction.description,
-        category: transaction.category,
+        transactionType,
+        description: transaction.description || '',
+        category: transaction.category || '',
         amount: formatCurrency(transaction.amount),
-        paymentMethod: paymentMethod as 'cash' | 'transfer',
+        paymentMethod,
         transactionDate: transactionDate,
         transactionTime: transactionTime
       };
       
-      setTimeout(() => {
-        form.reset(formData);
-        form.setValue('transactionType', transactionType, { shouldDirty: true });
-        form.setValue('paymentMethod', paymentMethod, { shouldDirty: true });
-      }, 100);
+      console.log('Populating form with:', formData);
+      
+      // Reset form with new data
+      form.reset(formData);
     }
   }, [transaction, form]);
 
@@ -121,19 +133,17 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
         return;
       }
 
-      const requestData = {
-        transactionID: transactionId, 
-        transactionType: data.transactionType === 'thu', 
-        description: data.description,
-        category: data.category,
-        paymentMethod: data.paymentMethod === 'cash', 
-        amount: numericAmount,
-        transactionDate: data.transactionDate + 'T' + data.transactionTime + ':00', // Local time without timezone conversion
-        createBy: transaction?.createBy || '',
-        updateBy: '', 
-        createAt: transaction?.createAt || new Date().toISOString(),
-        updateAt: null
-      };
+      // Check if description is provided
+      if (!data.description || data.description.trim() === '') {
+        toast.error('Vui lòng nhập mô tả');
+        return;
+      }
+
+      // Check if category is provided
+      if (!data.category || data.category.trim() === '') {
+        toast.error('Vui lòng nhập danh mục');
+        return;
+      }
 
       // Check if transaction can be edited (only pending transactions)
       if (transaction?.status !== 'pending') {
@@ -144,24 +154,45 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
       // Use FormData if image is provided
       if (selectedImage) {
         const formData = new FormData();
-        formData.append('transactionID', transactionId.toString());
-        formData.append('transactionType', (data.transactionType === 'thu').toString());
-        formData.append('description', data.description);
-        formData.append('category', data.category);
-        formData.append('paymentMethod', (data.paymentMethod === 'cash').toString());
-        formData.append('amount', numericAmount.toString());
-        formData.append('transactionDate', data.transactionDate + 'T' + data.transactionTime + ':00');
-        formData.append('evidenceImage', selectedImage);
-
+        formData.append('TransactionId', transactionId.toString());
+        formData.append('TransactionType', (data.transactionType === 'thu').toString());
+        formData.append('Description', data.description.trim());
+        formData.append('Category', data.category.trim());
+        formData.append('PaymentMethod', (data.paymentMethod === 'cash').toString());
+        formData.append('Amount', numericAmount.toString());
+        formData.append('TransactionDate', data.transactionDate + 'T' + data.transactionTime + ':00');
+        formData.append('EvidenceImage', selectedImage);
         await updateTransactionMutation.mutateAsync(formData);
       } else {
-        await updateTransactionMutation.mutateAsync(requestData);
+        
+        // Test if backend expects FormData always
+        const testFormData = new FormData();
+        testFormData.append('TransactionId', transactionId.toString());
+        testFormData.append('TransactionType', (data.transactionType === 'thu').toString());
+        testFormData.append('Description', data.description.trim());
+        testFormData.append('Category', data.category.trim());
+        testFormData.append('PaymentMethod', (data.paymentMethod === 'cash').toString());
+        testFormData.append('Amount', numericAmount.toString());
+        testFormData.append('TransactionDate', data.transactionDate + 'T' + data.transactionTime + ':00');      
+        await updateTransactionMutation.mutateAsync(testFormData);
       }
       
-      toast.success(`Đã cập nhật giao dịch ${data.transactionType} thành công`);
+      toast.success(`Đã cập nhật giao dịch thành công`);
       onClose();
     } catch (error) {
-      toast.error(getErrorMessage(error) || `Có lỗi xảy ra khi cập nhật giao dịch`);
+      const axiosError = error as { response?: { data?: any; status?: number; headers?: any } };
+      if (axiosError?.response) {
+        
+        // Show specific backend error message if available
+        const backendMessage = axiosError.response.data?.message || axiosError.response.data?.errors || axiosError.response.data;
+        if (backendMessage && typeof backendMessage === 'string') {
+          toast.error(backendMessage);
+        } else {
+          toast.error(`Lỗi ${axiosError.response.status}: ${getErrorMessage(error) || 'Có lỗi xảy ra khi cập nhật giao dịch'}`);
+        }
+      } else {
+        toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi cập nhật giao dịch');
+      }
     }
   };
 
@@ -266,7 +297,10 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
               <Textarea
                 id="description"
                 placeholder="Nhập mô tả cho giao dịch..."
-                {...form.register('description', { required: 'Vui lòng nhập mô tả' })}
+                {...form.register('description', { 
+                  required: 'Vui lòng nhập mô tả',
+                  validate: value => value.trim().length > 0 || 'Mô tả không được để trống'
+                })}
                 rows={3}
               />
               {form.formState.errors.description && (
