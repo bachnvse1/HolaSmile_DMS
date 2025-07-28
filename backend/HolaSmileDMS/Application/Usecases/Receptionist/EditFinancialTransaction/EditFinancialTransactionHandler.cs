@@ -58,6 +58,12 @@ namespace Application.Usecases.Receptionist.EditFinancialTransaction
             {
                 throw new Exception(MessageConstants.MSG.MSG129 + ", không thể chỉnh sửa"); // "Không thể chỉnh sửa giao dịch đã được xác nhận"
             }
+
+            // Additional validation: Only allow edit if current user is the creator
+            if (existingTransaction.CreatedBy != currentUserId)
+            {
+                throw new Exception("Bạn chỉ có thể chỉnh sửa giao dịch do chính bạn tạo");
+            }
             existingTransaction.Description = request.Description;
             existingTransaction.Amount = request.Amount;
             existingTransaction.Category = request.Category;

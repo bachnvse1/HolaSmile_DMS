@@ -15,9 +15,9 @@ export const FinancialManagement: React.FC = () => {
     <div className="space-y-6">
       <Tabs defaultValue="transactions" className="w-full">
         <TabsList className="mb-6">
-          <TabsTrigger value="transactions">Giao dịch tài chính</TabsTrigger>
           {isOwner && (
             <>
+              <TabsTrigger value="transactions">Giao dịch tài chính</TabsTrigger>
               <TabsTrigger value="approve">Phê duyệt phiếu chi</TabsTrigger>
               <TabsTrigger value="approved">Phiếu chi đã duyệt</TabsTrigger>
             </>

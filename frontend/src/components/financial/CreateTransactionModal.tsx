@@ -125,7 +125,7 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
       setSelectedImage(null);
       setImagePreview('');
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(getErrorMessage(error) || `Có lỗi xảy ra khi tạo giao dịch`);
     }
   };

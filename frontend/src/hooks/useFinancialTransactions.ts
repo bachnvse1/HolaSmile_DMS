@@ -29,11 +29,23 @@ export const useFinancialTransactions = () => {
   });
 };
 
-// Get expense transactions
+// Get expense transactions (Chi only - for backward compatibility)
 export const useExpenseTransactions = () => {
   return useQuery({
     queryKey: FINANCIAL_TRANSACTION_KEYS.expense(),
     queryFn: getExpenseTransactions,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+// Get all pending transactions (both Thu and Chi) for approval
+export const usePendingTransactions = () => {
+  return useQuery({
+    queryKey: [...FINANCIAL_TRANSACTION_KEYS.all, 'pending'],
+    queryFn: async () => {
+      const allTransactions = await getFinancialTransactions();
+      return allTransactions.filter(t => t.status === 'pending');
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
@@ -48,6 +60,7 @@ export const useApproveFinancialTransaction = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.expense() });
       queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.lists() });
+      queryClient.invalidateQueries({ queryKey: [...FINANCIAL_TRANSACTION_KEYS.all, 'pending'] });
     },
   });
 };
@@ -70,6 +83,7 @@ export const useCreateFinancialTransaction = () => {
     mutationFn: createFinancialTransaction,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.lists() });
+      queryClient.invalidateQueries({ queryKey: [...FINANCIAL_TRANSACTION_KEYS.all, 'pending'] });
     },
   });
 };
@@ -82,7 +96,17 @@ export const useUpdateFinancialTransaction = () => {
     mutationFn: updateFinancialTransaction,
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.lists() });
-      queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.detail((variables as any).id) });
+      queryClient.invalidateQueries({ queryKey: [...FINANCIAL_TRANSACTION_KEYS.all, 'pending'] });
+      
+      // Invalidate detail if we can get the transaction ID
+      if (variables instanceof FormData) {
+        const transactionId = variables.get('TransactionID');
+        if (transactionId) {
+          queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.detail(Number(transactionId)) });
+        }
+      } else if ('transactionID' in variables) {
+        queryClient.invalidateQueries({ queryKey: FINANCIAL_TRANSACTION_KEYS.detail(variables.transactionID) });
+      }
     },
   });
 };

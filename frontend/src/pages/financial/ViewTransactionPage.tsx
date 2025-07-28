@@ -56,6 +56,9 @@ export const ViewTransactionPage: React.FC = () => {
     setShowEditModal(true);
   };
 
+  // Check if user can edit transaction
+  const canEdit = transaction && transaction.status === 'pending' && transaction.createdBy === Number(userInfo?.id);
+
   if (isLoading) {
     return (
       <StaffLayout userInfo={userInfo}>
@@ -101,15 +104,17 @@ export const ViewTransactionPage: React.FC = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2">
-            <Button
-              variant="outline"
-              onClick={handleEdit}
-              className="w-full sm:w-auto"
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              <span className="sm:hidden">Chỉnh sửa</span>
-              <span className="hidden sm:inline">Chỉnh Sửa</span>
-            </Button>
+            {canEdit && (
+              <Button
+                variant="outline"
+                onClick={handleEdit}
+                className="w-full sm:w-auto"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                <span className="sm:hidden">Chỉnh sửa</span>
+                <span className="hidden sm:inline">Chỉnh Sửa</span>
+              </Button>
+            )}
           </div>
         </div>
 
@@ -154,6 +159,20 @@ export const ViewTransactionPage: React.FC = () => {
                   <div>
                     <label className="text-sm font-medium text-gray-600 block mb-1">Danh mục</label>
                     <p className="text-gray-900 font-medium">{transaction.category}</p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 block mb-1">Trạng thái</label>
+                    <span className={`inline-flex items-center px-3 py-1 text-sm font-semibold rounded-md ${
+                      transaction.status === 'approved' 
+                        ? 'bg-green-100 text-green-800' 
+                        : transaction.status === 'rejected'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {transaction.status === 'approved' ? 'Đã duyệt' : 
+                       transaction.status === 'rejected' ? 'Đã từ chối' : 'Chờ duyệt'}
+                    </span>
                   </div>
                 </div>
 

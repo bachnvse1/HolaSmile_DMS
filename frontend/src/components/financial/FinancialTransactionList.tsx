@@ -12,6 +12,7 @@ import { formatCurrency } from '@/utils/currencyUtils';
 import { getErrorMessage } from '@/utils/formatUtils';
 import { CreateTransactionModal } from './CreateTransactionModal';
 import { EditTransactionModal } from './EditTransactionModal';
+import { useUserInfo } from '@/hooks/useUserInfo';
 
 export const FinancialTransactionList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,6 +29,7 @@ export const FinancialTransactionList: React.FC = () => {
   const [editTransaction, setEditTransaction] = useState<number | null>(null);
   const [deleteTransaction, setDeleteTransaction] = useState<number | null>(null);
   const navigate = useNavigate();
+  const userInfo = useUserInfo();
 
   const { data: transactions = [], isLoading, error } = useFinancialTransactions();
   const { mutate: exportTransactions, isPending: isExporting } = useExportFinancialTransactions();
@@ -84,11 +86,10 @@ export const FinancialTransactionList: React.FC = () => {
       );
     }
 
-    // Sort by created date (newest first) - using proper priority order
+    // Sort by transaction date (newest first)
     filtered = filtered.sort((a, b) => {
-      // Priority order: createdAt > createAt > transactionDate
-      const dateA = new Date(a.createdAt || a.createAt || a.transactionDate);
-      const dateB = new Date(b.createdAt || b.createAt || b.transactionDate);
+      const dateA = new Date(a.transactionDate);
+      const dateB = new Date(b.transactionDate);
       return dateB.getTime() - dateA.getTime();
     });
 
@@ -602,7 +603,7 @@ export const FinancialTransactionList: React.FC = () => {
                                 onClick={() => setEditTransaction(transaction.transactionID)}
                                 className="text-blue-600 hover:text-blue-900"
                                 title="Chỉnh sửa"
-                                disabled={transaction.status === 'approved' || transaction.status === 'rejected'}
+                                disabled={!(transaction.status === 'pending' && transaction.createdBy === Number(userInfo?.id))}
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
@@ -695,7 +696,7 @@ export const FinancialTransactionList: React.FC = () => {
                           size="sm"
                           onClick={() => setEditTransaction(transaction.transactionID)}
                           className="text-blue-600 hover:text-blue-900"
-                          disabled={transaction.status === 'approved' || transaction.status === 'rejected'}
+                          disabled={!(transaction.status === 'pending' && transaction.createdBy === Number(userInfo?.id))}
                         >
                           <Edit className="h-4 w-4 mr-1" />
                           Sửa

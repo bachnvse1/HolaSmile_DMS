@@ -1,14 +1,4 @@
-import axiosInstance from "@/lib/axios";
-
-export interface CreateTransactionRequest {
-  transactionType: boolean; // true: Thu, false: Chi
-  description: string;
-  amount: number;
-  category: string;
-  paymentMethod: boolean; // true: Tiền mặt, false: Chuyển khoản
-  transactionDate: string;
-  evidenceImage?: File;
-}
+import axiosInstance from '@/lib/axios';
 
 // Types
 export interface FinancialTransaction {
@@ -18,19 +8,28 @@ export interface FinancialTransaction {
   transactionType: string | boolean;
   category: string;
   paymentMethod: string | boolean; 
-  amount: number;
-  createBy?: string;
-  updateBy?: string;
-  createAt?: string;
-  updateAt?: string | null;
-  isConfirmed?: boolean;
   evidenceImage?: string;
-  createdAt?: string;
-  updatedAt?: string | null;
+  amount: number;
+  createBy: string;
+  updateBy: string;
+  createAt: string;
+  updateAt: string | null;
+  isConfirmed?: boolean;
+  status?: string;
   createdBy?: number;
   updatedBy?: number | null;
-  isDelete?: boolean;
-  status?: string;
+  createdAt?: string;
+  updatedAt?: string | null;
+}
+
+export interface CreateTransactionRequest {
+  transactionType: boolean; // true: Thu, false: Chi
+  description: string;
+  amount: number;
+  category: string;
+  paymentMethod: boolean; // true: Tiền mặt, false: Chuyển khoản
+  transactionDate: string;
+  evidentImage?: File; // Optional for FormData
 }
 
 export interface UpdateTransactionRequest {
@@ -78,9 +77,8 @@ export const getFinancialTransactionDetail = async (transactionId: number): Prom
 
 export const createFinancialTransaction = async (data: CreateTransactionRequest | FormData): Promise<ApiResponse> => {
   const config = data instanceof FormData ? {
-    transformRequest: [(data: any) => data], 
     headers: {
-      'Content-Type': undefined, 
+      'Content-Type': 'multipart/form-data',
     },
   } : {};
   
@@ -89,20 +87,26 @@ export const createFinancialTransaction = async (data: CreateTransactionRequest 
 };
 
 export const updateFinancialTransaction = async (data: UpdateTransactionRequest | FormData): Promise<ApiResponse> => {
-  const config = data instanceof FormData ? {
-    transformRequest: [(data: any) => data], 
-    headers: {
-      'Content-Type': undefined, 
-    },
-  } : {};
-  
-  const response = await axiosInstance.post('/transaction/edit-financial-transactions', data, config);
-  return response.data;
-  return response.data;
+  if (data instanceof FormData) {
+    // Use axiosInstance for FormData requests 
+    const response = await axiosInstance.post('/transaction/edit-financial-transactions', data, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } else {
+    // Use axiosInstance for regular JSON requests
+    const response = await axiosInstance.post('/transaction/edit-financial-transactions', data);
+    return response.data;
+  }
 };
 
 export const deactivateFinancialTransaction = async (transactionId: number): Promise<ApiResponse> => {
-  const response = await axiosInstance.put(`/transaction/Deactive-financial-transactions/${transactionId}`);
+  const response = await axiosInstance.put(`/transaction/Deactive-financial-transactions/${transactionId}`, {
+    transactionId: transactionId,
+    action: true
+  });
   return response.data;
 };
 
