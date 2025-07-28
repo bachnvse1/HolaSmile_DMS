@@ -531,8 +531,7 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
           appointmentId={appointmentId}
           defaultStatus="in-progress"
           onSubmit={handleTreatmentSubmit}
-          keepOpenAfterCreate={false}
-          patientId={Number(appointment.patientId)}
+          patientId={Number(appointment?.patientId)}
         />
       )}
 
