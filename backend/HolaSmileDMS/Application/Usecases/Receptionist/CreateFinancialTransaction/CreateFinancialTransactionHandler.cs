@@ -32,6 +32,7 @@ namespace Application.Usecases.Receptionist.CreateFinancialTransaction
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
 
             string transactionStatus = "";
+            var imageUrl = "";
 
             if (string.Equals(currentUserRole, "receptionist", StringComparison.OrdinalIgnoreCase))
             {
@@ -50,10 +51,12 @@ namespace Application.Usecases.Receptionist.CreateFinancialTransaction
 
             var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/bmp", "image/webp", "image/tiff", "image/heic" };
 
-            if (!allowedTypes.Contains(request.EvidenceImage.ContentType))
-                throw new ArgumentException("Vui lòng chọn ảnh có định dạng jpeg/png/bmp/gif/webp/tiff/heic");
-
-            var imageUrl = await _cloudService.UploadEvidenceImageAsync(request.EvidenceImage);
+            if (request.EvidenceImage != null)
+            {
+                if (!allowedTypes.Contains(request.EvidenceImage.ContentType))
+                    throw new ArgumentException("Vui lòng chọn ảnh có định dạng jpeg/png/bmp/gif/webp/tiff/heic");
+                  imageUrl = await _cloudService.UploadEvidenceImageAsync(request.EvidenceImage);
+            }
 
             var newTransaction = new FinancialTransaction
             {
