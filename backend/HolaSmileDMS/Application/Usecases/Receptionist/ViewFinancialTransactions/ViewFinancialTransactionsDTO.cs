@@ -26,6 +26,7 @@ namespace Application.Usecases.Receptionist.ViewFinancialTransactions
         public string Status { get; set; } = string.Empty;
         public string CreateBy { get; set; } = string.Empty;
         public string UpdateBy { get; set; } = string.Empty;
+        public int CreateById { get; set; }
         public DateTime CreateAt { get; set; }
         public DateTime? UpdateAt { get; set; }
 

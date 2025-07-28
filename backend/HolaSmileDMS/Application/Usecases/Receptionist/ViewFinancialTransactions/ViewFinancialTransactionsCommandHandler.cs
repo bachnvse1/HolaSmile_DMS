@@ -42,6 +42,7 @@ namespace Application.Usecases.Receptionist.ViewFinancialTransactions
                 Amount = x.Amount,
                 Description = x.Description,
                 Status = x.status,
+                CreateById = x.CreatedBy,
             }).ToList();
             return viewFinancialTransactionsDTOs;
         }

@@ -56,7 +56,7 @@ namespace Infrastructure.BackGroundCleanupServices
                         var notifyOwners = owners.Select(o =>
                             _mediator.Send(new SendNotificationCommand(
                                 o.User.UserID,
-                                "Tạo chương trình khuyến mãi",
+                                "Kết thúc chương trình khuyến mãi",
                                 $"Chương trình khuyến mãi {promotion.DiscountProgramName} đã {(promotion.IsDelete ? "kết thúc" : "áp dụng")} vào lúc {DateTime.Now}",
                                 "promotion", null, $"promotions/{promotion.DiscountProgramID}"),
                             stoppingToken));
@@ -66,7 +66,7 @@ namespace Infrastructure.BackGroundCleanupServices
                         var notifyReceps = receps.Select(r =>
                             _mediator.Send(new SendNotificationCommand(
                                 r.User.UserID,
-                                "Tạo chương trình khuyến mãi",
+                                "Kết thúc chương trình khuyến mãi",
                                 $"Chương trình khuyến mãi {promotion.DiscountProgramName} đã {(promotion.IsDelete ? "kết thúc" : "áp dụng")} vào lúc {DateTime.Now}",
                                 "promotion", null, $"promotions/{promotion.DiscountProgramID}"), stoppingToken));
 

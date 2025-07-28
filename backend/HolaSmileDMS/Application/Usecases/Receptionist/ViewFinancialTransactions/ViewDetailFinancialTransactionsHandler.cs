@@ -56,6 +56,7 @@ namespace Application.Usecases.Receptionist.ViewFinancialTransactions
                 Description = existTransaction.Description,
                 EvidenceImage = existTransaction.EvidenceImage,
                 Status = existTransaction.status,
+                CreateById = existTransaction.CreatedBy,
                 CreateAt = existTransaction.CreatedAt,
                 UpdateAt = existTransaction.UpdatedAt,
                 CreateBy = createdByUser.Fullname,
