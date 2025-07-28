@@ -52,7 +52,8 @@ namespace HDMS_API.Controllers
                 req.Title,
                 req.Message,
                 req.Type,
-                req.RelatedObjectId
+                req.RelatedObjectId,
+                req.MappingUrl
             );
 
             await _mediator.Send(command, ct);

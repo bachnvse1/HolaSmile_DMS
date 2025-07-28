@@ -32,7 +32,8 @@ public class SendNotificationHandler : IRequestHandler<SendNotificationCommand, 
             Type            = c.Type,
             IsRead          = false,
             CreatedAt       = DateTime.Now,
-            RelatedObjectId = c.RelatedObjectId
+            RelatedObjectId = c.RelatedObjectId,
+            MappingUrl      = c.MappingUrl // Uncomment if you want to use MappingUrl
         };
 
         await notificationRepo.SendNotificationAsync(entity, ct);

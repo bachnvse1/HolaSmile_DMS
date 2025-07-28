@@ -45,8 +45,8 @@ const STATUS_OPTIONS = [
 const STATUS_COLORS = {
   pending: "bg-gray-50 text-gray-800 border-gray-200",
   "in-progress": "bg-blue-50 text-blue-800 border-blue-200",
-  completed: "bg-gray-100 text-gray-800 border-gray-300",
-  canceled: "bg-gray-50 text-gray-700 border-gray-200",
+  completed: "bg-green-50 text-green-800 border-green-200",
+  canceled: "bg-red-50 text-red-700 border-red-200",
 } as const
 
 // Validation schema
@@ -239,15 +239,15 @@ export function TreatmentProgressView({ progress }: Props) {
 
   // Render functions
   const renderHeader = () => (
-    <div className="bg-gradient-to-r from-blue-200 to-blue-300 text-black rounded-t-lg p-3">
+    <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-white/20 rounded-lg">
-            <Stethoscope className="h-4 w-4" />
+            <Stethoscope className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-base font-bold truncate">{progress.progressName}</h1>
-            <p className="text-black-100 text-xs">Chi tiết tiến trình điều trị</p>
+            <h1 className="text-lg font-bold">Chi Tiết Tiến Trình</h1>
+            <p className="text-blue-100 text-sm">{progress.progressName}</p>
           </div>
         </div>
         
@@ -256,9 +256,9 @@ export function TreatmentProgressView({ progress }: Props) {
             variant="outline"
             size="sm"
             onClick={startEditing}
-            className="bg-white/10 border-white/20 text-black hover:bg-white/20 hover:text-black text-xs px-3 py-1"
+            className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:border-white/40"
           >
-            <Edit className="h-3 w-3 mr-1" />
+            <Edit className="h-4 w-4 mr-2" />
             Chỉnh Sửa
           </Button>
         )}
@@ -270,57 +270,57 @@ export function TreatmentProgressView({ progress }: Props) {
     const StatusIcon = statusInfo.icon
     
     return (
-      <div className="bg-white rounded-lg border p-3 space-y-3">
+      <div className="bg-white rounded-b-lg p-6 space-y-6">
         {/* Status Badge */}
         <div className="flex items-center justify-center">
-          <div className={`px-3 py-1 rounded-full text-xs font-semibold border flex items-center gap-1 ${STATUS_COLORS[progress.status as keyof typeof STATUS_COLORS] || STATUS_COLORS.pending}`}>
-            <StatusIcon className="h-3 w-3" />
+          <div className={`px-4 py-2 rounded-full text-sm font-semibold border flex items-center gap-2 ${STATUS_COLORS[progress.status as keyof typeof STATUS_COLORS] || STATUS_COLORS.pending}`}>
+            <StatusIcon className="h-4 w-4" />
             {statusInfo.label}
           </div>
         </div>
 
         {/* Info Grid - 2x2 layout */}
-        <div className="grid grid-cols-2 gap-2">
-          <div className="bg-gray-50 p-2 rounded-lg border border-gray-200">
-            <div className="flex items-center gap-1">
-              <User className="h-3 w-3 text-gray-600 flex-shrink-0" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <div className="flex items-center gap-3">
+              <User className="h-5 w-5 text-blue-600 flex-shrink-0" />
               <div className="min-w-0 flex-1">
-                <p className="text-xs text-gray-600">Bệnh nhân</p>
-                <p className="font-semibold text-gray-800 text-xs truncate" title={progress.patientName}>
+                <p className="text-sm text-gray-600 mb-1">Bệnh nhân</p>
+                <p className="font-semibold text-gray-900 truncate" title={progress.patientName}>
                   {progress.patientName}
                 </p>
               </div>
             </div>
           </div>
           
-          <div className="bg-blue-50 p-2 rounded-lg border border-blue-200">
-            <div className="flex items-center gap-1">
-              <UserCheck className="h-3 w-3 text-blue-600 flex-shrink-0" />
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <div className="flex items-center gap-3">
+              <UserCheck className="h-5 w-5 text-blue-600 flex-shrink-0" />
               <div className="min-w-0 flex-1">
-                <p className="text-xs text-gray-600">Bác sĩ</p>
-                <p className="font-semibold text-blue-700 text-xs truncate" title={progress.dentistName}>
+                <p className="text-sm text-gray-600 mb-1">Bác sĩ điều trị</p>
+                <p className="font-semibold text-blue-700 truncate" title={progress.dentistName}>
                   {progress.dentistName}
                 </p>
               </div>
             </div>
           </div>
           
-          <div className="bg-gray-100 p-2 rounded-lg border border-gray-200">
-            <div className="flex items-center gap-1">
-              <Timer className="h-3 w-3 text-gray-600 flex-shrink-0" />
+          <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+            <div className="flex items-center gap-3">
+              <Timer className="h-5 w-5 text-amber-600 flex-shrink-0" />
               <div className="min-w-0 flex-1">
-                <p className="text-xs text-gray-600">Thời gian</p>
-                <p className="font-semibold text-gray-800 text-xs">{progress.duration || "--"} phút</p>
+                <p className="text-sm text-gray-600 mb-1">Thời gian điều trị</p>
+                <p className="font-semibold text-amber-700">{progress.duration || "--"} phút</p>
               </div>
             </div>
           </div>
           
-          <div className="bg-gray-50 p-2 rounded-lg border border-gray-200">
-            <div className="flex items-center gap-1">
-              <CalendarIcon className="h-3 w-3 text-gray-600 flex-shrink-0" />
+          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+            <div className="flex items-center gap-3">
+              <CalendarIcon className="h-5 w-5 text-green-600 flex-shrink-0" />
               <div className="min-w-0 flex-1">
-                <p className="text-xs text-gray-600">Kết thúc</p>
-                <p className="font-semibold text-gray-800 text-xs truncate" title={formattedEndTime}>
+                <p className="text-sm text-gray-600 mb-1">Thời gian kết thúc</p>
+                <p className="font-semibold text-green-700 text-sm truncate" title={formattedEndTime}>
                   {formattedEndTime}
                 </p>
               </div>
@@ -328,26 +328,26 @@ export function TreatmentProgressView({ progress }: Props) {
           </div>
         </div>
 
-        {/* Content Details - Compact */}
-        <div className="space-y-2">
-          <div className="bg-gray-50 p-2 rounded border">
-            <div className="flex items-start gap-2">
-              <FileText className="h-3 w-3 text-gray-600 mt-0.5 flex-shrink-0" />
+        {/* Content Details */}
+        <div className="space-y-4">
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <div className="flex items-start gap-3">
+              <FileText className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
               <div className="min-w-0 flex-1">
-                <p className="text-xs text-gray-600 mb-1">Nội dung điều trị</p>
-                <p className="text-xs text-gray-800 line-clamp-2" title={progress.progressContent}>
+                <p className="text-sm text-gray-600 mb-2 font-medium">Nội dung điều trị</p>
+                <p className="text-gray-800 leading-relaxed">
                   {progress.progressContent}
                 </p>
               </div>
             </div>
           </div>
           
-          <div className="bg-gray-50 p-2 rounded border">
-            <div className="flex items-start gap-2">
-              <ClipboardList className="h-3 w-3 text-gray-600 mt-0.5 flex-shrink-0" />
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <div className="flex items-start gap-3">
+              <ClipboardList className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" />
               <div className="min-w-0 flex-1">
-                <p className="text-xs text-gray-600 mb-1">Mô tả chi tiết</p>
-                <p className="text-xs text-gray-800 line-clamp-2" title={progress.description}>
+                <p className="text-sm text-gray-600 mb-2 font-medium">Mô tả chi tiết</p>
+                <p className="text-gray-800 leading-relaxed">
                   {progress.description}
                 </p>
               </div>
@@ -355,12 +355,12 @@ export function TreatmentProgressView({ progress }: Props) {
           </div>
           
           {progress.note && (
-            <div className="bg-gray-100 p-2 rounded border border-gray-300">
-              <div className="flex items-start gap-2">
-                <StickyNote className="h-3 w-3 text-gray-600 mt-0.5 flex-shrink-0" />
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <div className="flex items-start gap-3">
+                <StickyNote className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs text-gray-700 mb-1">Ghi chú</p>
-                  <p className="text-xs text-gray-800 line-clamp-2" title={progress.note}>
+                  <p className="text-sm text-gray-600 mb-2 font-medium">Ghi chú</p>
+                  <p className="text-gray-800 leading-relaxed">
                     {progress.note}
                   </p>
                 </div>
@@ -369,19 +369,19 @@ export function TreatmentProgressView({ progress }: Props) {
           )}
         </div>
 
-        {/* Timeline Info - Compact */}
-        <div className="grid grid-cols-2 gap-2 pt-2 border-t">
-          <div className="flex items-center gap-1 p-1 bg-gray-50 rounded">
-            <CalendarDays className="h-3 w-3 text-gray-600 flex-shrink-0" />
+        {/* Timeline Info */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <CalendarDays className="h-5 w-5 text-gray-600 flex-shrink-0" />
             <div className="min-w-0 flex-1">
-              <p className="text-xs text-gray-600">Tạo lúc</p>
-              <p className="text-xs font-medium truncate" title={
+              <p className="text-sm text-gray-600">Ngày tạo</p>
+              <p className="font-medium text-gray-900" title={
                 progress.createdAt 
                   ? formatVietnameseDateFull(new Date(progress.createdAt))
                   : "Không rõ"
               }>
                 {progress.createdAt 
-                  ? format(new Date(progress.createdAt), "dd/MM/yyyy")
+                  ? format(new Date(progress.createdAt), "dd/MM/yyyy HH:mm")
                   : "Không rõ"
                 }
               </p>
@@ -389,12 +389,12 @@ export function TreatmentProgressView({ progress }: Props) {
           </div>
           
           {progress.updatedAt && (
-            <div className="flex items-center gap-1 p-1 bg-gray-50 rounded">
-              <Clock className="h-3 w-3 text-gray-600 flex-shrink-0" />
+            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <Clock className="h-5 w-5 text-gray-600 flex-shrink-0" />
               <div className="min-w-0 flex-1">
-                <p className="text-xs text-gray-600">Cập nhật</p>
-                <p className="text-xs font-medium truncate" title={formatVietnameseDateFull(new Date(progress.updatedAt))}>
-                  {format(new Date(progress.updatedAt), "dd/MM/yyyy")}
+                <p className="text-sm text-gray-600">Cập nhật lần cuối</p>
+                <p className="font-medium text-gray-900" title={formatVietnameseDateFull(new Date(progress.updatedAt))}>
+                  {format(new Date(progress.updatedAt), "dd/MM/yyyy HH:mm")}
                 </p>
               </div>
             </div>
@@ -405,75 +405,75 @@ export function TreatmentProgressView({ progress }: Props) {
   }
 
   const renderEditForm = () => (
-    <div className="bg-white rounded-lg border p-3 max-h-[calc(100vh-200px)] overflow-y-auto">
-      <div className="flex items-center gap-2 mb-3 pb-2 border-b">
-        <Edit className="h-4 w-4 text-blue-600" />
-        <h3 className="text-base font-semibold">Chỉnh Sửa Tiến Trình</h3>
+    <div className="bg-white rounded-b-lg p-6 max-h-[calc(100vh-300px)] overflow-y-auto">
+      <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+        <Edit className="h-5 w-5 text-blue-600" />
+        <h3 className="text-lg font-semibold text-gray-900">Chỉnh Sửa Tiến Trình</h3>
       </div>
       
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {editState.error && (
-          <Alert variant="destructive" className="border-red-200 bg-red-50">
+          <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="text-sm">{editState.error}</AlertDescription>
+            <AlertDescription>{editState.error}</AlertDescription>
           </Alert>
         )}
         
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <Label htmlFor="progressName" className="text-xs font-medium">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="progressName" className="text-sm font-medium text-gray-700">
               Tên tiến trình *
             </Label>
             <Input
               id="progressName"
               {...register("progressName")}
-              className="focus:ring-blue-500 focus:border-blue-500 text-sm h-8"
+              className="focus:ring-blue-500 focus:border-blue-500"
             />
             {errors.progressName && (
-              <p className="text-red-500 text-xs">{errors.progressName.message}</p>
+              <p className="text-red-500 text-sm">{errors.progressName.message}</p>
             )}
           </div>
           
-          <div className="space-y-1">
-            <Label htmlFor="duration" className="text-xs font-medium">
+          <div className="space-y-2">
+            <Label htmlFor="duration" className="text-sm font-medium text-gray-700">
               Thời gian (phút) *
             </Label>
             <Input
               id="duration"
               type="number"
               {...register("duration")}
-              className="focus:ring-blue-500 focus:border-blue-500 text-sm h-8"
+              className="focus:ring-blue-500 focus:border-blue-500"
             />
             {errors.duration && (
-              <p className="text-red-500 text-xs">{errors.duration.message}</p>
+              <p className="text-red-500 text-sm">{errors.duration.message}</p>
             )}
           </div>
         </div>
         
-        <div className="space-y-1">
-          <Label htmlFor="progressContent" className="text-xs font-medium">
+        <div className="space-y-2">
+          <Label htmlFor="progressContent" className="text-sm font-medium text-gray-700">
             Nội dung điều trị *
           </Label>
           <Textarea
             id="progressContent"
             {...register("progressContent")}
-            rows={2}
-            className="focus:ring-blue-500 focus:border-blue-500 text-sm resize-none"
+            rows={3}
+            className="focus:ring-blue-500 focus:border-blue-500 resize-none"
           />
           {errors.progressContent && (
-            <p className="text-red-500 text-xs">{errors.progressContent.message}</p>
+            <p className="text-red-500 text-sm">{errors.progressContent.message}</p>
           )}
         </div>
         
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <Label htmlFor="status" className="text-xs font-medium">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="status" className="text-sm font-medium text-gray-700">
               Trạng thái *
             </Label>
             <select
               id="status"
               {...register("status")}
-              className="w-full border border-gray-300 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 h-8"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               {STATUS_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -482,24 +482,24 @@ export function TreatmentProgressView({ progress }: Props) {
               ))}
             </select>
             {errors.status && (
-              <p className="text-red-500 text-xs">{errors.status.message}</p>
+              <p className="text-red-500 text-sm">{errors.status.message}</p>
             )}
           </div>
           
-          <div className="space-y-1">
-            <Label className="text-xs font-medium">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700">
               Thời gian kết thúc *
             </Label>
-            <div className="flex gap-1">
+            <div className="flex gap-2">
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className="flex-1 justify-start text-left font-normal text-xs h-8 px-2"
+                    className="flex-1 justify-start text-left font-normal"
                   >
-                    <CalendarIcon className="mr-1 h-3 w-3" />
+                    <CalendarIcon className="mr-2 h-4 w-4" />
                     {editState.selectedDate 
-                      ? format(editState.selectedDate, "dd/MM") 
+                      ? format(editState.selectedDate, "dd/MM/yyyy") 
                       : "Chọn ngày"
                     }
                   </Button>
@@ -519,57 +519,57 @@ export function TreatmentProgressView({ progress }: Props) {
                 type="time"
                 value={editState.selectedTime}
                 onChange={(e) => handleTimeChange(e.target.value)}
-                className="flex-1 text-xs h-8"
+                className="flex-1"
               />
             </div>
           </div>
         </div>
         
-        <div className="space-y-1">
-          <Label htmlFor="description" className="text-xs font-medium">
+        <div className="space-y-2">
+          <Label htmlFor="description" className="text-sm font-medium text-gray-700">
             Mô tả chi tiết *
           </Label>
           <Textarea
             id="description"
             {...register("description")}
-            rows={2}
-            className="focus:ring-blue-500 focus:border-blue-500 text-sm resize-none"
+            rows={3}
+            className="focus:ring-blue-500 focus:border-blue-500 resize-none"
           />
           {errors.description && (
-            <p className="text-red-500 text-xs">{errors.description.message}</p>
+            <p className="text-red-500 text-sm">{errors.description.message}</p>
           )}
         </div>
         
-        <div className="space-y-1">
-          <Label htmlFor="note" className="text-xs font-medium">
+        <div className="space-y-2">
+          <Label htmlFor="note" className="text-sm font-medium text-gray-700">
             Ghi chú
           </Label>
           <Textarea
             id="note"
             {...register("note")}
-            rows={2}
-            className="bg-gray-50 border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm resize-none"
+            rows={3}
+            className="bg-gray-50 border-gray-200 focus:ring-blue-500 focus:border-blue-500 resize-none"
           />
         </div>
         
-        <div className="flex justify-end gap-2 pt-2 border-t">
+        <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
           <Button
             type="button"
             variant="outline"
             onClick={cancelEditing}
             disabled={isSubmitting}
-            className="text-xs h-8 px-3"
+            className="px-6"
           >
-            <X className="h-3 w-3 mr-1" />
+            <X className="h-4 w-4 mr-2" />
             Hủy
           </Button>
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-600 hover:bg-blue-700 text-xs h-8 px-3"
+            className="bg-blue-600 hover:bg-blue-700 px-6"
           >
-            <Save className="h-3 w-3 mr-1" />
-            {isSubmitting ? "Đang lưu..." : "Lưu"}
+            <Save className="h-4 w-4 mr-2" />
+            {isSubmitting ? "Đang lưu..." : "Lưu Thay Đổi"}
           </Button>
         </div>
       </form>
@@ -577,7 +577,7 @@ export function TreatmentProgressView({ progress }: Props) {
   )
 
   return (
-    <div className="w-full h-full space-y-1">
+    <div className="w-full h-full">
       {renderHeader()}
       
       {editState.isEditing ? (

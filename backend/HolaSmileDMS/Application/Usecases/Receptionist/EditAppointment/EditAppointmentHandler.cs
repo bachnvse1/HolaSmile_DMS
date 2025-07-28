@@ -79,21 +79,21 @@ namespace Application.Usecases.Receptionist.EditAppointment
                     currentPatient.User.UserID,
                    "Thay đổi thông tin lịch khám",
                    $"Lịch khám của bạn đã được thay đổi vào ngày {request.AppointmentDate.Date}.",
-                   "appointment", null),
+                   "appointment", 0, ""),
              cancellationToken);
 
                 await _mediator.Send(new SendNotificationCommand(
                         currentDentist.User.UserID,
                         "Thay đổi thông tin lịch khám",
                         $"Lịch khám của bạn đã được thay đổi vào ngày {request.AppointmentDate.Date}.",
-                        "appointment", null),
+                        "appointment", 0, $"appointments/{existApp.AppointmentId}"),
                  cancellationToken);
 
                 await _mediator.Send(new SendNotificationCommand(
                         newDentist.User.UserID,
                         "Thay đổi thông tin lịch khám",
                         $"Lịch khám của bạn đã được thay đổi vào ngày {request.AppointmentDate.Date}.",
-                        "appointment", null),
+                        "appointment", 0, $"appointments/{existApp.AppointmentId}"),
                  cancellationToken);
             }
             catch { }

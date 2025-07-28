@@ -83,7 +83,7 @@ public sealed class ViewDentalExamSheetHandler :
             var dentist  = await _dentistRepo.GetDentistByDentistIdAsync(rec.DentistID);
             var dentUser = dentist != null ? await _userRepo.GetByIdAsync(dentist.UserId, ct) : null;
             var proc = await _procedureRepo.GetByIdAsync(rec.ProcedureID, ct);
-            var warranty = await _warrantyRepo.GetByIdAsync(proc.WarrantyCardId ?? 0, ct);
+            var warranty = await _warrantyRepo.GetByTreatmentRecordIdAsync(rec.TreatmentRecordID, ct);
 
             sheet.Treatments.Add(new TreatmentRowDto
             {

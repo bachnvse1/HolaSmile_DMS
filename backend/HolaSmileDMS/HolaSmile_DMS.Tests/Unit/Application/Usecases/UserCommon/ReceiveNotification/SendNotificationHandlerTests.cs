@@ -42,7 +42,7 @@ public class SendNotificationHandlerTests
         _userRepoMock.Setup(r => r.GetByIdAsync(10, default))
             .ReturnsAsync(new User { UserID = 10 });
 
-        var cmd = new SendNotificationCommand(10, "Test title", "Test message", "Info", 123);
+        var cmd = new SendNotificationCommand(10, "Test title", "Test message", "Info", 123, "");
 
         await _handler.Handle(cmd, default);
 
@@ -62,7 +62,7 @@ public class SendNotificationHandlerTests
         _userRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<int>(), default))
             .ReturnsAsync((User)null!);
 
-        var cmd = new SendNotificationCommand(999, "Title", "Message", "Error", null);
+        var cmd = new SendNotificationCommand(999, "Title", "Message", "Error", null, "");
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() => _handler.Handle(cmd, default));
     }
@@ -73,7 +73,7 @@ public class SendNotificationHandlerTests
         _userRepoMock.Setup(r => r.GetByIdAsync(1, default))
             .ReturnsAsync(new User());
 
-        var cmd = new SendNotificationCommand(1, "", "Content", "Reminder", null);
+        var cmd = new SendNotificationCommand(1, "", "Content", "Reminder", null, "");
         await _handler.Handle(cmd, default);
 
         Assert.Equal("", _capturedNotification!.Title);
@@ -85,7 +85,7 @@ public class SendNotificationHandlerTests
         _userRepoMock.Setup(r => r.GetByIdAsync(2, default))
             .ReturnsAsync(new User());
 
-        var cmd = new SendNotificationCommand(2, "Alert", "", "Reminder", null);
+        var cmd = new SendNotificationCommand(2, "Alert", "", "Reminder", null, "");
         await _handler.Handle(cmd, default);
 
         Assert.Equal("", _capturedNotification!.Message);
@@ -97,7 +97,7 @@ public class SendNotificationHandlerTests
         _userRepoMock.Setup(r => r.GetByIdAsync(3, default))
             .ReturnsAsync(new User());
 
-        var cmd = new SendNotificationCommand(3, "No Related", "Still valid", "Alert", null);
+        var cmd = new SendNotificationCommand(3, "No Related", "Still valid", "Alert", null, "");
         await _handler.Handle(cmd, default);
 
         Assert.Null(_capturedNotification!.RelatedObjectId);
@@ -109,7 +109,7 @@ public class SendNotificationHandlerTests
         _userRepoMock.Setup(r => r.GetByIdAsync(4, default))
             .ReturnsAsync(new User());
 
-        var cmd = new SendNotificationCommand(4, "T", "M", "Info", null);
+        var cmd = new SendNotificationCommand(4, "T", "M", "Info", null, "");
         await _handler.Handle(cmd, default);
 
         Assert.False(_capturedNotification!.IsRead);
@@ -122,7 +122,7 @@ public class SendNotificationHandlerTests
             .ReturnsAsync(new User());
 
         var before = DateTime.Now;
-        var cmd = new SendNotificationCommand(5, "Now", "Check time", "Info", null);
+        var cmd = new SendNotificationCommand(5, "Now", "Check time", "Info", null, "");
         await _handler.Handle(cmd, default);
         var after = DateTime.Now;
 
