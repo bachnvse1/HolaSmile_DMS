@@ -214,6 +214,10 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<string>("EvidenceImage")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<bool>("IsDelete")
                         .HasColumnType("tinyint(1)");
 
@@ -231,6 +235,10 @@ namespace Infrastructure.Migrations
 
                     b.Property<int?>("UpdatedBy")
                         .HasColumnType("int");
+
+                    b.Property<string>("status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(255)");
 
                     b.HasKey("TransactionID");
 
@@ -564,6 +572,9 @@ namespace Infrastructure.Migrations
                     b.Property<bool>("IsRead")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<string>("MappingUrl")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Message")
                         .HasColumnType("longtext");
 
@@ -830,16 +841,7 @@ namespace Infrastructure.Migrations
                     b.Property<int?>("UpdatedBy")
                         .HasColumnType("int");
 
-                    b.Property<int?>("WarrantyCardId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("WarrantyPeriod")
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
-
                     b.HasKey("ProcedureId");
-
-                    b.HasIndex("WarrantyCardId");
 
                     b.ToTable("Procedures");
                 });
@@ -1589,15 +1591,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Appointment");
 
                     b.Navigation("PrescriptionTemplate");
-                });
-
-            modelBuilder.Entity("Procedure", b =>
-                {
-                    b.HasOne("WarrantyCard", "WarrantyCard")
-                        .WithMany()
-                        .HasForeignKey("WarrantyCardId");
-
-                    b.Navigation("WarrantyCard");
                 });
 
             modelBuilder.Entity("Receptionist", b =>

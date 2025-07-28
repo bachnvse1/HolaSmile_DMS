@@ -57,6 +57,7 @@ namespace Application.Usecases.Assistant.CreateSupply
                 Category = "Vật tư y tế",
                 PaymentMethod = true, // True for cash
                 Amount = request.Price * request.QuantityInStock,
+                status = "approved",
                 CreatedAt = DateTime.Now,
                 CreatedBy = currentUserId,
                 IsDelete = false

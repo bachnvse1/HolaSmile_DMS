@@ -71,7 +71,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             {
                 ProcedureId = 1,
                 ProcedureName = "Hàn răng",
-                WarrantyCardId = null
             };
             _context.Procedures.Add(procedure);
 

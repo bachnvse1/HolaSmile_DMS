@@ -68,7 +68,5 @@ namespace Application.Usecases.Dentist.UpdateTreatmentRecord
 
             return await _repository.UpdatedTreatmentRecordAsync(record, cancellationToken);
         }
-
-
     }
 }

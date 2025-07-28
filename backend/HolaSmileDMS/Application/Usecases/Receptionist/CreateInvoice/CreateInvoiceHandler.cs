@@ -111,6 +111,7 @@ public class CreateInvoiceHandler : IRequestHandler<CreateInvoiceCommand, string
             TransactionType = true, // true: income (thu)
             Category = "Thanh toán hoá đơn",
             PaymentMethod = invoice.PaymentMethod == "cash", // true: cash, false: transfer
+            status = "approved",
             Amount = invoice.PaidAmount ?? 0,
             CreatedAt = DateTime.Now,
             CreatedBy = userId,
@@ -134,7 +135,7 @@ public class CreateInvoiceHandler : IRequestHandler<CreateInvoiceCommand, string
                         "Tạo hoá đơn thanh toán",
                         message,
                         "invoice",
-                        userId
+                        userId, "invoices"
                     ), cancellationToken);
                 }
                 catch (Exception ex)

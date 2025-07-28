@@ -7,4 +7,5 @@ public record SendNotificationCommand(
     string?  Title,
     string?  Message,
     string?  Type,
-    int?     RelatedObjectId) : IRequest<Unit>;
+    int?     RelatedObjectId,
+    string? MappingUrl) : IRequest<Unit>;

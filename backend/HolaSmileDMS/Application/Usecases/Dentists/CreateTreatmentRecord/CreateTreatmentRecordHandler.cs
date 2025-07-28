@@ -152,7 +152,7 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
                             "Tạo lịch hẹn điều trị",
                             $"Lịch hẹn điều trị mới của bạn là ngày {request.TreatmentDate} đã được nha sĩ {fullName} tạo.",
                             "Lịch điều trị",
-                            0
+                            0, ""
                         ), cancellationToken);
                     }
                     catch (Exception ex)
@@ -178,7 +178,7 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
                         "Tạo thủ thuật điều trị",
                         message,
                         "Xem hồ sơ",
-                        0
+                        0, $"patient/view-treatment-records?patientId={appointment.PatientId}"
                     ), cancellationToken);
                 }
                 catch (Exception ex)

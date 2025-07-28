@@ -8,4 +8,5 @@ public interface IWarrantyCardRepository
     Task<List<WarrantyCard>> GetAllAsync(CancellationToken ct);
     Task<WarrantyCard> CreateWarrantyCardAsync(WarrantyCard card, CancellationToken cancellationToken);
     Task<bool> UpdateWarrantyCardAsync(WarrantyCard card, CancellationToken cancellationToken);
+    Task<WarrantyCard?> GetByTreatmentRecordIdAsync(int id, CancellationToken ct);
 }

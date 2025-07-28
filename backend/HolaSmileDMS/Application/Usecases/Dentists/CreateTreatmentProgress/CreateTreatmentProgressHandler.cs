@@ -74,13 +74,20 @@ public class CreateTreatmentProgressHandler : IRequestHandler<CreateTreatmentPro
                 int userIdNotification = patient.UserID ?? 0;
                 if (userIdNotification > 0)
                 {
-                    await _mediator.Send(new SendNotificationCommand(
-                        userIdNotification,
-                        "Tạo tiến trình điều trị",
-                        $"Tiến trình mới của thủ thuật #{request.ProgressDto.TreatmentRecordID}  của bạn đã được nha sĩ {fullName} tạo.",
-                        "Xem hồ sơ",
-                        0
-                    ), cancellationToken);
+                    try
+                    {
+                        await _mediator.Send(new SendNotificationCommand(
+                            userIdNotification,
+                            "Tạo tiến trình điều trị",
+                            $"Tiến trình mới của thủ thuật #{request.ProgressDto.TreatmentRecordID}  của bạn đã được nha sĩ {fullName} tạo.",
+                            "Xem hồ sơ",
+                            0,
+                            $"patient/view-treatment-progress/{request.ProgressDto.TreatmentRecordID}?patientId={request.ProgressDto.PatientID}&dentistId={request.ProgressDto.DentistID}"
+                        ), cancellationToken);
+                    } catch(Exception ex)
+                    {
+                    }
+                    
                 }
             }
         return MessageConstants.MSG.MSG37; // Tạo kế hoạch điều trị thành công

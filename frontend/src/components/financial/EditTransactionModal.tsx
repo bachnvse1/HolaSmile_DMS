@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { X, TrendingUp, TrendingDown, Edit } from 'lucide-react';
+import { X, TrendingUp, TrendingDown, Edit, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -32,6 +32,9 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
   onClose,
   transactionId
 }) => {
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+  
   const { data: transaction, isLoading, error } = useFinancialTransactionDetail(transactionId);
   const updateTransactionMutation = useUpdateFinancialTransaction();
   const form = useForm<FormData>({
@@ -55,11 +58,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
       const transactionTime = transactionDateTime.toTimeString().split(' ')[0].substring(0, 5); // HH:MM
       
       const transactionType = transaction.transactionType === 'Thu' ? 'thu' : 'chi';
-      const paymentMethod = transaction.paymentMethod === 'Tiền mặt' ? 'cash' : 'transfer';
-      
-      console.log('Original date from backend:', transaction.transactionDate);
-      console.log('Parsed date:', transactionDate);
-      console.log('Parsed time:', transactionTime);
+      const paymentMethod = transaction.paymentMethod === 'Tiền mặt' ? 'cash' : 'transfer';  
       
       const formData = {
         transactionType: transactionType as 'thu' | 'chi',
@@ -83,6 +82,33 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
     handleCurrencyInput(value, (formattedValue) => {
       form.setValue('amount', formattedValue);
     });
+  };
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp', 'image/tiff'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error('Vui lòng chọn ảnh có định dạng jpeg/png/bmp/gif/webp/tiff');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Kích thước file không được vượt quá 5MB');
+        return;
+      }
+      
+      setSelectedImage(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const onSubmit = async (data: FormData) => {
@@ -109,7 +135,28 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
         updateAt: null
       };
 
-      await updateTransactionMutation.mutateAsync(requestData);
+      // Check if transaction can be edited (only pending transactions)
+      if (transaction?.status !== 'pending') {
+        toast.error('Chỉ có thể chỉnh sửa giao dịch chờ duyệt');
+        return;
+      }
+
+      // Use FormData if image is provided
+      if (selectedImage) {
+        const formData = new FormData();
+        formData.append('transactionID', transactionId.toString());
+        formData.append('transactionType', (data.transactionType === 'thu').toString());
+        formData.append('description', data.description);
+        formData.append('category', data.category);
+        formData.append('paymentMethod', (data.paymentMethod === 'cash').toString());
+        formData.append('amount', numericAmount.toString());
+        formData.append('transactionDate', data.transactionDate + 'T' + data.transactionTime + ':00');
+        formData.append('evidenceImage', selectedImage);
+
+        await updateTransactionMutation.mutateAsync(formData);
+      } else {
+        await updateTransactionMutation.mutateAsync(requestData);
+      }
       
       toast.success(`Đã cập nhật giao dịch ${data.transactionType} thành công`);
       onClose();
@@ -292,6 +339,80 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                 )}
               </div>
             </div>
+
+            {/* Image Upload - For expense transactions */}
+            {transactionType === 'chi' && (
+              <div className="space-y-2">
+                <Label htmlFor="evidenceImage">Ảnh chứng từ</Label>
+                <div className="space-y-3">
+                  {/* Upload Button */}
+                  <div className="flex items-center gap-4">
+                    <label htmlFor="evidenceImage" className="cursor-pointer">
+                      <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors">
+                        <Upload className="h-5 w-5 text-gray-500" />
+                        <span className="text-sm text-gray-700">
+                          {selectedImage ? 'Thay đổi ảnh' : 'Tải lên ảnh chứng từ mới'}
+                        </span>
+                      </div>
+                    </label>
+                    <input
+                      id="evidenceImage"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                  </div>
+
+                  {/* Current Evidence Image */}
+                  {transaction?.evidenceImage && !imagePreview && (
+                    <div className="space-y-2">
+                      <p className="text-sm text-gray-600">Ảnh chứng từ hiện tại:</p>
+                      <div className="relative w-32 h-32 border border-gray-300 rounded-lg overflow-hidden">
+                        <img
+                          src={transaction.evidenceImage}
+                          alt="Current Evidence"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* New Image Preview */}
+                  {imagePreview && (
+                    <div className="space-y-2">
+                      <p className="text-sm text-gray-600">Ảnh chứng từ mới:</p>
+                      <div className="relative w-32 h-32 border border-gray-300 rounded-lg overflow-hidden">
+                        <img
+                          src={imagePreview}
+                          alt="New Preview"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedImage(null);
+                            setImagePreview('');
+                          }}
+                          className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                          title="Xóa ảnh mới"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* File Info */}
+                  {selectedImage && (
+                    <div className="text-sm text-gray-600">
+                      <p>Tên file: {selectedImage.name}</p>
+                      <p>Kích thước: {(selectedImage.size / 1024 / 1024).toFixed(2)} MB</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Preview */}
             {form.watch('amount') && (

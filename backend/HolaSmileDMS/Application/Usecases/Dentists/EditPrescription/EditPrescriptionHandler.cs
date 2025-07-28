@@ -55,7 +55,7 @@ namespace Application.Usecases.Dentists.EditPrescription
                       "Taọ đơn thuốc",
                       $"Bác sĩ đã tạo đơn thuốc cho cuộc hẹn ngày {existPrescription.Appointment.AppointmentDate} vào lúc {DateTime.Now}",
                       "schedule",
-                      null), cancellationToken);
+                      null, $"appointments/{existPrescription.AppointmentId}"), cancellationToken);
             }
             catch { }
 

@@ -1,5 +1,6 @@
 ﻿using Application.Constants;
 using Application.Usecases.Assistants.ExcelSupply;
+using Application.Usecases.Owner.ApproveFinancialTransaction;
 using Application.Usecases.Receptionist.CreateFinancialTransaction;
 using Application.Usecases.Receptionist.DeactiveFinancialTransaction;
 using Application.Usecases.Receptionist.EditFinancialTransaction;
@@ -76,8 +77,35 @@ namespace HDMS_API.Controllers
         }
 
         [Authorize]
+        [HttpGet("expense-transaction")]
+        public async Task<IActionResult> GetExpenseTransactions()
+        {
+            try
+            {
+                var result = await _mediator.Send(new ViewListExpenseCommand());
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [Authorize]
         [HttpPost("financial-transactions")]
-        public async Task<IActionResult> CreateTransaction([FromBody] CreateFinancialTransactionCommand command)
+        public async Task<IActionResult> CreateTransaction([FromForm] CreateFinancialTransactionCommand command)
         {
             try
             {
@@ -102,7 +130,7 @@ namespace HDMS_API.Controllers
             }
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPost("export-excel")]
         public async Task<IActionResult> ExportSupply()
         {
@@ -138,17 +166,40 @@ namespace HDMS_API.Controllers
         }
 
         [Authorize]
-        [HttpPut("edit-financial-transactions/{transactionId}")]
-        public async Task<IActionResult> EditTransaction([FromRoute] int transactionId, [FromBody] EditFinancialTransactionCommand command)
+        [HttpPost("approve-financial-transactions")]
+        public async Task<IActionResult> ApproveTransaction([FromBody] ApproveTransactionCommand command)
         {
-            if (transactionId != command.TransactionId)
-            {
-                return BadRequest(MessageConstants.MSG.MSG58);
-            }
             try
             {
                 var result = await _mediator.Send(command);
-                return result ? Ok(MessageConstants.MSG.MSG122) : BadRequest(MessageConstants.MSG.MSG58);
+                return result ? Ok(MessageConstants.MSG.MSG123) : BadRequest(MessageConstants.MSG.MSG58);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPut("edit-financial-transactions")]
+        public async Task<IActionResult> EditTransaction([FromForm] EditFinancialTransactionCommand command)
+        {
+            try
+            {
+                var result = await _mediator.Send(command);
+                return result ? Ok(MessageConstants.MSG.MSG123) : BadRequest(MessageConstants.MSG.MSG58);
             }
             catch (UnauthorizedAccessException ex)
             {

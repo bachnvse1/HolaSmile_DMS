@@ -84,7 +84,7 @@ public class CreateOrthodonticTreatmentPlanHandler : IRequestHandler<CreateOrtho
                         "Kế hoạch điều trị mới",
                         message,
                         "Xem chi tiết",
-                        0
+                        0, $"patients/{request.PatientId}/orthodontic-treatment-plans"
                     ), cancellationToken);
                 }
                 catch (Exception ex)

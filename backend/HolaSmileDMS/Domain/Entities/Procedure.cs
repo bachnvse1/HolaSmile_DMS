@@ -18,9 +18,6 @@ public class Procedure
 
     public float? Discount { get; set; }
 
-    [MaxLength(255)]
-    public string? WarrantyPeriod { get; set; }
-
     [Column(TypeName = "decimal(18,2)")]
     public decimal? OriginalPrice { get; set; }
     
@@ -31,10 +28,6 @@ public class Procedure
     public float? DoctorCommissionRate { get; set; }
     public float? AssistantCommissionRate { get; set; }
     public float? TechnicianCommissionRate { get; set; }
-
-    public WarrantyCard? WarrantyCard { get; set; }
-    public int? WarrantyCardId { get; set; }
-
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public int? CreatedBy { get; set; }

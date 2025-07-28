@@ -62,5 +62,12 @@ namespace Infrastructure.Repositories
             var result = await _context.SaveChangesAsync(cancellationToken);
             return result > 0;
         }
+        
+        public async Task<WarrantyCard?> GetByTreatmentRecordIdAsync(int id, CancellationToken ct)
+        {
+            return await _context.WarrantyCards
+                .Include(w => w.TreatmentRecord)
+                .FirstOrDefaultAsync(w => w.TreatmentRecordID == id && !w.IsDeleted, ct);
+        }
     }
 }
