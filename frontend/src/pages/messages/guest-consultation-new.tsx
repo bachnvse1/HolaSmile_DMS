@@ -34,7 +34,7 @@ const GuestConsultationPage: React.FC = () => {
   } : null;
 
   // Danh sách user ID được phép truy cập
-  const ALLOWED_USER_IDS = ["10"]; // Có thể thêm nhiều ID khác
+  const ALLOWED_USER_IDS = ["3"]; // Có thể thêm nhiều ID khác
 
   // Handle conversation selection
   const handleSelectConversation = async (conversation: GuestConversation) => {

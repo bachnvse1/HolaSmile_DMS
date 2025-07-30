@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useChatHub } from '@/components/chatbox/ChatHubProvider';
+import { useChatHub } from '@/components/chat/ChatHubProvider';
 import axiosInstance from '@/lib/axios';
 
 export interface ChatMessage {

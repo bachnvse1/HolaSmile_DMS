@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useChatHub } from '@/components/chatbox/ChatHubProvider';
+import { useChatHub } from '@/components/chat/ChatHubProvider';
 import { useAuth } from '@/hooks/useAuth';
 
 export interface GuestInfo {

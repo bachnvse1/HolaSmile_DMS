@@ -23,7 +23,6 @@ import {
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 import { useTotalUnreadCount } from '@/hooks/useTotalUnreadCount';
-import GuestConsultationPage from '@/pages/messages/guest-consultation';
 
 interface MenuItem {
   id: string;
@@ -124,7 +123,6 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           label: 'Tư Vấn Khách Hàng',
           icon: <Phone className="h-4 w-4" />,
           path: '/messages/guest-consultation',
-          element: <GuestConsultationPage />,
           roles: ['Receptionist']
         },
         

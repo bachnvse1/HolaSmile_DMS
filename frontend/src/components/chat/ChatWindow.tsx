@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { Send, MoreVertical, Phone, Video, Info, Paperclip, MessageCircle, Check, CheckCheck } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useChatHub } from '@/components/chatbox/ChatHubProvider';
+import { useChatHub } from '@/components/chat/ChatHubProvider';
 import type { ConversationUser } from '@/hooks/useChatConversations';
 import type { ChatMessage } from '@/hooks/useChatConversations';
 
