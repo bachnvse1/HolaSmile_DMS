@@ -174,8 +174,19 @@ export function NotificationButton() {
       >
         <Bell className="h-5 w-5" />
         {hasUnread && (
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-ping" />
-        )}
+            <div className="absolute top-0 right-0 -mt-1 -mr-1 z-20">
+              <span className="absolute inline-flex h-5 w-5 rounded-full bg-red-400 opacity-75 animate-ping"></span>
+              <span className="relative inline-flex items-center justify-center h-5 w-5 rounded-full bg-red-600 text-white text-[10px] font-bold">
+                {
+                  notifications.filter(n => !n.isRead).length > 9 
+                    ? "9+" 
+                    : notifications.filter(n => !n.isRead).length
+                }
+              </span>
+            </div>
+          )}
+
+
       </button>
 
       {showList && (
@@ -189,8 +200,11 @@ export function NotificationButton() {
                   key={n.notificationId}
                   onClick={() => handleNotificationClick(n)}
                   className={`p-4 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-all ${
-                    !n.isRead ? 'bg-blue-50 dark:bg-blue-950 border-l-4 border-blue-500' : ''
+                    !n.isRead
+                      ? 'bg-blue-50 dark:bg-blue-950 border-l-4 border-blue-500'
+                      : 'opacity-60'
                   }`}
+
                 >
                   <div className="font-semibold text-gray-800 dark:text-gray-100">{n.title}</div>
                   <div className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">{n.message}</div>
