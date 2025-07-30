@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button2"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Edit, Percent, Clock, Eye, Power, PowerOff } from "lucide-react"
+import { Edit, Percent, Eye, Power, PowerOff } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { Procedure } from "@/types/procedure"
 import { formatCurrency } from "@/utils/currencyUtils"
@@ -28,27 +28,15 @@ export function ProcedureTable({
     canEdit,
 }: ProcedureTableProps) {
 
-    const formatDuration = (minutes?: number) => {
-        if (!minutes) return null
-        if (minutes < 60) {
-            return `${minutes} phút`
-        }
-        const hours = Math.floor(minutes / 60)
-        const remainingMinutes = minutes % 60
-        return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}p` : `${hours} giờ`
-    }
-
     if (isLoading) {
         return (
             <div className="border rounded-lg">
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Mã</TableHead>
                             <TableHead>Tên Thủ Thuật</TableHead>
                             <TableHead>Giá Bán</TableHead>
                             <TableHead>Giảm Giá</TableHead>
-                            <TableHead>Hoa Hồng BS</TableHead>
                             <TableHead>Trạng Thái</TableHead>
                             <TableHead className="text-right">Thao Tác</TableHead>
                         </TableRow>
@@ -57,16 +45,10 @@ export function ProcedureTable({
                         {Array.from({ length: 5 }).map((_, index) => (
                             <TableRow key={index}>
                                 <TableCell>
-                                    <Skeleton className="h-4 w-12" />
-                                </TableCell>
-                                <TableCell>
                                     <Skeleton className="h-4 w-40" />
                                 </TableCell>
                                 <TableCell>
                                     <Skeleton className="h-4 w-20" />
-                                </TableCell>
-                                <TableCell>
-                                    <Skeleton className="h-4 w-16" />
                                 </TableCell>
                                 <TableCell>
                                     <Skeleton className="h-4 w-16" />
@@ -98,8 +80,6 @@ export function ProcedureTable({
                             <TableHead>Tên Thủ Thuật</TableHead>
                             <TableHead>Giá Bán</TableHead>
                             <TableHead>Giảm Giá</TableHead>
-                            <TableHead>Hoa Hồng BS</TableHead>
-                            <TableHead>Thời Gian</TableHead>
                             <TableHead>Trạng Thái</TableHead>
                             <TableHead className="text-right">Thao Tác</TableHead>
                         </TableRow>
@@ -137,21 +117,10 @@ export function ProcedureTable({
                                     )}
                                 </TableCell>
                                 <TableCell>
-                                    <div className="flex items-center gap-1">
-                                        <Percent className="w-4 h-4 text-green-600" />
-                                        <span className="text-green-600">{procedure.doctorCommissionRate}</span>
-                                    </div>
-                                </TableCell>
-                                <TableCell>
-                                    {procedure.duration && (
-                                        <div className="flex items-center gap-1">
-                                            <Clock className="w-4 h-4 text-muted-foreground" />
-                                            <span className="text-sm">{formatDuration(procedure.duration)}</span>
-                                        </div>
-                                    )}
-                                </TableCell>
-                                <TableCell>
-                                    <Badge variant={procedure.isDeleted !== true ? "default" : "secondary"}>
+                                    <Badge 
+                                        variant={procedure.isDeleted !== true ? "default" : "destructive"}
+                                        className={procedure.isDeleted === true ? "bg-red-100 text-red-800 border-red-300" : ""}
+                                    >
                                         {procedure.isDeleted !== true ? "Hoạt động" : "Không hoạt động"}
                                     </Badge>
                                 </TableCell>

@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button2"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Plus, Stethoscope, Percent, Package, Trash2 } from "lucide-react"
+import { Plus, Stethoscope, Package, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import type { ProcedureCreateForm, Supply, SupplyItem } from "@/types/procedure"
 import { SupplySearch } from "./SupplySearch"
@@ -91,15 +91,6 @@ export function CreateProcedureModal({
     }
     if (form.discount < 0 || form.discount > 100) {
       alert("Giảm giá phải từ 0 đến 100%")
-      return
-    }
-    const totalCommission =
-      form.doctorCommissionRate +
-      form.assistantCommissionRate +
-      form.technicianCommissionRate +
-      form.referralCommissionRate
-    if (totalCommission > 100) {
-      alert("Tổng tỷ lệ hoa hồng không được vượt quá 100%")
       return
     }
     const invalidSupply = form.suppliesUsed.find((s) => s.quantity <= 0)
@@ -228,113 +219,22 @@ export function CreateProcedureModal({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="consumableCost">Chi Phí Ước Tính (VNĐ)</Label>
-                  <Input
-                    id="consumableCost"
-                    type="number"
-                    min="0"
-                    max="999999999"
-                    step="1000"
-                    value={form.consumableCost || ''}
-                    onChange={(e) => updateForm("consumableCost", Number.parseFloat(e.target.value) || 0)}
-                    placeholder="0"
-                  />
-                  {form.consumableCost > 0 && (
-                    <div className="text-sm text-muted-foreground">
-                      {formatCurrency(form.consumableCost)}
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="warrantyPeriod">Thời Gian Bảo Hành</Label>
-                  <Input
-                    id="warrantyPeriod"
-                    value={form.warrantyPeriod}
-                    onChange={(e) => updateForm("warrantyPeriod", e.target.value)}
-                    placeholder="6 tháng"
-                    maxLength={3}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Commission Rates */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <Percent className="w-5 h-5" />
-                Tỷ Lệ Hoa Hồng (%)
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="doctorCommissionRate">Bác Sĩ</Label>
-                  <Input
-                    id="doctorCommissionRate"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.1"
-                    value={form.doctorCommissionRate || ''}
-                    onChange={(e) => updateForm("doctorCommissionRate", Number.parseFloat(e.target.value) || 0)}
-                    placeholder="0"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="assistantCommissionRate">Trợ Lý</Label>
-                  <Input
-                    id="assistantCommissionRate"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.1"
-                    value={form.assistantCommissionRate || ''}
-                    onChange={(e) => updateForm("assistantCommissionRate", Number.parseFloat(e.target.value) || 0)}
-                    placeholder="0"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="technicianCommissionRate">Kỹ Thuật Viên</Label>
-                  <Input
-                    id="technicianCommissionRate"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.1"
-                    value={form.technicianCommissionRate || ''}
-                    onChange={(e) => updateForm("technicianCommissionRate", Number.parseFloat(e.target.value) || 0)}
-                    placeholder="0"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="referralCommissionRate">Giới Thiệu</Label>
-                  <Input
-                    id="referralCommissionRate"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.1"
-                    value={form.referralCommissionRate || ''}
-                    onChange={(e) => updateForm("referralCommissionRate", Number.parseFloat(e.target.value) || 0)}
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-
-              {/* Total Commission Display */}
-              <div className="text-sm text-muted-foreground">
-                Tổng tỷ lệ hoa hồng: {(
-                  form.doctorCommissionRate +
-                  form.assistantCommissionRate +
-                  form.technicianCommissionRate +
-                  form.referralCommissionRate
-                ).toFixed(1)}%
-                {(form.doctorCommissionRate + form.assistantCommissionRate + form.technicianCommissionRate + form.referralCommissionRate) > 100 && (
-                  <span className="text-red-500 ml-2">⚠️ Không được vượt quá 100%</span>
+              <div className="space-y-2">
+                <Label htmlFor="consumableCost">Chi Phí Ước Tính (VNĐ)</Label>
+                <Input
+                  id="consumableCost"
+                  type="number"
+                  min="0"
+                  max="999999999"
+                  step="1000"
+                  value={form.consumableCost || ''}
+                  onChange={(e) => updateForm("consumableCost", Number.parseFloat(e.target.value) || 0)}
+                  placeholder="0"
+                />
+                {form.consumableCost > 0 && (
+                  <div className="text-sm text-muted-foreground">
+                    {formatCurrency(form.consumableCost)}
+                  </div>
                 )}
               </div>
             </div>
