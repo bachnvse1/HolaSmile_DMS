@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useChatHubGuest } from "@/hooks/useChatHubGuest";
+import { MessageCircle, X, Send, User, Headphones, Image, Video, Paperclip, Camera } from "lucide-react";
 
 const CONSULTANT = { id: "3", name: "Nhân viên tư vấn" };
 
@@ -10,6 +11,9 @@ type ChatMessage = {
   receiverId: string;
   message: string;
   timestamp?: string;
+  messageType?: 'text' | 'image' | 'video';
+  fileName?: string;
+  fileSize?: number;
 };
 
 function getOrCreateGuestId(): string {
@@ -21,15 +25,48 @@ function getOrCreateGuestId(): string {
   return id;
 }
 
+// Hàm upload file lên backend API
+const uploadFileToAPI = async (file: File): Promise<string> => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error('Upload failed');
+    }
+
+    const data = await response.json();
+    return data.url; // Backend trả về URL của file đã upload
+  } catch (error) {
+    console.error('Upload error:', error);
+    throw error;
+  }
+};
+
+// Detect mobile device
+const isMobile = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
 export default function ConsultantChatBox() {
   const guestId = getOrCreateGuestId();
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<ChatMessage[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [hasUnreadMessage, setHasUnreadMessage] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [showFileOptions, setShowFileOptions] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastProcessedMessage = useRef<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const { realtimeMessages, sendMessage, fetchChatHistory } =
     useChatHubGuest(guestId);
@@ -83,7 +120,7 @@ export default function ConsultantChatBox() {
     );
   }, [history, realtimeMessages, guestId]);
 
-  // Xử lý tin nhắn mới với âm thanh và hiệu ứng đỏ
+  // Xử lý tin nhắn mới
   useEffect(() => {
     if (realtimeMessages.length === 0) return;
 
@@ -125,6 +162,52 @@ export default function ConsultantChatBox() {
     setInput("");
   };
 
+  // Xử lý upload file
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Kiểm tra loại file
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+    
+    if (!isImage && !isVideo) {
+      alert('Chỉ hỗ trợ file ảnh và video!');
+      return;
+    }
+
+    // Kiểm tra kích thước file (giới hạn 50MB cho mobile, 10MB cho desktop)
+    const maxSize = isMobile() ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      alert(`File không được vượt quá ${isMobile() ? '50MB' : '10MB'}!`);
+      return;
+    }
+
+    setIsUploading(true);
+    setShowFileOptions(false);
+
+    try {
+      // Upload file lên backend API
+      const fileUrl = await uploadFileToAPI(file);
+      
+      // Gửi tin nhắn với URL từ backend
+      sendMessage(fileUrl);
+      
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('Có lỗi xảy ra khi upload file!');
+    } finally {
+      setIsUploading(false);
+      // Reset input file
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      if (cameraInputRef.current) {
+        cameraInputRef.current.value = '';
+      }
+    }
+  };
+
   const handleOpenChat = () => {
     setIsOpen(true);
     // Tắt thông báo đỏ khi mở chat
@@ -137,240 +220,314 @@ export default function ConsultantChatBox() {
     return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
+  // Hàm render nội dung tin nhắn
+  const renderMessageContent = (msg: ChatMessage) => {
+    // Kiểm tra nếu message là URL của ảnh/video
+    const isImageUrl = /\.(jpg|jpeg|png|gif|webp|bmp)(\?|$)/i.test(msg.message) || 
+                      msg.message.includes('/uploads/') && /image/i.test(msg.message);
+    const isVideoUrl = /\.(mp4|webm|ogg|avi|mov)(\?|$)/i.test(msg.message) || 
+                      msg.message.includes('/uploads/') && /video/i.test(msg.message);
+    
+    if (isImageUrl) {
+      return (
+        <div className="space-y-2">
+          <img 
+            src={msg.message} 
+            alt="Shared image"
+            className="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+            style={{ maxHeight: '200px' }}
+            onClick={() => window.open(msg.message, '_blank')}
+            onError={(e) => {
+              // Fallback nếu ảnh không load được
+              (e.target as HTMLImageElement).style.display = 'none';
+              const fallback = document.createElement('div');
+              fallback.className = 'text-xs text-gray-500 p-2 bg-gray-100 rounded';
+              fallback.textContent = 'Không thể tải ảnh';
+              (e.target as HTMLImageElement).parentNode?.appendChild(fallback);
+            }}
+          />
+          <div className="flex items-center gap-2 text-xs opacity-70">
+            <Image className="w-3 h-3" />
+            <span>Hình ảnh</span>
+          </div>
+        </div>
+      );
+    } else if (isVideoUrl) {
+      return (
+        <div className="space-y-2">
+          <video 
+            src={msg.message} 
+            controls
+            className="max-w-full h-auto rounded-lg"
+            style={{ maxHeight: '200px' }}
+            onError={(e) => {
+              // Fallback nếu video không load được
+              (e.target as HTMLVideoElement).style.display = 'none';
+              const fallback = document.createElement('div');
+              fallback.className = 'text-xs text-gray-500 p-2 bg-gray-100 rounded';
+              fallback.textContent = 'Không thể tải video';
+              (e.target as HTMLVideoElement).parentNode?.appendChild(fallback);
+            }}
+          />
+          <div className="flex items-center gap-2 text-xs opacity-70">
+            <Video className="w-3 h-3" />
+            <span>Video</span>
+          </div>
+        </div>
+      );
+    }
+    
+    // Tin nhắn text thông thường
+    return <p className="text-sm leading-relaxed">{msg.message}</p>;
+  };
+
   return (
     <>
+      {/* Hidden file inputs */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,video/*"
+        onChange={handleFileUpload}
+        className="hidden"
+      />
+      
+      {/* Camera input for mobile */}
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*,video/*"
+        capture="environment"
+        onChange={handleFileUpload}
+        className="hidden"
+      />
+
+      {/* Floating Chat Button */}
       {!isOpen && (
-        <button
-          onClick={handleOpenChat}
-          style={{
-            position: "fixed",
-            bottom: 24,
-            right: 24,
-            background: hasUnreadMessage ? "#ef4444" : "#2563eb",
-            color: "#fff",
-            border: "none",
-            borderRadius: "9999px",
-            padding: "12px 20px",
-            fontSize: 16,
-            fontWeight: 600,
-            boxShadow: hasUnreadMessage
-              ? "0 4px 12px rgba(239, 68, 68, 0.4), 0 0 20px rgba(239, 68, 68, 0.3)"
-              : "0 4px 12px rgba(0,0,0,0.2)",
-            cursor: "pointer",
-            zIndex: 999,
-            animation: hasUnreadMessage ? "pulse 2s infinite" : "none",
-          }}
-        >
-          💬 Hỗ trợ
-          {hasUnreadMessage && (
-            <span
-              style={{
-                position: "absolute",
-                top: -8,
-                right: -8,
-                background: "#ffffff",
-                color: "#ef4444",
-                fontSize: 12,
-                fontWeight: "bold",
-                borderRadius: "50%",
-                width: 20,
-                height: 20,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                animation: "bounce 1s infinite",
-              }}
-            >
-              !
-            </span>
-          )}
-        </button>
-      )}
-
-      {isOpen && (
-        <div
-          style={{
-            width: 350,
-            background: "#fff",
-            borderRadius: 16,
-            boxShadow: "0 4px 24px rgba(0,0,0,0.13)",
-            padding: 16,
-            display: "flex",
-            flexDirection: "column",
-            fontFamily: "inherit",
-            position: "fixed",
-            bottom: 24,
-            right: 24,
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 8,
-            }}
+        <div className="fixed bottom-6 right-6 z-50">
+          <button
+            onClick={handleOpenChat}
+            className={`
+              group relative flex items-center gap-3 px-4 py-3 sm:px-6 sm:py-4 rounded-full shadow-lg
+              transition-all duration-300 hover:scale-105 hover:shadow-xl
+              ${hasUnreadMessage
+                ? "bg-gradient-to-r from-red-500 to-pink-500 animate-pulse"
+                : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              }
+              text-white font-semibold text-sm
+            `}
           >
-            <div
-              style={{
-                fontWeight: 700,
-                fontSize: 18,
-                color: "#2563eb",
-                letterSpacing: 0.5,
-              }}
-            >
-              🎧 Chat với nhân viên tư vấn
-            </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              style={{
-                background: "transparent",
-                border: "none",
-                fontSize: 20,
-                color: "#999",
-                cursor: "pointer",
-              }}
-              title="Đóng"
-            >
-              ×
-            </button>
-          </div>
+            <MessageCircle className="w-5 h-5" />
+            <span className="hidden sm:block">Hỗ trợ trực tuyến</span>
 
-          <div
-            style={{
-              height: 240,
-              overflowY: "auto",
-              background: "#f6f8fa",
-              borderRadius: 12,
-              padding: 12,
-              marginBottom: 12,
-              border: "1px solid #e5e7eb",
-              display: "flex",
-              flexDirection: "column",
-              gap: 8,
-            }}
-          >
-            {allMessages.length === 0 && (
-              <div
-                style={{
-                  color: "#888",
-                  textAlign: "center",
-                  marginTop: 40,
-                }}
-              >
-                Chưa có tin nhắn nào
+            {hasUnreadMessage && (
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-white rounded-full flex items-center justify-center">
+                <div className="w-3 h-3 bg-red-500 rounded-full animate-bounce"></div>
               </div>
             )}
-            {allMessages.map((msg, idx) => (
-              <div
-                key={idx}
-                style={{
-                  alignSelf:
-                    msg.senderId === guestId ? "flex-end" : "flex-start",
-                  background:
-                    msg.senderId === guestId ? "#2563eb" : "#e0e7ff",
-                  color: msg.senderId === guestId ? "#fff" : "#1e293b",
-                  borderRadius: 12,
-                  padding: "8px 14px",
-                  maxWidth: "80%",
-                  boxShadow:
-                    msg.senderId === guestId
-                      ? "0 2px 8px #2563eb22"
-                      : "0 2px 8px #64748b22",
-                  marginBottom: 2,
-                  fontSize: 15,
-                  wordBreak: "break-word",
-                }}
-                title={msg.senderId === guestId ? "Bạn" : CONSULTANT.name}
-              >
-                <span style={{ fontWeight: 500 }}>
-                  {msg.senderId === guestId ? "Bạn" : CONSULTANT.name}:
-                </span>{" "}
-                {msg.message}
-                <span
-                  style={{
-                    display: "block",
-                    fontSize: 11,
-                    color: "#cbd5e1",
-                    marginTop: 2,
-                    textAlign: "right",
-                  }}
-                >
-                  {formatTime(msg.timestamp)}
-                </span>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
+          </button>
+        </div>
+      )}
 
-          <div style={{ display: "flex", gap: 8 }}>
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Nhập tin nhắn..."
-              style={{
-                flex: 1,
-                border: "1px solid #d1d5db",
-                borderRadius: 8,
-                padding: "8px 10px",
-                fontSize: 15,
-                outline: "none",
-                background: "#f9fafb",
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSend();
-              }}
-            />
-            <button
-              onClick={handleSend}
-              style={{
-                background: "#2563eb",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                padding: "8px 18px",
-                fontWeight: 600,
-                fontSize: 15,
-                cursor: input.trim() ? "pointer" : "not-allowed",
-                opacity: input.trim() ? 1 : 0.6,
-                boxShadow: "0 2px 8px #2563eb22",
-              }}
-              disabled={!input.trim()}
-            >
-              Gửi
-            </button>
+      {/* Chat Window */}
+      {isOpen && (
+        <div className={`fixed bottom-6 right-6 z-50 ${isMobile() ? 'w-[calc(100vw-1rem)] max-w-sm' : 'w-96 max-w-[calc(100vw-2rem)]'}`}>
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                    <Headphones className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-semibold">Hỗ trợ trực tuyến</h3>
+                    <div className="flex items-center gap-2 text-blue-100 text-xs">
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <span>Đang hoạt động</span>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="text-white/80 hover:text-white hover:bg-white/10 rounded-full p-2 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Messages Area */}
+            <div className={`${isMobile() ? 'h-72' : 'h-80'} overflow-y-auto p-4 bg-gray-50 space-y-4`}>
+              {allMessages.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <MessageCircle className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <p className="text-gray-500 text-sm">Chào mừng bạn đến với hỗ trợ trực tuyến!</p>
+                  <p className="text-gray-400 text-xs mt-1">Hãy gửi tin nhắn để bắt đầu cuộc trò chuyện</p>
+                </div>
+              ) : (
+                allMessages.map((msg, idx) => {
+                  const isFromGuest = msg.senderId === guestId;
+                  return (
+                    <div key={idx} className={`flex ${isFromGuest ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
+                        isFromGuest 
+                          ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-br-md' 
+                          : 'bg-white border border-gray-200 text-gray-800 rounded-bl-md shadow-sm'
+                      }`}>
+                        {!isFromGuest && (
+                          <div className="flex items-center gap-2 mb-1">
+                            <User className="w-3 h-3 text-gray-500" />
+                            <span className="text-xs font-medium text-gray-600">{CONSULTANT.name}</span>
+                          </div>
+                        )}
+                        {renderMessageContent(msg)}
+                        <div className={`text-xs mt-1 ${isFromGuest ? 'text-blue-100' : 'text-gray-400'}`}>
+                          {formatTime(msg.timestamp)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+              
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-4 py-2 shadow-sm">
+                    <div className="flex items-center gap-1">
+                      <div className="flex gap-1">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                      </div>
+                      <span className="text-xs text-gray-500 ml-2">Đang nhập...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {isUploading && (
+                <div className="flex justify-end">
+                  <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-2xl rounded-br-md px-4 py-2">
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      <span className="text-sm">Đang gửi file...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input Area */}
+            <div className="p-4 bg-white border-t border-gray-100">
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Nhập tin nhắn của bạn..."
+                    className="w-full resize-none border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    rows={1}
+                    style={{height: '44px', maxHeight: '100px'}}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSend();
+                      }
+                    }}
+                  />
+                </div>
+                
+                {/* File Upload Options */}
+                <div className="relative flex-shrink-0">
+                  <button
+                    onClick={() => setShowFileOptions(!showFileOptions)}
+                    disabled={isUploading}
+                    className="w-11 h-11 rounded-xl transition-all duration-200 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Gửi file"
+                  >
+                    <Paperclip className="w-5 h-5" />
+                  </button>
+
+                  {/* File Options Dropdown */}
+                  {showFileOptions && (
+                    <div className="absolute bottom-full right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-10">
+                      <button
+                        onClick={() => {
+                          fileInputRef.current?.click();
+                          setShowFileOptions(false);
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-sm text-gray-700 w-full text-left whitespace-nowrap"
+                      >
+                        <Image className="w-4 h-4" />
+                        <span>Thư viện</span>
+                      </button>
+                      
+                      {isMobile() && (
+                        <button
+                          onClick={() => {
+                            cameraInputRef.current?.click();
+                            setShowFileOptions(false);
+                          }}
+                          className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-sm text-gray-700 w-full text-left whitespace-nowrap"
+                        >
+                          <Camera className="w-4 h-4" />
+                          <span>Chụp ảnh</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleSend}
+                  disabled={!input.trim() || isUploading}
+                  className={`
+                    w-11 h-11 rounded-xl transition-all duration-200 flex items-center justify-center flex-shrink-0
+                    ${input.trim() && !isUploading
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg hover:shadow-xl' 
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    }
+                  `}
+                >
+                  <Send className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
+                <span className="hidden sm:block">Enter để gửi • Shift+Enter xuống dòng</span>
+                <span className="sm:hidden">📎 File • Enter gửi</span>
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <span>Trực tuyến</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
-      {/* CSS Animations */}
-      <style>{`
-        @keyframes pulse {
-          0%,
-          100% {
-            transform: scale(1);
-          }
-          50% {
-            transform: scale(1.05);
-          }
-        }
+      {/* Overlay to close file options */}
+      {showFileOptions && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={() => setShowFileOptions(false)}
+        />
+      )}
 
-        @keyframes bounce {
-          0%,
-          20%,
-          50%,
-          80%,
-          100% {
-            transform: translateY(0);
-          }
-          40% {
-            transform: translateY(-4px);
-          }
-          60% {
-            transform: translateY(-2px);
-          }
+      {/* Custom Styles */}
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-5px); }
+        }
+        
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
         }
       `}</style>
     </>

@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useRef, useLayoutEffect } from 'react';
 import { Search, Users, MessageCircle, RefreshCw } from 'lucide-react';
 import type { GuestConversation } from '@/hooks/useGuestConversations';
 
@@ -99,13 +99,13 @@ const GuestConversationItem = memo(({
           {conversation.lastMessage ? (
             <div className="text-sm text-gray-600 truncate">
               <span className="font-medium">
-                {conversation.lastMessage.senderId !== conversation.guestId ? 'Khách: ' : 'Bạn: '}
+                {conversation.lastMessage.senderId === conversation.guestId ? 'Khách: ' : 'Bạn: '}
               </span>
               {conversation.lastMessage.message}
             </div>
           ) : (
             <div className="text-sm text-gray-400 italic">
-              Chưa có tin nhắn
+              Chưa có cuộc trò chuyện nào
             </div>
           )}
         </div>
@@ -124,10 +124,46 @@ export const GuestConversationList: React.FC<GuestConversationListProps> = ({
   totalCount,
   onRefresh
 }) => {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const savedScrollTop = useRef<number>(0);
+  const conversationIds = useRef<Set<string>>(new Set());
+
+  // Save scroll position before re-render
+  useLayoutEffect(() => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      savedScrollTop.current = container.scrollTop;
+    }
+  });
+
+  // Restore scroll position after re-render
+  useLayoutEffect(() => {
+    const container = scrollContainerRef.current;
+    if (container && savedScrollTop.current > 0) {
+      // Check if this is just an update (not new conversations)
+      const currentIds = new Set(conversations.map(c => c.guestId));
+      const hasNewConversations = conversations.some(c => !conversationIds.current.has(c.guestId));
+      
+      if (!hasNewConversations) {
+        // Restore scroll position for updates
+        container.scrollTop = savedScrollTop.current;
+      }
+      
+      // Update stored conversation IDs
+      conversationIds.current = currentIds;
+    }
+  }, [conversations]);
+
+  const handleScroll = useCallback(() => {
+    if (scrollContainerRef.current) {
+      savedScrollTop.current = scrollContainerRef.current.scrollTop;
+    }
+  }, []);
+
   return (
     <div className="flex flex-col h-full bg-gray-50 border-r border-gray-200">
       {/* Header */}
-      <div className="p-4 bg-white border-b border-gray-200">
+      <div className="p-4 bg-white border-b border-gray-200 flex-shrink-0">
         <div className="flex items-center gap-2 mb-3">
           <MessageCircle className="h-5 w-5 text-purple-600" />
           <h2 className="text-lg font-semibold text-gray-900">Khách tư vấn</h2>
@@ -157,12 +193,17 @@ export const GuestConversationList: React.FC<GuestConversationListProps> = ({
         </div>
 
         <div className="text-xs text-gray-500">
-          Chỉ hiển thị khách đã gửi tin nhắn
+          Hiển thị tất cả khách tư vấn
         </div>
       </div>
 
       {/* Conversation List */}
-      <div className="flex-1 overflow-y-auto p-3 max-h-[calc(100vh-200px)]">
+      <div 
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto p-3"
+        style={{ scrollBehavior: 'auto' }}
+      >
         {loading ? (
           <div className="text-center py-8">
             <div className="inline-flex items-center gap-2 text-gray-500">
@@ -173,22 +214,22 @@ export const GuestConversationList: React.FC<GuestConversationListProps> = ({
         ) : conversations.length === 0 ? (
           <div className="text-center py-8">
             <Users className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-            <p className="text-gray-600">Chưa có khách nào gửi tin nhắn</p>
+            <p className="text-gray-600">Chưa có khách tư vấn nào</p>
             <p className="text-sm text-gray-500 mt-1">
-              Khách sẽ xuất hiện khi họ gửi tin nhắn tư vấn
+              Danh sách khách sẽ xuất hiện khi có khách truy cập
             </p>
           </div>
         ) : (
-          <>
+          <div className="space-y-0">
             {conversations.map((conversation) => (
               <GuestConversationItem
-                key={conversation.guestId}
+                key={`conversation-${conversation.guestId}`}
                 conversation={conversation}
                 isSelected={selectedConversation?.guestId === conversation.guestId}
                 onClick={() => onSelectConversation(conversation)}
               />
             ))}
-          </>
+          </div>
         )}
       </div>
     </div>

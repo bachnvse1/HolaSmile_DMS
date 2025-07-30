@@ -95,18 +95,16 @@ export const useGuestConversations = () => {
       const lastMessage = uniqueMessages[uniqueMessages.length - 1];
       const unreadCount = unreadCounts.get(guest.guestId) || 0;
       
-      // Only include guests with messages
-      if (lastMessage) {
-        conversations.push({
-          guestId: guest.guestId,
-          name: guest.name || `Khách ${guest.guestId.slice(0, 8)}`,
-          phoneNumber: undefined,
-          email: undefined,
-          lastMessageAt: lastMessage.timestamp,
-          lastMessage,
-          unreadCount
-        });
-      }
+      // Luôn luôn thêm guest vào danh sách (không check lastMessage)
+      conversations.push({
+        guestId: guest.guestId,
+        name: guest.name || `Khách ${guest.guestId.slice(0, 8)}`,
+        phoneNumber: undefined,
+        email: undefined,
+        lastMessageAt: lastMessage?.timestamp || undefined,
+        lastMessage: lastMessage || undefined,
+        unreadCount
+      });
     }
     
     // Sort by last message time (newest first), then unread count

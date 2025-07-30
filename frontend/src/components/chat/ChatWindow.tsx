@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useRef, useState, useMemo } from 'react';
-import { Send, MoreVertical, Phone, Video, Info, Paperclip, MessageCircle, Check, CheckCheck } from 'lucide-react';
+import { Send, MoreVertical, Phone, Video, Info, Paperclip, MessageCircle, Check, CheckCheck, Search, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useChatHub } from '@/components/chat/ChatHubProvider';
 import type { ConversationUser } from '@/hooks/useChatConversations';
@@ -152,12 +152,17 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const MESSAGES_PER_PAGE = 15;
 
-  // Load conversation history
+  // Load conversation history - CHỈ 1 LẦN khi conversation thay đổi
   useEffect(() => {
     if (!conversation || !userId) {
       setHistory([]);
       return;
     }
+
+    // Reset states when conversation changes
+    setHistory([]);
+    setHistoryPage(0);
+    setHasMoreHistory(true);
 
     let isCancelled = false;
     setLoading(true);
@@ -183,7 +188,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     return () => {
       isCancelled = true;
     };
-  }, [conversation, userId, fetchChatHistory]);
+  }, [conversation?.userId, userId]);
 
   // Combine and process all messages
   const allMessages = useMemo(() => {
@@ -198,20 +203,18 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     ];
 
     // Remove duplicates
-    const uniqueMessages = conversationMessages.filter((msg, index, arr) =>
-      arr.findIndex(m =>
-        m.senderId === msg.senderId &&
-        m.receiverId === msg.receiverId &&
-        m.message === msg.message &&
-        Math.abs(new Date(m.timestamp || '').getTime() - new Date(msg.timestamp || '').getTime()) < 1000
-      ) === index
-    );
+    const messageMap = new Map();
+    conversationMessages.forEach(msg => {
+      const key = `${msg.senderId}-${msg.receiverId}-${msg.message}-${Math.floor(new Date(msg.timestamp || '').getTime() / 1000)}`;
+      if (!messageMap.has(key) || (msg.messageId && !messageMap.get(key).messageId)) {
+        messageMap.set(key, msg);
+      }
+    });
 
-    // Sort by timestamp
-    return uniqueMessages.sort((a, b) =>
+    return Array.from(messageMap.values()).sort((a, b) =>
       new Date(a.timestamp || '').getTime() - new Date(b.timestamp || '').getTime()
     );
-  }, [history, realtimeMessages, conversation, userId]);
+  }, [history, realtimeMessages, conversation?.userId, userId]);
 
   // Paginate messages - show only recent messages initially
   const displayedMessages = useMemo(() => {
@@ -247,9 +250,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     return groups;
   }, [displayedMessages]);
 
-  // Handle scroll to load more messages
+  // Handle scroll - LOẠI BỎ auto scroll logic hoàn toàn
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop } = e.currentTarget;
+    
+    // Chỉ load more messages khi scroll to top
     if (scrollTop === 0 && !loadingMore && hasMoreHistory) {
       setLoadingMore(true);
       setTimeout(() => {
@@ -259,27 +264,13 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   }, [loadingMore, hasMoreHistory]);
 
-  // Check if there are more messages to load
-  useEffect(() => {
-    const totalMessages = allMessages.length;
-    const displayedCount = MESSAGES_PER_PAGE * (historyPage + 1);
-    setHasMoreHistory(totalMessages > displayedCount);
-  }, [allMessages.length, historyPage, MESSAGES_PER_PAGE]);
-
-  // Auto scroll to bottom
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [allMessages.length]);
+  // LOẠI BỎ hoàn toàn auto scroll useEffect
 
   // Handle send message
   const handleSend = useCallback(() => {
     const trimmedInput = input.trim();
     if (!trimmedInput || !conversation || !sendMessage) return;
-
+    
     sendMessage(conversation.userId, trimmedInput);
     setInput('');
 
@@ -297,28 +288,16 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   }, [handleSend]);
 
-  // Handle input change with auto-resize
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value);
-
-    // Auto resize textarea
-    const textarea = e.target;
-    textarea.style.height = 'auto';
-    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
-  }, []);
-
   if (!conversation) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gray-50 h-full">
+      <div className="h-full flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-            <MessageCircle className="w-12 h-12 text-gray-400" />
-          </div>
+          <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Chọn một cuộc hội thoại
+            Chọn cuộc trò chuyện
           </h3>
           <p className="text-gray-500">
-            Chọn người dùng từ danh sách bên trái để bắt đầu nhắn tin
+            Chọn một cuộc trò chuyện từ danh sách để bắt đầu nhắn tin
           </p>
         </div>
       </div>
@@ -326,98 +305,87 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white h-full">
+    <div className="h-full flex flex-col bg-white">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200 bg-white flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {onBack && (
-              <button
-                onClick={onBack}
-                className="lg:hidden p-2 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                ←
-              </button>
-            )}
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
+        <div className="flex items-center gap-3">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="lg:hidden p-2 hover:bg-gray-100 rounded-full transition-colors"
+              aria-label="Quay lại"
+            >
+              <ArrowLeft className="h-5 w-5 text-gray-600" />
+            </button>
+          )}
 
-            <img
-              src={conversation.avatarUrl || "https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg"}
-              alt={conversation.fullName}
-              className="w-10 h-10 rounded-full object-cover"
-            />
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              {conversation.avatarUrl ? (
+                <img
+                  src={conversation.avatarUrl}
+                  alt={conversation.fullName}
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+                  {conversation.fullName.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
+            </div>
 
             <div>
-              <h2 className="font-semibold text-gray-900">
-                {conversation.fullName}
-              </h2>
-              <p className="text-sm text-gray-500">
-                {conversation.role === 'Patient' ? 'Bệnh nhân' :
-                  conversation.role === 'Dentist' ? 'Nha sĩ' :
-                    conversation.role}
-              </p>
+              <h2 className="font-semibold text-gray-900">{conversation.fullName}</h2>
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <span className="capitalize">{conversation.role}</span>
+                {conversation.phone && (
+                  <>
+                    <span>•</span>
+                    <span>{conversation.phone}</span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* Action buttons */}
-          {/* <div className="flex items-center gap-2">
-            <button
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              title="Gọi điện"
-            >
-              <Phone className="w-5 h-5 text-gray-600" />
-            </button>
-            <button
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              title="Gọi video"
-            >
-              <Video className="w-5 h-5 text-gray-600" />
-            </button>
-            <button
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              title="Thông tin"
-            >
-              <Info className="w-5 h-5 text-gray-600" />
-            </button>
-            <button
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              title="Tùy chọn khác"
-            >
-              <MoreVertical className="w-5 h-5 text-gray-600" />
-            </button>
-          </div> */}
+        <div className="flex items-center gap-2">
+          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors" title="Tìm kiếm">
+            <Search className="h-5 w-5 text-gray-600" />
+          </button>
+          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors" title="Thông tin">
+            <MoreVertical className="h-5 w-5 text-gray-600" />
+          </button>
         </div>
       </div>
 
-      {/* Messages - Take remaining space */}
-      <div
+      {/* Messages Container - LOẠI BỎ auto scroll */}
+      <div 
         ref={messagesContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-6 py-4 bg-gray-50 min-h-0"
+        className="flex-1 overflow-y-auto p-4 space-y-4"
       >
         {loading ? (
-          <div className="flex justify-center items-center h-32">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="flex justify-center py-8">
+            <div className="inline-flex items-center gap-2 text-gray-500">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              <span className="text-sm">Đang tải tin nhắn...</span>
+            </div>
           </div>
         ) : groupedMessages.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-              <MessageCircle className="w-8 h-8 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Chưa có tin nhắn
-            </h3>
-            <p className="text-gray-500">
-              Hãy gửi tin nhắn đầu tiên để bắt đầu cuộc hội thoại
-            </p>
+          <div className="text-center py-8">
+            <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+            <p className="text-gray-600">Chưa có tin nhắn nào</p>
+            <p className="text-sm text-gray-500 mt-1">Gửi tin nhắn đầu tiên để bắt đầu cuộc trò chuyện</p>
           </div>
         ) : (
           <>
-            {/* Load more indicator */}
             {loadingMore && (
-              <div className="text-center py-4">
+              <div className="flex justify-center py-2">
                 <div className="inline-flex items-center gap-2 text-gray-500">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                  <span className="text-sm">Đang tải tin nhắn cũ...</span>
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                  <span className="text-xs">Đang tải thêm...</span>
                 </div>
               </div>
             )}
@@ -425,65 +393,55 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             {groupedMessages.map((group, groupIndex) => (
               <div key={groupIndex}>
                 <DateSeparator date={group.date} />
-                {group.messages.map((message, messageIndex) => {
-                  const isMine = message.senderId === userId;
-                  const prevMessage = messageIndex > 0 ? group.messages[messageIndex - 1] : null;
-                  const showAvatar = !prevMessage || prevMessage.senderId !== message.senderId;
-
-                  return (
+                <div className="space-y-2">
+                  {group.messages.map((message, messageIndex) => (
                     <MessageItem
-                      key={message.messageId || `${message.senderId}-${message.timestamp}-${messageIndex}`}
+                      key={`${groupIndex}-${messageIndex}`}
                       message={message}
-                      isMine={isMine}
-                      showAvatar={showAvatar}
+                      isMine={message.senderId === userId}
                       conversationUser={conversation}
                     />
-                  );
-                })}
+                  ))}
+                </div>
               </div>
             ))}
-            <div ref={messagesEndRef} />
           </>
         )}
+        
+        {/* Scroll anchor - không auto scroll */}
+        <div ref={messagesEndRef} />
       </div>
 
-      {/* Input - Always at bottom */}
-      <div className="px-6 py-4 border-t border-gray-200 bg-white flex-shrink-0">
-        <div className="flex items-end gap-3">
-          <button
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0 self-end"
-            title="Đính kèm file"
-            style={{ height: 48 }}
-          >
-            <Paperclip className="w-5 h-5 text-gray-600" />
+      {/* Input Area */}
+      <div className="p-4 border-t border-gray-200 bg-white">
+        <div className="flex items-end gap-2">
+          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+            <Paperclip className="h-5 w-5 text-gray-600" />
           </button>
 
-          <div className="flex-1 relative flex items-end">
+          <div className="flex-1">
             <textarea
               ref={inputRef}
               value={input}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyPress}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
               placeholder="Nhập tin nhắn..."
-              className="w-full resize-none border border-gray-300 rounded-2xl px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[48px]"
+              className="w-full resize-none border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               rows={1}
-              style={{ minHeight: 48, lineHeight: '24px' }}
+              style={{ minHeight: '40px', maxHeight: '120px' }}
             />
           </div>
 
           <button
             onClick={handleSend}
             disabled={!input.trim()}
-            className={`
-        p-3 rounded-full transition-all flex-shrink-0 self-end
-        ${input.trim()
-                ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              }
-      `}
-            style={{ height: 48, width: 48, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            className={`p-2 rounded-full transition-colors ${
+              input.trim()
+                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
           >
-            <Send className="w-5 h-5" />
+            <Send className="h-5 w-5" />
           </button>
         </div>
       </div>
