@@ -1,25 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { GuestConversationList } from '@/components/chat/GuestConversationList';
 import { ChatWindow } from '@/components/chat/ChatWindow';
-import { useGuestConversations } from '@/hooks/useGuestConversations';
-import type { GuestConversation } from '@/hooks/useGuestConversations';
-import type { ConversationUser } from '@/hooks/useChatConversations';
+import { useGuestConversations } from '@/hooks/chat/useGuestConversations';
+import type { GuestConversation } from '@/hooks/chat/useGuestConversations';
+import type { ConversationUser } from '@/hooks/chat/useChatConversations';
 import { StaffLayout } from '@/layouts/staff';
 import { useUserInfo } from '@/hooks/useUserInfo';
+import { useUnreadMessages } from '@/hooks/chat/useUnreadMessages';
+
 const GuestConsultationPage: React.FC = () => {
   const { userId, role } = useAuth();
   const [selectedConversation, setSelectedConversation] = useState<GuestConversation | null>(null);
   const [showMobileChat, setShowMobileChat] = useState(false);
   const userInfo = useUserInfo();
+  
   const {
     conversations,
     loading,
-    markAsRead,
+    markAsRead: markGuestAsRead,
     loadConversationData,
     totalCount,
     refreshGuests
   } = useGuestConversations();
+
+  const {
+    getUnreadCount,
+    markAsRead,
+    addUnreadMessage,
+    refreshUnreadCounts
+  } = useUnreadMessages(userId);
+
+  // Update guest conversations with unread counts
+  const conversationsWithUnread = useMemo(() => {
+    return conversations.map(conv => ({
+      ...conv,
+      unreadCount: getUnreadCount(conv.guestId)
+    }));
+  }, [conversations, getUnreadCount]);
 
   // Convert GuestConversation to ConversationUser for ChatWindow
   const selectedUser: ConversationUser | null = selectedConversation ? {
@@ -33,14 +51,16 @@ const GuestConsultationPage: React.FC = () => {
     unreadCount: selectedConversation.unreadCount
   } : null;
 
-  // Danh sách user ID được phép truy cập
-  const ALLOWED_USER_IDS = ["3"]; // Có thể thêm nhiều ID khác
-
   // Handle conversation selection
   const handleSelectConversation = async (conversation: GuestConversation) => {
     setSelectedConversation(conversation);
     setShowMobileChat(true);
-    markAsRead(conversation.guestId);
+    
+    // Mark messages as read
+    await markAsRead(conversation.guestId, userId || '');
+    await markGuestAsRead(conversation.guestId);
+    
+    // Load conversation data
     await loadConversationData(conversation.guestId);
   };
 
@@ -49,6 +69,20 @@ const GuestConsultationPage: React.FC = () => {
     setShowMobileChat(false);
     setSelectedConversation(null);
   };
+
+  // Periodic refresh for unread counts
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!showMobileChat) {
+        refreshUnreadCounts();
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [showMobileChat, refreshUnreadCounts]);
+
+  // Danh sách user ID được phép truy cập
+  const ALLOWED_USER_IDS = ["3"]; // Có thể thêm nhiều ID khác
 
   // Kiểm tra quyền truy cập
   if (!userId || !ALLOWED_USER_IDS.includes(userId)) {
@@ -104,7 +138,7 @@ const GuestConsultationPage: React.FC = () => {
               {/* Mobile Conversation List */}
               <div className="flex-1">
                 <GuestConversationList
-                  conversations={conversations}
+                  conversations={conversationsWithUnread}
                   selectedConversation={selectedConversation}
                   onSelectConversation={handleSelectConversation}
                   loading={loading}
@@ -118,6 +152,7 @@ const GuestConsultationPage: React.FC = () => {
               <ChatWindow
                 conversation={selectedUser}
                 onBack={handleBackFromChat}
+                onMarkAsRead={markAsRead}
               />
             </div>
           )}
@@ -149,7 +184,7 @@ const GuestConsultationPage: React.FC = () => {
                   {/* Guest Conversation List */}
                   <div className="w-80 border-r border-gray-200">
                     <GuestConversationList
-                      conversations={conversations}
+                      conversations={conversationsWithUnread}
                       selectedConversation={selectedConversation}
                       onSelectConversation={handleSelectConversation}
                       loading={loading}
@@ -160,7 +195,10 @@ const GuestConsultationPage: React.FC = () => {
 
                   {/* Chat Window */}
                   <div className="flex-1">
-                    <ChatWindow conversation={selectedUser} />
+                    <ChatWindow 
+                      conversation={selectedUser} 
+                      onMarkAsRead={markAsRead}
+                    />
                   </div>
                 </div>
               </div>

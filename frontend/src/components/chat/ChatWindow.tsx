@@ -2,19 +2,19 @@ import React, { memo, useCallback, useEffect, useRef, useState, useMemo } from '
 import { Send, MoreVertical, Phone, Video, Info, Paperclip, MessageCircle, Check, CheckCheck, Search, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useChatHub } from '@/components/chat/ChatHubProvider';
-import type { ConversationUser } from '@/hooks/useChatConversations';
-import type { ChatMessage } from '@/hooks/useChatConversations';
+import type { ConversationUser } from '@/hooks/chat/useChatConversations';
+import type { ChatMessage } from '@/hooks/chat/useChatConversations';
 
 interface ChatWindowProps {
   conversation: ConversationUser | null;
   onBack?: () => void;
+  onMarkAsRead?: (senderId: string, receiverId: string) => void;
 }
 
 // Memoized message item component
 const MessageItem = memo(({
   message,
   isMine,
-  // showAvatar = false,
   conversationUser
 }: {
   message: ChatMessage;
@@ -33,14 +33,6 @@ const MessageItem = memo(({
 
   return (
     <div className={`flex gap-2 mb-3 ${isMine ? 'justify-end' : 'justify-start'}`}>
-      {/* {!isMine && showAvatar && (
-        <img
-          src={"https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg"}
-          alt="Avatar"
-          className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-        />
-      )} */}
-
       <div className={`max-w-[70%] ${isMine ? 'order-last' : ''}`}>
         <div
           className={`
@@ -83,14 +75,6 @@ const MessageItem = memo(({
           )}
         </div>
       </div>
-
-      {/* {isMine && showAvatar && (
-        <img
-          src={"https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg"}
-          alt="Avatar"
-          className="w-8 h-8 rounded-full bg-blue-600 flex-shrink-0"
-        />
-      )} */}
     </div>
   );
 });
@@ -132,7 +116,8 @@ DateSeparator.displayName = 'DateSeparator';
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
   conversation,
-  onBack
+  onBack,
+  onMarkAsRead
 }) => {
   const { userId } = useAuth();
   const {
@@ -147,10 +132,19 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const [loadingMore, setLoadingMore] = useState(false);
   const [historyPage, setHistoryPage] = useState(0);
   const [hasMoreHistory, setHasMoreHistory] = useState(true);
+  const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false); // Track khi nào cần scroll
+  const [lastMessageCount, setLastMessageCount] = useState(0); // Track số lượng tin nhắn
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const MESSAGES_PER_PAGE = 15;
+
+  // Mark messages as read when conversation is opened or changed
+  useEffect(() => {
+    if (conversation && userId && onMarkAsRead) {
+      onMarkAsRead(conversation.userId, userId);
+    }
+  }, [conversation?.userId, userId, onMarkAsRead]);
 
   // Load conversation history - CHỈ 1 LẦN khi conversation thay đổi
   useEffect(() => {
@@ -163,6 +157,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     setHistory([]);
     setHistoryPage(0);
     setHasMoreHistory(true);
+    setShouldScrollToBottom(true); // Scroll xuống khi đổi conversation
 
     let isCancelled = false;
     setLoading(true);
@@ -250,7 +245,32 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     return groups;
   }, [displayedMessages]);
 
-  // Handle scroll - LOẠI BỎ auto scroll logic hoàn toàn
+  // Scroll to bottom function
+  const scrollToBottom = useCallback((smooth = false) => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: smooth ? 'smooth' : 'auto',
+        block: 'end'
+      });
+    }
+  }, []);
+
+  // Auto scroll khi có tin nhắn mới hoặc khi cần thiết
+  useEffect(() => {
+    const currentMessageCount = displayedMessages.length;
+    
+    // Scroll xuống khi:
+    // 1. Load conversation lần đầu (shouldScrollToBottom = true)
+    // 2. Có tin nhắn mới (số lượng tin nhắn tăng)
+    if (shouldScrollToBottom || (currentMessageCount > lastMessageCount && lastMessageCount > 0)) {
+      setTimeout(() => scrollToBottom(lastMessageCount > 0), 100); // Smooth nếu có tin nhắn mới
+      setShouldScrollToBottom(false);
+    }
+    
+    setLastMessageCount(currentMessageCount);
+  }, [displayedMessages.length, shouldScrollToBottom, lastMessageCount, scrollToBottom]);
+
+  // Handle scroll - Load more messages khi scroll to top
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop } = e.currentTarget;
     
@@ -264,8 +284,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   }, [loadingMore, hasMoreHistory]);
 
-  // LOẠI BỎ hoàn toàn auto scroll useEffect
-
   // Handle send message
   const handleSend = useCallback(() => {
     const trimmedInput = input.trim();
@@ -273,6 +291,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     
     sendMessage(conversation.userId, trimmedInput);
     setInput('');
+    setShouldScrollToBottom(true); // Scroll xuống sau khi gửi
 
     // Focus back to input
     setTimeout(() => {
@@ -360,7 +379,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         </div>
       </div>
 
-      {/* Messages Container - LOẠI BỎ auto scroll */}
+      {/* Messages Container */}
       <div 
         ref={messagesContainerRef}
         onScroll={handleScroll}
@@ -408,7 +427,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           </>
         )}
         
-        {/* Scroll anchor - không auto scroll */}
+        {/* Scroll anchor - để scroll xuống */}
         <div ref={messagesEndRef} />
       </div>
 

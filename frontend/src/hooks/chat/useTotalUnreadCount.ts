@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useChatConversations } from './useChatConversations';
 import { useInternalConversations } from './useInternalConversations';
 import { useGuestConversations } from './useGuestConversations';
-import { useAuth } from './useAuth';
+import { useAuth } from '../useAuth';
 
 export const useTotalUnreadCount = () => {
   const { role } = useAuth();

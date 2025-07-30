@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { useChatHubGuest } from "@/hooks/useChatHubGuest";
+import { useChatHubGuest } from "@/hooks/chat/useChatHubGuest";
 import { MessageCircle, X, Send, User, Headphones, Image, Video, Paperclip, Camera } from "lucide-react";
 
 const CONSULTANT = { id: "3", name: "Nhân viên tư vấn" };

@@ -1,52 +1,96 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { ConversationList } from '@/components/chat/ConversationList';
 import { ChatWindow } from '@/components/chat/ChatWindow';
-import { useChatConversations } from '@/hooks/useChatConversations';
-import type { ConversationUser } from '@/hooks/useChatConversations';
+import { useChatConversations } from '@/hooks/chat/useChatConversations';
+import { usePatientConversations } from '@/hooks/chat/usePatientConversations'; // Import hook mới
+import { useUnreadMessages } from '@/hooks/chat/useUnreadMessages';
+import type { ConversationUser } from '@/hooks/chat/useChatConversations';
 import { StaffLayout } from '@/layouts/staff';
 import { useUserInfo } from '@/hooks/useUserInfo';
 
 const PatientConsultationPage: React.FC = () => {
-  const { role } = useAuth();
+  const { role, userId } = useAuth();
   const [selectedConversation, setSelectedConversation] = useState<ConversationUser | null>(null);
   const [showMobileChat, setShowMobileChat] = useState(false);
   const userInfo = useUserInfo();
 
-  // Define allowed roles
   const STAFF_ROLES = useMemo(() => ["Administrator", "Owner", "Receptionist", "Assistant", "Dentist"], []);
+  const isStaff = STAFF_ROLES.includes(role || '');
 
-  // Hooks should be called before any early returns
+  // Use different hooks based on role
+  const staffHook = usePatientConversations(); // For staff - get patients
+  const patientHook = useChatConversations(); // For patients - get all users then filter
+
   const {
-    conversations,
+    conversations: rawConversations,
     filters,
     updateFilters,
     loadMore,
     hasMore,
     loading,
-    markAsRead,
+    markAsRead: markConversationAsRead,
     loadConversationData,
     totalCount,
     totalUnreadCount
-  } = useChatConversations();
+  } = isStaff ? staffHook : patientHook;
 
-  // Filter conversations based on role
-  const filteredConversationsByRole = useMemo(() => {
+  const {
+    getUnreadCount,
+    markAsRead,
+    addUnreadMessage,
+    refreshUnreadCounts
+  } = useUnreadMessages(userId);
+
+  // Filter conversations for patients (staff already filtered in hook)
+  const filteredConversations = useMemo(() => {
     if (role === 'Patient') {
-      // Patient can chat with all staff
-      return conversations.filter(conv => STAFF_ROLES.includes(conv.role));
-    } else if (STAFF_ROLES.includes(role || '')) {
-      // Staff can only chat with Patients
-      return conversations.filter(conv => conv.role === 'Patient');
+      // Patient sees staff members
+      return rawConversations.filter(conv => STAFF_ROLES.includes(conv.role));
+    } else if (isStaff) {
+      // Staff sees patients (already filtered in usePatientConversations)
+      return rawConversations;
     }
     return [];
-  }, [conversations, role, STAFF_ROLES]);
+  }, [rawConversations, role, STAFF_ROLES, isStaff]);
+
+  // Update conversations with unread counts
+  const conversationsWithUnread = useMemo(() => {
+    return filteredConversations.map(conv => ({
+      ...conv,
+      unreadCount: getUnreadCount(conv.userId)
+    }));
+  }, [filteredConversations, getUnreadCount]);
+
+  // Sort conversations: unread first, then by last message time, then alphabetically
+  const sortedConversations = useMemo(() => {
+    return [...conversationsWithUnread].sort((a, b) => {
+      // First priority: unread messages
+      if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
+      if (a.unreadCount === 0 && b.unreadCount > 0) return 1;
+      
+      // Second priority: last message time
+      if (a.lastMessageTime && b.lastMessageTime) {
+        return new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime();
+      }
+      if (a.lastMessageTime && !b.lastMessageTime) return -1;
+      if (!a.lastMessageTime && b.lastMessageTime) return 1;
+      
+      // Third priority: alphabetical by name
+      return a.fullName.localeCompare(b.fullName, 'vi');
+    });
+  }, [conversationsWithUnread]);
 
   // Handle conversation selection
   const handleSelectConversation = async (conversation: ConversationUser) => {
     setSelectedConversation(conversation);
     setShowMobileChat(true);
-    markAsRead(conversation.userId);
+    
+    // Mark messages as read và refresh unread counts
+    await markAsRead(conversation.userId, userId || '');
+    markConversationAsRead(conversation.userId);
+    
+    // Load conversation data
     await loadConversationData(conversation.userId);
   };
 
@@ -55,6 +99,17 @@ const PatientConsultationPage: React.FC = () => {
     setShowMobileChat(false);
     setSelectedConversation(null);
   };
+
+  // Periodic refresh for unread counts
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!showMobileChat) {
+        refreshUnreadCounts();
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [showMobileChat, refreshUnreadCounts]);
 
   // Kiểm tra quyền truy cập AFTER all hooks
   if (!role || (!STAFF_ROLES.includes(role) && role !== 'Patient')) {
@@ -104,6 +159,11 @@ const PatientConsultationPage: React.FC = () => {
     return 'Quản lý và trả lời các tin nhắn tư vấn từ bệnh nhân';
   };
 
+  // Calculate stats
+  const totalPatients = sortedConversations.length;
+  const patientsWithMessages = sortedConversations.filter(conv => conv.lastMessage).length;
+  const patientsWithoutMessages = totalPatients - patientsWithMessages;
+
   return (
     <StaffLayout userInfo={userInfo}>
       <div className="min-h-screen bg-gray-50">
@@ -120,16 +180,16 @@ const PatientConsultationPage: React.FC = () => {
               {/* Mobile Conversation List */}
               <div className="flex-1">
                 <ConversationList
-                  conversations={filteredConversationsByRole}
+                  conversations={sortedConversations}
                   selectedConversation={selectedConversation}
                   onSelectConversation={handleSelectConversation}
                   filters={filters}
-                  onUpdateFilters={updateFilters}
-                  onLoadMore={loadMore}
-                  hasMore={hasMore}
+                  onFiltersChange={updateFilters}
                   loading={loading}
-                  totalCount={totalCount}
-                  showFilters={false}
+                  hasMore={hasMore}
+                  onLoadMore={loadMore}
+                  totalCount={totalPatients}
+                  totalUnreadCount={totalUnreadCount}
                 />
               </div>
             </div>
@@ -138,6 +198,7 @@ const PatientConsultationPage: React.FC = () => {
               <ChatWindow
                 conversation={selectedConversation}
                 onBack={handleBackFromChat}
+                onMarkAsRead={markAsRead}
               />
             </div>
           )}
@@ -155,35 +216,52 @@ const PatientConsultationPage: React.FC = () => {
                 <p className="text-gray-600">
                   {getPageDescription()}
                 </p>
-                {/* <div className="mt-2 text-sm text-green-600">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100">
-                  ✓ {role === 'Patient' ? 'Bệnh nhân' : `Nhân viên - ${role}`}
-                </span>
-              </div> */}
+                {/* Stats */}
+                <div className="mt-4 flex items-center gap-6 text-sm text-gray-600">
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    Bệnh nhân: <span className="font-medium text-gray-900">{totalPatients}</span>
+                  </span>
+                  {role !== 'Patient' && totalPatients > 0 && (
+                    <>
+                      <span className="flex items-center gap-1">
+                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                        Đã nhắn tin: <span className="font-medium text-gray-900">{patientsWithMessages}</span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+                        Chưa nhắn tin: <span className="font-medium text-gray-900">{patientsWithoutMessages}</span>
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
 
               {/* Chat Container */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <div className="flex h-[calc(100vh-240px)]">
+                <div className="flex h-[calc(100vh-320px)]">
                   {/* Conversation List */}
                   <div className="w-80 border-r border-gray-200">
                     <ConversationList
-                      conversations={filteredConversationsByRole}
+                      conversations={sortedConversations}
                       selectedConversation={selectedConversation}
                       onSelectConversation={handleSelectConversation}
                       filters={filters}
-                      onUpdateFilters={updateFilters}
-                      onLoadMore={loadMore}
-                      hasMore={hasMore}
+                      onFiltersChange={updateFilters}
                       loading={loading}
-                      totalCount={totalCount}
-                      showFilters={false}
+                      hasMore={hasMore}
+                      onLoadMore={loadMore}
+                      totalCount={totalPatients}
+                      totalUnreadCount={totalUnreadCount}
                     />
                   </div>
 
                   {/* Chat Window */}
                   <div className="flex-1">
-                    <ChatWindow conversation={selectedConversation} />
+                    <ChatWindow 
+                      conversation={selectedConversation} 
+                      onMarkAsRead={markAsRead}
+                    />
                   </div>
                 </div>
               </div>
@@ -198,23 +276,23 @@ const PatientConsultationPage: React.FC = () => {
                   </div>
                   <div className="ml-3">
                     <h3 className="text-sm font-medium text-blue-800">
-                      Hướng dẫn sử dụng
+                      Thông tin
                     </h3>
                     <div className="mt-2 text-sm text-blue-700">
                       <ul className="list-disc list-inside space-y-1">
                         {role === 'Patient' ? (
                           <>
-                            <li>Khi tìm kiếm: hiển thị tất cả nhân viên phù hợp</li>
-                            <li>Không tìm kiếm: chỉ hiện nhân viên đã nhắn tin</li>
+                            <li>Hiển thị tất cả nhân viên y tế để tư vấn</li>
+                            <li>Sử dụng tìm kiếm để lọc nhân viên</li>
                             <li>Tin nhắn mới sẽ có dấu đỏ thông báo</li>
                             <li>Nhấn Enter để gửi tin nhắn nhanh</li>
                           </>
                         ) : (
                           <>
-                            <li>Khi tìm kiếm: hiển thị tất cả bệnh nhân phù hợp</li>
-                            <li>Không tìm kiếm: chỉ hiện bệnh nhân đã nhắn tin</li>
-                            <li>Bệnh nhân có tin nhắn mới sẽ hiển thị ở đầu danh sách</li>
-                            <li>Kéo xuống cuối để tải thêm bệnh nhân cũ</li>
+                            <li>Hiển thị bệnh nhân trong hệ thống</li>
+                            <li>Bệnh nhân có tin nhắn mới hiển thị ở đầu</li>
+                            <li>Sử dụng tìm kiếm để lọc bệnh nhân</li>
+                            <li>Click vào bệnh nhân để bắt đầu tư vấn</li>
                           </>
                         )}
                       </ul>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback, memo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useChatHub } from '@/components/chat/ChatHubProvider';
-import type { ChatMessage } from '@/hooks/useChatHubGuest';
+import type { ChatMessage } from '@/hooks/chat/useChatHubGuest';
 
 type Staff = {
   userId: string;

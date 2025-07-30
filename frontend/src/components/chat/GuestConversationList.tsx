@@ -1,6 +1,6 @@
-import React, { memo, useCallback, useRef, useLayoutEffect } from 'react';
+import React, { memo, useCallback } from 'react';
 import { Search, Users, MessageCircle, RefreshCw } from 'lucide-react';
-import type { GuestConversation } from '@/hooks/useGuestConversations';
+import type { GuestConversation } from '@/hooks/chat/useGuestConversations';
 
 interface GuestConversationListProps {
   conversations: GuestConversation[];
@@ -124,46 +124,10 @@ export const GuestConversationList: React.FC<GuestConversationListProps> = ({
   totalCount,
   onRefresh
 }) => {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const savedScrollTop = useRef<number>(0);
-  const conversationIds = useRef<Set<string>>(new Set());
-
-  // Save scroll position before re-render
-  useLayoutEffect(() => {
-    const container = scrollContainerRef.current;
-    if (container) {
-      savedScrollTop.current = container.scrollTop;
-    }
-  });
-
-  // Restore scroll position after re-render
-  useLayoutEffect(() => {
-    const container = scrollContainerRef.current;
-    if (container && savedScrollTop.current > 0) {
-      // Check if this is just an update (not new conversations)
-      const currentIds = new Set(conversations.map(c => c.guestId));
-      const hasNewConversations = conversations.some(c => !conversationIds.current.has(c.guestId));
-      
-      if (!hasNewConversations) {
-        // Restore scroll position for updates
-        container.scrollTop = savedScrollTop.current;
-      }
-      
-      // Update stored conversation IDs
-      conversationIds.current = currentIds;
-    }
-  }, [conversations]);
-
-  const handleScroll = useCallback(() => {
-    if (scrollContainerRef.current) {
-      savedScrollTop.current = scrollContainerRef.current.scrollTop;
-    }
-  }, []);
-
   return (
     <div className="flex flex-col h-full bg-gray-50 border-r border-gray-200">
       {/* Header */}
-      <div className="p-4 bg-white border-b border-gray-200 flex-shrink-0">
+      <div className="p-4 bg-white border-b border-gray-200">
         <div className="flex items-center gap-2 mb-3">
           <MessageCircle className="h-5 w-5 text-purple-600" />
           <h2 className="text-lg font-semibold text-gray-900">Khách tư vấn</h2>
@@ -198,12 +162,7 @@ export const GuestConversationList: React.FC<GuestConversationListProps> = ({
       </div>
 
       {/* Conversation List */}
-      <div 
-        ref={scrollContainerRef}
-        onScroll={handleScroll}
-        className="flex-1 overflow-y-auto p-3"
-        style={{ scrollBehavior: 'auto' }}
-      >
+      <div className="flex-1 overflow-y-auto p-3 max-h-[calc(100vh-200px)]">
         {loading ? (
           <div className="text-center py-8">
             <div className="inline-flex items-center gap-2 text-gray-500">
@@ -220,16 +179,16 @@ export const GuestConversationList: React.FC<GuestConversationListProps> = ({
             </p>
           </div>
         ) : (
-          <div className="space-y-0">
+          <>
             {conversations.map((conversation) => (
               <GuestConversationItem
-                key={`conversation-${conversation.guestId}`}
+                key={conversation.guestId}
                 conversation={conversation}
                 isSelected={selectedConversation?.guestId === conversation.guestId}
                 onClick={() => onSelectConversation(conversation)}
               />
             ))}
-          </div>
+          </>
         )}
       </div>
     </div>

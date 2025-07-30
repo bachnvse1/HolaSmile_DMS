@@ -22,7 +22,7 @@ import {
   Phone
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
-import { useTotalUnreadCount } from '@/hooks/useTotalUnreadCount';
+import { useTotalUnreadCount } from '@/hooks/chat/useTotalUnreadCount';
 
 interface MenuItem {
   id: string;
