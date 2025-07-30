@@ -83,7 +83,7 @@ namespace HDMS_API.Controllers
                 var result = await _mediator.Send(command);
                 return result
                     ? Ok(new { status = true, message = MessageConstants.MSG.MSG117 })
-                    : Conflict(new { status = false, message = MessageConstants.MSG.MSG58 });
+                    : Conflict(new { status = false, message = MessageConstants.MSG.MSG116 });
             }
             catch (UnauthorizedAccessException ex)
             {

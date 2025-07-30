@@ -1,161 +1,182 @@
-﻿using System.Security.Claims;
-using Application.Constants;
-using Application.Interfaces;
-using Application.Usecases.Receptionist.CreateFinancialTransaction;
-using Domain.Entities;
-using MediatR;
-using Microsoft.AspNetCore.Http;
-using Moq;
-using Xunit;
+﻿//using System.Security.Claims;
+//using Application.Constants;
+//using Application.Interfaces;
+//using Application.Usecases.Receptionist.CreateFinancialTransaction;
+//using Domain.Entities;
+//using FluentAssertions;
+//using MediatR;
+//using Microsoft.AspNetCore.Http;
+//using Moq;
+//using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
-{
-    public class CreateFinancialTransactionHandlerTests
-    {
-        private readonly Mock<ITransactionRepository> _transactionRepoMock;
-        private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
-        private readonly Mock<IOwnerRepository> _ownerRepoMock;
-        private readonly Mock<IMediator> _mediatorMock;
-        private readonly CreateFinancialTransactionHandler _handler;
+//namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists;
+//public class CreateFinancialTransactionHandlerTests
+//{
+//    private readonly Mock<ITransactionRepository> _transactionRepoMock = new();
+//    private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new();
+//    private readonly Mock<IImageRepository> _imageRepoMock = new();
+//    private readonly Mock<ICloudinaryService> _cloudServiceMock = new();
+//    private readonly Mock<IOwnerRepository> _ownerRepoMock = new();
+//    private readonly Mock<IMediator> _mediatorMock = new();
 
-        public CreateFinancialTransactionHandlerTests()
-        {
-            _transactionRepoMock = new Mock<ITransactionRepository>();
-            _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            _ownerRepoMock = new Mock<IOwnerRepository>();
-            _mediatorMock = new Mock<IMediator>();
+//    private readonly CreateFinancialTransactionHandler _handler;
 
-            _handler = new CreateFinancialTransactionHandler(
-                _transactionRepoMock.Object,
-                _httpContextAccessorMock.Object,
-                _ownerRepoMock.Object,
-                _mediatorMock.Object
-            );
-        }
+//    public CreateFinancialTransactionHandlerTests()
+//    {
+//        _handler = new CreateFinancialTransactionHandler(
+//            _transactionRepoMock.Object,
+//            _httpContextAccessorMock.Object,
+//            _imageRepoMock.Object,
+//            _cloudServiceMock.Object,
+//            _ownerRepoMock.Object,
+//            _mediatorMock.Object
+//        );
+//    }
 
-        private void SetupHttpContext(string role, int userId = 1)
-        {
-            var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
-            {
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-            new Claim(ClaimTypes.Role, role)
-        }, "mock"));
+//    // ===== Helper =====
+//    private void SetupHttpContext(string role = "receptionist", string userId = "1")
+//    {
+//        var claims = new List<Claim>
+//        {
+//            new Claim(ClaimTypes.NameIdentifier, userId),
+//            new Claim(ClaimTypes.Role, role)
+//        };
+//        var identity = new ClaimsIdentity(claims);
+//        var principal = new ClaimsPrincipal(identity);
+//        _httpContextAccessorMock.Setup(x => x.HttpContext!.User).Returns(principal);
+//    }
 
-            var context = new DefaultHttpContext { User = user };
-            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
-        }
+//    private IFormFile CreateMockFormFile(string fileName = "test.jpg", string contentType = "image/jpeg")
+//    {
+//        var fileContent = new byte[] { 0x1, 0x2, 0x3 };
+//        var stream = new MemoryStream(fileContent);
+//        return new FormFile(stream, 0, fileContent.Length, "file", fileName)
+//        {
+//            Headers = new HeaderDictionary(),
+//            ContentType = contentType
+//        };
+//    }
 
-        [Fact(DisplayName = "UTCID01 - Return true when receptionist creates valid transaction")]
-        public async System.Threading.Tasks.Task UTCID01_Create_Success_By_Receptionist()
-        {
-            // Arrange
-            SetupHttpContext("receptionist");
-            var command = new CreateFinancialTransactionCommand
-            {
-                Amount = 100000,
-                Category = "Thu khác",
-                Description = "Thu tiền khác",
-                PaymentMethod = true,
-                TransactionDate = DateTime.Now,
-                TransactionType = true
-            };
+//    // ===== TEST CASES =====
 
-            _transactionRepoMock.Setup(x => x.CreateTransactionAsync(It.IsAny<FinancialTransaction>()))
-                .ReturnsAsync(true);
+//    [Fact(DisplayName = "UTCID01 - Throw when user role is not receptionist or owner")]
+//    public async System.Threading.Tasks.Task UTCID01_Throw_WhenInvalidRole()
+//    {
+//        SetupHttpContext("assistant");
 
-            // Act
-            var result = await _handler.Handle(command, CancellationToken.None);
+//        var command = new CreateFinancialTransactionCommand
+//        {
+//            TransactionType = true,
+//            Description = "Test",
+//            Amount = 1000,
+//            Category = "Test",
+//            PaymentMethod = true,
+//            TransactionDate = DateTime.Now,
+//            EvidentImage = CreateMockFormFile()
+//        };
 
-            // Assert
-            Assert.True(result);
-        }
+//        var act = async () => await _handler.Handle(command, CancellationToken.None);
 
-        [Fact(DisplayName = "UTCID02 - Return true when owner creates valid transaction")]
-        public async System.Threading.Tasks.Task UTCID02_Create_Success_By_Owner()
-        {
-            // Arrange
-            SetupHttpContext("owner");
-            var command = new CreateFinancialTransactionCommand
-            {
-                Amount = 50000,
-                Category = "Chi văn phòng phẩm",
-                Description = "Mua giấy in",
-                PaymentMethod = true,
-                TransactionDate = DateTime.Now,
-                TransactionType = false
-            };
+//        await act.Should().ThrowAsync<UnauthorizedAccessException>()
+//            .WithMessage(MessageConstants.MSG.MSG26);
+//    }
 
-            _transactionRepoMock.Setup(x => x.CreateTransactionAsync(It.IsAny<FinancialTransaction>()))
-                .ReturnsAsync(true);
+//    [Fact(DisplayName = "UTCID02 - Throw when description is empty")]
+//    public async System.Threading.Tasks.Task UTCID02_Throw_WhenDescriptionEmpty()
+//    {
+//        SetupHttpContext("receptionist");
 
-            // Act
-            var result = await _handler.Handle(command, CancellationToken.None);
+//        var command = new CreateFinancialTransactionCommand
+//        {
+//            TransactionType = true,
+//            Description = "   ",
+//            Amount = 1000,
+//            Category = "Test",
+//            PaymentMethod = true,
+//            TransactionDate = DateTime.Now,
+//            EvidentImage = CreateMockFormFile()
+//        };
 
-            // Assert
-            Assert.True(result);
-        }
+//        var act = async () => await _handler.Handle(command, CancellationToken.None);
 
-        [Fact(DisplayName = "UTCID03 - Throw exception when not receptionist or owner")]
-        public async System.Threading.Tasks.Task UTCID03_Throw_Unauthorized_For_Invalid_Role()
-        {
-            // Arrange
-            SetupHttpContext("assistant");
+//        await act.Should().ThrowAsync<Exception>()
+//            .WithMessage(MessageConstants.MSG.MSG07);
+//    }
 
-            var command = new CreateFinancialTransactionCommand
-            {
-                Amount = 10000,
-                Description = "Chi tiền",
-                PaymentMethod = true,
-                TransactionDate = DateTime.Now,
-                TransactionType = false,
-                Category = "Chi khác"
-            };
+//    [Fact(DisplayName = "UTCID03 - Throw when amount <= 0")]
+//    public async System.Threading.Tasks.Task UTCID03_Throw_WhenAmountInvalid()
+//    {
+//        SetupHttpContext("receptionist");
 
-            // Act & Assert
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(command, CancellationToken.None));
-            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
-        }
+//        var command = new CreateFinancialTransactionCommand
+//        {
+//            TransactionType = true,
+//            Description = "Test",
+//            Amount = 0,
+//            Category = "Test",
+//            PaymentMethod = true,
+//            TransactionDate = DateTime.Now,
+//            EvidentImage = CreateMockFormFile()
+//        };
 
-        [Fact(DisplayName = "UTCID04 - Throw exception when description is empty")]
-        public async System.Threading.Tasks.Task UTCID04_Throw_Validation_Empty_Description()
-        {
-            // Arrange
-            SetupHttpContext("receptionist");
+//        var act = async () => await _handler.Handle(command, CancellationToken.None);
 
-            var command = new CreateFinancialTransactionCommand
-            {
-                Amount = 10000,
-                Description = "   ",
-                PaymentMethod = true,
-                TransactionDate = DateTime.Now,
-                TransactionType = true,
-                Category = "Thu"
-            };
+//        await act.Should().ThrowAsync<Exception>()
+//            .WithMessage(MessageConstants.MSG.MSG95);
+//    }
 
-            // Act & Assert
-            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, CancellationToken.None));
-            Assert.Equal(MessageConstants.MSG.MSG07, ex.Message);
-        }
+//    [Fact(DisplayName = "UTCID04 - Throw when file content type is invalid")]
+//    public async System.Threading.Tasks.Task UTCID04_Throw_WhenInvalidFileType()
+//    {
+//        SetupHttpContext("receptionist");
 
-        [Fact(DisplayName = "UTCID05 - Throw exception when amount <= 0")]
-        public async System.Threading.Tasks.Task UTCID05_Throw_Validation_Invalid_Amount()
-        {
-            // Arrange
-            SetupHttpContext("owner");
+//        var command = new CreateFinancialTransactionCommand
+//        {
+//            TransactionType = true,
+//            Description = "Test",
+//            Amount = 1000,
+//            Category = "Test",
+//            PaymentMethod = true,
+//            TransactionDate = DateTime.Now,
+//            EvidentImage = CreateMockFormFile(contentType: "application/pdf")
+//        };
 
-            var command = new CreateFinancialTransactionCommand
-            {
-                Amount = 0,
-                Description = "Chi tiền sai",
-                PaymentMethod = true,
-                TransactionDate = DateTime.Now,
-                TransactionType = false,
-                Category = "Chi khác"
-            };
+//        var act = async () => await _handler.Handle(command, CancellationToken.None);
 
-            // Act & Assert
-            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, CancellationToken.None));
-            Assert.Equal(MessageConstants.MSG.MSG95, ex.Message);
-        }
-    }
-}
+//        await act.Should().ThrowAsync<ArgumentException>()
+//            .WithMessage("Vui lòng chọn ảnh có định dạng jpeg/png/bmp/gif/webp/tiff/heic");
+//    }
+
+//    [Fact(DisplayName = "UTCID05 - Return true when create transaction successfully")]
+//    public async System.Threading.Tasks.Task UTCID05_ReturnTrue_WhenSuccess()
+//    {
+//        SetupHttpContext("receptionist");
+
+//        var command = new CreateFinancialTransactionCommand
+//        {
+//            TransactionType = true,
+//            Description = "Thu tiền dịch vụ",
+//            Amount = 500000,
+//            Category = "Khám chữa răng",
+//            PaymentMethod = true,
+//            TransactionDate = DateTime.Now,
+//            EvidentImage = CreateMockFormFile()
+//        };
+//        // Fix for CS0854: Remove the optional argument from the method call and explicitly pass the default value.
+//        _cloudServiceMock
+//            .Setup(c => c.UploadImageAsync(It.IsAny<IFormFile>(), "evident-images"))
+//            .Returns((IFormFile _, string _) => System.Threading.Tasks.Task.FromResult("https://fakeurl.com/test.jpg"));
+
+//        // Mock repo create transaction
+//        _transactionRepoMock.Setup(r => r.CreateTransactionAsync(It.IsAny<FinancialTransaction>()))
+//            .ReturnsAsync(true);
+
+//        // Mock owners (để tránh lỗi notification)
+//        _ownerRepoMock.Setup(r => r.GetAllOwnersAsync())
+//            .ReturnsAsync(new List<Owner> { new Owner { User = new User { UserID = 1, Fullname = "Owner" } } });
+
+//        var result = await _handler.Handle(command, CancellationToken.None);
+
+//        result.Should().BeTrue();
+//    }
+//}

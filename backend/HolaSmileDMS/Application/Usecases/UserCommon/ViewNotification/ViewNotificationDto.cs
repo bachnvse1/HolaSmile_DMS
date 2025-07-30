@@ -9,5 +9,6 @@
         public bool IsRead { get; set; }
         public DateTime CreatedAt { get; set; }
         public int? RelatedObjectId { get; set; }
+        public string? MappingUrl { get; set; } = null;
     }
 }

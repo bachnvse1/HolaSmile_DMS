@@ -41,6 +41,8 @@ namespace Application.Usecases.Receptionist.ViewFinancialTransactions
                 PaymentMethod = x.PaymentMethod ? "Tiền mặt" : "Chuyển khoản",
                 Amount = x.Amount,
                 Description = x.Description,
+                Status = x.status,
+                CreateById = x.CreatedBy,
             }).ToList();
             return viewFinancialTransactionsDTOs;
         }

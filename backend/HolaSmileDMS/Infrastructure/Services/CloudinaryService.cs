@@ -22,6 +22,29 @@ namespace Infrastructure.Services
             _cloudinary.Api.Secure = true;
         }
 
+        public async Task<string> UploadEvidenceImageAsync(IFormFile file, string folder = "evidence-images")
+        {
+            await using var stream = file.OpenReadStream();
+            var uploadParams = new ImageUploadParams
+            {
+                File = new FileDescription(file.FileName, stream),
+                Folder = folder,
+                UseFilename = true,
+                UniqueFilename = true,
+                Overwrite = false
+            };
+
+            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+
+            if (uploadResult.Error != null)
+            {
+                throw new Exception($"Image upload failed: {uploadResult.Error.Message}");
+            }
+
+
+            return uploadResult.SecureUrl.ToString();
+        }
+
         public async Task<string> UploadImageAsync(IFormFile file, string folder = "dental-images")
         {
             await using var stream = file.OpenReadStream();

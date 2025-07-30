@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
+using Application.Usecases.SendNotification;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
@@ -10,12 +11,16 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure
     {
         private readonly IProcedureRepository _procedureRepository;
         private readonly ISupplyRepository _supplyRepository;
+        private readonly IOwnerRepository _ownerRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public UpdateProcedureHandler(IProcedureRepository procedureRepository, ISupplyRepository supplyRepository, IHttpContextAccessor httpContextAccessor)
+        private readonly IMediator _mediator;
+        public UpdateProcedureHandler(IProcedureRepository procedureRepository, ISupplyRepository supplyRepository, IOwnerRepository ownerRepository, IHttpContextAccessor httpContextAccessor, IMediator mediator)
         {
             _procedureRepository = procedureRepository;
             _supplyRepository = supplyRepository;
+            _ownerRepository = ownerRepository;
             _httpContextAccessor = httpContextAccessor;
+            _mediator = mediator;
         }
 
         public async Task<bool> Handle(UpdateProcedureCommand request, CancellationToken cancellationToken)
@@ -69,7 +74,6 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure
             procedure.Price = priceTotal;
             procedure.Description = request.Description;
             procedure.Discount = request.Discount;
-            procedure.WarrantyPeriod = request.WarrantyPeriod;
             procedure.OriginalPrice = Math.Round(request.OriginalPrice,2);
             procedure.ConsumableCost = consumableTotal;
             procedure.ReferralCommissionRate = request.ReferralCommissionRate;
@@ -100,6 +104,20 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure
                     throw new Exception(MessageConstants.MSG.MSG58);
                 }
             }
+
+            try
+            {
+                var owners = await _ownerRepository.GetAllOwnersAsync();
+                var notifyOwners = owners.Select(async o =>
+                await _mediator.Send(new SendNotificationCommand(
+                      o.User.UserID,
+                      "Tạo thủ thuật mới",
+                      $"Trợ lý {o.User.Fullname} thay đổi thông tin {procedure.ProcedureName} vào lúc {DateTime.Now}",
+                      "procedure", 0, $"proceduces"),
+                cancellationToken));
+                await System.Threading.Tasks.Task.WhenAll(notifyOwners);
+            }
+            catch { }
 
             return await _procedureRepository.UpdateProcedureAsync(procedure);
         }

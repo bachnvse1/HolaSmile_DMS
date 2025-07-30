@@ -84,7 +84,24 @@ public class CreateOrthodonticTreatmentPlanHandler : IRequestHandler<CreateOrtho
                         "Kế hoạch điều trị mới",
                         message,
                         "Xem chi tiết",
-                        0
+                        0, $"patients/{request.PatientId}/orthodontic-treatment-plans"
+                    ), cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+                try
+                {
+                    var message =
+                        $"Kế hoạch điều trị chỉnh nha #{plan.PlanId} của bạn đã được nha sĩ {fullName} thiết lập và bắt đầu thực hiện trong hôm nay. Vui lòng kiểm tra chi tiết trong hồ sơ điều trị.";
+
+                    await _mediator.Send(new SendNotificationCommand(
+                        currentUserId,
+                        "Kế hoạch điều trị mới",
+                        message,
+                        "Xem chi tiết",
+                        0, $"patients/{request.PatientId}/orthodontic-treatment-plans"
                     ), cancellationToken);
                 }
                 catch (Exception ex)

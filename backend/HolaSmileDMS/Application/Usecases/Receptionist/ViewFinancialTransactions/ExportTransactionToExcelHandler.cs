@@ -21,14 +21,14 @@ namespace Application.Usecases.Receptionist.ViewFinancialTransactions
 
         public async Task<byte[]> Handle(ExportTransactionToExcelCommand request, CancellationToken cancellationToken)
         {
-            //var user = _httpContextAccessor.HttpContext?.User;
-            //var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            //var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
+            var user = _httpContextAccessor.HttpContext?.User;
+            var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-            //if (!string.Equals(currentUserRole, "Receptionist", StringComparison.OrdinalIgnoreCase))
-            //{
-            //    throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // Bạn không có quyền truy cập chức năng này
-            //}
+            if (!string.Equals(currentUserRole, "receptionist", StringComparison.OrdinalIgnoreCase) && !string.Equals(currentUserRole, "owner", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
+            }
 
             // Load data
             var transactions = await _transactionRepository.GetAllFinancialTransactionsAsync();

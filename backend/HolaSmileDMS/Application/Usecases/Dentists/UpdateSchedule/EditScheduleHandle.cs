@@ -91,18 +91,17 @@ namespace Application.Usecases.Dentist.UpdateSchedule
             schedule.UpdatedBy = currentUserId;
 
             var updated = await _scheduleRepository.UpdateScheduleAsync(schedule);
-            var owners = await _ownerRepository.GetAllOwnersAsync();
 
             // Send notification to owner and dentist
             try
             {
-
+                var owners = await _ownerRepository.GetAllOwnersAsync();
                 var notifyOwners = owners.Select(async o =>
                 await _mediator.Send(new SendNotificationCommand(
                       o.User.UserID,
                       "Đăng ký lịch làm việc",
                       $"Nha Sĩ {o.User.Fullname} đã thay đổi đăng ký lịch làm việc vào lúc {DateTime.Now}",
-                      "schedule", null),
+                      "schedule", 0, $"schedules"),
                 cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);
             }

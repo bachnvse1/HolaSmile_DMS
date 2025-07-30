@@ -7,4 +7,5 @@ public record NotificationDto(
     string?  Type,
     bool     IsRead,
     DateTime CreatedAt,
-    int?     RelatedObjectId);
+    int?     RelatedObjectId,
+    string?  MappingUrl);

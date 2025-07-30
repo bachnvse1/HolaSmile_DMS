@@ -46,10 +46,9 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
             var appointment = await _appointmentRepository.GetAppointmentByIdAsync(request.AppointmentId);
-            if(appointment.AppointmentDate > DateTime.Now)
-            {
-                throw new Exception("Chưa tới ngày điều trị, không thể tạo hồ sơ điều trị.");
-            }
+            
+            if(appointment.Status == "absented")
+                throw new Exception("Lịch hẹn đã bị hủy.");
 
             if (request.treatmentToday == false)
             {
@@ -63,6 +62,10 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
             ValidateRequest(request, appointment);
 
             var record = _mapper.Map<TreatmentRecord>(request);
+            if(appointment.AppointmentDate > DateTime.Now)
+            {
+                record.TreatmentStatus = "pending";
+            }
             record.CreatedAt = DateTime.Now;
             record.CreatedBy = currentUserId;
 
@@ -72,7 +75,7 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
 
             await _repository.AddAsync(record, cancellationToken);
 
-            await NotifyPatientAsync(appointment, record, fullName, cancellationToken);
+            await NotifyPatientAsync(appointment, record, fullName,currentUserId, cancellationToken);
 
             return MessageConstants.MSG.MSG31;
         }
@@ -152,7 +155,21 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
                             "Tạo lịch hẹn điều trị",
                             $"Lịch hẹn điều trị mới của bạn là ngày {request.TreatmentDate} đã được nha sĩ {fullName} tạo.",
                             "Lịch điều trị",
-                            0
+                            0, ""
+                        ), cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log error here if logger is available
+                    }
+                    try
+                    {
+                        await _mediator.Send(new SendNotificationCommand(
+                            currentUserId,
+                            "Tạo lịch hẹn điều trị",
+                            $"Lịch hẹn điều trị mới của bạn là ngày {request.TreatmentDate} đã được nha sĩ {fullName} tạo.",
+                            "Lịch điều trị",
+                            0, ""
                         ), cancellationToken);
                     }
                     catch (Exception ex)
@@ -163,7 +180,7 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
             }
         }
 
-        private async System.Threading.Tasks.Task NotifyPatientAsync(Appointment? appointment, TreatmentRecord record, string? fullName, CancellationToken cancellationToken)
+        private async System.Threading.Tasks.Task NotifyPatientAsync(Appointment? appointment, TreatmentRecord record, string? fullName, int currentUserId, CancellationToken cancellationToken)
         {
             if (appointment == null) return;
 
@@ -172,13 +189,22 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
             {
                 try
                 {
-                    var message = $"Mã hồ sơ điều trị: #{record.TreatmentRecordID} của bạn được nha sĩ {fullName} tạo và thực hiện trong hôm nay!";
+                    var message = $"Mã hồ sơ điều trị: #{record.TreatmentRecordID} của bạn được nha sĩ {fullName} tạo và thực hiện trong {record.TreatmentDate}!";
                     await _mediator.Send(new SendNotificationCommand(
                         userIdNotification,
                         "Tạo thủ thuật điều trị",
                         message,
                         "Xem hồ sơ",
-                        0
+                        0, $"patient/view-treatment-records?patientId={appointment.PatientId}"
+                    ), cancellationToken);
+                    
+                    var messageDentist = $"Mã hồ sơ điều trị: #{record.TreatmentRecordID} của bạn được nha sĩ {fullName} tạo và thực hiện trong {record.TreatmentDate}!";
+                    await _mediator.Send(new SendNotificationCommand(
+                        currentUserId,
+                        "Tạo thủ thuật điều trị",
+                        message,
+                        "Xem hồ sơ",
+                        0, $"patient/view-treatment-records?patientId={appointment.PatientId}"
                     ), cancellationToken);
                 }
                 catch (Exception ex)

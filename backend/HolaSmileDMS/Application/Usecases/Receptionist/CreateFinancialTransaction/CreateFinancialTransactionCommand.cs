@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Http;
 
 namespace Application.Usecases.Receptionist.CreateFinancialTransaction
 {
@@ -10,6 +11,7 @@ namespace Application.Usecases.Receptionist.CreateFinancialTransaction
         public string? Category { get; set; }
         public bool PaymentMethod { get; set; } //true for tien mat, false for chuyen khoan
         public DateTime TransactionDate { get; set; }
+        public IFormFile? EvidenceImage { get; set; } // Assuming you are using IFormFile for file uploads
 
     }
 }

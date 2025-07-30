@@ -49,7 +49,14 @@ namespace Application.Usecases.Receptionist.CreateDiscountProgram
 
             if (request.ListProcedure == null || request.ListProcedure.Count == 0)
             {
-                throw new Exception(MessageConstants.MSG.MSG119);
+                throw new Exception(MessageConstants.MSG.MSG99);
+            }
+
+            var promotions = await _promotionRepository.GetAllPromotionProgramsAsync();
+            bool isExistStartDate = promotions.Any(p => p.CreateDate.Date <= request.CreateDate.Date && p.EndDate.Date >= request.CreateDate.Date);
+            if(isExistStartDate)
+            {
+                throw new Exception(MessageConstants.MSG.MSG128); // "Ngày bắt đầu đã tồn tại trong chương trình khuyến mãi khác"
             }
 
             var validProcedureIds = await _procedureRepository.GetAllProceddureIdAsync();
@@ -85,10 +92,6 @@ namespace Application.Usecases.Receptionist.CreateDiscountProgram
                     DiscountAmount = procedureDiscount.DiscountAmount,
                 };
                 isCreated = await _promotionRepository.CreateProcedureDiscountProgramAsync(procedureDiscountProgram);
-                if (!isCreated)
-                {
-                    throw new Exception(MessageConstants.MSG.MSG116);
-                }
             }
 
             try
@@ -99,14 +102,14 @@ namespace Application.Usecases.Receptionist.CreateDiscountProgram
                 await _mediator.Send(new SendNotificationCommand(
                       o.User.UserID,
                       "Taọ chương trình khuyến mãi",
-                      $"Lễ tân {o.User.Fullname} đã tạo chương trình khuyến mãi {request.ProgramName} vào lúc {DateTime.Now}",
-                      "promotion", null),
+                      $"Lễ tân {o.User.Fullname} đã tạo chương trình khuyến mãi {request.ProgramName} bắt đầu từ ngày {request.CreateDate.Date} vào lúc {DateTime.Now}",
+                      "promotion", 0, $"promotions/{discountProgram.DiscountProgramID}"),
                 cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);
             }
             catch { }
 
-            return true;
+            return isCreated;
         }
     }
 }

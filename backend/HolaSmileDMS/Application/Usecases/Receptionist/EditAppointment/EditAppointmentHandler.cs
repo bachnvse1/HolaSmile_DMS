@@ -75,25 +75,28 @@ namespace Application.Usecases.Receptionist.EditAppointment
                 var currentDentist = await _dentistRepository.GetDentistByDentistIdAsync(existApp.DentistId);
                 var currentPatient = await _patientRepository.GetPatientByPatientIdAsync(existApp.PatientId);
 
+                if(newDentist.DentistId != currentDentist.DentistId)
+                {
+                    await _mediator.Send(new SendNotificationCommand(
+                        newDentist.User.UserID,
+                        "Thay đổi thông tin lịch khám",
+                        $"Lịch khám của bạn đã được thay đổi vào ngày {request.AppointmentDate.Date}.",
+                        "appointment", 0, $"appointments/{existApp.AppointmentId}"),
+                 cancellationToken);
+                }
+
                 await _mediator.Send(new SendNotificationCommand(
                     currentPatient.User.UserID,
                    "Thay đổi thông tin lịch khám",
                    $"Lịch khám của bạn đã được thay đổi vào ngày {request.AppointmentDate.Date}.",
-                   "Tạo lịch khám lần đầu", null),
+                   "appointment", 0, $"patient/appointments/{existApp.AppointmentId}"),
              cancellationToken);
 
                 await _mediator.Send(new SendNotificationCommand(
                         currentDentist.User.UserID,
                         "Thay đổi thông tin lịch khám",
                         $"Lịch khám của bạn đã được thay đổi vào ngày {request.AppointmentDate.Date}.",
-                        "Tạo lịch khám lần đầu", null),
-                 cancellationToken);
-
-                await _mediator.Send(new SendNotificationCommand(
-                        newDentist.User.UserID,
-                        "Thay đổi thông tin lịch khám",
-                        $"Lịch khám của bạn đã được thay đổi vào ngày {request.AppointmentDate.Date}.",
-                        "Tạo lịch khám lần đầu", null),
+                        "appointment", 0, $"appointments/{existApp.AppointmentId}"),
                  cancellationToken);
             }
             catch { }

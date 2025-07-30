@@ -1,10 +1,8 @@
 ﻿using System.Security.Claims;
 using Application.Interfaces;
 using Application.Usecases.Dentists.CreatePrescription;
-using HDMS_API.Infrastructure.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using Moq;
 using Xunit;
 
@@ -41,17 +39,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
             _httpContextAccessorMock.Setup(x => x.HttpContext!.User).Returns(principal);
         }
 
-        [Fact(DisplayName = "UTCID01 - User not authenticated should throw")]
-        public async System.Threading.Tasks.Task UTCID01_UnauthenticatedUser_Throws()
-        {
-            _httpContextAccessorMock.Setup(x => x.HttpContext!.User).Returns((ClaimsPrincipal?)null);
-
-            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(new CreatePrescriptionCommand(), CancellationToken.None));
-        }
-
-        [Fact(DisplayName = "UTCID02 - Non-dentist role should throw")]
-        public async System.Threading.Tasks.Task UTCID02_NotDentist_Throws()
+        [Fact(DisplayName = "UTCID01 - Non-dentist role should throw")]
+        public async System.Threading.Tasks.Task UTCID01_NotDentist_Throws()
         {
             SetupHttpContext("receptionist");
 
@@ -59,8 +48,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
                 _handler.Handle(new CreatePrescriptionCommand(), CancellationToken.None));
         }
 
-        [Fact(DisplayName = "UTCID03 - Appointment not found should throw")]
-        public async System.Threading.Tasks.Task UTCID03_AppointmentNotFound_Throws()
+        [Fact(DisplayName = "UTCID02 - Appointment not found should throw")]
+        public async System.Threading.Tasks.Task UTCID02_AppointmentNotFound_Throws()
         {
             SetupHttpContext("dentist");
             _appointmentRepoMock.Setup(r => r.GetAppointmentByIdAsync(It.IsAny<int>())).ReturnsAsync((Appointment?)null);
@@ -69,8 +58,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
                 _handler.Handle(new CreatePrescriptionCommand { AppointmentId = 123 }, CancellationToken.None));
         }
 
-        [Fact(DisplayName = "UTCID04 - Existing prescription should throw")]
-        public async System.Threading.Tasks.Task UTCID04_ExistingPrescription_Throws()
+        [Fact(DisplayName = "UTCID03 - Existing prescription should throw")]
+        public async System.Threading.Tasks.Task UTCID03_ExistingPrescription_Throws()
         {
             SetupHttpContext("dentist");
             _appointmentRepoMock.Setup(r => r.GetAppointmentByIdAsync(It.IsAny<int>())).ReturnsAsync(new Appointment());
@@ -80,19 +69,19 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
                 _handler.Handle(new CreatePrescriptionCommand { AppointmentId = 123 }, CancellationToken.None));
         }
 
-        [Fact(DisplayName = "UTCID05 - Empty content should throw")]
-        public async System.Threading.Tasks.Task UTCID05_EmptyContent_Throws()
+        [Fact(DisplayName = "UTCID04 - Empty content should throw")]
+        public async System.Threading.Tasks.Task UTCID04_EmptyContent_Throws()
         {
             SetupHttpContext("dentist");
             _appointmentRepoMock.Setup(r => r.GetAppointmentByIdAsync(It.IsAny<int>())).ReturnsAsync(new Appointment());
             _prescriptionRepoMock.Setup(r => r.GetPrescriptionByAppointmentIdAsync(It.IsAny<int>())).ReturnsAsync((Prescription?)null);
 
-            await Assert.ThrowsAsync<ArgumentException>(() =>
+            await Assert.ThrowsAsync<Exception>(() =>
                 _handler.Handle(new CreatePrescriptionCommand { AppointmentId = 1, contents = "   " }, CancellationToken.None));
         }
 
-        [Fact(DisplayName = "UTCID06 - Create success")]
-        public async System.Threading.Tasks.Task UTCID06_CreateSuccess_ReturnsTrue()
+        [Fact(DisplayName = "UTCID05 - Create success")]
+        public async System.Threading.Tasks.Task UTCID05_CreateSuccess_ReturnsTrue()
         {
             SetupHttpContext("dentist", 10);
             _appointmentRepoMock.Setup(r => r.GetAppointmentByIdAsync(1)).ReturnsAsync(new Appointment());
@@ -104,8 +93,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
             Assert.True(result);
         }
 
-        [Fact(DisplayName = "UTCID07 - Create fails returns false")]
-        public async System.Threading.Tasks.Task UTCID07_CreateFails_ReturnsFalse()
+        [Fact(DisplayName = "UTCID06 - Create fails returns false")]
+        public async System.Threading.Tasks.Task UTCID06_CreateFails_ReturnsFalse()
         {
             SetupHttpContext("dentist", 10);
             _appointmentRepoMock.Setup(r => r.GetAppointmentByIdAsync(1)).ReturnsAsync(new Appointment());

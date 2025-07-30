@@ -12,6 +12,7 @@ import { formatCurrency } from '@/utils/currencyUtils';
 import { getErrorMessage } from '@/utils/formatUtils';
 import { CreateTransactionModal } from './CreateTransactionModal';
 import { EditTransactionModal } from './EditTransactionModal';
+import { useUserInfo } from '@/hooks/useUserInfo';
 
 export const FinancialTransactionList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,6 +29,7 @@ export const FinancialTransactionList: React.FC = () => {
   const [editTransaction, setEditTransaction] = useState<number | null>(null);
   const [deleteTransaction, setDeleteTransaction] = useState<number | null>(null);
   const navigate = useNavigate();
+  const userInfo = useUserInfo();
 
   const { data: transactions = [], isLoading, error } = useFinancialTransactions();
   const { mutate: exportTransactions, isPending: isExporting } = useExportFinancialTransactions();
@@ -84,10 +86,10 @@ export const FinancialTransactionList: React.FC = () => {
       );
     }
 
-    // Sort by created date (newest first) - using createAt field
+    // Sort by transaction date (newest first)
     filtered = filtered.sort((a, b) => {
-      const dateA = new Date(a.createAt || a.transactionDate);
-      const dateB = new Date(b.createAt || b.transactionDate);
+      const dateA = new Date(a.transactionDate);
+      const dateB = new Date(b.transactionDate);
       return dateB.getTime() - dateA.getTime();
     });
 
@@ -194,12 +196,10 @@ export const FinancialTransactionList: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
-        <div className="flex justify-center items-center min-h-[400px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-600">Đang tải dữ liệu...</p>
-          </div>
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Đang tải dữ liệu...</p>
         </div>
       </div>
     );
@@ -212,18 +212,16 @@ export const FinancialTransactionList: React.FC = () => {
     
     if (!isEmptyDataError) {
       return (
-        <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
-          <div className="flex justify-center items-center min-h-[400px]">
-            <div className="text-center">
-              <p className="text-red-600">Có lỗi xảy ra khi tải dữ liệu: {(error as Error).message}</p>
-              <Button
-                variant="outline"
-                onClick={() => window.location.reload()}
-                className="mt-2"
-              >
-                Thử lại
-              </Button>
-            </div>
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="text-center">
+            <p className="text-red-600">Có lỗi xảy ra khi tải dữ liệu: {(error as Error).message}</p>
+            <Button
+              variant="outline"
+              onClick={() => window.location.reload()}
+              className="mt-2"
+            >
+              Thử lại
+            </Button>
           </div>
         </div>
       );
@@ -231,35 +229,25 @@ export const FinancialTransactionList: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Quản Lý Giao Dịch Tài Chính</h1>
-          <p className="text-gray-600 mt-1 text-sm sm:text-base">
-            Tổng cộng {filteredTransactions.length} giao dịch
-          </p>
-        </div>
-
-        {/* Action buttons */}
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-          <Button
-            onClick={handleExport}
-            disabled={isExporting || transactions.length === 0}
-            className="text-sm bg-green-600 hover:bg-green-700 text-white"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            {isExporting ? 'Đang xuất...' : 'Xuất Excel'}
-          </Button>
-          
-          <Button
-            onClick={() => setShowCreateModal(true)}
-            className="text-sm"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Tạo Giao Dịch
-          </Button>
-        </div>
+    <div className="space-y-6">
+      {/* Action buttons */}
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-end">
+        <Button
+          onClick={handleExport}
+          disabled={isExporting || transactions.length === 0}
+          className="text-sm bg-green-600 hover:bg-green-700 text-white"
+        >
+          <Download className="h-4 w-4 mr-2" />
+          {isExporting ? 'Đang xuất...' : 'Xuất Excel'}
+        </Button>
+        
+        <Button
+          onClick={() => setShowCreateModal(true)}
+          className="text-sm"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Tạo Giao Dịch
+        </Button>
       </div>
 
       {/* Statistics Cards */}
@@ -514,6 +502,9 @@ export const FinancialTransactionList: React.FC = () => {
                         Loại
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Trạng thái
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Mô tả
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -536,7 +527,7 @@ export const FinancialTransactionList: React.FC = () => {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {paginatedTransactions.map((transaction) => {
                       const typeConfig = getTransactionTypeConfig(transaction.transactionType);
-                      
+
                       return (
                         <tr key={transaction.transactionID} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -544,6 +535,32 @@ export const FinancialTransactionList: React.FC = () => {
                               {typeConfig.icon}
                               {typeConfig.label}
                             </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {transaction.status ? (
+                              <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-md ${
+                                transaction.status === 'approved' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : transaction.status === 'rejected'
+                                  ? 'bg-red-100 text-red-800'
+                                  : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {transaction.status === 'approved' ? 'Đã duyệt' : 
+                                 transaction.status === 'rejected' ? 'Đã từ chối' : 'Chờ duyệt'}
+                              </span>
+                            ) : transaction.isConfirmed !== undefined ? (
+                              <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-md ${
+                                transaction.isConfirmed 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {transaction.isConfirmed ? 'Đã duyệt' : 'Chờ duyệt'}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-md bg-gray-100 text-gray-800">
+                                N/A
+                              </span>
+                            )}
                           </td>
                           <td className="px-6 py-4">
                             <div 
@@ -586,6 +603,7 @@ export const FinancialTransactionList: React.FC = () => {
                                 onClick={() => setEditTransaction(transaction.transactionID)}
                                 className="text-blue-600 hover:text-blue-900"
                                 title="Chỉnh sửa"
+                                disabled={!(transaction.status === 'pending' && transaction.createById === Number(userInfo?.id))}
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
@@ -611,10 +629,33 @@ export const FinancialTransactionList: React.FC = () => {
                     <div className="space-y-3">
                       {/* Header */}
                       <div className="flex items-center justify-between">
-                        <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-md ${typeConfig.badgeClass}`}>
-                          {typeConfig.icon}
-                          {typeConfig.label}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-md ${typeConfig.badgeClass}`}>
+                            {typeConfig.icon}
+                            {typeConfig.label}
+                          </span>
+                          {transaction.status && (
+                            <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-md ${
+                              transaction.status === 'approved' 
+                                ? 'bg-green-100 text-green-800' 
+                                : transaction.status === 'rejected'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {transaction.status === 'approved' ? 'Đã duyệt' : 
+                               transaction.status === 'rejected' ? 'Đã từ chối' : 'Chờ duyệt'}
+                            </span>
+                          )}
+                          {!transaction.status && transaction.isConfirmed !== undefined && (
+                            <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-md ${
+                              transaction.isConfirmed 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {transaction.isConfirmed ? 'Đã duyệt' : 'Chờ duyệt'}
+                            </span>
+                          )}
+                        </div>
                         <div className="text-xs text-gray-500">
                           <Calendar className="h-3 w-3 inline mr-1" />
                           {formatDate(transaction.transactionDate)}
@@ -655,6 +696,7 @@ export const FinancialTransactionList: React.FC = () => {
                           size="sm"
                           onClick={() => setEditTransaction(transaction.transactionID)}
                           className="text-blue-600 hover:text-blue-900"
+                          disabled={!(transaction.status === 'pending' && transaction.createById === Number(userInfo?.id))}
                         >
                           <Edit className="h-4 w-4 mr-1" />
                           Sửa

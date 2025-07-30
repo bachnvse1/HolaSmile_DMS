@@ -111,6 +111,7 @@ public class CreateInvoiceHandler : IRequestHandler<CreateInvoiceCommand, string
             TransactionType = true, // true: income (thu)
             Category = "Thanh toán hoá đơn",
             PaymentMethod = invoice.PaymentMethod == "cash", // true: cash, false: transfer
+            status = "approved",
             Amount = invoice.PaidAmount ?? 0,
             CreatedAt = DateTime.Now,
             CreatedBy = userId,
@@ -128,13 +129,30 @@ public class CreateInvoiceHandler : IRequestHandler<CreateInvoiceCommand, string
                 try
                 {
                     var message =
-                        $"Hoá đơn thanh toán {invoice.OrderCode} đã được tạo";
+                        $"Hoá đơn thanh toán {invoice.OrderCode} của BN {patient.User.Fullname} đã được tạo";
                     await _mediator.Send(new SendNotificationCommand(
                         userIdNotification,
                         "Tạo hoá đơn thanh toán",
                         message,
                         "invoice",
-                        userId
+                        userId, "invoices"
+                    ), cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+                
+                try
+                {
+                    var message =
+                        $"Hoá đơn thanh toán {invoice.OrderCode} của BN {patient.User.Fullname} đã được tạo";
+                    await _mediator.Send(new SendNotificationCommand(
+                        userId,
+                        "Tạo hoá đơn thanh toán",
+                        message,
+                        "invoice",
+                        userId, "invoices"
                     ), cancellationToken);
                 }
                 catch (Exception ex)

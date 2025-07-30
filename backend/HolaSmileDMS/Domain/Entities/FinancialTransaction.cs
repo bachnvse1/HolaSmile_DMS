@@ -28,6 +28,10 @@ public class FinancialTransaction
 
     [Column(TypeName = "decimal(18,2)")]
     public decimal Amount { get; set; }
+    public string? EvidenceImage { get; set; } = string.Empty;
+
+    [Column(TypeName = "nvarchar(255)")]
+    public string status { get; set; }
 
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }

@@ -8,45 +8,39 @@ namespace Infrastructure.BackGroundCleanupServices
     public class EmailCleanupService : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory;
-        private readonly TimeSpan _interval;
         public EmailCleanupService(
-            IServiceScopeFactory scopeFactory,
-            TimeSpan? interval = null)
+            IServiceScopeFactory scopeFactory)
         {
             _scopeFactory = scopeFactory;
-            // Cho test dễ override interval; production sẽ dùng 24h
-            _interval = interval ?? TimeSpan.FromHours(24);
         }
         protected override async System.Threading.Tasks.Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            Console.WriteLine("da hoat dong");
             while (!stoppingToken.IsCancellationRequested)
             {
-                Console.WriteLine("da vao ham");
                 using var scope = _scopeFactory.CreateScope();
                 var appointmentRepo = scope.ServiceProvider
                                             .GetRequiredService<IAppointmentRepository>();
                 var emailRepo = scope.ServiceProvider
                                             .GetRequiredService<IEmailService>();
-                var appointments =await appointmentRepo.GetAllAppointments();
-                if (appointments == null) {
-                    appointments = new List<Appointment>(); ;
-                }
-               foreach (var app in appointments)
+                var appointments = await appointmentRepo.GetAllAppointments() ?? new List<Appointment>();
+                foreach (var app in appointments)
                 {
-                    if(app.AppointmentDate.Date == DateTime.Now.Date.AddDays(1) && app.Status == "confirmed")
+                    if(app.AppointmentDate.Date == DateTime.Now.Date.AddDays(1) && app.Status == "confirmed" && app.Patient?.User?.Email != null)
                     {
-                        Console.WriteLine("da vao dieu kien vao ham");
-
+                        var subject = $"Nhắc lịch hẹn nha khoa tại HolaSmile vào {app.AppointmentDate:HH:mm dd/MM/yyyy}";
                         // Gửi email thông báo
                         var message = $"<p>Xin chào {app.Patient.User.Fullname},</p>" +
               $"<p>Đây là email nhắc bạn về lịch hẹn nha khoa tại <b>HolaSmile</b> sẽ diễn ra vào lúc <b>{app.AppointmentDate:HH:mm dd/MM/yyyy}</b>.</p>" +
               "<p>Vui lòng đến đúng giờ để không ảnh hưởng đến quá trình điều trị. Nếu bạn không thể đến được, hãy liên hệ với chúng tôi để sắp xếp lại lịch hẹn.</p>" +
               "<p>Trân trọng,<br/>Phòng khám nha khoa HolaSmile</p>";
-                        await emailRepo.SendEmailAsync(app.Patient.User.Email,message);
+                        await emailRepo.SendEmailAsync(app.Patient.User.Email,message,subject);
                     }
                 }
-                await System.Threading.Tasks.Task.Delay(_interval, stoppingToken);
+
+                var now = DateTime.Now;
+                var nextMidnight = now.Date.AddDays(1);
+                var delay = nextMidnight - now;
+                await System.Threading.Tasks.Task.Delay(delay, stoppingToken);
             }
         }
     }

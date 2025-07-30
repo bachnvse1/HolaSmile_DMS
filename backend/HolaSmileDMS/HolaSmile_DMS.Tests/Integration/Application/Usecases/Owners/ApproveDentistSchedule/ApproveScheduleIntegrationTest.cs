@@ -1,7 +1,8 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.Owner;
+using Application.Usecases.Owner.ApproveDentistSchedule;
+using Application.Usecases.Owner.AprroveDentistSchedule;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;
 using MediatR;
@@ -17,7 +18,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Owners
     {
         private readonly ApplicationDbContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ApproveScheduleHandle _handler;
+        private readonly ApproveDentistScheduleHandle _handler;
 
         public ApproveScheduleIntegrationTests()
         {
@@ -45,7 +46,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Owners
 
             SeedData();
 
-            _handler = new ApproveScheduleHandle(_httpContextAccessor, scheduleRepo, mediator);
+            _handler = new ApproveDentistScheduleHandle(_httpContextAccessor, scheduleRepo, mediator);
         }
 
         private void SeedData()
@@ -142,6 +143,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Owners
                 Action = "approved",
                 ScheduleIds = new List<int> { 1 }
             }, default);
+
 
             Assert.Equal(MessageConstants.MSG.MSG80, result);
             Assert.Equal("approved", _context.Schedules.Find(1)?.Status);

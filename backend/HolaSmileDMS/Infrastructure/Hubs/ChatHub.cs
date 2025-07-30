@@ -68,12 +68,6 @@ public class ChatHub : Hub
 
         _context.ChatMessages.Add(chatMessage);
         await _context.SaveChangesAsync();
-
-        var connId = ChatConnectionManager.GetConnectionId("10");
-        Console.WriteLine($"User 10: {connId}");
-
-        var guestConn = ChatConnectionManager.GetConnectionId("347b0ad2-b03f-4bf5-8f75-5ec121dd9387");
-        Console.WriteLine($"Guest: {guestConn}");
         
         // Gửi tới người nhận
         var receiverConnectionId = ChatConnectionManager.GetConnectionId(receiverId);

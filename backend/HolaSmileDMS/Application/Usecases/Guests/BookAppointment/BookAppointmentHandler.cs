@@ -6,6 +6,7 @@ using Application.Interfaces;
 using Application.Usecases.SendNotification;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
+using HDMS_API.Application.Interfaces;
 
 namespace HDMS_API.Application.Usecases.Guests.BookAppointment
 {
@@ -18,7 +19,8 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public BookAppointmentHandler(IAppointmentRepository appointmentRepository, IMediator mediator, IPatientRepository patientRepository, IUserCommonRepository userCommonRepository, IMapper mapper, IDentistRepository dentistRepository, IHttpContextAccessor httpContextAccessor)
+        private readonly IEmailService _emailService;
+        public BookAppointmentHandler(IAppointmentRepository appointmentRepository, IMediator mediator, IPatientRepository patientRepository, IUserCommonRepository userCommonRepository, IMapper mapper, IDentistRepository dentistRepository, IHttpContextAccessor httpContextAccessor, IEmailService emailService)
 
         {
             _appointmentRepository = appointmentRepository;
@@ -29,6 +31,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             _mediator = mediator;
             _dentistRepository = dentistRepository;
             _httpContextAccessor = httpContextAccessor;
+            _emailService = emailService;
         }
         public async Task<string> Handle(BookAppointmentCommand request, CancellationToken cancellationToken)
         {
@@ -37,6 +40,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
             Patient patient = new Patient();
+            var appType = "first-time";
             bool isNewPatient = false;
 
             if (request.AppointmentDate.Date < DateTime.Now.Date || (request.AppointmentDate.Date == DateTime.Now.Date && request.AppointmentTime < DateTime.Now.TimeOfDay))
@@ -64,7 +68,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 {
                     try
                     {
-                        await _userCommonRepository.SendPasswordForGuestAsync(newUser.Email);
+                        await _emailService.SendPasswordAsync(newUser.Email, "123456");
                     }
                     catch (Exception ex)
                     {
@@ -90,10 +94,14 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 }
 
                 var checkValidAppointment = await _appointmentRepository.GetLatestAppointmentByPatientIdAsync(patient.PatientID);
-                if (checkValidAppointment != null && checkValidAppointment.Status == "confirmed")
+                if (checkValidAppointment != null &&
+                    (checkValidAppointment.Status == "confirmed" ||
+                     (checkValidAppointment.AppointmentDate.Date >= DateTime.Now.Date && checkValidAppointment.Status != "absented")))
                 {
                     throw new Exception(MessageConstants.MSG.MSG89); // "Kế hoạch điều trị đã tồn tại"
                 }
+                appType = "follow-up";
+
             }
             else
             {
@@ -108,7 +116,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 Status = "confirmed",
                 Content = request.MedicalIssue,
                 IsNewPatient = isNewPatient,
-                AppointmentType = "first-time",
+                AppointmentType = appType,
                 AppointmentDate = request.AppointmentDate,
                 AppointmentTime = request.AppointmentTime,
                 CreatedAt = DateTime.Now,
@@ -120,21 +128,13 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             var receptionists = await _userCommonRepository.GetAllReceptionistAsync();
             try
             {
-                //GỬI THÔNG BÁO CHO PATIENT
-                await _mediator.Send(new SendNotificationCommand(
-                    patient.User.UserID,
-                        "Đăng ký khám",
-                        $"Bạn đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
-                        "Tạo lịch khám lần đầu", null),
-                    cancellationToken);
-
                 //GỬI THÔNG BÁO CHO DENTIST
                 await _mediator.Send(new SendNotificationCommand(
                     dentist.User.UserID,
                         "Đăng ký khám",
                         $"Bệnh nhân đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
-                        "Xoá hồ sơ",
-                        null),
+                        "appointment",
+                        0, $"appointments/{appointment.AppointmentId}"),
                     cancellationToken);
 
                 var notifyReceptionists = receptionists.Select(async r =>
@@ -142,7 +142,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                                r.UserId,
                                "Đăng ký khám",
                                 $"Bệnh nhân mới đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
-                                "Tạo lịch khám lần đầu", null),
+                                "appointment", 0, $"appointments/{appointment.AppointmentId}"),
                                 cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyReceptionists);
             }

@@ -1,10 +1,14 @@
 ﻿using System.Security.Claims;
+using Application.Interfaces;
 using Application.Usecases.Assistant.ProcedureTemplate.CreateProcedure;
 using HDMS_API.Infrastructure.Persistence;
+using HDMS_API.Infrastructure.Repositories;
 using Infrastructure.Repositories;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
@@ -14,24 +18,33 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
         private readonly ApplicationDbContext _context;
         private readonly CreateProcedureHandler _handler;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IMediator _mediator;
+        private readonly Mock<IMediator> _mediatorMock;
 
         public CreateProcedureHandlerIntegrationTests()
         {
+            _mediatorMock = new Mock<IMediator>();
             var services = new ServiceCollection();
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseInMemoryDatabase("TestDb_CreateProcedure"));
             services.AddHttpContextAccessor();
 
+            services.AddSingleton<IMediator>(_mediatorMock.Object);
+
             var provider = services.BuildServiceProvider();
             _context = provider.GetRequiredService<ApplicationDbContext>();
             _httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
+            _mediator = provider.GetRequiredService<IMediator>();
 
             SeedData();
 
             _handler = new CreateProcedureHandler(
                 new ProcedureRepository(_context),
                 new SupplyRepository(_context),
-                _httpContextAccessor
+                new OwnerRepository(_context),
+                new UserCommonRepository(_context),
+                _httpContextAccessor,
+                _mediator
             );
         }
 

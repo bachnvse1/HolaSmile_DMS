@@ -11,7 +11,6 @@ namespace Application.Interfaces
         Task<bool> ResetPasswordAsync(User user);
         Task<User?> GetUserByPhoneAsync(string phone);
         Task<User?> GetUserByEmailAsync(string email);
-        Task<bool> SendPasswordForGuestAsync(string email);
         public Task<User> GetByUsernameAsync(string username, CancellationToken cancellationToken);
         Task<bool> EditProfileAsync(User user, CancellationToken cancellationToken);
         Task<ViewProfileDto?> GetUserProfileAsync(int userId, CancellationToken cancellationToken);

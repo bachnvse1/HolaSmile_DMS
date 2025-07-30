@@ -50,27 +50,30 @@ namespace Application.Usecases.Patients.CancelAppointment
             }
             var cancleApp = await _appointmentRepository.CancelAppointmentAsync(request.AppointmentId, currentUserId);
 
-            var dentist = await _dentistRepository.GetDentistByDentistIdAsync(existAppointment.DentistId);
-            var receptionists = await _userCommonRepository.GetAllReceptionistAsync();
-
             //GỬI THÔNG BÁO CHO DENTIST
-            await _mediator.Send(new SendNotificationCommand(
-                dentist.User.UserID,
-                    "Hủy lịch khám",
-                    $"Bệnh nhân đã hủy lịch khám vào giờ {existAppointment.AppointmentTime} ngày {existAppointment.AppointmentDate.Date}.",
-                    "Hủy lịch khám",
-                    null),
+            try
+            {
+                var dentist = await _dentistRepository.GetDentistByDentistIdAsync(existAppointment.DentistId);
+                await _mediator.Send(new SendNotificationCommand(
+                      dentist.User.UserID,
+                     "Hủy lịch khám",
+                     $"Bệnh nhân đã hủy lịch khám vào giờ {existAppointment.AppointmentTime} ngày {existAppointment.AppointmentDate.Date}.",
+                     "appointment",
+                     0, $"appointments/{existAppointment.AppointmentId}"),
                 cancellationToken);
+            }
+            catch { }
 
             // GỬI THÔNG BÁO CHO TẤT CẢ RECEPTIONIST
             try
             {
+                var receptionists = await _userCommonRepository.GetAllReceptionistAsync();
                 var notifyReceptionists = receptionists.Select(r =>
                 _mediator.Send(new SendNotificationCommand(
                           r.UserId,
                           "Hủy lịch khám",
                            $"Bệnh nhân đã hủy lịch khám vào giờ {existAppointment.AppointmentTime} ngày {existAppointment.AppointmentDate.Date}.",
-                           "Hủy lịch khám", null),
+                           "appointment", 0, $"appointments/{existAppointment.AppointmentId}"),
                            cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyReceptionists);
             }

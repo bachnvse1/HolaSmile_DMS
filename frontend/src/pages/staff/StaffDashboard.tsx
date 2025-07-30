@@ -1,6 +1,7 @@
-import { Users, Calendar, TrendingUp, AlertCircle, Clock, CreditCard, DollarSign, UserCheck, Activity, Target } from 'lucide-react';
+import { Users, Calendar, AlertCircle, Clock, CreditCard, DollarSign, Activity, Target } from 'lucide-react';
 import { StaffLayout } from '../../layouts/staff/StaffLayout';
 import { useUserInfo } from '@/hooks/useUserInfo';
+import { useDashboardStats, useColumnChart, useLineChart, usePieChart } from '@/hooks/useDashboard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -19,25 +20,25 @@ import {
   Pie,
   Cell
 } from 'recharts';
-import { useMemo, memo } from 'react';
+import { useMemo, memo, useState } from 'react';
 
 // Memoized Chart Components to prevent re-render lag
-const RevenueChart = memo(({ data }: { data: Array<{ month: string, revenue: number, appointments: number }> }) => (
+const RevenueChart = memo(({ data }: { data: Array<{ label: string, revenueInMillions: number, totalAppointments: number }> }) => (
   <ResponsiveContainer width="100%" height={300}>
     <BarChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
       <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="month" />
+      <XAxis dataKey="label" />
       <YAxis />
       <Tooltip />
       <Legend />
-      <Bar dataKey="revenue" fill="#3b82f6" name="Doanh thu (triệu)" />
-      <Bar dataKey="appointments" fill="#10b981" name="Lịch hẹn" />
+      <Bar dataKey="revenueInMillions" fill="#3b82f6" name="Doanh thu (triệu)" />
+      <Bar dataKey="totalAppointments" fill="#10b981" name="Lịch hẹn" />
     </BarChart>
   </ResponsiveContainer>
 ));
 RevenueChart.displayName = 'RevenueChart';
 
-const ServicePieChart = memo(({ data }: { data: Array<{ name: string, value: number, color: string }> }) => (
+const StatusPieChart = memo(({ data }: { data: Array<{ name: string, value: number, color: string }> }) => (
   <ResponsiveContainer width="100%" height={300}>
     <PieChart margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
       <Pie
@@ -45,7 +46,7 @@ const ServicePieChart = memo(({ data }: { data: Array<{ name: string, value: num
         cx="50%"
         cy="50%"
         labelLine={false}
-        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+        label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
         outerRadius={80}
         fill="#8884d8"
         dataKey="value"
@@ -58,18 +59,18 @@ const ServicePieChart = memo(({ data }: { data: Array<{ name: string, value: num
     </PieChart>
   </ResponsiveContainer>
 ));
-ServicePieChart.displayName = 'ServicePieChart';
+StatusPieChart.displayName = 'StatusPieChart';
 
-const WeeklyLineChart = memo(({ data }: { data: Array<{ day: string, appointments: number }> }) => (
+const WeeklyLineChart = memo(({ data }: { data: Array<{ label: string, totalAppointments: number }> }) => (
   <ResponsiveContainer width="100%" height={300}>
     <LineChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
       <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="day" />
+      <XAxis dataKey="label" />
       <YAxis />
       <Tooltip />
       <Line
         type="monotone"
-        dataKey="appointments"
+        dataKey="totalAppointments"
         stroke="#8b5cf6"
         strokeWidth={3}
         dot={{ fill: '#8b5cf6', strokeWidth: 2, r: 6 }}
@@ -81,34 +82,33 @@ WeeklyLineChart.displayName = 'WeeklyLineChart';
 
 export const StaffDashboard = () => {
   const userInfo = useUserInfo();
+  const [filter] = useState('week');
 
-  // Memoize chart data to prevent recalculation
-  const chartData = useMemo(() => ({
-    monthlyRevenue: [
-      { month: 'T1', revenue: 85, appointments: 120 },
-      { month: 'T2', revenue: 92, appointments: 135 },
-      { month: 'T3', revenue: 78, appointments: 110 },
-      { month: 'T4', revenue: 105, appointments: 150 },
-      { month: 'T5', revenue: 125, appointments: 180 },
-      { month: 'T6', revenue: 118, appointments: 165 },
-    ],
-    serviceDistribution: [
-      { name: 'Tổng quát', value: 35, color: '#0088FE' },
-      { name: 'Thẩm mỹ', value: 25, color: '#00C49F' },
-      { name: 'Nha chu', value: 20, color: '#FFBB28' },
-      { name: 'Nội nha', value: 15, color: '#FF8042' },
-      { name: 'Khác', value: 5, color: '#8884d8' },
-    ],
-    weeklyAppointments: [
-      { day: 'T2', appointments: 45 },
-      { day: 'T3', appointments: 52 },
-      { day: 'T4', appointments: 38 },
-      { day: 'T5', appointments: 61 },
-      { day: 'T6', appointments: 48 },
-      { day: 'T7', appointments: 35 },
-      { day: 'CN', appointments: 25 },
-    ]
-  }), []);
+  // Fetch data from API
+  const { data: dashboardStats } = useDashboardStats(filter);
+  const { data: columnData, isLoading: columnLoading } = useColumnChart(filter);
+  const { data: lineData, isLoading: lineLoading } = useLineChart();
+  const { data: pieData, isLoading: pieLoading } = usePieChart();
+
+  // Transform pie chart data
+  const pieChartData = useMemo(() => {
+    if (!pieData) return [];
+    return [
+      { name: 'Đã xác nhận', value: pieData.confirmed, color: '#3b82f6' },
+      { name: 'Đã đến', value: pieData.attended, color: '#10b981' },
+      { name: 'Vắng mặt', value: pieData.absented, color: '#f59e0b' },
+      { name: 'Đã hủy', value: pieData.canceled, color: '#ef4444' },
+    ].filter(item => item.value > 0);;
+  }, [pieData]);
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
 
   const getRoleSpecificStats = () => {
     switch (userInfo.role) {
@@ -118,36 +118,36 @@ export const StaffDashboard = () => {
           title: 'Tổng Quan Hệ Thống',
           stats: [
             {
-              label: 'Tổng Doanh Thu Tháng',
-              value: '20 triệu',
-              change: '+12.5%',
+              label: 'Tổng Doanh Thu Tuần',
+              value: dashboardStats ? formatCurrency(dashboardStats.totalRevenue) : '0 VNĐ',
+              // change: '+12.5%',
               icon: DollarSign,
               color: 'blue',
-              trend: 'up'
+              // trend: 'up'
             },
             {
               label: 'Tổng Bệnh Nhân',
-              value: '25',
-              change: '+8.2%',
+              value: dashboardStats ? dashboardStats.totalPatient.toString() : '0',
+              // change: '+8.2%',
               icon: Users,
               color: 'green',
-              trend: 'up'
+              // trend: 'up'
             },
             {
-              label: 'Lịch Hẹn Tháng Này',
-              value: '32',
-              change: '+15.3%',
+              label: 'Lịch Hẹn',
+              value: dashboardStats ? dashboardStats.totalAppointments.toString() : '0',
+              // change: '+15.3%',
               icon: Calendar,
               color: 'purple',
-              trend: 'up'
+              // trend: 'up'
             },
             {
-              label: 'Tỷ Lệ Hài Lòng',
-              value: '96.8%',
-              change: '+2.1%',
+              label: 'Bệnh Nhân Mới',
+              value: dashboardStats ? dashboardStats.newPatient.toString() : '0',
+              // change: '+2.1%',
               icon: Target,
               color: 'orange',
-              trend: 'up'
+              // trend: 'up'
             }
           ]
         };
@@ -220,23 +220,64 @@ export const StaffDashboard = () => {
           </Card>
 
           {/* KPI Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
             {stats.map((stat, index) => {
               const IconComponent = stat.icon;
+              const getGradientClasses = (color: string) => {
+                const gradientMap = {
+                  blue: 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200',
+                  green: 'bg-gradient-to-br from-green-50 to-green-100 border-green-200',
+                  purple: 'bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200',
+                  orange: 'bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200',
+                  red: 'bg-gradient-to-br from-red-50 to-red-100 border-red-200'
+                };
+                return gradientMap[color as keyof typeof gradientMap] || 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200';
+              };
+              
+              const getIconBg = (color: string) => {
+                const iconBgMap = {
+                  blue: 'bg-blue-500',
+                  green: 'bg-green-500',
+                  purple: 'bg-purple-500',
+                  orange: 'bg-orange-500',
+                  red: 'bg-red-500'
+                };
+                return iconBgMap[color as keyof typeof iconBgMap] || 'bg-gray-500';
+              };
+              
+              const getTextColor = (color: string) => {
+                const textColorMap = {
+                  blue: 'text-blue-700',
+                  green: 'text-green-700',
+                  purple: 'text-purple-700',
+                  orange: 'text-orange-700',
+                  red: 'text-red-700'
+                };
+                return textColorMap[color as keyof typeof textColorMap] || 'text-gray-700';
+              };
+              
+              const getValueColor = (color: string) => {
+                const valueColorMap = {
+                  blue: 'text-blue-900',
+                  green: 'text-green-900',
+                  purple: 'text-purple-900',
+                  orange: 'text-orange-900',
+                  red: 'text-red-900'
+                };
+                return valueColorMap[color as keyof typeof valueColorMap] || 'text-gray-900';
+              };
+              
               return (
-                <Card key={index} className="hover:shadow-lg transition-shadow duration-200">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div className={`p-3 rounded-lg ${getColorClasses(stat.color)}`}>
-                        <IconComponent className="h-6 w-6" />
+                <Card key={index} className={getGradientClasses(stat.color)}>
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center space-x-2 sm:space-x-3">
+                      <div className={`p-1.5 sm:p-2 ${getIconBg(stat.color)} rounded-lg flex-shrink-0`}>
+                        <IconComponent className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 text-white" />
                       </div>
-                      <Badge variant="secondary" className="text-green-600 bg-green-50">
-                        {stat.change}
-                      </Badge>
-                    </div>
-                    <div className="mt-4">
-                      <h3 className="text-sm font-medium text-gray-600">{stat.label}</h3>
-                      <p className="text-3xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                      <div className="min-w-0">
+                        <p className={`text-xs sm:text-sm font-medium ${getTextColor(stat.color)} truncate`}>{stat.label}</p>
+                        <p className={`text-lg sm:text-xl lg:text-2xl font-bold ${getValueColor(stat.color)} mt-1`}>{stat.value}</p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -249,26 +290,38 @@ export const StaffDashboard = () => {
             {/* Revenue and Appointments Chart */}
             <Card className="will-change-transform">
               <CardHeader>
-                <CardTitle>Doanh Thu & Lịch Hẹn (6 Tháng)</CardTitle>
+                <CardTitle>Doanh Thu & Lịch Hẹn (Tháng)</CardTitle>
                 <CardDescription>
                   Theo dõi xu hướng doanh thu và số lượng lịch hẹn
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <RevenueChart data={chartData.monthlyRevenue} />
+                {columnLoading ? (
+                  <div className="flex justify-center items-center h-[300px]">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : (
+                  <RevenueChart data={columnData?.data || []} />
+                )}
               </CardContent>
             </Card>
 
-            {/* Service Distribution Pie Chart */}
+            {/* Status Distribution Pie Chart */}
             <Card className="will-change-transform">
               <CardHeader>
-                <CardTitle>Phân Bố Dịch Vụ</CardTitle>
+                <CardTitle>Trạng Thái Lịch Hẹn</CardTitle>
                 <CardDescription>
-                  Tỷ lệ các loại dịch vụ được sử dụng
+                  Phân bố trạng thái các lịch hẹn trong tháng
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ServicePieChart data={chartData.serviceDistribution} />
+                {pieLoading ? (
+                  <div className="flex justify-center items-center h-[300px]">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : (
+                  <StatusPieChart data={pieChartData} />
+                )}
               </CardContent>
             </Card>
           </div>
@@ -280,50 +333,63 @@ export const StaffDashboard = () => {
               <CardHeader>
                 <CardTitle>Lịch Hẹn Theo Tuần</CardTitle>
                 <CardDescription>
-                  Xu hướng lịch hẹn trong tuần
+                  Xu hướng lịch hẹn trong tuần hiện tại
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <WeeklyLineChart data={chartData.weeklyAppointments} />
+                {lineLoading ? (
+                  <div className="flex justify-center items-center h-[300px]">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : (
+                  <WeeklyLineChart data={lineData?.data || []} />
+                )}
               </CardContent>
             </Card>
 
             {/* Progress Metrics */}
             <Card>
               <CardHeader>
-                <CardTitle>Tiến Độ Tháng Này</CardTitle>
+                <CardTitle>Thống Kê Chi Tiết</CardTitle>
                 <CardDescription>
-                  Đạt được so với mục tiêu
+                  Phân tích chi tiết các chỉ số
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Tỷ lệ hoàn thành lịch hẹn */}
                 <div>
                   <div className="flex justify-between text-sm mb-2">
-                    <span>Doanh thu</span>
-                    <span>85%</span>
+                    <span>Tỷ lệ hoàn thành lịch hẹn</span>
+                    <span>{pieData ? Math.round((pieData.attended / (pieData.confirmed + pieData.attended + pieData.absented + pieData.canceled || 1)) * 100) : 0}%</span>
                   </div>
-                  <Progress value={85} className="h-2" />
+                  <Progress value={pieData ? (pieData.attended / (pieData.confirmed + pieData.attended + pieData.absented + pieData.canceled || 1)) * 100 : 0} className="h-2" />
                 </div>
+                
+                {/* Tỷ lệ vắng mặt */}
                 <div>
                   <div className="flex justify-between text-sm mb-2">
-                    <span>Lịch hẹn</span>
-                    <span>92%</span>
+                    <span>Tỷ lệ vắng mặt</span>
+                    <span>{pieData ? Math.round((pieData.absented / (pieData.confirmed + pieData.attended + pieData.absented + pieData.canceled || 1)) * 100) : 0}%</span>
                   </div>
-                  <Progress value={92} className="h-2" />
+                  <Progress value={pieData ? (pieData.absented / (pieData.confirmed + pieData.attended + pieData.absented + pieData.canceled || 1)) * 100 : 0} className="h-2 [&>*]:bg-red-500" />
                 </div>
+                
+                {/* Trung bình lịch hẹn/tuần */}
                 <div>
                   <div className="flex justify-between text-sm mb-2">
-                    <span>Bệnh nhân mới</span>
-                    <span>78%</span>
+                    <span>TB lịch hẹn/ngày tuần này</span>
+                    <span>{lineData ? Math.round(lineData.data.reduce((sum, day) => sum + day.totalAppointments, 0) / 7) : 0}</span>
                   </div>
-                  <Progress value={78} className="h-2" />
+                  <Progress value={lineData ? Math.min((lineData.data.reduce((sum, day) => sum + day.totalAppointments, 0) / 7) * 10, 100) : 0} className="h-2 [&>*]:bg-purple-500" />
                 </div>
+                
+                {/* Doanh thu/lịch hẹn trung bình */}
                 <div>
                   <div className="flex justify-between text-sm mb-2">
-                    <span>Hài lòng</span>
-                    <span>96%</span>
+                    <span>Doanh thu TB/lịch hẹn</span>
+                    <span>{dashboardStats && dashboardStats.totalAppointments > 0 ? formatCurrency(dashboardStats.totalRevenue / dashboardStats.totalAppointments) : '0 VNĐ'}</span>
                   </div>
-                  <Progress value={96} className="h-2" />
+                  <Progress value={dashboardStats && dashboardStats.totalAppointments > 0 ? Math.min((dashboardStats.totalRevenue / dashboardStats.totalAppointments) / 50000, 100) : 0} className="h-2 [&>*]:bg-green-500" />
                 </div>
               </CardContent>
             </Card>

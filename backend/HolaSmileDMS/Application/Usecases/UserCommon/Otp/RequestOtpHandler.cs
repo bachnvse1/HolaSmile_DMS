@@ -25,6 +25,8 @@ namespace HDMS_API.Application.Usecases.UserCommon.Otp
             }
             var OtpCode = GenerateOTPHelper.GenerateOTP();
 
+            var subject = "Xác thực OTP từ Phòng khám HolaSmile";
+
             var messasge = $@"
                                   <p>Xin chào,</p>
                                   <p>Bạn đã yêu cầu xác thực bằng mã OTP.</p>
@@ -36,7 +38,7 @@ namespace HDMS_API.Application.Usecases.UserCommon.Otp
             {
                 try
                 {
-                    await _emailService.SendEmailAsync(request.Email, messasge);
+                    await _emailService.SendEmailAsync(request.Email, messasge, subject);
                 }
                 catch (Exception ex)
                 {

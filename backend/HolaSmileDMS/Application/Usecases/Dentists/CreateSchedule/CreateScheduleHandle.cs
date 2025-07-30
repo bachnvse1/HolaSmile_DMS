@@ -82,17 +82,16 @@ namespace Application.Usecases.Dentist.ManageSchedule
                 }
             }
 
-            var owners = await _ownerRepository.GetAllOwnersAsync();
-
             // Send notification to owner
             try
             {
+                var owners = await _ownerRepository.GetAllOwnersAsync();
                 var notifyOwners = owners.Select(async o =>
                 await _mediator.Send(new SendNotificationCommand(
                       o.User.UserID,
                       "Đăng ký lịch làm việc",
                       $"Nha Sĩ {o.User.Fullname} đã đăng ký lịch làm việc vào lúc {DateTime.Now}",
-                      "schedule", null),
+                      "schedule", 0, $"schedules"),
                 cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);  
             }
