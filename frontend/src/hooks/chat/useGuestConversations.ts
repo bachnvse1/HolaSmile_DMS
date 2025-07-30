@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useChatHub } from '@/components/chat/ChatHubProvider';
 import { useAuth } from '@/hooks/useAuth';
+import { useUnreadMessages } from '@/hooks/chat/useUnreadMessages';
 
 export interface GuestInfo {
   guestId: string;
@@ -37,9 +38,22 @@ export const useGuestConversations = () => {
     fetchGuests
   } = useChatHub();
 
+  // 🔥 Use useUnreadMessages hook instead of managing unread counts manually
+  const { 
+    getUnreadCount, 
+    markConversationAsRead,
+    refreshUnreadCounts 
+  } = useUnreadMessages(userId);
+
   const [conversationHistory, setConversationHistory] = useState<Map<string, ChatMessage[]>>(new Map());
-  const [unreadCounts, setUnreadCounts] = useState<Map<string, number>>(new Map());
   const [loading, setLoading] = useState(false);
+
+  // 🔥 Refresh unread counts when userId changes (F5, login, etc.)
+  useEffect(() => {
+    if (userId) {
+      refreshUnreadCounts();
+    }
+  }, [userId, refreshUnreadCounts]);
 
   // Load data from sessionStorage when userId changes
   useEffect(() => {
@@ -58,20 +72,24 @@ export const useGuestConversations = () => {
       console.error('Error restoring guest conversation history:', error);
       setConversationHistory(new Map());
     }
+  }, [userId]);
+
+  // Clear old sessionStorage data when userId changes
+  useEffect(() => {
+    if (!userId) return;
     
-    // Load unread counts
-    try {
-      const saved = sessionStorage.getItem(`guestUnreadCounts_${userId}`);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setUnreadCounts(new Map(Object.entries(parsed).map(([k, v]) => [k, Number(v)])));
-      } else {
-        setUnreadCounts(new Map());
+    // Clear old data for different user
+    const currentStorageKeys = Object.keys(sessionStorage).filter(key => 
+      key.startsWith('guestConversationHistory_') || 
+      key.startsWith('guestUnreadCounts_') ||
+      key.startsWith('processedGuestMessages_')
+    );
+    
+    currentStorageKeys.forEach(key => {
+      if (!key.endsWith(`_${userId}`)) {
+        sessionStorage.removeItem(key);
       }
-    } catch (error) {
-      console.error('Error restoring guest unread counts:', error);
-      setUnreadCounts(new Map());
-    }
+    });
   }, [userId]);
 
   // Fetch guests initially
@@ -98,36 +116,20 @@ export const useGuestConversations = () => {
     }
   }, [userId, fetchChatHistory, conversationHistory]);
 
-  // Handle new messages for unread count
+  // 🔥 Refresh unread counts when new realtime messages arrive
   useEffect(() => {
     if (!userId || realtimeMessages.length === 0) return;
     
     const lastMessage = realtimeMessages[realtimeMessages.length - 1];
     
-    // Only count unread if message is TO current user (not FROM current user)
+    // If message is TO current user (not FROM current user), refresh unread counts
     if (lastMessage.receiverId === userId && lastMessage.senderId !== userId) {
-      // Only process if this is a truly new message (not from reload)
-      const messageKey = `${lastMessage.senderId}-${lastMessage.receiverId}-${lastMessage.timestamp}`;
-      const processedMessages = JSON.parse(sessionStorage.getItem(`processedGuestMessages_${userId}`) || '[]');
-      
-      if (!processedMessages.includes(messageKey)) {
-        // Mark message as processed
-        processedMessages.push(messageKey);
-        if (processedMessages.length > 100) {
-          processedMessages.splice(0, processedMessages.length - 100);
-        }
-        sessionStorage.setItem(`processedGuestMessages_${userId}`, JSON.stringify(processedMessages));
-        
-        // Increment unread count for sender (guest)
-        setUnreadCounts(prev => {
-          const newCounts = new Map(prev);
-          const currentCount = newCounts.get(lastMessage.senderId) || 0;
-          newCounts.set(lastMessage.senderId, currentCount + 1);
-          return newCounts;
-        });
-      }
+      // Small delay to ensure backend has processed the message
+      setTimeout(() => {
+        refreshUnreadCounts();
+      }, 500);
     }
-  }, [realtimeMessages, userId]);
+  }, [realtimeMessages, userId, refreshUnreadCounts]);
 
   // Process guest conversations
   const guestConversations = useMemo(() => {
@@ -160,8 +162,8 @@ export const useGuestConversations = () => {
       
       const lastMessage = uniqueMessages[uniqueMessages.length - 1];
       
-      // Get stored unread count (this includes real-time updates)
-      const storedUnreadCount = unreadCounts.get(guest.guestId) || 0;
+      // 🔥 Get unread count from useUnreadMessages hook
+      const unreadCount = getUnreadCount(guest.guestId);
       
       // Always add guest to conversation list
       conversations.push({
@@ -171,7 +173,7 @@ export const useGuestConversations = () => {
         email: undefined,
         lastMessageAt: lastMessage?.timestamp || undefined,
         lastMessage: lastMessage || undefined,
-        unreadCount: storedUnreadCount
+        unreadCount
       });
     }
     
@@ -193,17 +195,16 @@ export const useGuestConversations = () => {
     });
     
     return conversations;
-  }, [guests, userId, conversationHistory, realtimeMessages, unreadCounts]);
+  }, [guests, userId, conversationHistory, realtimeMessages, getUnreadCount]);
 
-  // Mark conversation as read - clear unread count
-  const markAsRead = useCallback((guestId: string) => {
-    setUnreadCounts(prev => {
-      const newCounts = new Map(prev);
-      newCounts.set(guestId, 0);
-      return newCounts;
-    });
+  // 🔥 Mark conversation as read - use useUnreadMessages hook
+  const markAsRead = useCallback(async (guestId: string) => {
+    if (!userId) return;
     
-    // Also mark all messages from this guest as read
+    // Use the markConversationAsRead from useUnreadMessages hook
+    await markConversationAsRead(guestId, userId);
+    
+    // Also mark all messages from this guest as read in local history
     setConversationHistory(prev => {
       const newHistory = new Map(prev);
       const guestHistory = newHistory.get(guestId) || [];
@@ -215,7 +216,7 @@ export const useGuestConversations = () => {
       newHistory.set(guestId, updatedHistory);
       return newHistory;
     });
-  }, []);
+  }, [userId, markConversationAsRead]);
 
   // Load conversation data when needed
   const loadConversationData = useCallback(async (guestId: string) => {
@@ -244,16 +245,15 @@ export const useGuestConversations = () => {
     }
   }, [conversationHistory, userId]);
 
-  // Save unread counts to sessionStorage
-  useEffect(() => {
-    if (!userId) return;
-    try {
-      const countsObj = Object.fromEntries(unreadCounts);
-      sessionStorage.setItem(`guestUnreadCounts_${userId}`, JSON.stringify(countsObj));
-    } catch (error) {
-      console.error('Error saving guest unread counts:', error);
+  // 🔥 Enhanced refresh function that also refreshes unread counts
+  const refreshGuests = useCallback(() => {
+    if (fetchGuests) {
+      // Refresh guest list
+      fetchGuests();
+      // Also refresh unread counts
+      refreshUnreadCounts();
     }
-  }, [unreadCounts, userId]);
+  }, [fetchGuests, refreshUnreadCounts]);
 
   return {
     conversations: guestConversations,
@@ -261,6 +261,6 @@ export const useGuestConversations = () => {
     markAsRead,
     loadConversationData,
     totalCount: guestConversations.length,
-    refreshGuests: fetchGuests
+    refreshGuests
   };
 };

@@ -1,5 +1,7 @@
 import React, { memo, useCallback } from 'react';
 import { Search, Users, MessageCircle, RefreshCw } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useUnreadMessages } from '@/hooks/chat/useUnreadMessages';
 import type { GuestConversation } from '@/hooks/chat/useGuestConversations';
 
 interface GuestConversationListProps {
@@ -124,6 +126,15 @@ export const GuestConversationList: React.FC<GuestConversationListProps> = ({
   totalCount,
   onRefresh
 }) => {
+  const { userId } = useAuth();
+  
+  // 🔥 Use useUnreadMessages hook to get real-time unread counts for guest conversations
+  const { getTotalUnreadCount } = useUnreadMessages(userId);
+
+  // 🔥 Calculate guest conversation stats
+  const unreadGuestCount = conversations.filter(conv => conv.unreadCount > 0).length;
+  const totalGuestUnreadMessages = conversations.reduce((sum, conv) => sum + conv.unreadCount, 0);
+
   return (
     <div className="flex flex-col h-full bg-gray-50 border-r border-gray-200">
       {/* Header */}
@@ -134,6 +145,12 @@ export const GuestConversationList: React.FC<GuestConversationListProps> = ({
           <span className="ml-auto bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">
             {totalCount}
           </span>
+          {/* 🔥 Show unread count for guest conversations */}
+          {totalGuestUnreadMessages > 0 && (
+            <div className="px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full animate-pulse">
+              {totalGuestUnreadMessages > 99 ? '99+' : totalGuestUnreadMessages}
+            </div>
+          )}
           {onRefresh && (
             <button
               onClick={onRefresh}
@@ -156,8 +173,14 @@ export const GuestConversationList: React.FC<GuestConversationListProps> = ({
           />
         </div>
 
-        <div className="text-xs text-gray-500">
-          Hiển thị tất cả khách tư vấn
+        {/* 🔥 Show stats for guest conversations */}
+        <div className="text-xs text-gray-500 flex items-center gap-3">
+          <span>Hiển thị tất cả khách tư vấn</span>
+          {unreadGuestCount > 0 && (
+            <span className="text-red-600 font-medium">
+              {unreadGuestCount} tin nhắn mới
+            </span>
+          )}
         </div>
       </div>
 

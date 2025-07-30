@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useChatHub } from '@/components/chat/ChatHubProvider';
+import { useUnreadMessages } from '@/hooks/chat/useUnreadMessages';
 import axiosInstance from '@/lib/axios';
 
 export interface ChatMessage {
@@ -36,9 +37,17 @@ const ITEMS_PER_PAGE = 20;
 export const usePatientConversations = () => {
   const { userId } = useAuth();
   const { messages: realtimeMessages, fetchChatHistory } = useChatHub();
+  
+  // 🔥 Use useUnreadMessages hook instead of managing unread counts manually
+  const { 
+    getUnreadCount, 
+    getTotalUnreadCount, 
+    markConversationAsRead,
+    refreshUnreadCounts 
+  } = useUnreadMessages(userId);
+  
   const [users, setUsers] = useState<ConversationUser[]>([]);
   const [conversationHistory, setConversationHistory] = useState<Map<string, ChatMessage[]>>(new Map());
-  const [unreadCounts, setUnreadCounts] = useState<Map<string, number>>(new Map());
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [hasLoadedInitialConversations, setHasLoadedInitialConversations] = useState(false);
@@ -46,6 +55,13 @@ export const usePatientConversations = () => {
     searchTerm: '',
     roleFilter: 'all'
   });
+
+  // 🔥 Refresh unread counts when userId changes (F5, login, etc.)
+  useEffect(() => {
+    if (userId) {
+      refreshUnreadCounts();
+    }
+  }, [userId, refreshUnreadCounts]);
 
   // Load data from sessionStorage when userId changes
   useEffect(() => {
@@ -64,19 +80,6 @@ export const usePatientConversations = () => {
     } catch (error) {
       console.error('Error restoring patient conversation history:', error);
       setConversationHistory(new Map());
-    }
-    
-    try {
-      const saved = sessionStorage.getItem(`patientUnreadCounts_${userId}`);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setUnreadCounts(new Map(Object.entries(parsed).map(([k, v]) => [k, Number(v)])));
-      } else {
-        setUnreadCounts(new Map());
-      }
-    } catch (error) {
-      console.error('Error restoring patient unread counts:', error);
-      setUnreadCounts(new Map());
     }
   }, [userId]);
 
@@ -204,36 +207,20 @@ export const usePatientConversations = () => {
     return () => clearTimeout(timer);
   }, [users, userId, fetchChatHistory, hasLoadedInitialConversations, conversationHistory]);
 
-  // Handle new messages for unread count
+  // 🔥 Refresh unread counts when new realtime messages arrive
   useEffect(() => {
     if (!userId || realtimeMessages.length === 0) return;
     
     const lastMessage = realtimeMessages[realtimeMessages.length - 1];
     
-    // Only count unread if message is TO current user (not FROM current user)
+    // If message is TO current user (not FROM current user), refresh unread counts
     if (lastMessage.receiverId === userId && lastMessage.senderId !== userId) {
-      // Only process if this is a truly new message (not from reload)
-      const messageKey = `${lastMessage.senderId}-${lastMessage.receiverId}-${lastMessage.timestamp}`;
-      const processedMessages = JSON.parse(sessionStorage.getItem(`processedPatientMessages_${userId}`) || '[]');
-      
-      if (!processedMessages.includes(messageKey)) {
-        // Mark message as processed
-        processedMessages.push(messageKey);
-        if (processedMessages.length > 100) {
-          processedMessages.splice(0, processedMessages.length - 100);
-        }
-        sessionStorage.setItem(`processedPatientMessages_${userId}`, JSON.stringify(processedMessages));
-        
-        // Increment unread count for sender (patient)
-        setUnreadCounts(prev => {
-          const newCounts = new Map(prev);
-          const currentCount = newCounts.get(lastMessage.senderId) || 0;
-          newCounts.set(lastMessage.senderId, currentCount + 1);
-          return newCounts;
-        });
-      }
+      // Small delay to ensure backend has processed the message
+      setTimeout(() => {
+        refreshUnreadCounts();
+      }, 500);
     }
-  }, [realtimeMessages, userId]);
+  }, [realtimeMessages, userId, refreshUnreadCounts]);
 
   // Build conversations list
   const conversations = useMemo(() => {
@@ -263,16 +250,16 @@ export const usePatientConversations = () => {
       
       const lastMessage = uniqueMessages[uniqueMessages.length - 1];
       
-      // Get stored unread count (this includes real-time updates)
-      const storedUnreadCount = unreadCounts.get(user.userId) || 0;
+      // 🔥 Get unread count from useUnreadMessages hook
+      const unreadCount = getUnreadCount(user.userId);
       
       // Include all patients - HIỂN THỊ TẤT CẢ PATIENTS
       conversations.push({
         ...user,
         lastMessage,
         lastMessageTime: lastMessage?.timestamp,
-        unreadCount: storedUnreadCount,
-        hasUnreadMessages: storedUnreadCount > 0
+        unreadCount,
+        hasUnreadMessages: unreadCount > 0
       });
     }
     
@@ -292,7 +279,7 @@ export const usePatientConversations = () => {
       // Third: Alphabetical by name
       return a.fullName.localeCompare(b.fullName);
     });
-  }, [users, userId, conversationHistory, realtimeMessages, unreadCounts]);
+  }, [users, userId, conversationHistory, realtimeMessages, getUnreadCount]);
 
   // Apply filters
   const filteredConversations = useMemo(() => {
@@ -334,14 +321,14 @@ export const usePatientConversations = () => {
     }
   }, [hasMore, loading]);
 
-  // Mark conversation as read
-  const markAsRead = useCallback((otherUserId: string) => {
-    setUnreadCounts(prev => {
-      const newCounts = new Map(prev);
-      newCounts.set(otherUserId, 0);
-      return newCounts;
-    });
+  // 🔥 Mark conversation as read - use useUnreadMessages hook
+  const markAsRead = useCallback(async (otherUserId: string) => {
+    if (!userId) return;
     
+    // Use the markConversationAsRead from useUnreadMessages hook
+    await markConversationAsRead(otherUserId, userId);
+    
+    // Also mark all messages from this user as read in local history
     setConversationHistory(prev => {
       const newHistory = new Map(prev);
       const userHistory = newHistory.get(otherUserId) || [];
@@ -353,7 +340,7 @@ export const usePatientConversations = () => {
       newHistory.set(otherUserId, updatedHistory);
       return newHistory;
     });
-  }, []);
+  }, [userId, markConversationAsRead]);
 
   // Load conversation data
   const loadConversationData = useCallback(async (otherUserId: string) => {
@@ -382,19 +369,10 @@ export const usePatientConversations = () => {
     }
   }, [conversationHistory, userId]);
 
-  useEffect(() => {
-    if (!userId) return;
-    try {
-      const countsObj = Object.fromEntries(unreadCounts);
-      sessionStorage.setItem(`patientUnreadCounts_${userId}`, JSON.stringify(countsObj));
-    } catch (error) {
-      console.error('Error saving patient unread counts:', error);
-    }
-  }, [unreadCounts, userId]);
-
+  // 🔥 Count total unread messages using useUnreadMessages hook
   const totalUnreadCount = useMemo(() => {
-    return filteredConversations.reduce((total, conv) => total + conv.unreadCount, 0);
-  }, [filteredConversations]);
+    return getTotalUnreadCount();
+  }, [getTotalUnreadCount]);
 
   return {
     conversations: paginatedConversations,

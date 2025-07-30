@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Home,
   Calendar,
@@ -22,8 +22,8 @@ import {
   Phone
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
-import { useTotalUnreadCount } from '@/hooks/chat/useTotalUnreadCount';
 import { useAuth } from '@/hooks/useAuth';
+import { useUnreadMessages } from '@/hooks/chat/useUnreadMessages';
 import { useChatHub } from '@/components/chat/ChatHubProvider';
 
 interface MenuItem {
@@ -49,13 +49,53 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
   const navigate = useNavigate();
   const location = useLocation();
   
-  // 🔥 SỬ DỤNG HOOK ĐÃ CẬP NHẬT
   const { userId } = useAuth();
-  const { totalUnreadCount, getUnreadCountByType } = useTotalUnreadCount();
-  const { isConnected } = useChatHub();
+  const { getTotalUnreadCount, refreshUnreadCounts } = useUnreadMessages(userId);
+  const { isConnected, messages } = useChatHub();
   
-  // Lấy unread count theo từng loại
-  const unreadCounts = getUnreadCountByType;
+  // 🔥 Force refresh unread counts khi có tin nhắn mới trong ChatHub
+  useEffect(() => {
+    if (!userId || messages.length === 0) return;
+    
+    const lastMessage = messages[messages.length - 1];
+    console.log('🔥 StaffSidebar: New message detected:', lastMessage);
+    
+    // Chỉ refresh nếu tin nhắn đến cho user hiện tại (không phải từ user hiện tại)
+    if (lastMessage.receiverId === userId && lastMessage.senderId !== userId) {
+      console.log('🔥 StaffSidebar: Message is for current user, refreshing counts...');
+      // Delay để backend có thời gian xử lý
+      const timer = setTimeout(() => {
+        refreshUnreadCounts();
+        console.log('🔥 StaffSidebar: Refreshed unread counts');
+      }, 1000); // Tăng delay lên 1 giây
+      
+      return () => clearTimeout(timer);
+    }
+  }, [messages, userId, refreshUnreadCounts]);
+  
+  // 🔥 Periodic refresh mỗi 30 giây để đảm bảo sync
+  useEffect(() => {
+    if (!userId) return;
+    
+    const interval = setInterval(() => {
+      console.log('🔥 StaffSidebar: Periodic refresh unread counts');
+      refreshUnreadCounts();
+    }, 30000); // 30 giây
+    
+    return () => clearInterval(interval);
+  }, [userId, refreshUnreadCounts]);
+  
+  // 🔥 Refresh khi user thay đổi hoặc component mount
+  useEffect(() => {
+    if (userId) {
+      console.log('🔥 StaffSidebar: Initial refresh for user:', userId);
+      refreshUnreadCounts();
+    }
+  }, [userId, refreshUnreadCounts]);
+  
+  const totalUnreadCount = getTotalUnreadCount();
+  
+  console.log('🔥 StaffSidebar render - totalUnreadCount:', totalUnreadCount);
 
   const menuItems: MenuItem[] = [
     {
@@ -270,17 +310,20 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           <div className="flex items-center space-x-3">
             <div className="relative">
               {item.icon}
-              {/* 🔥 REALTIME BADGE KHI COLLAPSED - sử dụng useUnreadMessages */}
+              {/* 🔥 REALTIME BADGE - với logging */}
               {isMessagesItem && totalUnreadCount > 0 && (
-                <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full flex items-center justify-center ${
-                  isConnected ? 'bg-red-500 animate-pulse' : 'bg-orange-500'
-                }`}>
+                <div 
+                  className={`absolute -top-1 -right-1 w-3 h-3 rounded-full flex items-center justify-center ${
+                    isConnected ? 'bg-red-500 animate-pulse' : 'bg-orange-500'
+                  }`}
+                  title={`${totalUnreadCount} tin nhắn chưa đọc`}
+                >
                   <span className="text-[8px] text-white font-bold">
                     {totalUnreadCount > 9 ? '9+' : totalUnreadCount}
                   </span>
                 </div>
               )}
-              {/* Connection indicator khi offline */}
+              {/* Connection indicator */}
               {isMessagesItem && !isConnected && (
                 <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-gray-400 rounded-full" title="Offline"></div>
               )}
@@ -288,15 +331,18 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
             {!isCollapsed && (
               <div className="flex items-center gap-2">
                 <span className="font-medium">{item.label}</span>
-                {/* 🔥 REALTIME BADGE KHI EXPANDED - sử dụng useUnreadMessages */}
+                {/* 🔥 EXPANDED BADGE - với logging */}
                 {isMessagesItem && totalUnreadCount > 0 && (
-                  <div className={`text-white text-xs rounded-full px-1.5 py-0.5 min-w-[16px] flex items-center justify-center ${
-                    isConnected ? 'bg-red-500 animate-pulse' : 'bg-orange-500'
-                  }`}>
+                  <div 
+                    className={`text-white text-xs rounded-full px-1.5 py-0.5 min-w-[16px] flex items-center justify-center ${
+                      isConnected ? 'bg-red-500 animate-pulse' : 'bg-orange-500'
+                    }`}
+                    title={`${totalUnreadCount} tin nhắn chưa đọc`}
+                  >
                     {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
                   </div>
                 )}
-                {/* Connection status text */}
+                {/* Connection status */}
                 {isMessagesItem && !isConnected && (
                   <span className="text-xs text-gray-400">(Offline)</span>
                 )}
@@ -362,9 +408,9 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
         {!isCollapsed && (
           <div className="text-xs text-gray-500 text-center">
             <div>Version 1.0.0</div>
-            {/* 🔥 DEBUG INFO - SỬ DỤNG useUnreadMessages */}
+            {/* 🔥 DEBUG INFO */}
             <div className="mt-1">
-              Messages: {totalUnreadCount} | {isConnected ? '🟢 Online' : '🔴 Offline'}
+              Unread: {totalUnreadCount} | {isConnected ? '🟢 Online' : '🔴 Offline'}
             </div>
           </div>
         )}
