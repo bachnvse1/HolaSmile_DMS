@@ -82,11 +82,10 @@ namespace Application.Usecases.Dentist.ManageSchedule
                 }
             }
 
-            var owners = await _ownerRepository.GetAllOwnersAsync();
-
             // Send notification to owner
             try
             {
+                var owners = await _ownerRepository.GetAllOwnersAsync();
                 var notifyOwners = owners.Select(async o =>
                 await _mediator.Send(new SendNotificationCommand(
                       o.User.UserID,

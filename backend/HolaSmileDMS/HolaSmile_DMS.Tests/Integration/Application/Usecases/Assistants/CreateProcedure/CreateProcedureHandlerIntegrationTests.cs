@@ -1,6 +1,8 @@
 ﻿using System.Security.Claims;
+using Application.Interfaces;
 using Application.Usecases.Assistant.ProcedureTemplate.CreateProcedure;
 using HDMS_API.Infrastructure.Persistence;
+using HDMS_API.Infrastructure.Repositories;
 using Infrastructure.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -40,6 +42,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
                 new ProcedureRepository(_context),
                 new SupplyRepository(_context),
                 new OwnerRepository(_context),
+                new UserCommonRepository(_context),
                 _httpContextAccessor,
                 _mediator
             );
