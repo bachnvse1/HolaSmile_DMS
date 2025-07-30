@@ -7,7 +7,6 @@ import type { GuestConversation } from '@/hooks/chat/useGuestConversations';
 import type { ConversationUser } from '@/hooks/chat/useChatConversations';
 import { StaffLayout } from '@/layouts/staff';
 import { useUserInfo } from '@/hooks/useUserInfo';
-import { useUnreadMessages } from '@/hooks/chat/useUnreadMessages';
 
 const GuestConsultationPage: React.FC = () => {
   const { userId, role } = useAuth();
@@ -18,26 +17,11 @@ const GuestConsultationPage: React.FC = () => {
   const {
     conversations,
     loading,
-    markAsRead: markGuestAsRead,
+    markAsRead,
     loadConversationData,
     totalCount,
     refreshGuests
   } = useGuestConversations();
-
-  const {
-    getUnreadCount,
-    markAsRead,
-    addUnreadMessage,
-    refreshUnreadCounts
-  } = useUnreadMessages(userId);
-
-  // Update guest conversations with unread counts
-  const conversationsWithUnread = useMemo(() => {
-    return conversations.map(conv => ({
-      ...conv,
-      unreadCount: getUnreadCount(conv.guestId)
-    }));
-  }, [conversations, getUnreadCount]);
 
   // Convert GuestConversation to ConversationUser for ChatWindow
   const selectedUser: ConversationUser | null = selectedConversation ? {
@@ -57,8 +41,7 @@ const GuestConsultationPage: React.FC = () => {
     setShowMobileChat(true);
     
     // Mark messages as read
-    await markAsRead(conversation.guestId, userId || '');
-    await markGuestAsRead(conversation.guestId);
+    markAsRead(conversation.guestId);
     
     // Load conversation data
     await loadConversationData(conversation.guestId);
@@ -69,17 +52,6 @@ const GuestConsultationPage: React.FC = () => {
     setShowMobileChat(false);
     setSelectedConversation(null);
   };
-
-  // Periodic refresh for unread counts
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!showMobileChat) {
-        refreshUnreadCounts();
-      }
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, [showMobileChat, refreshUnreadCounts]);
 
   // Danh sách user ID được phép truy cập
   const ALLOWED_USER_IDS = ["3"]; // Có thể thêm nhiều ID khác
@@ -138,7 +110,7 @@ const GuestConsultationPage: React.FC = () => {
               {/* Mobile Conversation List */}
               <div className="flex-1">
                 <GuestConversationList
-                  conversations={conversationsWithUnread}
+                  conversations={conversations}
                   selectedConversation={selectedConversation}
                   onSelectConversation={handleSelectConversation}
                   loading={loading}
@@ -152,7 +124,6 @@ const GuestConsultationPage: React.FC = () => {
               <ChatWindow
                 conversation={selectedUser}
                 onBack={handleBackFromChat}
-                onMarkAsRead={markAsRead}
               />
             </div>
           )}
@@ -171,11 +142,6 @@ const GuestConsultationPage: React.FC = () => {
                 <p className="text-gray-600">
                   Quản lý và trả lời các tin nhắn tư vấn từ khách hàng
                 </p>
-                {/* <div className="mt-2 text-sm text-green-600">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100">
-                  ✓ Được ủy quyền - User ID: {userId}
-                </span>
-              </div> */}
               </div>
 
               {/* Chat Container */}
@@ -184,7 +150,7 @@ const GuestConsultationPage: React.FC = () => {
                   {/* Guest Conversation List */}
                   <div className="w-80 border-r border-gray-200">
                     <GuestConversationList
-                      conversations={conversationsWithUnread}
+                      conversations={conversations}
                       selectedConversation={selectedConversation}
                       onSelectConversation={handleSelectConversation}
                       loading={loading}
@@ -195,10 +161,7 @@ const GuestConsultationPage: React.FC = () => {
 
                   {/* Chat Window */}
                   <div className="flex-1">
-                    <ChatWindow 
-                      conversation={selectedUser} 
-                      onMarkAsRead={markAsRead}
-                    />
+                    <ChatWindow conversation={selectedUser} />
                   </div>
                 </div>
               </div>

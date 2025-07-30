@@ -28,12 +28,12 @@ const InternalMessagesPage: React.FC = () => {
     totalCount
   } = useInternalConversations();
 
-  // No need to filter again since hook already filters to staff only
-
   // Handle conversation selection
   const handleSelectConversation = async (conversation: ConversationUser) => {
     setSelectedConversation(conversation);
     setShowMobileChat(true);
+    
+    // Mark as read and load conversation data
     markAsRead(conversation.userId);
     await loadConversationData(conversation.userId);
   };

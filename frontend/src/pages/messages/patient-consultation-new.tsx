@@ -3,8 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { ConversationList } from '@/components/chat/ConversationList';
 import { ChatWindow } from '@/components/chat/ChatWindow';
 import { useChatConversations } from '@/hooks/chat/useChatConversations';
-import { usePatientConversations } from '@/hooks/chat/usePatientConversations'; // Import hook mới
-import { useUnreadMessages } from '@/hooks/chat/useUnreadMessages';
+import { usePatientConversations } from '@/hooks/chat/usePatientConversations';
 import type { ConversationUser } from '@/hooks/chat/useChatConversations';
 import { StaffLayout } from '@/layouts/staff';
 import { useUserInfo } from '@/hooks/useUserInfo';
@@ -35,13 +34,6 @@ const PatientConsultationPage: React.FC = () => {
     totalUnreadCount
   } = isStaff ? staffHook : patientHook;
 
-  const {
-    getUnreadCount,
-    markAsRead,
-    addUnreadMessage,
-    refreshUnreadCounts
-  } = useUnreadMessages(userId);
-
   // Filter conversations for patients (staff already filtered in hook)
   const filteredConversations = useMemo(() => {
     if (role === 'Patient') {
@@ -54,17 +46,9 @@ const PatientConsultationPage: React.FC = () => {
     return [];
   }, [rawConversations, role, STAFF_ROLES, isStaff]);
 
-  // Update conversations with unread counts
-  const conversationsWithUnread = useMemo(() => {
-    return filteredConversations.map(conv => ({
-      ...conv,
-      unreadCount: getUnreadCount(conv.userId)
-    }));
-  }, [filteredConversations, getUnreadCount]);
-
-  // Sort conversations: unread first, then by last message time, then alphabetically
+  // For consistency, use conversations directly from hook instead of useUnreadMessages
   const sortedConversations = useMemo(() => {
-    return [...conversationsWithUnread].sort((a, b) => {
+    return [...filteredConversations].sort((a, b) => {
       // First priority: unread messages
       if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
       if (a.unreadCount === 0 && b.unreadCount > 0) return 1;
@@ -79,15 +63,14 @@ const PatientConsultationPage: React.FC = () => {
       // Third priority: alphabetical by name
       return a.fullName.localeCompare(b.fullName, 'vi');
     });
-  }, [conversationsWithUnread]);
+  }, [filteredConversations]);
 
   // Handle conversation selection
   const handleSelectConversation = async (conversation: ConversationUser) => {
     setSelectedConversation(conversation);
     setShowMobileChat(true);
     
-    // Mark messages as read và refresh unread counts
-    await markAsRead(conversation.userId, userId || '');
+    // Mark messages as read
     markConversationAsRead(conversation.userId);
     
     // Load conversation data
@@ -99,17 +82,6 @@ const PatientConsultationPage: React.FC = () => {
     setShowMobileChat(false);
     setSelectedConversation(null);
   };
-
-  // Periodic refresh for unread counts
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!showMobileChat) {
-        refreshUnreadCounts();
-      }
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, [showMobileChat, refreshUnreadCounts]);
 
   // Kiểm tra quyền truy cập AFTER all hooks
   if (!role || (!STAFF_ROLES.includes(role) && role !== 'Patient')) {
@@ -198,7 +170,6 @@ const PatientConsultationPage: React.FC = () => {
               <ChatWindow
                 conversation={selectedConversation}
                 onBack={handleBackFromChat}
-                onMarkAsRead={markAsRead}
               />
             </div>
           )}
@@ -220,7 +191,7 @@ const PatientConsultationPage: React.FC = () => {
                 <div className="mt-4 flex items-center gap-6 text-sm text-gray-600">
                   <span className="flex items-center gap-1">
                     <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                    Bệnh nhân: <span className="font-medium text-gray-900">{totalPatients}</span>
+                    {role === 'Patient' ? 'Nhân viên y tế' : 'Bệnh nhân'}: <span className="font-medium text-gray-900">{totalPatients}</span>
                   </span>
                   {role !== 'Patient' && totalPatients > 0 && (
                     <>
@@ -258,10 +229,7 @@ const PatientConsultationPage: React.FC = () => {
 
                   {/* Chat Window */}
                   <div className="flex-1">
-                    <ChatWindow 
-                      conversation={selectedConversation} 
-                      onMarkAsRead={markAsRead}
-                    />
+                    <ChatWindow conversation={selectedConversation} />
                   </div>
                 </div>
               </div>

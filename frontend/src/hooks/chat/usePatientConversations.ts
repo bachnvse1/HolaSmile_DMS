@@ -204,6 +204,37 @@ export const usePatientConversations = () => {
     return () => clearTimeout(timer);
   }, [users, userId, fetchChatHistory, hasLoadedInitialConversations, conversationHistory]);
 
+  // Handle new messages for unread count
+  useEffect(() => {
+    if (!userId || realtimeMessages.length === 0) return;
+    
+    const lastMessage = realtimeMessages[realtimeMessages.length - 1];
+    
+    // Only count unread if message is TO current user (not FROM current user)
+    if (lastMessage.receiverId === userId && lastMessage.senderId !== userId) {
+      // Only process if this is a truly new message (not from reload)
+      const messageKey = `${lastMessage.senderId}-${lastMessage.receiverId}-${lastMessage.timestamp}`;
+      const processedMessages = JSON.parse(sessionStorage.getItem(`processedPatientMessages_${userId}`) || '[]');
+      
+      if (!processedMessages.includes(messageKey)) {
+        // Mark message as processed
+        processedMessages.push(messageKey);
+        if (processedMessages.length > 100) {
+          processedMessages.splice(0, processedMessages.length - 100);
+        }
+        sessionStorage.setItem(`processedPatientMessages_${userId}`, JSON.stringify(processedMessages));
+        
+        // Increment unread count for sender (patient)
+        setUnreadCounts(prev => {
+          const newCounts = new Map(prev);
+          const currentCount = newCounts.get(lastMessage.senderId) || 0;
+          newCounts.set(lastMessage.senderId, currentCount + 1);
+          return newCounts;
+        });
+      }
+    }
+  }, [realtimeMessages, userId]);
+
   // Build conversations list
   const conversations = useMemo(() => {
     if (!userId) return [];
@@ -228,28 +259,20 @@ export const usePatientConversations = () => {
           m.message === msg.message &&
           Math.abs(new Date(m.timestamp || '').getTime() - new Date(msg.timestamp || '').getTime()) < 1000
         ) === index
-      ).map(msg => {
-        const msgWithStatus = msg as ChatMessage & { isDelivered?: boolean; isRead?: boolean };
-        return {
-          ...msg,
-          isDelivered: msgWithStatus.isDelivered !== undefined ? msgWithStatus.isDelivered : true,
-          isRead: msgWithStatus.isRead !== undefined ? msgWithStatus.isRead : (msg.senderId === userId)
-        };
-      });
+      );
       
       const lastMessage = uniqueMessages[uniqueMessages.length - 1];
       
-      const actualUnreadCount = uniqueMessages.filter(msg => 
-        msg.senderId === user.userId && !msg.isRead
-      ).length;
+      // Get stored unread count (this includes real-time updates)
+      const storedUnreadCount = unreadCounts.get(user.userId) || 0;
       
       // Include all patients - HIỂN THỊ TẤT CẢ PATIENTS
       conversations.push({
         ...user,
         lastMessage,
         lastMessageTime: lastMessage?.timestamp,
-        unreadCount: actualUnreadCount,
-        hasUnreadMessages: actualUnreadCount > 0
+        unreadCount: storedUnreadCount,
+        hasUnreadMessages: storedUnreadCount > 0
       });
     }
     
@@ -269,7 +292,7 @@ export const usePatientConversations = () => {
       // Third: Alphabetical by name
       return a.fullName.localeCompare(b.fullName);
     });
-  }, [users, userId, conversationHistory, realtimeMessages]);
+  }, [users, userId, conversationHistory, realtimeMessages, unreadCounts]);
 
   // Apply filters
   const filteredConversations = useMemo(() => {
@@ -313,7 +336,7 @@ export const usePatientConversations = () => {
 
   // Mark conversation as read
   const markAsRead = useCallback((otherUserId: string) => {
-    setUnreadCounts((prev: Map<string, number>) => {
+    setUnreadCounts(prev => {
       const newCounts = new Map(prev);
       newCounts.set(otherUserId, 0);
       return newCounts;

@@ -7,7 +7,7 @@ import {
   Settings,
   UserCheck,
   Stethoscope,
-  CreditCard,
+  CreditCard, 
   Package,
   ChevronDown,
   ChevronRight,
@@ -22,7 +22,7 @@ import {
   Phone
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
-import { useUnreadMessages } from '@/hooks/chat/useUnreadMessages';
+import { useTotalUnreadCount } from '@/hooks/chat/useTotalUnreadCount';
 import { useAuth } from '@/hooks/useAuth';
 import { useChatHub } from '@/components/chat/ChatHubProvider';
 
@@ -49,13 +49,13 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
   const navigate = useNavigate();
   const location = useLocation();
   
-  // 🔥 SỬ DỤNG HOOK CÓ SẴN
+  // 🔥 SỬ DỤNG HOOK ĐÃ CẬP NHẬT
   const { userId } = useAuth();
-  const { getTotalUnreadCount } = useUnreadMessages(userId);
+  const { totalUnreadCount, getUnreadCountByType } = useTotalUnreadCount();
   const { isConnected } = useChatHub();
   
-  // Lấy total unread count
-  const totalUnreadCount = getTotalUnreadCount();
+  // Lấy unread count theo từng loại
+  const unreadCounts = getUnreadCountByType;
 
   const menuItems: MenuItem[] = [
     {

@@ -114,24 +114,22 @@ export const useInternalConversations = () => {
         const response = await axiosInstance.get('/user/allUsersChat', {
           withCredentials: true
         });
-        console.log('Internal conversations response:', response.data); // Debug log
+        console.log('Internal conversations response:', response.data);
         if (Array.isArray(response.data)) {
-          // API returns array directly
           const staffUsers = response.data.filter((user: ConversationUser) => 
             STAFF_ROLES.includes(user.role) && 
             user.role !== 'Patient' && 
             user.userId !== userId
           );
-          console.log('Filtered staff users:', staffUsers); // Debug log
+          console.log('Filtered staff users:', staffUsers);
           setUsers(staffUsers);
         } else if (response.data?.success && Array.isArray(response.data.data)) {
-          // API returns object with success and data
           const staffUsers = response.data.data.filter((user: ConversationUser) => 
             STAFF_ROLES.includes(user.role) && 
             user.role !== 'Patient' && 
             user.userId !== userId
           );
-          console.log('Filtered staff users:', staffUsers); // Debug log
+          console.log('Filtered staff users:', staffUsers);
           setUsers(staffUsers);
         } else {
           console.error('Invalid response format:', response.data);
@@ -208,13 +206,9 @@ export const useInternalConversations = () => {
                 newHistory.set(user.userId, history);
                 return newHistory;
               });
-              
-              // Don't set unread counts here - let the sync effect handle it
-              // This prevents duplicate counting on reload
               hasUpdated = true;
             }
           } catch {
-            // Ignore errors for individual users - they might not have conversation history
             console.debug(`No conversation history for user ${user.userId}`);
           }
         }
@@ -224,12 +218,42 @@ export const useInternalConversations = () => {
       }
     };
 
-    // Add a small delay to avoid overwhelming the API
     const timer = setTimeout(loadAllConversations, 1500);
     return () => clearTimeout(timer);
   }, [users, userId, fetchChatHistory, hasLoadedInitialConversations, conversationHistory]);
 
-  // Build conversations list
+  // Handle new messages for unread count
+  useEffect(() => {
+    if (!userId || realtimeMessages.length === 0) return;
+    
+    const lastMessage = realtimeMessages[realtimeMessages.length - 1];
+    
+    // Only count unread if message is TO current user (not FROM current user)
+    if (lastMessage.receiverId === userId && lastMessage.senderId !== userId) {
+      // Only process if this is a truly new message (not from reload)
+      const messageKey = `${lastMessage.senderId}-${lastMessage.receiverId}-${lastMessage.timestamp}`;
+      const processedMessages = JSON.parse(sessionStorage.getItem(`processedInternalMessages_${userId}`) || '[]');
+      
+      if (!processedMessages.includes(messageKey)) {
+        // Mark message as processed
+        processedMessages.push(messageKey);
+        if (processedMessages.length > 100) {
+          processedMessages.splice(0, processedMessages.length - 100);
+        }
+        sessionStorage.setItem(`processedInternalMessages_${userId}`, JSON.stringify(processedMessages));
+        
+        // Increment unread count for sender
+        setUnreadCounts(prev => {
+          const newCounts = new Map(prev);
+          const currentCount = newCounts.get(lastMessage.senderId) || 0;
+          newCounts.set(lastMessage.senderId, currentCount + 1);
+          return newCounts;
+        });
+      }
+    }
+  }, [realtimeMessages, userId]);
+
+  // Build conversations list with accurate unread counts
   const conversations = useMemo(() => {
     if (!userId) return [];
     
@@ -248,7 +272,7 @@ export const useInternalConversations = () => {
       const allMessages = [...userHistory, ...realtimeForUser]
         .sort((a, b) => new Date(a.timestamp || '').getTime() - new Date(b.timestamp || '').getTime());
       
-      // Remove duplicates and ensure proper status
+      // Remove duplicates
       const uniqueMessages = allMessages.filter((msg, index, arr) => 
         arr.findIndex(m => 
           m.senderId === msg.senderId && 
@@ -256,30 +280,20 @@ export const useInternalConversations = () => {
           m.message === msg.message &&
           Math.abs(new Date(m.timestamp || '').getTime() - new Date(msg.timestamp || '').getTime()) < 1000
         ) === index
-      ).map(msg => {
-        const msgWithStatus = msg as ChatMessage & { isDelivered?: boolean; isRead?: boolean };
-        return {
-          ...msg,
-          // Ensure all messages have proper delivery/read status
-          isDelivered: msgWithStatus.isDelivered !== undefined ? msgWithStatus.isDelivered : true,
-          isRead: msgWithStatus.isRead !== undefined ? msgWithStatus.isRead : (msg.senderId === userId)
-        };
-      });
+      );
       
       const lastMessage = uniqueMessages[uniqueMessages.length - 1];
       
-      // Calculate unread count directly from messages instead of relying on stored count
-      const actualUnreadCount = uniqueMessages.filter(msg => 
-        msg.senderId === user.userId && !msg.isRead
-      ).length;
+      // Get stored unread count (this includes real-time updates)
+      const storedUnreadCount = unreadCounts.get(user.userId) || 0;
       
       // Always include all staff members
       conversations.push({
         ...user,
         lastMessage,
         lastMessageTime: lastMessage?.timestamp,
-        unreadCount: actualUnreadCount, // Use calculated count instead of stored count
-        hasUnreadMessages: actualUnreadCount > 0
+        unreadCount: storedUnreadCount,
+        hasUnreadMessages: storedUnreadCount > 0
       });
     }
     
@@ -299,7 +313,7 @@ export const useInternalConversations = () => {
       // Third: Alphabetical by name
       return a.fullName.localeCompare(b.fullName);
     });
-  }, [users, userId, conversationHistory, realtimeMessages]);
+  }, [users, userId, conversationHistory, realtimeMessages, unreadCounts]);
 
   // Apply filters
   const filteredConversations = useMemo(() => {
@@ -349,9 +363,9 @@ export const useInternalConversations = () => {
     }
   }, [hasMore, loading]);
 
-  // Mark conversation as read
+  // Mark conversation as read - clear unread count
   const markAsRead = useCallback((otherUserId: string) => {
-    setUnreadCounts((prev: Map<string, number>) => {
+    setUnreadCounts(prev => {
       const newCounts = new Map(prev);
       newCounts.set(otherUserId, 0);
       return newCounts;
@@ -386,60 +400,6 @@ export const useInternalConversations = () => {
       console.error('Error loading conversation:', error);
     }
   }, [userId, fetchChatHistory]);
-
-  // Handle new messages for unread count
-  useEffect(() => {
-    if (!userId || realtimeMessages.length === 0) return;
-    
-    const lastMessage = realtimeMessages[realtimeMessages.length - 1];
-    
-    // Only process if this is a truly new message (not from reload)
-    const messageKey = `${lastMessage.senderId}-${lastMessage.receiverId}-${lastMessage.timestamp}`;
-    const processedMessages = JSON.parse(sessionStorage.getItem(`processedInternalMessages_${userId}`) || '[]');
-    
-    if (processedMessages.includes(messageKey)) {
-      return; // Already processed this message
-    }
-    
-    // Mark message as processed
-    processedMessages.push(messageKey);
-    // Keep only last 100 processed messages to avoid memory issues
-    if (processedMessages.length > 100) {
-      processedMessages.splice(0, processedMessages.length - 100);
-    }
-    sessionStorage.setItem(`processedInternalMessages_${userId}`, JSON.stringify(processedMessages));
-    
-    // Simulate message delivery and read status
-    if (lastMessage.senderId === userId) {
-      // Own message - mark as delivered immediately
-      const msgWithStatus = lastMessage as ChatMessage & { isDelivered: boolean; isRead: boolean };
-      msgWithStatus.isDelivered = true;
-      msgWithStatus.isRead = false;
-      
-      // Simulate read status after 2 seconds
-      setTimeout(() => {
-        msgWithStatus.isRead = true;
-        // Update the message in conversation history
-        setConversationHistory(prev => {
-          const newHistory = new Map(prev);
-          const userHistory = newHistory.get(lastMessage.receiverId) || [];
-          const updatedHistory = userHistory.map(msg => 
-            msg.senderId === lastMessage.senderId && 
-            msg.timestamp === lastMessage.timestamp && 
-            msg.message === lastMessage.message
-              ? { ...msg, isRead: true, isDelivered: true }
-              : msg
-          );
-          newHistory.set(lastMessage.receiverId, updatedHistory);
-          return newHistory;
-        });
-      }, 2000);
-    } else if (lastMessage.receiverId === userId) {
-      // Incoming message - don't increment unread count here
-      // Let the sync effect handle unread counting based on actual message status
-      // This prevents duplicate counting
-    }
-  }, [realtimeMessages, userId]);
 
   // Save conversation history to sessionStorage
   useEffect(() => {

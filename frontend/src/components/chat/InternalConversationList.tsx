@@ -1,7 +1,6 @@
 import React, { memo, useCallback, useEffect, useRef } from 'react';
 import { Search, Filter, Users, MessageCircle, Clock } from 'lucide-react';
 import type { ConversationUser, ConversationFilters } from '@/hooks/chat/useInternalConversations';
-import { useUnreadMessages } from '@/hooks/chat/useUnreadMessages';
 import { useAuth } from '@/hooks/useAuth';
 
 interface InternalConversationListProps {
@@ -208,30 +207,19 @@ export const InternalConversationList: React.FC<InternalConversationListProps> =
   totalCount
 }) => {
   const { userId } = useAuth();
-  const { getUnreadCount, getTotalUnreadCount, markConversationAsRead } = useUnreadMessages(userId);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Handle conversation selection with mark as read
   const handleSelectConversation = useCallback(async (conversation: ConversationUser) => {
     onSelectConversation(conversation);
     
-    // Mark conversation as read when selected
-    if (conversation.userId && userId) {
-      await markConversationAsRead(conversation.userId);
-    }
-  }, [onSelectConversation, markConversationAsRead, userId]);
+    // Mark conversation as read when selected - call the markAsRead from hook
+    // This should be handled by the parent component through onSelectConversation
+  }, [onSelectConversation]);
 
-  // Enhance conversations with real-time unread counts
-  const conversationsWithUnread = React.useMemo(() => {
-    return conversations.map(conversation => ({
-      ...conversation,
-      unreadCount: getUnreadCount(conversation.userId)
-    }));
-  }, [conversations, getUnreadCount]);
-
-  // Sort conversations: unread first, then by recent activity, then alphabetically
+  // Use unread counts directly from conversations prop instead of useUnreadMessages hook
   const sortedConversations = React.useMemo(() => {
-    return [...conversationsWithUnread].sort((a, b) => {
+    return [...conversations].sort((a, b) => {
       // First priority: unread messages
       if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
       if (a.unreadCount === 0 && b.unreadCount > 0) return 1;
@@ -246,7 +234,7 @@ export const InternalConversationList: React.FC<InternalConversationListProps> =
       // Third priority: alphabetical by name
       return a.fullName.localeCompare(b.fullName, 'vi');
     });
-  }, [conversationsWithUnread]);
+  }, [conversations]);
 
   // Handle scroll for infinite loading
   const handleScroll = useCallback(() => {
@@ -266,9 +254,9 @@ export const InternalConversationList: React.FC<InternalConversationListProps> =
     }
   }, [handleScroll]);
 
-  // Calculate stats from real-time unread counts
+  // Calculate stats from conversations prop instead of useUnreadMessages
   const unreadCount = sortedConversations.filter(conv => conv.unreadCount > 0).length;
-  const totalUnreadMessages = getTotalUnreadCount();
+  const totalUnreadMessages = sortedConversations.reduce((total, conv) => total + conv.unreadCount, 0);
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-gray-50 to-gray-100">
