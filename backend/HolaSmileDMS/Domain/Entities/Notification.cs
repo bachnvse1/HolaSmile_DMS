@@ -5,7 +5,8 @@ public class Notification
 {
     [Key] public int NotificationId { get; set; }
 
-    [ForeignKey("User")] public int UserId { get; set; }
+    [ForeignKey("User")] 
+    public int UserId { get; set; }
     public User User { get; set; }
 
     [MaxLength(255)] public string? Title { get; set; }
@@ -14,7 +15,7 @@ public class Notification
 
     [MaxLength(50)] public string? Type { get; set; } //Delete, Update, Create, etc.
 
-    public bool IsRead { get; set; }
+    public bool IsRead { get; set; } = false;
 
     public DateTime CreatedAt { get; set; }
 
