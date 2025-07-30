@@ -119,6 +119,7 @@ export function NotificationButton() {
 
   useEffect(() => {
     const token = localStorage.getItem("token") || "";
+     if (!token) return;
 
     const connection = createNotificationConnection(token);
     connection.start().catch(console.error);
