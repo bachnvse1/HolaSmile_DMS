@@ -527,7 +527,7 @@ export const FinancialTransactionList: React.FC = () => {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {paginatedTransactions.map((transaction) => {
                       const typeConfig = getTransactionTypeConfig(transaction.transactionType);
-                      
+
                       return (
                         <tr key={transaction.transactionID} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -603,7 +603,7 @@ export const FinancialTransactionList: React.FC = () => {
                                 onClick={() => setEditTransaction(transaction.transactionID)}
                                 className="text-blue-600 hover:text-blue-900"
                                 title="Chỉnh sửa"
-                                disabled={!(transaction.status === 'pending' && transaction.createdBy === Number(userInfo?.id))}
+                                disabled={!(transaction.status === 'pending' && transaction.createById === Number(userInfo?.id))}
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
@@ -696,7 +696,7 @@ export const FinancialTransactionList: React.FC = () => {
                           size="sm"
                           onClick={() => setEditTransaction(transaction.transactionID)}
                           className="text-blue-600 hover:text-blue-900"
-                          disabled={!(transaction.status === 'pending' && transaction.createdBy === Number(userInfo?.id))}
+                          disabled={!(transaction.status === 'pending' && transaction.createById === Number(userInfo?.id))}
                         >
                           <Edit className="h-4 w-4 mr-1" />
                           Sửa

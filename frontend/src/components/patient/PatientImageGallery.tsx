@@ -63,7 +63,6 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
   const { data: imagesResponse, isLoading, error } = usePatientImages(queryParams);
   const createImageMutation = useCreatePatientImage();
   const deleteImageMutation = useDeletePatientImage();
-  console.log(`Actual Patient ID: ${actualPatientId}`)
   // Fix: Handle response that is now processed in the hook
   const images = Array.isArray(imagesResponse) ? imagesResponse : [];
 
@@ -202,7 +201,7 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
     }
 
     setIsUploading(true);
-    let successCount = 0;
+    // let successCount = 0;
     let errorCount = 0;
 
     try {
@@ -218,7 +217,7 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
           };
 
           await createImageMutation.mutateAsync(uploadData);
-          successCount++;
+          // successCount++;
         } catch (error) {
           console.error('Upload error for file:', fileItem.file.name, error);
           errorCount++;
@@ -226,9 +225,9 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
       }
 
       // Show result
-      if (successCount > 0) {
-        toast.success(`Đã tải lên thành công ${successCount} ảnh`);
-      }
+      // if (successCount > 0) {
+      //   toast.success(`Đã tải lên thành công ${successCount} ảnh`);
+      // }
       if (errorCount > 0) {
         toast.error(`Có lỗi khi tải lên ${errorCount} ảnh`);
       }

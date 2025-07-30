@@ -65,6 +65,7 @@ namespace Application.Usecases.Receptionist.EditFinancialTransaction
                 throw new Exception("Bạn chỉ có thể chỉnh sửa giao dịch do chính bạn tạo");
             }
             existingTransaction.Description = request.Description;
+            existingTransaction.TransactionType = request.TransactionType;
             existingTransaction.Amount = request.Amount;
             existingTransaction.Category = request.Category;
             existingTransaction.PaymentMethod = request.PaymentMethod;
