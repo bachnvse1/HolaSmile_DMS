@@ -27,7 +27,7 @@ export default function InstructionsPage() {
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
     const [newInstructionContent, setNewInstructionContent] = useState("")
-    const [newInstructionTemplateId, setNewInstructionTemplateId] = useState<number | string>("")
+    const [newInstructionTemplateId, setNewInstructionTemplateId] = useState<number | string | null>(null)
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [editInstructionContent, setEditInstructionContent] = useState("")
@@ -68,17 +68,19 @@ export default function InstructionsPage() {
     }, [appointmentId])
 
     const handleCreateInstruction = async () => {
-        if (!newInstructionContent || !newInstructionTemplateId) {
-            toast.error("Nội dung và mẫu chỉ dẫn là bắt buộc.")
+        if (!newInstructionContent.trim()) {
+            toast.error("Nội dung chỉ dẫn là bắt buộc.")
             return
         }
 
         try {
-            await createInstruction(Number(appointmentId), newInstructionContent, Number(newInstructionTemplateId))
+            // Nếu không chọn mẫu (newInstructionTemplateId là null hoặc ""), truyền null
+            const templateId = newInstructionTemplateId ? Number(newInstructionTemplateId) : null
+            await createInstruction(Number(appointmentId), newInstructionContent, templateId)
             toast.success("Tạo chỉ dẫn thành công.")
             setIsCreateModalOpen(false)
             setNewInstructionContent("")
-            setNewInstructionTemplateId("")
+            setNewInstructionTemplateId(null)
             fetchInstruction()
         } catch (err: any) {
             const message = err?.response?.data?.message || "Không thể tạo chỉ dẫn."
@@ -127,10 +129,16 @@ export default function InstructionsPage() {
     }
 
     const onNewTemplateSelect = (value: string) => {
-        const templateId = Number(value)
-        setNewInstructionTemplateId(templateId)
-        const selected = instructionTemplates.find(t => t.instruc_TemplateID === templateId)
-        setNewInstructionContent(selected?.instruc_TemplateContext || "")
+        if (value === "none") {
+            // Không chọn mẫu
+            setNewInstructionTemplateId(null)
+            setNewInstructionContent("")
+        } else {
+            const templateId = Number(value)
+            setNewInstructionTemplateId(templateId)
+            const selected = instructionTemplates.find(t => t.instruc_TemplateID === templateId)
+            setNewInstructionContent(selected?.instruc_TemplateContext || "")
+        }
     }
 
     const onEditTemplateSelect = (value: string) => {
@@ -215,7 +223,7 @@ export default function InstructionsPage() {
                                         </CardTitle>
                                         <CardDescription className="text-sm text-gray-600 flex items-center gap-2 mt-1">
                                             <FileText className="h-4 w-4 text-blue-500" />
-                                            Mẫu: {instruction.instruc_TemplateName}
+                                            Mẫu: {instruction.instruc_TemplateName || "Không sử dụng mẫu"}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent className="pt-3">

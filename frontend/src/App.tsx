@@ -63,9 +63,10 @@ import { PromotionManagementPage } from './pages/promotion/PromotionManagementPa
 import { ViewTransactionPage } from './pages/financial/ViewTransactionPage';
 import { ViewPromotionPage } from './pages/promotion/ViewPromotionPage';
 import NotFound from './pages/error/NotFound';
-import GuestConsultationPage from "./pages/messages/guest-consultation";
-import PatientConsultationPage from "./pages/messages/patient-consultation";
-import InternalMessagesPage from "./pages/messages/internal";
+import GuestConsultationPage from "./pages/messages/guest-consultation-new";
+import PatientConsultationPage from "./pages/messages/patient-consultation-new";
+import InternalMessagesPage from "./pages/messages/internal-new";
+
 function App() {
   return (
     <>

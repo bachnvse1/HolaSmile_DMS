@@ -17,6 +17,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { formatCurrency, handleCurrencyInput, parseCurrency } from "@/utils/currencyUtils";
+import { toast } from "react-toastify";
 
 // Improved type definitions
 interface TreatmentRecord {
@@ -45,7 +46,6 @@ interface CreateInvoiceModalProps {
   isCreating?: boolean; 
 }
 
-// Constants for better maintainability
 const PAYMENT_METHODS = [
   { value: "cash", label: "Tiền mặt" },
   { value: "PayOS", label: "Chuyển khoản" },
@@ -66,10 +66,8 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
   handleCreateInvoice,
   isCreating = false,
 }) => {
-  // State để lưu trữ giá trị formatted cho input
   const [formattedAmount, setFormattedAmount] = React.useState<string>('');
 
-  // Sync formatted amount khi paidAmount thay đổi từ bên ngoài
   React.useEffect(() => {
     if (newInvoice.paidAmount > 0) {
       setFormattedAmount(formatCurrency(newInvoice.paidAmount));
@@ -78,7 +76,6 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
     }
   }, [newInvoice.paidAmount]);
 
-  // Validation helper
   const isFormValid = () => {
     return (
       newInvoice.paymentMethod &&
@@ -119,6 +116,19 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
     }
   };
 
+ const handleCreateInvoiceWithNavigation = async () => {
+    try {
+      await handleCreateInvoice();
+      toast.success('Hóa đơn đã được tạo thành công');
+      setTimeout(() => {
+        window.location.href = '/invoices';
+      }, 1000);
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || error?.message || 'Lỗi khi tạo hóa đơn';
+      toast.error(errorMessage);
+    }
+  };
+
   // Calculate remaining amount
   const remainingAmount = treatmentRecord.totalAmount - newInvoice.paidAmount;
 
@@ -135,21 +145,18 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
             <h3 className="font-semibold text-gray-900 mb-3">Thông tin điều trị</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
               <div className="flex items-start gap-2">
-                <span className="text-blue-600">🦷</span>
                 <div>
                   <p className="font-medium text-gray-700">Triệu chứng:</p>
                   <p className="text-gray-600">{treatmentRecord.symptoms}</p>
                 </div>
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-green-600">💰</span>
                 <div>
                   <p className="font-medium text-gray-700">Tổng tiền:</p>
                   <p className="text-gray-900 font-semibold">{formatCurrency(treatmentRecord.totalAmount)}</p>
                 </div>
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-purple-600">📅</span>
                 <div>
                   <p className="font-medium text-gray-700">Ngày điều trị:</p>
                   <p className="text-gray-600">{treatmentRecord.treatmentDate}</p>
@@ -272,7 +279,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
               Hủy
             </Button>
             <Button
-              onClick={handleCreateInvoice}
+              onClick={handleCreateInvoiceWithNavigation}
               disabled={!isFormValid() || isCreating}
               className="min-w-[100px]"
             >

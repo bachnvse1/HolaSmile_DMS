@@ -25,7 +25,7 @@ export const getPatientInstructions = async (appointmentId: number): Promise<Ins
 export const createInstruction = async (
   appointmentId: number,
   content: string,
-  templateId: number
+  templateId: number | null
 ): Promise<void> => {
   await axiosInstance.post("/instruction/create", {
     appointmentId,

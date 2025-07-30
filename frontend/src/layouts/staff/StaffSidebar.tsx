@@ -22,6 +22,7 @@ import {
   Phone
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
+import { useTotalUnreadCount } from '@/hooks/useTotalUnreadCount';
 import GuestConsultationPage from '@/pages/messages/guest-consultation';
 
 interface MenuItem {
@@ -46,6 +47,9 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Get unread message count
+  const { totalUnreadCount } = useTotalUnreadCount();
 
   const handleMenuClick = (item: MenuItem) => {
     if (item.children && item.children.length > 0) {
@@ -310,6 +314,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
     const hasChildren = item.children && item.children.length > 0;
     const isExpanded = expandedItems.includes(item.id);
     const isActive = item.path ? isActiveItem(item.path) : false;
+    const isMessagesItem = item.id === 'messages';
 
     return (
       <div key={item.id}>
@@ -319,8 +324,28 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
             } ${isActive ? 'bg-blue-100 text-blue-600 border-r-2 border-blue-600' : 'text-gray-700'}`}
         >
           <div className="flex items-center space-x-3">
-            {item.icon}
-            {!isCollapsed && <span className="font-medium">{item.label}</span>}
+            <div className="relative">
+              {item.icon}
+              {/* Badge for unread messages */}
+              {isMessagesItem && totalUnreadCount > 0 && (
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                  <span className="text-[8px] text-white font-bold">
+                    {totalUnreadCount > 9 ? '9+' : totalUnreadCount}
+                  </span>
+                </div>
+              )}
+            </div>
+            {!isCollapsed && (
+              <div className="flex items-center gap-2">
+                <span className="font-medium">{item.label}</span>
+                {/* Badge for unread messages when expanded */}
+                {isMessagesItem && totalUnreadCount > 0 && (
+                  <div className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[16px] flex items-center justify-center">
+                    {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           {!isCollapsed && hasChildren && (
             <div>
