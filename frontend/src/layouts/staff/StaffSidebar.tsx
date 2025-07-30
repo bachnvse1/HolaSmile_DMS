@@ -59,6 +59,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
   const { getTotalUnreadCount, refreshUnreadCounts } = useUnreadMessages(userId);
   const { isConnected, messages } = useChatHub();
   
+  
   // 🔥 Force refresh unread counts khi có tin nhắn mới trong ChatHub
   useEffect(() => {
     if (!userId || messages.length === 0) return;
@@ -94,14 +95,12 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
   // 🔥 Refresh khi user thay đổi hoặc component mount
   useEffect(() => {
     if (userId) {
-      console.log('🔥 StaffSidebar: Initial refresh for user:', userId);
       refreshUnreadCounts();
     }
   }, [userId, refreshUnreadCounts]);
   
   const totalUnreadCount = getTotalUnreadCount();
   
-  console.log('🔥 StaffSidebar render - totalUnreadCount:', totalUnreadCount);
 
   const menuItems: MenuItem[] = [
     {
@@ -317,22 +316,57 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
             <div className="relative">
               {item.icon}
               {/* 🔥 REALTIME BADGE - với logging */}
-              {isMessagesItem && totalUnreadCount > 0 && (
-                <div 
-                  className={`absolute -top-1 -right-1 w-3 h-3 rounded-full flex items-center justify-center ${
-                    isConnected ? 'bg-red-500 animate-pulse' : 'bg-orange-500'
-                  }`}
-                  title={`${totalUnreadCount} tin nhắn chưa đọc`}
-                >
-                  <span className="text-[8px] text-white font-bold">
-                    {totalUnreadCount > 9 ? '9+' : totalUnreadCount}
-                  </span>
-                </div>
-              )}
-              {/* Connection indicator */}
-              {isMessagesItem && !isConnected && (
-                <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-gray-400 rounded-full" title="Offline"></div>
-              )}
+                                    {isMessagesItem && totalUnreadCount > 0 && (
+                    <div className="absolute -top-2 -right-2">
+                      {/* Ripple effect background */}
+                      <div 
+                        className="absolute inset-0 w-5 h-5 rounded-full bg-red-500"
+                        style={{
+                          animation: 'ripple 1.5s ease-out infinite'
+                        }}
+                      />
+                      {/* Main badge */}
+                      <div 
+                        className="relative w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white"
+                        title={`${totalUnreadCount} tin nhắn chưa đọc`}
+                        style={{
+                          animation: 'pulse 2s ease-in-out infinite'
+                        }}
+                      >
+                        <span className="text-[10px] text-white font-bold">
+                          {totalUnreadCount > 9 ? '9+' : totalUnreadCount}
+                        </span>
+                      </div>
+                      
+                      <style>{`
+                        @keyframes ripple {
+                          0% {
+                            transform: scale(1);
+                            opacity: 1;
+                          }
+                          70% {
+                            transform: scale(2.5);
+                            opacity: 0.3;
+                          }
+                          100% {
+                            transform: scale(3);
+                            opacity: 0;
+                          }
+                        }
+                        
+                        @keyframes pulse {
+                          0%, 100% {
+                            transform: scale(1);
+                            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+                          }
+                          50% {
+                            transform: scale(1.1);
+                            box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+                          }
+                        }
+                      `}</style>
+                    </div>
+                  )}
             </div>
             {!isCollapsed && (
               <div className="flex items-center gap-2">
