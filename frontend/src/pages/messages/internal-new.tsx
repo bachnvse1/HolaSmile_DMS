@@ -2,8 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { InternalConversationList } from '@/components/chat/InternalConversationList';
 import { ChatWindow } from '@/components/chat/ChatWindow';
-import { useInternalConversations } from '@/hooks/useInternalConversations';
-import type { ConversationUser } from '@/hooks/useInternalConversations';
+import { useInternalConversations } from '@/hooks/chat/useInternalConversations';
+import type { ConversationUser } from '@/hooks/chat/useInternalConversations';
 import { StaffLayout } from '@/layouts/staff';
 import { useUserInfo } from '@/hooks/useUserInfo';
 
@@ -28,12 +28,12 @@ const InternalMessagesPage: React.FC = () => {
     totalCount
   } = useInternalConversations();
 
-  // No need to filter again since hook already filters to staff only
-
   // Handle conversation selection
   const handleSelectConversation = async (conversation: ConversationUser) => {
     setSelectedConversation(conversation);
     setShowMobileChat(true);
+    
+    // Mark as read and load conversation data
     markAsRead(conversation.userId);
     await loadConversationData(conversation.userId);
   };

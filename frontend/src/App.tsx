@@ -54,7 +54,7 @@ import PaymentCancelled from "./components/invoice/PaymentCancel";
 import PatientTreatmentRecordsSection from "./components/patient/PatientTreatmentRecordsSection";
 import { PatientOrthodonticImagesPage } from "./pages/patient/PatientOrthodonticImagesPage";
 import { PatientTreatmentImagesPage } from "./pages/patient/PatientTreatmentImagesPage";
-import { ChatHubProvider } from './components/chatbox/ChatHubProvider';
+import { ChatHubProvider } from './components/chat/ChatHubProvider';
 import InstructionTemplateManagement from "./pages/instruction/InstructionTemplateManagement";
 import PatientInstructionsList from "./pages/instruction/PatientInstructionList";
 import InstructionsPage from "./pages/instruction/InstructionManagement";

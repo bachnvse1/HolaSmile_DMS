@@ -9,6 +9,11 @@ public class FakeNotificationsRepository : INotificationsRepository
         return System.Threading.Tasks.Task.CompletedTask; // giả lập không lỗi
     }
 
+    public Task<int> CountUnreadNotificationsAsync(int userId, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<List<Notification>> GetAllNotificationsForUserAsync(int userId, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
