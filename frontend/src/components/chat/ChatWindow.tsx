@@ -2,6 +2,7 @@ import React, { memo, useCallback, useEffect, useRef, useState, useMemo } from '
 import { Send, MoreVertical, Phone, Video, Info, Paperclip, MessageCircle, Check, CheckCheck, Search, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useChatHub } from '@/components/chat/ChatHubProvider';
+import { useUnreadMessages } from '@/hooks/chat/useUnreadMessages';
 import type { ConversationUser } from '@/hooks/chat/useChatConversations';
 import type { ChatMessage } from '@/hooks/chat/useChatConversations';
 
@@ -120,6 +121,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   onMarkAsRead
 }) => {
   const { userId } = useAuth();
+  
+  // 🔥 SỬ DỤNG HOOKS CÓ SẴN
+  const { markAsRead } = useUnreadMessages(userId);
   const {
     messages: realtimeMessages,
     sendMessage,
@@ -132,8 +136,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const [loadingMore, setLoadingMore] = useState(false);
   const [historyPage, setHistoryPage] = useState(0);
   const [hasMoreHistory, setHasMoreHistory] = useState(true);
-  const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false); // Track khi nào cần scroll
-  const [lastMessageCount, setLastMessageCount] = useState(0); // Track số lượng tin nhắn
+  const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
+  const [lastMessageCount, setLastMessageCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -141,10 +145,21 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
   // Mark messages as read when conversation is opened or changed
   useEffect(() => {
-    if (conversation && userId && onMarkAsRead) {
-      onMarkAsRead(conversation.userId, userId);
+    if (conversation && userId) {
+      // 🔥 GỌI API MARK AS READ USING useUnreadMessages
+      markAsRead(conversation.userId, userId);
+      
+      // Gọi callback nếu có
+      if (onMarkAsRead) {
+        onMarkAsRead(conversation.userId, userId);
+      }
+
+      console.log('✅ Marked conversation as read:', {
+        conversationUserId: conversation.userId,
+        currentUserId: userId
+      });
     }
-  }, [conversation?.userId, userId, onMarkAsRead]);
+  }, [conversation?.userId, userId, markAsRead, onMarkAsRead]);
 
   // Load conversation history - CHỈ 1 LẦN khi conversation thay đổi
   useEffect(() => {
@@ -157,7 +172,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     setHistory([]);
     setHistoryPage(0);
     setHasMoreHistory(true);
-    setShouldScrollToBottom(true); // Scroll xuống khi đổi conversation
+    setShouldScrollToBottom(true);
 
     let isCancelled = false;
     setLoading(true);
@@ -183,7 +198,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     return () => {
       isCancelled = true;
     };
-  }, [conversation?.userId, userId]);
+  }, [conversation?.userId, userId, fetchChatHistory]);
 
   // Combine and process all messages
   const allMessages = useMemo(() => {
@@ -259,11 +274,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   useEffect(() => {
     const currentMessageCount = displayedMessages.length;
     
-    // Scroll xuống khi:
-    // 1. Load conversation lần đầu (shouldScrollToBottom = true)
-    // 2. Có tin nhắn mới (số lượng tin nhắn tăng)
     if (shouldScrollToBottom || (currentMessageCount > lastMessageCount && lastMessageCount > 0)) {
-      setTimeout(() => scrollToBottom(lastMessageCount > 0), 100); // Smooth nếu có tin nhắn mới
+      setTimeout(() => scrollToBottom(lastMessageCount > 0), 100);
       setShouldScrollToBottom(false);
     }
     
@@ -274,7 +286,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop } = e.currentTarget;
     
-    // Chỉ load more messages khi scroll to top
     if (scrollTop === 0 && !loadingMore && hasMoreHistory) {
       setLoadingMore(true);
       setTimeout(() => {
@@ -291,9 +302,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     
     sendMessage(conversation.userId, trimmedInput);
     setInput('');
-    setShouldScrollToBottom(true); // Scroll xuống sau khi gửi
+    setShouldScrollToBottom(true);
 
-    // Focus back to input
     setTimeout(() => {
       inputRef.current?.focus();
     }, 100);

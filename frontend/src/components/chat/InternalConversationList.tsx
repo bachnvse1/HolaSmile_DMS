@@ -1,6 +1,8 @@
 import React, { memo, useCallback, useEffect, useRef } from 'react';
 import { Search, Filter, Users, MessageCircle, Clock } from 'lucide-react';
 import type { ConversationUser, ConversationFilters } from '@/hooks/chat/useInternalConversations';
+import { useUnreadMessages } from '@/hooks/chat/useUnreadMessages';
+import { useAuth } from '@/hooks/useAuth';
 
 interface InternalConversationListProps {
   conversations: ConversationUser[];
@@ -18,11 +20,13 @@ interface InternalConversationListProps {
 const ConversationItem = memo(({ 
   conversation, 
   isSelected, 
-  onClick 
+  onClick,
+  unreadCount
 }: {
   conversation: ConversationUser;
   isSelected: boolean;
   onClick: () => void;
+  unreadCount: number;
 }) => {
   const formatTime = useCallback((timestamp?: string) => {
     if (!timestamp) return '';
@@ -81,7 +85,7 @@ const ConversationItem = memo(({
           ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 shadow-md transform scale-[1.02]' 
           : 'bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm'
         }
-        ${conversation.unreadCount > 0 ? 'ring-2 ring-red-100 shadow-lg border-red-200' : ''}
+        ${unreadCount > 0 ? 'ring-2 ring-red-100 shadow-lg border-red-200' : ''}
         ${hasRecentMessage ? 'ring-1 ring-green-200 border-green-200' : ''}
       `}
     >
@@ -106,10 +110,10 @@ const ConversationItem = memo(({
               }
             `}
           />
-          {conversation.unreadCount > 0 && (
+          {unreadCount > 0 && (
             <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center shadow-md border-2 border-white">
               <span className="text-xs text-white font-bold">
-                {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
+                {unreadCount > 99 ? '99+' : unreadCount}
               </span>
             </div>
           )}
@@ -125,7 +129,7 @@ const ConversationItem = memo(({
               <h3 className={`
                 font-semibold truncate transition-colors duration-200
                 ${isSelected ? 'text-blue-700' : 'text-gray-900'}
-                ${conversation.unreadCount > 0 ? 'text-gray-900' : ''}
+                ${unreadCount > 0 ? 'text-gray-900' : ''}
               `}>
                 {conversation.fullName}
               </h3>
@@ -159,7 +163,7 @@ const ConversationItem = memo(({
           {conversation.lastMessage ? (
             <div className={`
               text-sm truncate transition-colors duration-200
-              ${conversation.unreadCount > 0 ? 'text-gray-800 font-medium' : 'text-gray-600'}
+              ${unreadCount > 0 ? 'text-gray-800 font-medium' : 'text-gray-600'}
             `}>
               <span className={`
                 ${conversation.lastMessage.senderId !== conversation.userId 
@@ -169,7 +173,7 @@ const ConversationItem = memo(({
               `}>
                 {conversation.lastMessage.senderId !== conversation.userId ? 'Bạn: ' : ''}
               </span>
-              <span className={conversation.unreadCount > 0 ? 'font-medium' : ''}>
+              <span className={unreadCount > 0 ? 'font-medium' : ''}>
                 {conversation.lastMessage.message}
               </span>
             </div>
@@ -183,7 +187,7 @@ const ConversationItem = memo(({
       </div>
 
       {/* Unread message highlight bar */}
-      {conversation.unreadCount > 0 && (
+      {unreadCount > 0 && (
         <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-red-500 rounded-r-full"></div>
       )}
     </div>
@@ -203,11 +207,31 @@ export const InternalConversationList: React.FC<InternalConversationListProps> =
   loading,
   totalCount
 }) => {
+  const { userId } = useAuth();
+  const { getUnreadCount, getTotalUnreadCount, markConversationAsRead } = useUnreadMessages(userId);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Handle conversation selection with mark as read
+  const handleSelectConversation = useCallback(async (conversation: ConversationUser) => {
+    onSelectConversation(conversation);
+    
+    // Mark conversation as read when selected
+    if (conversation.userId && userId) {
+      await markConversationAsRead(conversation.userId);
+    }
+  }, [onSelectConversation, markConversationAsRead, userId]);
+
+  // Enhance conversations with real-time unread counts
+  const conversationsWithUnread = React.useMemo(() => {
+    return conversations.map(conversation => ({
+      ...conversation,
+      unreadCount: getUnreadCount(conversation.userId)
+    }));
+  }, [conversations, getUnreadCount]);
 
   // Sort conversations: unread first, then by recent activity, then alphabetically
   const sortedConversations = React.useMemo(() => {
-    return [...conversations].sort((a, b) => {
+    return [...conversationsWithUnread].sort((a, b) => {
       // First priority: unread messages
       if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
       if (a.unreadCount === 0 && b.unreadCount > 0) return 1;
@@ -222,7 +246,7 @@ export const InternalConversationList: React.FC<InternalConversationListProps> =
       // Third priority: alphabetical by name
       return a.fullName.localeCompare(b.fullName, 'vi');
     });
-  }, [conversations]);
+  }, [conversationsWithUnread]);
 
   // Handle scroll for infinite loading
   const handleScroll = useCallback(() => {
@@ -242,9 +266,9 @@ export const InternalConversationList: React.FC<InternalConversationListProps> =
     }
   }, [handleScroll]);
 
-  // Calculate stats
+  // Calculate stats from real-time unread counts
   const unreadCount = sortedConversations.filter(conv => conv.unreadCount > 0).length;
-  const totalUnreadMessages = sortedConversations.reduce((sum, conv) => sum + conv.unreadCount, 0);
+  const totalUnreadMessages = getTotalUnreadCount();
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-gray-50 to-gray-100">
@@ -266,7 +290,7 @@ export const InternalConversationList: React.FC<InternalConversationListProps> =
             </div>
           </div>
           {totalUnreadMessages > 0 && (
-            <div className="px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full">
+            <div className="px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full animate-pulse">
               {totalUnreadMessages > 99 ? '99+' : totalUnreadMessages}
             </div>
           )}
@@ -321,12 +345,13 @@ export const InternalConversationList: React.FC<InternalConversationListProps> =
           </div>
         ) : (
           <>
-            {sortedConversations.map((conversation, index) => (
+            {sortedConversations.map((conversation) => (
               <ConversationItem
                 key={conversation.userId}
                 conversation={conversation}
                 isSelected={selectedConversation?.userId === conversation.userId}
-                onClick={() => onSelectConversation(conversation)}
+                onClick={() => handleSelectConversation(conversation)}
+                unreadCount={conversation.unreadCount}
               />
             ))}
             

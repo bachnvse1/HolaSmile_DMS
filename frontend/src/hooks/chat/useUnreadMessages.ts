@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import axiosInstance from '@/lib/axios';
 
 interface UnreadCount {
   senderId: string;
@@ -18,10 +19,13 @@ export const useUnreadMessages = (userId: string | null) => {
 
     try {
       setLoading(true);
-      const response = await fetch(`/api/chats/unread-count?userId=${userId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setUnreadCounts(data || []);
+      const response = await axiosInstance.get('/chats/unread-count', {
+        params: { userId },
+        withCredentials: true
+      });
+      
+      if (response.data) {
+        setUnreadCounts(response.data || []);
       } else {
         console.error('Failed to fetch unread counts');
         setUnreadCounts([]);
@@ -37,15 +41,14 @@ export const useUnreadMessages = (userId: string | null) => {
   // Mark messages as read
   const markAsRead = useCallback(async (senderId: string, receiverId: string) => {
     try {
-      const response = await fetch('/api/chats/mark-as-read', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ senderId, receiverId }),
+      const response = await axiosInstance.post('/chats/mark-as-read', {
+        senderId,
+        receiverId
+      }, {
+        withCredentials: true
       });
 
-      if (response.ok) {
+      if (response.status === 200) {
         // Remove unread count for this sender
         setUnreadCounts(prev => prev.filter(count => count.senderId !== senderId));
         return true;
@@ -81,6 +84,73 @@ export const useUnreadMessages = (userId: string | null) => {
     });
   }, []);
 
+  // Mark message as delivered (new function)
+  const markAsDelivered = useCallback(async (messageId: string) => {
+    try {
+      await axiosInstance.post('/api/chats/mark-as-delivered', {
+        messageId
+      }, {
+        withCredentials: true
+      });
+      return true;
+    } catch (error) {
+      console.error('Error marking message as delivered:', error);
+      return false;
+    }
+  }, []);
+
+  // Bulk mark messages as read for conversation
+  const markConversationAsRead = useCallback(async (otherUserId: string) => {
+    try {
+      const response = await axiosInstance.post('/api/chats/mark-conversation-read', {
+        userId,
+        otherUserId
+      }, {
+        withCredentials: true
+      });
+
+      if (response.status === 200) {
+        // Remove unread count for this conversation
+        setUnreadCounts(prev => prev.filter(count => count.senderId !== otherUserId));
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error marking conversation as read:', error);
+      return false;
+    }
+  }, [userId]);
+
+  // Get total unread count across all conversations
+  const getTotalUnreadCount = useCallback((): number => {
+    return unreadCounts.reduce((total, count) => total + count.unreadCount, 0);
+  }, [unreadCounts]);
+
+  // Clear all unread counts (when user goes offline/online)
+  const clearAllUnreadCounts = useCallback(() => {
+    setUnreadCounts([]);
+  }, []);
+
+  // Update unread count for specific sender (for real-time updates)
+  const updateUnreadCount = useCallback((senderId: string, newCount: number) => {
+    setUnreadCounts(prev => {
+      const existing = prev.find(c => c.senderId === senderId);
+      if (existing) {
+        if (newCount === 0) {
+          return prev.filter(c => c.senderId !== senderId);
+        }
+        return prev.map(c => 
+          c.senderId === senderId 
+            ? { ...c, unreadCount: newCount }
+            : c
+        );
+      } else if (newCount > 0) {
+        return [...prev, { senderId, unreadCount: newCount }];
+      }
+      return prev;
+    });
+  }, []);
+
   // Initial fetch
   useEffect(() => {
     fetchUnreadCounts();
@@ -90,8 +160,13 @@ export const useUnreadMessages = (userId: string | null) => {
     unreadCounts,
     loading,
     markAsRead,
+    markAsDelivered,
+    markConversationAsRead,
     getUnreadCount,
+    getTotalUnreadCount,
     addUnreadMessage,
+    updateUnreadCount,
+    clearAllUnreadCounts,
     refreshUnreadCounts: fetchUnreadCounts
   };
 };
