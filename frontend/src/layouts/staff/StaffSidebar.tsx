@@ -48,7 +48,13 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
-  
+
+  const handleLogoClick = () => {
+    if (!isMobile && onToggle) {
+      onToggle();
+    }
+  };
+
   const { userId } = useAuth();
   const { getTotalUnreadCount, refreshUnreadCounts } = useUnreadMessages(userId);
   const { isConnected, messages } = useChatHub();
@@ -331,21 +337,6 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
             {!isCollapsed && (
               <div className="flex items-center gap-2">
                 <span className="font-medium">{item.label}</span>
-                {/* 🔥 EXPANDED BADGE - với logging */}
-                {isMessagesItem && totalUnreadCount > 0 && (
-                  <div 
-                    className={`text-white text-xs rounded-full px-1.5 py-0.5 min-w-[16px] flex items-center justify-center ${
-                      isConnected ? 'bg-red-500 animate-pulse' : 'bg-orange-500'
-                    }`}
-                    title={`${totalUnreadCount} tin nhắn chưa đọc`}
-                  >
-                    {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
-                  </div>
-                )}
-                {/* Connection status */}
-                {isMessagesItem && !isConnected && (
-                  <span className="text-xs text-gray-400">(Offline)</span>
-                )}
               </div>
             )}
           </div>
@@ -370,51 +361,93 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
   };
 
   return (
-    <aside
-      className={`
-        bg-white border-r border-gray-200 transition-all duration-300 flex flex-col
-        ${isCollapsed ? 'w-16' : 'w-64'}
-        ${isMobile 
-          ? 'fixed inset-y-0 left-0 z-50' 
-          : 'relative'
-        }
-      `}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        {!isCollapsed && (
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+    <>
+      {/* Mobile Overlay - Prevent interaction with content behind */}
+      {isMobile && !isCollapsed && (
+        <div
+          className="fixed inset-0 bg-opacity-30 z-20 md:hidden"
+          onClick={onClose}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`
+        ${isMobile ? 'fixed left-0 top-0 z-50' : 'fixed left-0 top-0 z-30'}
+        bg-white transition-all duration-300 ease-in-out
+        ${isCollapsed ? (isMobile ? '-translate-x-full' : 'w-16') : 'w-64'}
+        h-screen flex flex-col
+      `}>
+        {/* Header - Fixed */}
+        <div className="p-4 flex-shrink-0 h-16 border-b border-gray-300">
+          {!isCollapsed && (
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-blue-600 cursor-pointer" onClick={handleLogoClick}>
+                HolaSmile
+              </h2>
+              <div className="flex items-center space-x-2">
+                {isMobile && (
+                  <button
+                    onClick={onClose}
+                    className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                    title="Close sidebar"
+                  >
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+                {!isMobile && onToggle && (
+                  <button
+                    onClick={onToggle}
+                    className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                    title="Collapse sidebar"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+          {isCollapsed && !isMobile && (
+            <div
+              className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center cursor-pointer hover:bg-blue-700 transition-colors"
+              onClick={handleLogoClick}
+              title="Expand sidebar"
+            >
               <span className="text-white font-bold text-sm">HS</span>
             </div>
-            <span className="font-bold text-gray-900">HolaSmile</span>
+          )}
+        </div>
+
+        {/* Navigation - Scrollable */}
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden">
+          <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            {menuItems.map(item => renderMenuItem(item))}
+
+            {/* Expand button when collapsed (non-mobile) */}
+            {isCollapsed && !isMobile && onToggle && (
+              <button
+                onClick={onToggle}
+                className="w-full flex items-center justify-center px-4 py-3 pl-3 text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                title="Expand sidebar"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            )}
           </div>
-        )}
-        <button
-          onClick={onToggle}
-          className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          <ChevronLeft className={`h-4 w-4 transition-transform ${isCollapsed ? 'rotate-180' : ''}`} />
-        </button>
-      </div>
-
-      {/* Menu Items */}
-      <nav className="flex-1 overflow-y-auto py-2">
-        {menuItems.map(item => renderMenuItem(item))}
-      </nav>
-
-      {/* Footer */}
-      <div className="p-4 border-t border-gray-200">
+        </nav>
+        <div className="p-4 border-t border-gray-200">
         {!isCollapsed && (
           <div className="text-xs text-gray-500 text-center">
             <div>Version 1.0.0</div>
-            {/* 🔥 DEBUG INFO */}
+            {/* 🔥 DEBUG INFO - SỬ DỤNG useUnreadMessages */}
             <div className="mt-1">
-              Unread: {totalUnreadCount} | {isConnected ? '🟢 Online' : '🔴 Offline'}
+              Messages: {totalUnreadCount} | 🟢 "Online"
             </div>
           </div>
         )}
       </div>
-    </aside>
+      </div >
+    </>
   );
 };
