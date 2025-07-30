@@ -3,6 +3,7 @@ using Application.Constants;
 using Application.Interfaces;
 using AutoMapper;
 using HDMS_API.Application.Common.Helpers;
+using HDMS_API.Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
@@ -14,13 +15,16 @@ namespace HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount
         private readonly IPatientRepository _patientRepository;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IEmailService _emailService;
 
-        public CreatePatientHandler(IUserCommonRepository userCommonRepository, IPatientRepository patientRepository,IMapper mapper, IHttpContextAccessor httpContextAccessor)
+
+        public CreatePatientHandler(IUserCommonRepository userCommonRepository, IPatientRepository patientRepository,IMapper mapper, IHttpContextAccessor httpContextAccessor, IEmailService emailService )
         {
             _userCommonRepository = userCommonRepository;
             _patientRepository = patientRepository;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
+            _emailService = emailService;
         }
         public async Task<int> Handle(CreatePatientCommand request, CancellationToken cancellationToken)
         {
@@ -63,7 +67,7 @@ namespace HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount
             {
                 try
                 {
-                    await _userCommonRepository.SendPasswordForGuestAsync(newUser.Email);
+                    await _emailService.SendPasswordAsync(newUser.Email, "123456");
                 }
                 catch (Exception ex)
                 {

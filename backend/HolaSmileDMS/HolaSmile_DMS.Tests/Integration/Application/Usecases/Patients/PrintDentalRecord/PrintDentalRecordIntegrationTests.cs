@@ -48,7 +48,7 @@ public class PrintDentalRecordIntegrationTests
             new AppointmentRepository(_context),
             new TreatmentRecordRepository(_context, _mapper),
             new PatientRepository(_context),
-            new UserCommonRepository(_context, null),
+            new UserCommonRepository(_context),
             new DentistRepository(_context),
             new ProcedureRepository(_context),
             new WarrantyCardRepository(_context),

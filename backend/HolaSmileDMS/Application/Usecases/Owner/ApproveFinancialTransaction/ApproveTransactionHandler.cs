@@ -58,7 +58,7 @@ namespace Application.Usecases.Owner.ApproveFinancialTransaction
                     await _mediator.Send(new SendNotificationCommand(
                         receptionist.UserID,
                         "Phê duyệt phiếu thu/chi",
-                        $"Chủ phòng {(request.Action ? "đã phê duyệt" : "đã từ chối")} phiếu {transactionTypeText} {exisTransaction.TransactionID} vào lúc {DateTime.Now:dd/MM/yyyy HH:mm}",
+                        $"Chủ phòng khám {(request.Action ? "đã phê duyệt" : "đã từ chối")} phiếu {transactionTypeText} {exisTransaction.TransactionID} vào lúc {DateTime.Now:dd/MM/yyyy HH:mm}",
                         "transaction",
                         0,
                         $"financial-transactions/{exisTransaction.TransactionID}"), cancellationToken);

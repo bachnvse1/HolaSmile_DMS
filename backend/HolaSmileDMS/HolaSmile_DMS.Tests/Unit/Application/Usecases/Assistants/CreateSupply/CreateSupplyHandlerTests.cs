@@ -4,6 +4,7 @@ using Application.Interfaces;
 using Application.Usecases.Assistant.CreateSupply;
 using Domain.Entities;
 using FluentAssertions;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
@@ -15,6 +16,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new();
         private readonly Mock<ISupplyRepository> _supplyRepositoryMock = new();
         private readonly Mock<ITransactionRepository> _transactionRepositoryMock = new();
+        private readonly Mock<IUserCommonRepository> _userCommonRepositoryMock = new();
+        private readonly Mock<IOwnerRepository> _ownerRepositoryMock = new();
+        private readonly Mock<IMediator> _mediatorMock = new();
         private readonly CreateSupplyHandler _handler;
 
         public CreateSupplyHandlerTests()
@@ -22,7 +26,10 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             _handler = new CreateSupplyHandler(
                 _httpContextAccessorMock.Object,
                 _supplyRepositoryMock.Object,
-                _transactionRepositoryMock.Object
+                _transactionRepositoryMock.Object,
+                _ownerRepositoryMock.Object,
+                _userCommonRepositoryMock.Object,
+                _mediatorMock.Object
             );
         }
 

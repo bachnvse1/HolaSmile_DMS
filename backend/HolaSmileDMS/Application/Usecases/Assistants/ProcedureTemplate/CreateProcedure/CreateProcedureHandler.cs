@@ -12,14 +12,16 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.CreateProcedure
         private readonly IProcedureRepository _procedureRepository;
         private readonly ISupplyRepository _supplyRepository;
         private readonly IOwnerRepository _ownerRepository;
+        private readonly IUserCommonRepository _userCommonRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMediator _mediator;
-        public CreateProcedureHandler(IProcedureRepository procedureRepository, ISupplyRepository supplyRepository, IOwnerRepository ownerRepository, IHttpContextAccessor httpContextAccessor, IMediator mediator)
+        public CreateProcedureHandler(IProcedureRepository procedureRepository, ISupplyRepository supplyRepository, IOwnerRepository ownerRepository, IUserCommonRepository userCommonRepository, IHttpContextAccessor httpContextAccessor, IMediator mediator)
         {
             _procedureRepository = procedureRepository;
             _supplyRepository = supplyRepository;
             _ownerRepository = ownerRepository;
             _httpContextAccessor = httpContextAccessor;
+            _userCommonRepository = userCommonRepository;
             _mediator = mediator;
         }
         public async Task<bool> Handle(CreateProcedureCommand request, CancellationToken cancellationToken)
@@ -88,11 +90,13 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.CreateProcedure
             try
             {
                 var owners = await _ownerRepository.GetAllOwnersAsync();
+                var assistant = await _userCommonRepository.GetByIdAsync(currentUserId, cancellationToken);
+
                 var notifyOwners = owners.Select(async o =>
                 await _mediator.Send(new SendNotificationCommand(
                       o.User.UserID,
                       "Tạo thủ thuật mới",
-                      $"Trợ lý {o.User.Fullname} tạo thủ thuật mới {procedure.ProcedureName} vào lúc {DateTime.Now}",
+                      $"Trợ lý {assistant.Fullname} tạo thủ thuật mới {procedure.ProcedureName} vào lúc {DateTime.Now}",
                       "procedure", 0, $"proceduces"),
                 cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);
