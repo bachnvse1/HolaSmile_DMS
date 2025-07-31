@@ -59,7 +59,7 @@ export function useChatHubGuest(guestId: string) {
   }, [guestId]);
 
   // 📤 Gửi tin nhắn đến tư vấn viên
-  const CONSULTANT_ID = '10';
+  const CONSULTANT_ID = '3';
 
   const sendMessage = (message: string) => {
     if (connectionRef.current?.state !== signalR.HubConnectionState.Connected) {

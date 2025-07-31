@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { GuestConversationList } from '@/components/chat/GuestConversationList';
 import { ChatWindow } from '@/components/chat/ChatWindow';
-import { useGuestConversations } from '@/hooks/useGuestConversations';
-import type { GuestConversation } from '@/hooks/useGuestConversations';
-import type { ConversationUser } from '@/hooks/useChatConversations';
+import { useGuestConversations } from '@/hooks/chat/useGuestConversations';
+import type { GuestConversation } from '@/hooks/chat/useGuestConversations';
+import type { ConversationUser } from '@/hooks/chat/useChatConversations';
 import { StaffLayout } from '@/layouts/staff';
 import { useUserInfo } from '@/hooks/useUserInfo';
+
 const GuestConsultationPage: React.FC = () => {
   const { userId, role } = useAuth();
   const [selectedConversation, setSelectedConversation] = useState<GuestConversation | null>(null);
   const [showMobileChat, setShowMobileChat] = useState(false);
   const userInfo = useUserInfo();
+  
   const {
     conversations,
     loading,
@@ -33,14 +35,15 @@ const GuestConsultationPage: React.FC = () => {
     unreadCount: selectedConversation.unreadCount
   } : null;
 
-  // Danh sách user ID được phép truy cập
-  const ALLOWED_USER_IDS = ["10"]; // Có thể thêm nhiều ID khác
-
   // Handle conversation selection
   const handleSelectConversation = async (conversation: GuestConversation) => {
     setSelectedConversation(conversation);
     setShowMobileChat(true);
+    
+    // Mark messages as read
     markAsRead(conversation.guestId);
+    
+    // Load conversation data
     await loadConversationData(conversation.guestId);
   };
 
@@ -49,6 +52,9 @@ const GuestConsultationPage: React.FC = () => {
     setShowMobileChat(false);
     setSelectedConversation(null);
   };
+
+  // Danh sách user ID được phép truy cập
+  const ALLOWED_USER_IDS = ["3"]; // Có thể thêm nhiều ID khác
 
   // Kiểm tra quyền truy cập
   if (!userId || !ALLOWED_USER_IDS.includes(userId)) {
@@ -136,11 +142,6 @@ const GuestConsultationPage: React.FC = () => {
                 <p className="text-gray-600">
                   Quản lý và trả lời các tin nhắn tư vấn từ khách hàng
                 </p>
-                {/* <div className="mt-2 text-sm text-green-600">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100">
-                  ✓ Được ủy quyền - User ID: {userId}
-                </span>
-              </div> */}
               </div>
 
               {/* Chat Container */}

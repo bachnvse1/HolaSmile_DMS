@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useChatHub } from '@/components/chatbox/ChatHubProvider';
+import { useChatHub } from '@/components/chat/ChatHubProvider';
+import { useUnreadMessages } from '@/hooks/chat/useUnreadMessages';
 import axiosInstance from '@/lib/axios';
 
 export interface ChatMessage {
@@ -36,9 +37,17 @@ const ITEMS_PER_PAGE = 20;
 export const useInternalConversations = () => {
   const { userId } = useAuth();
   const { messages: realtimeMessages, fetchChatHistory } = useChatHub();
+  
+  // 🔥 Use useUnreadMessages hook instead of managing unread counts manually
+  const { 
+    getUnreadCount, 
+    getTotalUnreadCount, 
+    markConversationAsRead,
+    refreshUnreadCounts 
+  } = useUnreadMessages(userId);
+  
   const [users, setUsers] = useState<ConversationUser[]>([]);
   const [conversationHistory, setConversationHistory] = useState<Map<string, ChatMessage[]>>(new Map());
-  const [unreadCounts, setUnreadCounts] = useState<Map<string, number>>(new Map());
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [hasLoadedInitialConversations, setHasLoadedInitialConversations] = useState(false);
@@ -49,6 +58,13 @@ export const useInternalConversations = () => {
 
   // Define staff roles
   const STAFF_ROLES = useMemo(() => ["Administrator", "Owner", "Receptionist", "Assistant", "Dentist"], []);
+
+  // 🔥 Refresh unread counts when userId changes (F5, login, etc.)
+  useEffect(() => {
+    if (userId) {
+      refreshUnreadCounts();
+    }
+  }, [userId, refreshUnreadCounts]);
 
   // Load data from sessionStorage when userId changes
   useEffect(() => {
@@ -70,20 +86,6 @@ export const useInternalConversations = () => {
       console.error('Error restoring internal conversation history:', error);
       setConversationHistory(new Map());
     }
-    
-    // Load unread counts
-    try {
-      const saved = sessionStorage.getItem(`internalUnreadCounts_${userId}`);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setUnreadCounts(new Map(Object.entries(parsed).map(([k, v]) => [k, Number(v)])));
-      } else {
-        setUnreadCounts(new Map());
-      }
-    } catch (error) {
-      console.error('Error restoring internal unread counts:', error);
-      setUnreadCounts(new Map());
-    }
   }, [userId]);
 
   // Clear sessionStorage data when userId changes
@@ -92,9 +94,7 @@ export const useInternalConversations = () => {
     
     // Clear old data for different user
     const currentStorageKeys = Object.keys(sessionStorage).filter(key => 
-      key.startsWith('internalConversationHistory_') || 
-      key.startsWith('internalUnreadCounts_') ||
-      key.startsWith('processedInternalMessages_')
+      key.startsWith('internalConversationHistory_')
     );
     
     currentStorageKeys.forEach(key => {
@@ -114,24 +114,22 @@ export const useInternalConversations = () => {
         const response = await axiosInstance.get('/user/allUsersChat', {
           withCredentials: true
         });
-        console.log('Internal conversations response:', response.data); // Debug log
+        console.log('Internal conversations response:', response.data);
         if (Array.isArray(response.data)) {
-          // API returns array directly
           const staffUsers = response.data.filter((user: ConversationUser) => 
             STAFF_ROLES.includes(user.role) && 
             user.role !== 'Patient' && 
             user.userId !== userId
           );
-          console.log('Filtered staff users:', staffUsers); // Debug log
+          console.log('Filtered staff users:', staffUsers);
           setUsers(staffUsers);
         } else if (response.data?.success && Array.isArray(response.data.data)) {
-          // API returns object with success and data
           const staffUsers = response.data.data.filter((user: ConversationUser) => 
             STAFF_ROLES.includes(user.role) && 
             user.role !== 'Patient' && 
             user.userId !== userId
           );
-          console.log('Filtered staff users:', staffUsers); // Debug log
+          console.log('Filtered staff users:', staffUsers);
           setUsers(staffUsers);
         } else {
           console.error('Invalid response format:', response.data);
@@ -180,18 +178,6 @@ export const useInternalConversations = () => {
     });
   }, [userId, realtimeMessages, loadConversationHistory]);
 
-  // Load conversation history for users with previous conversations on mount
-  useEffect(() => {
-    if (!users || !userId) return;
-    
-    // Check for users that have unread counts (indicating previous conversations)
-    unreadCounts.forEach((count, targetUserId) => {
-      if (count > 0 && users.find(u => u.userId === targetUserId)) {
-        loadConversationHistory(targetUserId);
-      }
-    });
-  }, [users, userId, unreadCounts, loadConversationHistory]);
-
   // Auto-load conversation history for ALL staff users to detect existing conversations
   useEffect(() => {
     if (!users || !userId || users.length === 0 || hasLoadedInitialConversations) return;
@@ -208,13 +194,9 @@ export const useInternalConversations = () => {
                 newHistory.set(user.userId, history);
                 return newHistory;
               });
-              
-              // Don't set unread counts here - let the sync effect handle it
-              // This prevents duplicate counting on reload
               hasUpdated = true;
             }
           } catch {
-            // Ignore errors for individual users - they might not have conversation history
             console.debug(`No conversation history for user ${user.userId}`);
           }
         }
@@ -224,12 +206,26 @@ export const useInternalConversations = () => {
       }
     };
 
-    // Add a small delay to avoid overwhelming the API
     const timer = setTimeout(loadAllConversations, 1500);
     return () => clearTimeout(timer);
   }, [users, userId, fetchChatHistory, hasLoadedInitialConversations, conversationHistory]);
 
-  // Build conversations list
+  // 🔥 Refresh unread counts when new realtime messages arrive
+  useEffect(() => {
+    if (!userId || realtimeMessages.length === 0) return;
+    
+    const lastMessage = realtimeMessages[realtimeMessages.length - 1];
+    
+    // If message is TO current user (not FROM current user), refresh unread counts
+    if (lastMessage.receiverId === userId && lastMessage.senderId !== userId) {
+      // Small delay to ensure backend has processed the message
+      setTimeout(() => {
+        refreshUnreadCounts();
+      }, 500);
+    }
+  }, [realtimeMessages, userId, refreshUnreadCounts]);
+
+  // Build conversations list using useUnreadMessages hook
   const conversations = useMemo(() => {
     if (!userId) return [];
     
@@ -248,7 +244,7 @@ export const useInternalConversations = () => {
       const allMessages = [...userHistory, ...realtimeForUser]
         .sort((a, b) => new Date(a.timestamp || '').getTime() - new Date(b.timestamp || '').getTime());
       
-      // Remove duplicates and ensure proper status
+      // Remove duplicates
       const uniqueMessages = allMessages.filter((msg, index, arr) => 
         arr.findIndex(m => 
           m.senderId === msg.senderId && 
@@ -256,30 +252,20 @@ export const useInternalConversations = () => {
           m.message === msg.message &&
           Math.abs(new Date(m.timestamp || '').getTime() - new Date(msg.timestamp || '').getTime()) < 1000
         ) === index
-      ).map(msg => {
-        const msgWithStatus = msg as ChatMessage & { isDelivered?: boolean; isRead?: boolean };
-        return {
-          ...msg,
-          // Ensure all messages have proper delivery/read status
-          isDelivered: msgWithStatus.isDelivered !== undefined ? msgWithStatus.isDelivered : true,
-          isRead: msgWithStatus.isRead !== undefined ? msgWithStatus.isRead : (msg.senderId === userId)
-        };
-      });
+      );
       
       const lastMessage = uniqueMessages[uniqueMessages.length - 1];
       
-      // Calculate unread count directly from messages instead of relying on stored count
-      const actualUnreadCount = uniqueMessages.filter(msg => 
-        msg.senderId === user.userId && !msg.isRead
-      ).length;
+      // 🔥 Get unread count from useUnreadMessages hook
+      const unreadCount = getUnreadCount(user.userId);
       
       // Always include all staff members
       conversations.push({
         ...user,
         lastMessage,
         lastMessageTime: lastMessage?.timestamp,
-        unreadCount: actualUnreadCount, // Use calculated count instead of stored count
-        hasUnreadMessages: actualUnreadCount > 0
+        unreadCount,
+        hasUnreadMessages: unreadCount > 0
       });
     }
     
@@ -299,7 +285,7 @@ export const useInternalConversations = () => {
       // Third: Alphabetical by name
       return a.fullName.localeCompare(b.fullName);
     });
-  }, [users, userId, conversationHistory, realtimeMessages]);
+  }, [users, userId, conversationHistory, realtimeMessages, getUnreadCount]);
 
   // Apply filters
   const filteredConversations = useMemo(() => {
@@ -349,15 +335,14 @@ export const useInternalConversations = () => {
     }
   }, [hasMore, loading]);
 
-  // Mark conversation as read
-  const markAsRead = useCallback((otherUserId: string) => {
-    setUnreadCounts((prev: Map<string, number>) => {
-      const newCounts = new Map(prev);
-      newCounts.set(otherUserId, 0);
-      return newCounts;
-    });
+  // 🔥 Mark conversation as read - use useUnreadMessages hook
+  const markAsRead = useCallback(async (otherUserId: string) => {
+    if (!userId) return;
     
-    // Also mark all messages from this user as read
+    // Use the markConversationAsRead from useUnreadMessages hook
+    await markConversationAsRead(otherUserId, userId);
+    
+    // Also mark all messages from this user as read in local history
     setConversationHistory(prev => {
       const newHistory = new Map(prev);
       const userHistory = newHistory.get(otherUserId) || [];
@@ -369,7 +354,7 @@ export const useInternalConversations = () => {
       newHistory.set(otherUserId, updatedHistory);
       return newHistory;
     });
-  }, []);
+  }, [userId, markConversationAsRead]);
 
   // Load conversation data
   const loadConversationData = useCallback(async (otherUserId: string) => {
@@ -387,60 +372,6 @@ export const useInternalConversations = () => {
     }
   }, [userId, fetchChatHistory]);
 
-  // Handle new messages for unread count
-  useEffect(() => {
-    if (!userId || realtimeMessages.length === 0) return;
-    
-    const lastMessage = realtimeMessages[realtimeMessages.length - 1];
-    
-    // Only process if this is a truly new message (not from reload)
-    const messageKey = `${lastMessage.senderId}-${lastMessage.receiverId}-${lastMessage.timestamp}`;
-    const processedMessages = JSON.parse(sessionStorage.getItem(`processedInternalMessages_${userId}`) || '[]');
-    
-    if (processedMessages.includes(messageKey)) {
-      return; // Already processed this message
-    }
-    
-    // Mark message as processed
-    processedMessages.push(messageKey);
-    // Keep only last 100 processed messages to avoid memory issues
-    if (processedMessages.length > 100) {
-      processedMessages.splice(0, processedMessages.length - 100);
-    }
-    sessionStorage.setItem(`processedInternalMessages_${userId}`, JSON.stringify(processedMessages));
-    
-    // Simulate message delivery and read status
-    if (lastMessage.senderId === userId) {
-      // Own message - mark as delivered immediately
-      const msgWithStatus = lastMessage as ChatMessage & { isDelivered: boolean; isRead: boolean };
-      msgWithStatus.isDelivered = true;
-      msgWithStatus.isRead = false;
-      
-      // Simulate read status after 2 seconds
-      setTimeout(() => {
-        msgWithStatus.isRead = true;
-        // Update the message in conversation history
-        setConversationHistory(prev => {
-          const newHistory = new Map(prev);
-          const userHistory = newHistory.get(lastMessage.receiverId) || [];
-          const updatedHistory = userHistory.map(msg => 
-            msg.senderId === lastMessage.senderId && 
-            msg.timestamp === lastMessage.timestamp && 
-            msg.message === lastMessage.message
-              ? { ...msg, isRead: true, isDelivered: true }
-              : msg
-          );
-          newHistory.set(lastMessage.receiverId, updatedHistory);
-          return newHistory;
-        });
-      }, 2000);
-    } else if (lastMessage.receiverId === userId) {
-      // Incoming message - don't increment unread count here
-      // Let the sync effect handle unread counting based on actual message status
-      // This prevents duplicate counting
-    }
-  }, [realtimeMessages, userId]);
-
   // Save conversation history to sessionStorage
   useEffect(() => {
     if (!userId) return;
@@ -452,21 +383,10 @@ export const useInternalConversations = () => {
     }
   }, [conversationHistory, userId]);
 
-  // Save unread counts to sessionStorage
-  useEffect(() => {
-    if (!userId) return;
-    try {
-      const countsObj = Object.fromEntries(unreadCounts);
-      sessionStorage.setItem(`internalUnreadCounts_${userId}`, JSON.stringify(countsObj));
-    } catch (error) {
-      console.error('Error saving internal unread counts:', error);
-    }
-  }, [unreadCounts, userId]);
-
-  // Count total unread messages across all conversations
+  // 🔥 Count total unread messages using useUnreadMessages hook
   const totalUnreadCount = useMemo(() => {
-    return filteredConversations.reduce((total, conv) => total + conv.unreadCount, 0);
-  }, [filteredConversations]);
+    return getTotalUnreadCount();
+  }, [getTotalUnreadCount]);
 
   return {
     conversations: paginatedConversations,

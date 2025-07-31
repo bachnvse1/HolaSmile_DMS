@@ -59,8 +59,14 @@ namespace Infrastructure.Repositories
             await _hub.Clients
                 .User(n.UserId.ToString())
                 .SendAsync("ReceiveNotification", dto, ct);
-
-            await MarkAsSentAsync(n.NotificationId, ct);
         }
+        
+        public async Task<int> CountUnreadNotificationsAsync(int userId, CancellationToken cancellationToken)
+        {
+            return await _context.Notifications
+                .Where(n => n.UserId == userId && !n.IsRead)
+                .CountAsync(cancellationToken);
+        }
+
     }
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Home,
   Calendar,
@@ -7,7 +7,7 @@ import {
   Settings,
   UserCheck,
   Stethoscope,
-  CreditCard,
+  CreditCard, 
   Package,
   ChevronDown,
   ChevronRight,
@@ -22,8 +22,9 @@ import {
   Phone
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
-import { useTotalUnreadCount } from '@/hooks/useTotalUnreadCount';
-import GuestConsultationPage from '@/pages/messages/guest-consultation';
+import { useAuth } from '@/hooks/useAuth';
+import { useUnreadMessages } from '@/hooks/chat/useUnreadMessages';
+import { useChatHub } from '@/components/chat/ChatHubProvider';
 
 interface MenuItem {
   id: string;
@@ -48,26 +49,53 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Get unread message count
-  const { totalUnreadCount } = useTotalUnreadCount();
-
-  const handleMenuClick = (item: MenuItem) => {
-    if (item.children && item.children.length > 0) {
-      toggleExpand(item.id);
-    } else if (item.path) {
-      navigate(item.path);
-      // Close sidebar on mobile after navigation
-      if (isMobile && onClose) {
-        onClose();
-      }
+  const { userId } = useAuth();
+  const { getTotalUnreadCount, refreshUnreadCounts } = useUnreadMessages(userId);
+  const { isConnected, messages } = useChatHub();
+  
+  // 🔥 Force refresh unread counts khi có tin nhắn mới trong ChatHub
+  useEffect(() => {
+    if (!userId || messages.length === 0) return;
+    
+    const lastMessage = messages[messages.length - 1];
+    console.log('🔥 StaffSidebar: New message detected:', lastMessage);
+    
+    // Chỉ refresh nếu tin nhắn đến cho user hiện tại (không phải từ user hiện tại)
+    if (lastMessage.receiverId === userId && lastMessage.senderId !== userId) {
+      console.log('🔥 StaffSidebar: Message is for current user, refreshing counts...');
+      // Delay để backend có thời gian xử lý
+      const timer = setTimeout(() => {
+        refreshUnreadCounts();
+        console.log('🔥 StaffSidebar: Refreshed unread counts');
+      }, 1000); // Tăng delay lên 1 giây
+      
+      return () => clearTimeout(timer);
     }
-  };
-
-  const handleLogoClick = () => {
-    if (!isMobile && onToggle) {
-      onToggle();
+  }, [messages, userId, refreshUnreadCounts]);
+  
+  // 🔥 Periodic refresh mỗi 30 giây để đảm bảo sync
+  useEffect(() => {
+    if (!userId) return;
+    
+    const interval = setInterval(() => {
+      console.log('🔥 StaffSidebar: Periodic refresh unread counts');
+      refreshUnreadCounts();
+    }, 30000); // 30 giây
+    
+    return () => clearInterval(interval);
+  }, [userId, refreshUnreadCounts]);
+  
+  // 🔥 Refresh khi user thay đổi hoặc component mount
+  useEffect(() => {
+    if (userId) {
+      console.log('🔥 StaffSidebar: Initial refresh for user:', userId);
+      refreshUnreadCounts();
     }
-  };
+  }, [userId, refreshUnreadCounts]);
+  
+  const totalUnreadCount = getTotalUnreadCount();
+  
+  console.log('🔥 StaffSidebar render - totalUnreadCount:', totalUnreadCount);
 
   const menuItems: MenuItem[] = [
     {
@@ -124,10 +152,8 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           label: 'Tư Vấn Khách Hàng',
           icon: <Phone className="h-4 w-4" />,
           path: '/messages/guest-consultation',
-          element: <GuestConsultationPage />,
           roles: ['Receptionist']
-        },
-        
+        }
       ]
     },
     {
@@ -136,30 +162,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       icon: <Users className="h-5 w-5" />,
       path: '/patients',
       roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist'],
-      // children: [
-      //   {
-      //     id: 'patients-list',
-      //     label: 'Danh Sách',
-      //     icon: <Users className="h-4 w-4" />,
-      //     path: '/patients',
-      //     roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
-      //   },
-        // {
-        //   id: 'patients-records',
-        //   label: 'Hồ Sơ Y Tế',
-        //   icon: <FileText className="h-4 w-4" />,
-        //   path: '/patients/records',
-        //   roles: ['Administrator', 'Owner', 'Assistant', 'Dentist']
-        // }
-      // ]
     },
-    // {
-    //   id: 'treatments',
-    //   label: 'Điều Trị',
-    //   icon: <Stethoscope className="h-5 w-5" />,
-    //   path: '/treatments',
-    //   roles: ['Administrator', 'Owner', 'Dentist', 'Assistant']
-    // },
     {
       id: 'prescription-templates',
       label: 'Mẫu Đơn Thuốc',
@@ -201,13 +204,6 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           path: '/invoices',
           roles: ['Receptionist', 'Owner']
         },
-        // {
-        //   id: 'finance-payments',
-        //   label: 'Thanh Toán',
-        //   icon: <CreditCard className="h-4 w-4" />,
-        //   path: '/finance/payments',
-        //   roles: ['Owner', 'Receptionist']
-        // }
       ]
     },
     {
@@ -238,28 +234,6 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       path: '/promotions',
       roles: ['Receptionist', 'Owner', 'Assistant', 'Dentist']
     },
-    // {
-    //   id: 'reports',
-    //   label: 'Báo Cáo',
-    //   icon: <TrendingUp className="h-5 w-5" />,
-    //   roles: ['Administrator', 'Owner'],
-    //   children: [
-    //     {
-    //       id: 'reports-revenue',
-    //       label: 'Doanh Thu',
-    //       icon: <TrendingUp className="h-4 w-4" />,
-    //       path: '/reports/revenue',
-    //       roles: ['Administrator', 'Owner']
-    //     },
-    //     {
-    //       id: 'reports-patients',
-    //       label: 'Bệnh Nhân',
-    //       icon: <Activity className="h-4 w-4" />,
-    //       path: '/reports/patients',
-    //       roles: ['Administrator', 'Owner']
-    //     }
-    //   ]
-    // },
     {
       id: 'staff-management',
       label: 'Quản Lý Người Dùng',
@@ -299,13 +273,23 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
     );
   };
 
-  const isItemVisible = (item: MenuItem) => {
+  const isItemVisible = (item: MenuItem): boolean => {
     return item.roles.includes(userRole);
   };
 
-  const isActiveItem = (path?: string) => {
-    if (!path) return false;
-    return location.pathname === path || location.pathname.startsWith(path);
+  const isActiveItem = (path: string): boolean => {
+    return location.pathname === path || location.pathname.startsWith(path + '/');
+  };
+
+  const handleMenuClick = (item: MenuItem) => {
+    if (item.children && item.children.length > 0) {
+      toggleExpand(item.id);
+    } else if (item.path) {
+      navigate(item.path);
+      if (isMobile && onClose) {
+        onClose();
+      }
+    }
   };
 
   const renderMenuItem = (item: MenuItem, level = 0) => {
@@ -326,23 +310,41 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           <div className="flex items-center space-x-3">
             <div className="relative">
               {item.icon}
-              {/* Badge for unread messages */}
+              {/* 🔥 REALTIME BADGE - với logging */}
               {isMessagesItem && totalUnreadCount > 0 && (
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                <div 
+                  className={`absolute -top-1 -right-1 w-3 h-3 rounded-full flex items-center justify-center ${
+                    isConnected ? 'bg-red-500 animate-pulse' : 'bg-orange-500'
+                  }`}
+                  title={`${totalUnreadCount} tin nhắn chưa đọc`}
+                >
                   <span className="text-[8px] text-white font-bold">
                     {totalUnreadCount > 9 ? '9+' : totalUnreadCount}
                   </span>
                 </div>
               )}
+              {/* Connection indicator */}
+              {isMessagesItem && !isConnected && (
+                <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-gray-400 rounded-full" title="Offline"></div>
+              )}
             </div>
             {!isCollapsed && (
               <div className="flex items-center gap-2">
                 <span className="font-medium">{item.label}</span>
-                {/* Badge for unread messages when expanded */}
+                {/* 🔥 EXPANDED BADGE - với logging */}
                 {isMessagesItem && totalUnreadCount > 0 && (
-                  <div className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[16px] flex items-center justify-center">
+                  <div 
+                    className={`text-white text-xs rounded-full px-1.5 py-0.5 min-w-[16px] flex items-center justify-center ${
+                      isConnected ? 'bg-red-500 animate-pulse' : 'bg-orange-500'
+                    }`}
+                    title={`${totalUnreadCount} tin nhắn chưa đọc`}
+                  >
                     {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
                   </div>
+                )}
+                {/* Connection status */}
+                {isMessagesItem && !isConnected && (
+                  <span className="text-xs text-gray-400">(Offline)</span>
                 )}
               </div>
             )}
@@ -368,82 +370,51 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
   };
 
   return (
-    <>
-      {/* Mobile Overlay - Prevent interaction with content behind */}
-      {isMobile && !isCollapsed && (
-        <div
-          className="fixed inset-0 bg-opacity-30 z-20 md:hidden"
-          onClick={onClose}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div className={`
-        ${isMobile ? 'fixed left-0 top-0 z-50' : 'fixed left-0 top-0 z-30'}
-        bg-white transition-all duration-300 ease-in-out
-        ${isCollapsed ? (isMobile ? '-translate-x-full' : 'w-16') : 'w-64'}
-        h-screen flex flex-col
-      `}>
-        {/* Header - Fixed */}
-        <div className="p-4 flex-shrink-0 h-16 border-b border-gray-300">
-          {!isCollapsed && (
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-blue-600 cursor-pointer" onClick={handleLogoClick}>
-                HolaSmile
-              </h2>
-              <div className="flex items-center space-x-2">
-                {isMobile && (
-                  <button
-                    onClick={onClose}
-                    className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-                    title="Close sidebar"
-                  >
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                )}
-                {!isMobile && onToggle && (
-                  <button
-                    onClick={onToggle}
-                    className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-                    title="Collapse sidebar"
-                  >
-                    <ChevronLeft className="h-5 w-5" />
-                  </button>
-                )}
-              </div>
+    <aside
+      className={`
+        bg-white border-r border-gray-200 transition-all duration-300 flex flex-col
+        ${isCollapsed ? 'w-16' : 'w-64'}
+        ${isMobile 
+          ? 'fixed inset-y-0 left-0 z-50' 
+          : 'relative'
+        }
+      `}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        {!isCollapsed && (
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">HS</span>
             </div>
-          )}
-          {isCollapsed && !isMobile && (
-            <div
-              className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center cursor-pointer hover:bg-blue-700 transition-colors"
-              onClick={handleLogoClick}
-              title="Expand sidebar"
-            >
-              <span className="text-white font-bold text-sm">H</span>
-            </div>
-          )}
-        </div>
-
-        {/* Navigation - Scrollable */}
-        <nav className="flex-1 overflow-y-auto overflow-x-hidden">
-          <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            {menuItems.map(item => renderMenuItem(item))}
-
-            {/* Expand button when collapsed (non-mobile) */}
-            {isCollapsed && !isMobile && onToggle && (
-              <button
-                onClick={onToggle}
-                className="w-full flex items-center justify-center px-4 py-3 pl-3 text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                title="Expand sidebar"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            )}
+            <span className="font-bold text-gray-900">HolaSmile</span>
           </div>
-        </nav>
-      </div >
-    </>
+        )}
+        <button
+          onClick={onToggle}
+          className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <ChevronLeft className={`h-4 w-4 transition-transform ${isCollapsed ? 'rotate-180' : ''}`} />
+        </button>
+      </div>
+
+      {/* Menu Items */}
+      <nav className="flex-1 overflow-y-auto py-2">
+        {menuItems.map(item => renderMenuItem(item))}
+      </nav>
+
+      {/* Footer */}
+      <div className="p-4 border-t border-gray-200">
+        {!isCollapsed && (
+          <div className="text-xs text-gray-500 text-center">
+            <div>Version 1.0.0</div>
+            {/* 🔥 DEBUG INFO */}
+            <div className="mt-1">
+              Unread: {totalUnreadCount} | {isConnected ? '🟢 Online' : '🔴 Offline'}
+            </div>
+          </div>
+        )}
+      </div>
+    </aside>
   );
 };
