@@ -57,5 +57,15 @@ namespace Infrastructure.Repositories
                 .FirstOrDefaultAsync(m => m.MaintenanceId == maintenanceId && !m.IsDeleted);
         }
 
+        public async Task<EquipmentMaintenance?> GetMaintenanceByIdAsync(int id)
+        {
+            return await _context.EquipmentMaintenances.FindAsync(id);
+        }
+
+        public async Task<bool> UpdateMaintenanceAsync(EquipmentMaintenance maintenance)
+        {
+            _context.EquipmentMaintenances.Update(maintenance);
+            return await _context.SaveChangesAsync() > 0;
+        }
     }
 }

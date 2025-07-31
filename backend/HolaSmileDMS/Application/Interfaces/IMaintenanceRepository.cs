@@ -8,5 +8,7 @@
         Task<bool> CreateMaintenanceSupplyAsync(MaintenanceSupply maintenanceSupply);
         Task<List<EquipmentMaintenance>> GetAllMaintenancesWithSuppliesAsync();
         Task<EquipmentMaintenance?> GetMaintenanceByIdWithSuppliesAsync(int maintenanceId);
+        Task<EquipmentMaintenance?> GetMaintenanceByIdAsync(int id);
+        Task<bool> UpdateMaintenanceAsync(EquipmentMaintenance maintenance);
     }
 }

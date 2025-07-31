@@ -77,14 +77,58 @@ namespace HDMS_API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-        [HttpPost("create-transaction")]       
+        [HttpPost("create-transaction")]
         public async Task<IActionResult> CreateTransactionForMaintenance([FromBody] CreateTransactionForMaintenanceCommand command)
         {
-            var result = await _mediator.Send(command);
-            if (result)
-                return Ok(new { success = true, message = "Tạo phiếu chi thành công" });
-            else
+            try
+            {
+                var result = await _mediator.Send(command);
+                if (result)
+                    return Ok(new { success = true, message = "Tạo phiếu chi thành công" });
+
                 return BadRequest(new { success = false, message = "Tạo phiếu chi thất bại" });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { success = false, message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteMaintenance(int id)
+        {
+            try
+            {
+                var result = await _mediator.Send(new DeleteMaintenanceCommand(id));
+                if (!result)
+                    return BadRequest(new { success = false, message = "Không thể xóa phiếu bảo trì." });
+
+                return Ok(new { success = true, message = "Xóa thành công." });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { success = false, message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+            }
         }
     }
 }
