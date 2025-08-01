@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import {Combobox} from '@/components/ui/simple-combobox';
+import { Combobox } from '@/components/ui/simple-combobox';
 import { useUpdatePromotionProgram, usePromotionProgramDetail } from '@/hooks/usePromotions';
 import { useProcedures } from '@/hooks/useProcedures';
 import type { Procedure } from '@/services/procedureApi';
@@ -56,18 +56,29 @@ export const EditPromotionModal: React.FC<EditPromotionModalProps> = ({
   // Populate form when program detail is loaded
   useEffect(() => {
     if (programDetail) {
-      const startDate = new Date(programDetail.startDate).toISOString().split('T')[0];
-      const endDate = new Date(programDetail.endDate).toISOString().split('T')[0];
-      
+      const parseDate = (dateStr: string) => {
+        if (!dateStr) return '';
+        // Nếu đã là yyyy-MM-dd hoặc ISO, trả về luôn
+        if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) return dateStr.slice(0, 10);
+        // Nếu là dd/MM/yyyy thì chuyển sang yyyy-MM-dd
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+          const [d, m, y] = dateStr.split('/');
+          return `${y}-${m}-${d}`;
+        }
+        return '';
+      };
+      const startDate = parseDate(programDetail.startDate);
+      const endDate = parseDate(programDetail.endDate);
+
       form.reset({
         programName: programDetail.programName,
         startDate: startDate,
         endDate: endDate,
-        procedures: programDetail.listProcedure.length > 0 
+        procedures: programDetail.listProcedure.length > 0
           ? programDetail.listProcedure.map(p => ({
-              procedureId: p.procedureId,
-              discountAmount: p.discountAmount?.toString() || '0'
-            }))
+            procedureId: p.procedureId,
+            discountAmount: p.discountAmount?.toString() || '0'
+          }))
           : [{ procedureId: 0, discountAmount: '' }]
       });
     }
@@ -154,11 +165,11 @@ export const EditPromotionModal: React.FC<EditPromotionModalProps> = ({
   const getAvailableProcedures = (currentIndex: number) => {
     const selectedIds = getSelectedProcedureIds();
     const currentProcedureId = form.watch(`procedures.${currentIndex}.procedureId`);
-    
+
     return procedures.filter((procedure: Procedure) => {
       // Include current selection or unselected procedures
-      return procedure.procedureId === currentProcedureId || 
-             !selectedIds.includes(procedure.procedureId);
+      return procedure.procedureId === currentProcedureId ||
+        !selectedIds.includes(procedure.procedureId);
     });
   };
 
@@ -173,7 +184,7 @@ export const EditPromotionModal: React.FC<EditPromotionModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="fixed inset-0 bg-black/20 bg-opacity-50" onClick={onClose} />
-      
+
       <div className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-300">
@@ -201,14 +212,14 @@ export const EditPromotionModal: React.FC<EditPromotionModalProps> = ({
             <Card>
               <CardContent className="p-4 space-y-4">
                 <h3 className="font-semibold text-lg">Thông tin chương trình</h3>
-                
+
                 {/* Program Name */}
                 <div className="space-y-2">
                   <Label htmlFor="programName">Tên chương trình *</Label>
                   <Input
                     id="programName"
                     placeholder="Nhập tên chương trình khuyến mãi..."
-                    {...form.register('programName', { 
+                    {...form.register('programName', {
                       required: 'Vui lòng nhập tên chương trình',
                       minLength: { value: 3, message: 'Tên chương trình phải có ít nhất 3 ký tự' }
                     })}
@@ -287,7 +298,7 @@ export const EditPromotionModal: React.FC<EditPromotionModalProps> = ({
                               }))}
                               placeholder="Chọn thủ thuật"
                               value={getSelectedProcedureId(index)}
-                              onValueChange={(value: string) => 
+                              onValueChange={(value: string) =>
                                 form.setValue(`procedures.${index}.procedureId`, parseInt(value))
                               }
                               emptyText={getAvailableProcedures(index).length === 0 ? "Tất cả thủ thuật đã được chọn" : "Không tìm thấy thủ thuật"}
@@ -310,7 +321,7 @@ export const EditPromotionModal: React.FC<EditPromotionModalProps> = ({
                                 />
                                 <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">%</span>
                               </div>
-                              
+
                               {/* Remove Button */}
                               <Button
                                 type="button"
@@ -376,8 +387,8 @@ export const EditPromotionModal: React.FC<EditPromotionModalProps> = ({
               <Button type="button" variant="outline" onClick={onClose}>
                 Hủy
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Đang cập nhật...' : 'Cập Nhật Chương Trình'}

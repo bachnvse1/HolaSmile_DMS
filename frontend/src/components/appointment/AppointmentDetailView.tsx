@@ -198,11 +198,11 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
   const statusConfig = getStatusConfig(appointment.status);
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
+    <div className="container mx-auto p-4 sm:p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6 gap-4">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={handleGoBack}>
+          <Button variant="ghost" size="icon" onClick={handleGoBack} className='border border-gray-300'>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
@@ -357,14 +357,28 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
             )}
 
             {/* Timestamps */}
-            <div className="border-t border-gray-200 pt-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Ngày tạo:</span>
-                <span className="text-gray-900">{formatDateVN(appointment.createdAt)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Cập nhật lần cuối:</span>
-                <span className="text-gray-900">{formatDateVN(appointment.updatedAt || appointment.createdAt)}</span>
+            <div className="border-t border-gray-200 pt-4 space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Ngày tạo:</span>
+                    <span className="text-gray-900">{formatDateVN(appointment.createdAt)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Tạo bởi:</span>
+                    <span className="text-gray-900">{appointment.createdBy || 'Hệ thống'}</span>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Cập nhật:</span>
+                    <span className="text-gray-900">{formatDateVN(appointment.updatedAt || appointment.createdAt)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Cập nhật bởi:</span>
+                    <span className="text-gray-900">{appointment.updatedBy || 'Chưa có'}</span>
+                  </div>
+                </div>
               </div>
             </div>
 
