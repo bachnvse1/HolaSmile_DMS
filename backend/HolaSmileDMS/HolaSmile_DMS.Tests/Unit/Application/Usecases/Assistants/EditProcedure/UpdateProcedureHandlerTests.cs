@@ -2,6 +2,7 @@ using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Assistant.ProcedureTemplate.CreateProcedure;
 using Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using System.Security.Claims;
@@ -12,15 +13,19 @@ public class UpdateProcedureHandlerTests
 {
     private readonly Mock<IProcedureRepository> _procedureRepoMock;
     private readonly Mock<ISupplyRepository> _supplyRepoMock;
+    private readonly Mock<IOwnerRepository> _ownerRepoMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
+    private readonly Mock<IMediator> _mediatorMock;
     private readonly UpdateProcedureHandler _handler;
 
     public UpdateProcedureHandlerTests()
     {
         _procedureRepoMock = new Mock<IProcedureRepository>();
         _supplyRepoMock = new Mock<ISupplyRepository>();
+        _ownerRepoMock = new Mock<IOwnerRepository>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        _handler = new UpdateProcedureHandler(_procedureRepoMock.Object, _supplyRepoMock.Object, _httpContextAccessorMock.Object);
+        _mediatorMock = new Mock<IMediator>();
+        _handler = new UpdateProcedureHandler(_procedureRepoMock.Object, _supplyRepoMock.Object,_ownerRepoMock.Object , _httpContextAccessorMock.Object,_mediatorMock.Object);
     }
 
     private void SetupHttpContext(string role = "assistant", int userId = 1)

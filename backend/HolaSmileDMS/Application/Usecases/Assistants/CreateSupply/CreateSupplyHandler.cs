@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
+using Application.Usecases.SendNotification;
 using Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -12,11 +13,17 @@ namespace Application.Usecases.Assistant.CreateSupply
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ISupplyRepository _supplyRepository;
         private readonly ITransactionRepository _transactionRepository;
-        public CreateSupplyHandler(IHttpContextAccessor httpContextAccessor, ISupplyRepository supplyRepository,ITransactionRepository transactionRepository) 
+        private readonly IUserCommonRepository _userCommonRepository;
+        private readonly IOwnerRepository _ownerRepository;
+        private readonly IMediator _mediator;
+        public CreateSupplyHandler(IHttpContextAccessor httpContextAccessor, ISupplyRepository supplyRepository,ITransactionRepository transactionRepository, IOwnerRepository ownerRepository, IUserCommonRepository userCommonRepository, IMediator mediator) 
         {
             _httpContextAccessor = httpContextAccessor;
             _supplyRepository = supplyRepository;
             _transactionRepository = transactionRepository;
+            _userCommonRepository = userCommonRepository;
+            _ownerRepository = ownerRepository;
+            _mediator = mediator;
         }
         public async Task<bool> Handle(CreateSupplyCommand request, CancellationToken cancellationToken)
         {
@@ -57,6 +64,7 @@ namespace Application.Usecases.Assistant.CreateSupply
                 Category = "Vật tư y tế",
                 PaymentMethod = true, // True for cash
                 Amount = request.Price * request.QuantityInStock,
+                status = "approved",
                 CreatedAt = DateTime.Now,
                 CreatedBy = currentUserId,
                 IsDelete = false
@@ -77,6 +85,23 @@ namespace Application.Usecases.Assistant.CreateSupply
                 IsDeleted = false
             };
             var isSupplyCreated = await _supplyRepository.CreateSupplyAsync(newSupply);
+
+            try
+            {
+                var owners = await _ownerRepository.GetAllOwnersAsync();
+                var assistant = await _userCommonRepository.GetByIdAsync(currentUserId, cancellationToken);
+
+                var notifyOwners = owners.Select(async o =>
+                await _mediator.Send(new SendNotificationCommand(
+                      o.User.UserID,
+                      "Nhập vật tư",
+                      $"Trợ lý {assistant.Fullname} nhập vật tư mới {newSupply.Name} vào lúc {DateTime.Now}",
+                      "procedure", 0, $"proceduces"),
+                cancellationToken));
+                await System.Threading.Tasks.Task.WhenAll(notifyOwners);
+            }
+            catch { }
+
             return isSupplyCreated;
         }
     }

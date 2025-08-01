@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { X, TrendingUp, TrendingDown } from 'lucide-react';
+import { X, TrendingUp, TrendingDown, Upload, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,6 +30,9 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
   isOpen,
   onClose
 }) => {
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+  
   const form = useForm<FormData>({
     defaultValues: {
       transactionType: 'thu',
@@ -50,7 +53,34 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
     });
   };
 
-  const onSubmit = async (data: FormData) => {
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp', 'image/tiff'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error('Vui lòng chọn ảnh có định dạng jpeg/png/bmp/gif/webp/tiff');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Kích thước file không được vượt quá 5MB');
+        return;
+      }
+      
+      setSelectedImage(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const onSubmit = async (data: FormData) => { 
     try {
       // Convert amount to number (remove formatting)
       const numericAmount = parseInt(data.amount.replace(/[^\d]/g, '')) || 0;
@@ -60,22 +90,44 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
         return;
       }
 
-      const requestData = {
-        transactionType: data.transactionType === 'thu', // true for thu, false for chi
-        description: data.description,
-        category: data.category,
-        paymentMethod: data.paymentMethod === 'cash', // true for cash, false for transfer
-        amount: numericAmount,
-        transactionDate: data.transactionDate + 'T' + data.transactionTime + ':00' // Local time without timezone conversion
-      };
+      // Check if image is required for expense transactions
+      if (data.transactionType === 'chi' && !selectedImage) {
+        toast.error('Vui lòng tải lên ảnh chứng từ cho phiếu chi');
+        return;
+      }
 
+      // Check if description is provided
+      if (!data.description || data.description.trim() === '') {
+        toast.error('Vui lòng nhập mô tả');
+        return;
+      }
 
-      await createTransactionMutation.mutateAsync(requestData);
+      // Check if category is provided
+      if (!data.category || data.category.trim() === '') {
+        toast.error('Vui lòng nhập danh mục');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('TransactionType', (data.transactionType === 'thu').toString());
+      formData.append('Description', data.description.trim());
+      formData.append('Amount', numericAmount.toString());
+      formData.append('Category', data.category.trim());
+      formData.append('PaymentMethod', (data.paymentMethod === 'cash').toString());
+      formData.append('TransactionDate', data.transactionDate + 'T' + data.transactionTime + ':00');
       
+      if (selectedImage) {
+        formData.append('EvidenceImage', selectedImage);
+      }
+      const result = await createTransactionMutation.mutateAsync(formData);
+      console.log('Backend response:', result);
+
       toast.success(`Đã tạo giao dịch ${data.transactionType} thành công`);
       form.reset();
+      setSelectedImage(null);
+      setImagePreview('');
       onClose();
-    } catch (error) {
+    } catch (error: unknown) {
       toast.error(getErrorMessage(error) || `Có lỗi xảy ra khi tạo giao dịch`);
     }
   };
@@ -156,7 +208,10 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
             <Textarea
               id="description"
               placeholder="Nhập mô tả cho giao dịch..."
-              {...form.register('description', { required: 'Vui lòng nhập mô tả' })}
+              {...form.register('description', { 
+                required: 'Vui lòng nhập mô tả',
+                validate: value => value.trim().length > 0 || 'Mô tả không được để trống'
+              })}
               rows={3}
             />
             {form.formState.errors.description && (
@@ -227,6 +282,63 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
               )}
             </div>
           </div>
+
+          {/* Image Upload - For all expense (chi) transactions */}
+          {transactionType === 'chi' && (
+            <div className="space-y-2">
+              <Label htmlFor="evidenceImage">Ảnh chứng từ *</Label>
+              <div className="space-y-3">
+                {/* Upload Button */}
+                <div className="flex items-center gap-4">
+                  <label htmlFor="evidenceImage" className="cursor-pointer">
+                    <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors">
+                      <Upload className="h-5 w-5 text-gray-500" />
+                      <span className="text-sm text-gray-700">
+                        {selectedImage ? 'Thay đổi ảnh' : 'Tải lên ảnh chứng từ'}
+                      </span>
+                    </div>
+                  </label>
+                  <input
+                    id="evidenceImage"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                </div>
+
+                {/* Image Preview */}
+                {imagePreview && (
+                  <div className="relative w-32 h-32 border border-gray-300 rounded-lg overflow-hidden">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedImage(null);
+                        setImagePreview('');
+                      }}
+                      className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                      title="Xóa ảnh"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+
+                {/* File Info */}
+                {selectedImage && (
+                  <div className="text-sm text-gray-600">
+                    <p>Tên file: {selectedImage.name}</p>
+                    <p>Kích thước: {(selectedImage.size / 1024 / 1024).toFixed(2)} MB</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Preview */}
           {form.watch('amount') && (

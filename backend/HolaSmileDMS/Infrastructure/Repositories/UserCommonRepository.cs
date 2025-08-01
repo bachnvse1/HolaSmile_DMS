@@ -13,12 +13,10 @@ namespace HDMS_API.Infrastructure.Repositories
     public class UserCommonRepository : IUserCommonRepository
     {
         private readonly ApplicationDbContext _context;
-        private readonly IEmailService _emailService;
 
-        public UserCommonRepository(ApplicationDbContext context, IEmailService emailService)
+        public UserCommonRepository(ApplicationDbContext context)
         {
             _context = context;
-            _emailService = emailService;
         }
         public async Task<User> CreatePatientAccountAsync(CreatePatientDto dto, string password)
         {
@@ -43,11 +41,6 @@ namespace HDMS_API.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return user;
         }
-        public async Task<bool> SendPasswordForGuestAsync(string email)
-        {
-            return await _emailService.SendPasswordAsync(email, "123456"); ;
-        }
-
         public async Task<bool> ResetPasswordAsync(User user)
         {
                 _context.Users.Update(user);

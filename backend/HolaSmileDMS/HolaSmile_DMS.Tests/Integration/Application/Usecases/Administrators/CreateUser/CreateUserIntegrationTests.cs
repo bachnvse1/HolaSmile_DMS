@@ -16,6 +16,7 @@ public class CreateUserIntegrationTests
     private readonly ApplicationDbContext _context;
     private readonly CreateUserHandler _handler;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IEmailService _emailService;
 
     public CreateUserIntegrationTests()
     {
@@ -32,8 +33,9 @@ public class CreateUserIntegrationTests
 
         SeedData();
         _handler = new CreateUserHandler(
-            new UserCommonRepository(_context, new Mock<IEmailService>().Object),
-            _httpContextAccessor
+            new UserCommonRepository(_context),
+            _httpContextAccessor,
+            _emailService
         );
     }
 

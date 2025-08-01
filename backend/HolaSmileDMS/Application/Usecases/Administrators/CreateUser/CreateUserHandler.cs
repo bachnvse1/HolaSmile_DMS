@@ -2,8 +2,10 @@
 using Application.Constants;
 using Application.Interfaces;
 using HDMS_API.Application.Common.Helpers;
+using HDMS_API.Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace Application.Usecases.Administrator.CreateUser
 {
@@ -11,10 +13,12 @@ namespace Application.Usecases.Administrator.CreateUser
     {
         private readonly IUserCommonRepository _userCommonRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public  CreateUserHandler(IUserCommonRepository userCommonRepository, IHttpContextAccessor httpContextAccessor)
+        private readonly IEmailService _emailService;
+        public  CreateUserHandler(IUserCommonRepository userCommonRepository, IHttpContextAccessor httpContextAccessor, IEmailService emailService)
         {
             _userCommonRepository = userCommonRepository;
             _httpContextAccessor = httpContextAccessor;
+            _emailService = emailService;
         }
 
         public async Task<bool> Handle(CreateUserCommand request, CancellationToken cancellationToken)
@@ -79,7 +83,7 @@ namespace Application.Usecases.Administrator.CreateUser
             {
                 try
                 {
-                    await _userCommonRepository.SendPasswordForGuestAsync(request.Email);
+                    await _emailService.SendPasswordAsync(newUser.Email,"123456");
                 }
                 catch (Exception ex)
                 {

@@ -51,7 +51,7 @@ namespace Application.Usecases.Receptionist.DeactiveFinancialTransaction
                 o.User.UserID,
                 "Chỉnh sửa phiếu thu/chi",
                 $"Lễ tân {o.User.Fullname} đã xóa phiếu {(existingTransaction.TransactionType ? "thu" : "chi")} vào lúc {DateTime.Now}",
-                "transaction", null), cancellationToken));
+                "transaction", 0, $"financial-transactions"), cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);
             }
             catch { }

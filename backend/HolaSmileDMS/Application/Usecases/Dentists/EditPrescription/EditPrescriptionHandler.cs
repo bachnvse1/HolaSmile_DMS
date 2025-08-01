@@ -52,10 +52,10 @@ namespace Application.Usecases.Dentists.EditPrescription
 
                 await _mediator.Send(new SendNotificationCommand(
                       patient.User.UserID,
-                      "Taọ đơn thuốc",
-                      $"Bác sĩ đã tạo đơn thuốc cho cuộc hẹn ngày {existPrescription.Appointment.AppointmentDate} vào lúc {DateTime.Now}",
+                      "Thay đổi thông tin  đơn thuốc",
+                      $"Bác sĩ đã thay đổi thông tin đơn thuốc {existPrescription.PrescriptionId} vào lúc {DateTime.Now}",
                       "schedule",
-                      null), cancellationToken);
+                      0, $"patient/appointments/{existPrescription.AppointmentId}"), cancellationToken);
             }
             catch { }
 

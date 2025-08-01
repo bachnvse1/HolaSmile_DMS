@@ -33,7 +33,7 @@ export interface PieChartData {
 }
 
 // Dashboard stats hook
-export const useDashboardStats = (filter: string = 'month') => {
+export const useDashboardStats = (filter: string = 'week') => {
   return useQuery<DashboardStats>({
     queryKey: ['dashboard-stats', filter],
     queryFn: async () => {

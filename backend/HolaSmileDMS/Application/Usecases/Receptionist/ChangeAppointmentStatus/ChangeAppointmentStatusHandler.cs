@@ -3,7 +3,7 @@ using System.Security.Claims;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
-using NuGet.Protocol.Plugins;
+using Application.Usecases.SendNotification;
 
 namespace Application.Usecases.Receptionist.ChangeAppointmentStatus
 {
@@ -11,12 +11,17 @@ namespace Application.Usecases.Receptionist.ChangeAppointmentStatus
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IAppointmentRepository _appointmentRepository;
+        private readonly IPatientRepository _patientRepository;
+        private readonly IDentistRepository _dentistRepository;
+        private readonly IMediator _mediator;
 
-
-        public ChangeAppointmentStatusHandler(IAppointmentRepository appointmentRepository, IHttpContextAccessor httpContextAccessor)
+        public ChangeAppointmentStatusHandler(IAppointmentRepository appointmentRepository, IHttpContextAccessor httpContextAccessor, IPatientRepository patientRepository, IDentistRepository dentistRepository, IMediator mediator)
         {
             _httpContextAccessor = httpContextAccessor;
             _appointmentRepository = appointmentRepository;
+            _patientRepository = patientRepository;
+            _dentistRepository = dentistRepository;
+            _mediator = mediator;
         }
         public async Task<bool> Handle(ChangeAppointmentStatusCommand request, CancellationToken cancellationToken)
         {
@@ -52,6 +57,28 @@ namespace Application.Usecases.Receptionist.ChangeAppointmentStatus
             existApp.UpdatedBy = currentUserId;
 
             var isUpdate = await _appointmentRepository.UpdateAppointmentAsync(existApp);
+
+            try
+            {
+                var dentist = await _dentistRepository.GetDentistByDentistIdAsync(existApp.DentistId);
+                var patient = await _patientRepository.GetPatientByPatientIdAsync(existApp.PatientId);
+
+                await _mediator.Send(new SendNotificationCommand(
+                      patient.User.UserID,
+                      "Thay đổi trạng thái lịch",
+                      $"Lễ tân đã thay đổi lịch hẹn {existApp.AppointmentId} với trạng thái bệnh nhân {(request.Status.ToLower() == "attended" ? "đã đến" : "vắng mặt")} vào lúc {DateTime.Now}",
+                      "appointment", 0, $"appointments/{existApp.AppointmentId}"), cancellationToken);
+
+                await _mediator.Send(new SendNotificationCommand(
+                      dentist.User.UserID,
+                      "Đặt lịch hẹn tái khám",
+                      $"Lễ tân đã thay đổi lịch hẹn {existApp.AppointmentId} với trạng thái bệnh nhân {(request.Status.ToLower() == "attended" ? "đã đến" : "vắng mặt")} vào lúc {DateTime.Now}",
+                      "appointment", 0, $"appointments/{existApp.AppointmentId}"), cancellationToken);
+            }
+            catch
+            {
+            }
+
             return isUpdate;
         }
     }

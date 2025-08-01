@@ -4,6 +4,7 @@ import { createNotificationConnection } from "@/services/notificationHub";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { TokenUtils } from "@/utils/tokenUtils";
 
 type NotificationDto = {
   notificationId: number;
@@ -11,26 +12,60 @@ type NotificationDto = {
   type: string;
   message: string;
   targetUrl?: string;
+  mappingUrl?: string;
+  relatedObjectId?: number;
   createdAt: string;
+  isRead: boolean;
 };
 
-// ✅ Mapping keyword → route
-const titleRouteMappings: { keyword: string; route: string }[] = [
-  { keyword: "invoice", route: "/invoices" }, // ✅ match route khai báo
-  { keyword: "lịch hẹn", route: "/appointments" },
-  { keyword: "điều trị", route: "/patient/treatment-records" },
-  { keyword: "thẻ bảo hành", route: "/assistant/warranty-cards" },
-  { keyword: "đơn thuốc", route: "/prescription-templates" },
-  { keyword: "nhiệm vụ", route: "/assistant/assigned-tasks" },
-];
+const typeToRouteMapping: { [key: string]: string } = {
+  "transaction": "/financial-transactions",
+  "appointment": "/appointments",
+  "patient": "/patients",
+  "promotion": "/promotions",
+  "promotions": "/promotions",
+  "invoice": "/invoices",
+  "schedule": "/schedules",
+  "procedure": "/procedures",
+  "task_assigned": "/assistant/assigned-tasks",
+  "warranty-card": "/assistant/warranty-cards",
+  "Tiến trình điều trị": "/patient/treatment-records",
+  "Xem hồ sơ": "/patient/treatment-records",
+  "Xoá hồ sơ": "/patient/treatment-records",
+  "Xem chi tiết": "/patient/orthodontic-treatment-plans",
+  "Chỉ dẫn điều trị": "/prescription-templates",
+  "Đăng ký lịch làm việc": "/schedules",
+  "Info": "/",
+  "Error": "/",
+  "Reminder": "/",
+  "Alert": "/"
+};
 
-function mapTitleToRoute(type: string): string {
+function mapTypeToRoute(type: string): string {
+  if (typeToRouteMapping[type]) return typeToRouteMapping[type];
   const lower = type.toLowerCase().trim();
-  for (const mapping of titleRouteMappings) {
-    if (lower.includes(mapping.keyword.toLowerCase())) {
-      return mapping.route;
-    }
-  }
+
+  if (lower.includes("transaction") || lower.includes("thu") || lower.includes("chi"))
+    return "/financial-transactions";
+  if (lower.includes("appointment") || lower.includes("lịch hẹn") || lower.includes("hẹn"))
+    return "/appointments";
+  if (lower.includes("patient") || lower.includes("bệnh nhân"))
+    return "/patients";
+  if (lower.includes("promotion") || lower.includes("khuyến mãi"))
+    return "/promotions";
+  if (lower.includes("invoice") || lower.includes("hóa đơn") || lower.includes("thanh toán"))
+    return "/invoices";
+  if (lower.includes("schedule") || lower.includes("lịch làm việc"))
+    return "/schedules";
+  if (lower.includes("điều trị") || lower.includes("treatment"))
+    return "/patient/treatment-records";
+  if (lower.includes("đơn thuốc") || lower.includes("prescription"))
+    return "/prescription-templates";
+  if (lower.includes("nhiệm vụ") || lower.includes("task"))
+    return "/assistant/assigned-tasks";
+  if (lower.includes("bảo hành") || lower.includes("warranty"))
+    return "/assistant/warranty-cards";
+
   return "/";
 }
 
@@ -43,29 +78,36 @@ export function NotificationButton() {
 
   useEffect(() => {
     const token = localStorage.getItem("token") || "";
+    const userId = TokenUtils.getUserIdFromToken(token);
+    if (!token || !userId) return;
 
     const connection = createNotificationConnection(token);
     connection.start().catch(console.error);
 
-    axios
-      .get<NotificationDto[]>(`${import.meta.env.VITE_API_BASE_URL}/notifications`, {
+    axios.get<NotificationDto[]>(`${import.meta.env.VITE_API_BASE_URL}/notifications`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "ngrok-skip-browser-warning": "true"
+      },
+    }).then(res => {
+      const data = Array.isArray(res.data) ? res.data : [];
+      setNotifications(data);
+
+      axios.get(`${import.meta.env.VITE_API_BASE_URL}/notifications/unread-count/${userId}`, {
         headers: {
-          "ngrok-skip-browser-warning": "true",
           Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         },
-      })
-      .then((res) => {
-        setNotifications(Array.isArray(res.data) ? res.data : []);
-      })
-      .catch(console.error);
+      }).then((res) => {
+        if (res.data?.unreadCount > 0) setHasUnread(true);
+      });
+    }).catch(console.error);
 
     connection.on("ReceiveNotification", (notification: NotificationDto) => {
       toast.info(notification.title);
       setNotifications((prev) => [notification, ...prev]);
       setHasUnread(true);
-      audioRef.current?.play().catch((err) => {
-        console.warn("Không thể phát âm thanh:", err);
-      });
+      audioRef.current?.play().catch(err => console.warn("Không thể phát âm thanh:", err));
     });
 
     return () => {
@@ -78,11 +120,48 @@ export function NotificationButton() {
     setHasUnread(false);
   };
 
-  const handleNotificationClick = (notification: NotificationDto) => {
-    const route = mapTitleToRoute(notification.type);
-    console.log("Navigating to:", route);
-    navigate(route);
+  const handleNotificationClick = async (notification: NotificationDto) => {
+    const token = localStorage.getItem("token") || "";
+    try {
+      await axios.put(
+        `${import.meta.env.VITE_API_BASE_URL}/notifications/mark-as-read/${notification.notificationId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "true"
+          },
+        }
+      );
+    } catch (err) {
+      console.warn("Không thể đánh dấu đã đọc:", err);
+    }
+
+    let route: string;
+    if (notification.mappingUrl && notification.mappingUrl.trim() !== "") {
+      route = notification.mappingUrl.startsWith('/')
+        ? notification.mappingUrl
+        : `/${notification.mappingUrl}`;
+    } else if (notification.type && notification.mappingUrl?.includes('/')) {
+      route = `/${notification.mappingUrl}`;
+    } else if (notification.relatedObjectId && notification.relatedObjectId > 0) {
+      const baseRoute = mapTypeToRoute(notification.type);
+      route = `${baseRoute}/${notification.relatedObjectId}`;
+    } else {
+      route = mapTypeToRoute(notification.type);
+    }
+
     setShowList(false);
+    navigate(route);
+
+    setNotifications((prev) =>
+      prev.map((n) =>
+        n.notificationId === notification.notificationId ? { ...n, isRead: true } : n
+      )
+    );
+
+    const unreadLeft = notifications.filter((n) => !n.isRead && n.notificationId !== notification.notificationId);
+    setHasUnread(unreadLeft.length > 0);
   };
 
   return (
@@ -90,30 +169,46 @@ export function NotificationButton() {
       <audio ref={audioRef} src="/sound/inflicted-601.ogg" preload="auto" />
       <button
         onClick={handleClick}
-        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-full relative"
+        className="p-2 text-gray-500 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full relative"
         title="Thông báo"
       >
         <Bell className="h-5 w-5" />
         {hasUnread && (
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-        )}
+            <div className="absolute top-0 right-0 -mt-1 -mr-1 z-20">
+              <span className="absolute inline-flex h-5 w-5 rounded-full bg-red-400 opacity-75 animate-ping"></span>
+              <span className="relative inline-flex items-center justify-center h-5 w-5 rounded-full bg-red-600 text-white text-[10px] font-bold">
+                {
+                  notifications.filter(n => !n.isRead).length > 9 
+                    ? "9+" 
+                    : notifications.filter(n => !n.isRead).length
+                }
+              </span>
+            </div>
+          )}
+
+
       </button>
 
       {showList && (
-        <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded shadow-lg z-50">
-          <div className="max-h-96 overflow-y-auto">
+        <div className="absolute right-0 mt-2 w-96 max-w-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
+          <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
             {notifications.length === 0 ? (
-              <div className="p-4 text-sm text-gray-500">Không có thông báo.</div>
+              <div className="p-4 text-sm text-gray-500 dark:text-gray-400 text-center">Không có thông báo.</div>
             ) : (
               notifications.map((n) => (
                 <div
                   key={n.notificationId}
                   onClick={() => handleNotificationClick(n)}
-                  className="p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                  className={`p-4 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-all ${
+                    !n.isRead
+                      ? 'bg-blue-50 dark:bg-blue-950 border-l-4 border-blue-500'
+                      : 'opacity-60'
+                  }`}
+
                 >
-                  <div className="font-medium">{n.title}</div>
-                  <div className="text-sm text-gray-600">{n.message}</div>
-                  <div className="text-xs text-gray-400">
+                  <div className="font-semibold text-gray-800 dark:text-gray-100">{n.title}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">{n.message}</div>
+                  <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                     {new Date(n.createdAt).toLocaleString()}
                   </div>
                 </div>

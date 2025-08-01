@@ -6,6 +6,7 @@ using Application.Interfaces;
 using Application.Usecases.SendNotification;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
+using HDMS_API.Application.Interfaces;
 
 namespace HDMS_API.Application.Usecases.Guests.BookAppointment
 {
@@ -18,7 +19,8 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public BookAppointmentHandler(IAppointmentRepository appointmentRepository, IMediator mediator, IPatientRepository patientRepository, IUserCommonRepository userCommonRepository, IMapper mapper, IDentistRepository dentistRepository, IHttpContextAccessor httpContextAccessor)
+        private readonly IEmailService _emailService;
+        public BookAppointmentHandler(IAppointmentRepository appointmentRepository, IMediator mediator, IPatientRepository patientRepository, IUserCommonRepository userCommonRepository, IMapper mapper, IDentistRepository dentistRepository, IHttpContextAccessor httpContextAccessor, IEmailService emailService)
 
         {
             _appointmentRepository = appointmentRepository;
@@ -29,6 +31,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             _mediator = mediator;
             _dentistRepository = dentistRepository;
             _httpContextAccessor = httpContextAccessor;
+            _emailService = emailService;
         }
         public async Task<string> Handle(BookAppointmentCommand request, CancellationToken cancellationToken)
         {
@@ -65,7 +68,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 {
                     try
                     {
-                        await _userCommonRepository.SendPasswordForGuestAsync(newUser.Email);
+                        await _emailService.SendPasswordAsync(newUser.Email, "123456");
                     }
                     catch (Exception ex)
                     {
@@ -125,14 +128,13 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             var receptionists = await _userCommonRepository.GetAllReceptionistAsync();
             try
             {
-
                 //GỬI THÔNG BÁO CHO DENTIST
                 await _mediator.Send(new SendNotificationCommand(
                     dentist.User.UserID,
                         "Đăng ký khám",
                         $"Bệnh nhân đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
                         "appointment",
-                        null),
+                        0, $"appointments/{appointment.AppointmentId}"),
                     cancellationToken);
 
                 var notifyReceptionists = receptionists.Select(async r =>
@@ -140,7 +142,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                                r.UserId,
                                "Đăng ký khám",
                                 $"Bệnh nhân mới đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
-                                "appointment", null),
+                                "appointment", 0, $"appointments/{appointment.AppointmentId}"),
                                 cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyReceptionists);
             }

@@ -1,6 +1,7 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Administrator.CreateUser;
+using HDMS_API.Application.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using System.Security.Claims;
@@ -11,11 +12,12 @@ public class CreateUserHandlerTests
 {
     private readonly Mock<IUserCommonRepository> _userCommonRepoMock = new();
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new();
+    private readonly Mock<IEmailService> _emMailServiceMock = new();
     private readonly CreateUserHandler _handler;
 
     public CreateUserHandlerTests()
     {
-        _handler = new CreateUserHandler(_userCommonRepoMock.Object, _httpContextAccessorMock.Object);
+        _handler = new CreateUserHandler(_userCommonRepoMock.Object, _httpContextAccessorMock.Object, _emMailServiceMock.Object);
     }
 
     private void SetupHttpContext(string role, int userId)
@@ -51,7 +53,6 @@ public class CreateUserHandlerTests
         _userCommonRepoMock.Setup(r => r.GetUserByPhoneAsync(command.PhoneNumber)).ReturnsAsync((User)null);
         _userCommonRepoMock.Setup(r => r.GetUserByEmailAsync(command.Email)).ReturnsAsync((User)null);
         _userCommonRepoMock.Setup(r => r.CreateUserAsync(It.IsAny<User>(), "receptionist")).ReturnsAsync(true);
-        _userCommonRepoMock.Setup(r => r.SendPasswordForGuestAsync(command.Email)).ReturnsAsync(true);
 
         var result = await _handler.Handle(command, default);
 

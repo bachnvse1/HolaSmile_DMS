@@ -77,7 +77,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
 
             _context.Appointments.Add(new Appointment { AppointmentId = 1, PatientId = 2 });
 
-            _context.Procedures.Add(new Procedure { ProcedureId = 1, ProcedureName = "Trám răng", WarrantyCardId = null });
+            _context.Procedures.Add(new Procedure { ProcedureId = 1, ProcedureName = "Trám răng"});
 
             _context.TreatmentRecords.Add(new TreatmentRecord
             {
@@ -174,9 +174,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
                 Status = true,
                 TreatmentRecordID = 1
             });
-
-            var procedure = _context.Procedures.First(p => p.ProcedureId == 1);
-            procedure.WarrantyCardId = 10;
+            
             _context.SaveChanges();
 
             var command = new CreateWarrantyCardCommand

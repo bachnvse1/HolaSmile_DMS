@@ -11,5 +11,6 @@ namespace Application.Interfaces
         System.Threading.Tasks.Task MarkAsSentAsync(int notificationId, CancellationToken ct);
 
         System.Threading.Tasks.Task SendNotificationAsync(Notification notification, CancellationToken ct);
+        Task<int> CountUnreadNotificationsAsync(int userId, CancellationToken cancellationToken);
     }
 }

@@ -57,6 +57,7 @@ public class UpdateInvoiceHandler : IRequestHandler<UpdateInvoiceCommand, string
         invoice.TransactionType = request.TransactionType ?? invoice.TransactionType;
         invoice.Description = request.Description ?? invoice.Description;
         invoice.PaidAmount = request.PaidAmount ?? invoice.PaidAmount;
+        invoice.Status = request.Status ?? invoice.Status;
 
         if (request.PaidAmount.HasValue)
         {
@@ -92,7 +93,7 @@ public class UpdateInvoiceHandler : IRequestHandler<UpdateInvoiceCommand, string
                         "Thanh toán",
                         message,
                         "invoice",
-                        userId
+                        userId, "invoices"
                     ), cancellationToken);
                 }
                 catch (Exception ex)

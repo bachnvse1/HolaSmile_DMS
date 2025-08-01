@@ -22,7 +22,7 @@ namespace Infrastructure.Services
             _cloudinary.Api.Secure = true;
         }
 
-        public async Task<string> UploadEvidentImageAsync(IFormFile file, string folder = "evident-images")
+        public async Task<string> UploadEvidenceImageAsync(IFormFile file, string folder = "evidence-images")
         {
             await using var stream = file.OpenReadStream();
             var uploadParams = new ImageUploadParams

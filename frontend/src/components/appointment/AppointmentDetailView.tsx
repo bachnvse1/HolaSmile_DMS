@@ -574,7 +574,6 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
           appointmentId={appointmentId}
           defaultStatus="in-progress"
           onSubmit={handleTreatmentSubmit}
-          keepOpenAfterCreate={false}
           patientId={Number(appointment.patientId)}
         />
       )}
