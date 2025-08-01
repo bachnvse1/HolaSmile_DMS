@@ -20,6 +20,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUserCommonRepository _userCommonRepository;
         private readonly IPatientRepository _patientRepository;
+        private readonly IEmailService _emailService;
         private readonly IMapper _mapper;
         private readonly CreatePatientHandler _handler;
 
@@ -41,10 +42,10 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
             _mapper = provider.GetRequiredService<IMapper>();
             SeedData();
 
-            _userCommonRepository = new UserCommonRepository(_context, new Mock<IEmailService>().Object);
+            _userCommonRepository = new UserCommonRepository(_context);
             _patientRepository = new PatientRepository(_context);
 
-            _handler = new CreatePatientHandler(_userCommonRepository, _patientRepository, _mapper, _httpContextAccessor);
+            _handler = new CreatePatientHandler(_userCommonRepository, _patientRepository, _mapper, _httpContextAccessor, _emailService);
         }
 
         private void SeedData()

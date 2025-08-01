@@ -36,6 +36,7 @@ interface RecordRowProps {
   onOpenInvoiceModal: (patientId: number, treatmentRecordId: number) => void;
   patientId: number;
   readonly?: boolean;
+  orderNumber?: number;
 }
 
 // Status configuration with improved styling
@@ -87,6 +88,7 @@ const RecordRow: React.FC<RecordRowProps> = ({
   onOpenInvoiceModal,
   patientId,
   readonly = false,
+  orderNumber,
 }) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const statusConfig = getStatusConfig(record.treatmentStatus);
@@ -112,6 +114,15 @@ const RecordRow: React.FC<RecordRowProps> = ({
     <TooltipProvider>
       <>
         <tr className={rowClassName}>
+          {/* Số thứ tự */}
+          <td className="px-6 py-4 whitespace-nowrap text-center">
+            <div className="flex items-center justify-center">
+              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-700 text-sm font-medium">
+                {orderNumber}
+              </span>
+            </div>
+          </td>
+
           {/* Appointment Date & Time */}
           <td className="px-6 py-4 whitespace-nowrap">
             <div className="flex items-center gap-3">

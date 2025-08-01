@@ -74,20 +74,23 @@ namespace Application.Usecases.Receptionist.CreateFinancialTransaction
             };
             var iscreated = await _transactionRepository.CreateTransactionAsync(newTransaction);
 
-            try
+            if(!string.Equals(currentUserRole, "owner", StringComparison.OrdinalIgnoreCase))
             {
-                var owners = await _ownerRepository.GetAllOwnersAsync();
+                try
+                {
+                    var owners = await _ownerRepository.GetAllOwnersAsync();
 
-                var notifyOwners = owners.Select(async o =>
-                await _mediator.Send(
-                 new SendNotificationCommand(
-                o.User.UserID,
-                "Tạo phiếu thu/chi",
-                $"Lễ tân {o.User.Fullname} đã tạo phiếu {(newTransaction.TransactionType ? "thu" : "chi")} vào lúc {DateTime.Now}",
-                "transaction",0, $"financial-transactions/{newTransaction.TransactionID}"),cancellationToken));
-                await System.Threading.Tasks.Task.WhenAll(notifyOwners);
+                    var notifyOwners = owners.Select(async o =>
+                    await _mediator.Send(
+                     new SendNotificationCommand(
+                    o.User.UserID,
+                    "Tạo phiếu thu/chi",
+                    $"Lễ tân {o.User.Fullname} đã tạo phiếu {(newTransaction.TransactionType ? "thu" : "chi")} vào lúc {DateTime.Now}",
+                    "transaction", 0, $"financial-transactions/{newTransaction.TransactionID}"), cancellationToken));
+                    await System.Threading.Tasks.Task.WhenAll(notifyOwners);
+                }
+                catch { }
             }
-            catch { }
 
             return iscreated;
 

@@ -3,7 +3,6 @@ using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Application.Constants;
-using Microsoft.IdentityModel.Tokens;
 using Application.Usecases.SendNotification;
 
 namespace Application.Usecases.Receptionist.EditFinancialTransaction
@@ -14,14 +13,16 @@ namespace Application.Usecases.Receptionist.EditFinancialTransaction
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ICloudinaryService _cloudService;
         private readonly IOwnerRepository _ownerRepository;
+        private readonly IUserCommonRepository _userCommonRepository;
         private readonly IMediator _mediator;
 
-        public EditFinancialTransactionHandler(ITransactionRepository transactionRepository, IHttpContextAccessor httpContextAccessor, ICloudinaryService cloudinaryService, IOwnerRepository ownerRepository, IMediator mediator)
+        public EditFinancialTransactionHandler(ITransactionRepository transactionRepository, IHttpContextAccessor httpContextAccessor, ICloudinaryService cloudinaryService, IOwnerRepository ownerRepository, IUserCommonRepository userCommonRepository, IMediator mediator)
         {
             _transactionRepository = transactionRepository;
             _httpContextAccessor = httpContextAccessor;
             _cloudService = cloudinaryService;
             _ownerRepository = ownerRepository;
+            _userCommonRepository = userCommonRepository;
             _mediator = mediator;
         }
         public async Task<bool> Handle(EditFinancialTransactionCommand request, CancellationToken cancellationToken)
@@ -79,13 +80,14 @@ namespace Application.Usecases.Receptionist.EditFinancialTransaction
             try
             {
                 var owners = await _ownerRepository.GetAllOwnersAsync();
+                var recep = await _userCommonRepository.GetByIdAsync(currentUserId, cancellationToken);
 
                 var notifyOwners = owners.Select(async o =>
                 await _mediator.Send(
                  new SendNotificationCommand(
                 o.User.UserID,
                 "Chỉnh sửa phiếu thu/chi",
-                $"Lễ tân {o.User.Fullname} đã chỉnh sửa phiếu {(existingTransaction.TransactionType ? "thu" : "chi")} vào lúc {DateTime.Now}",
+                $"Lễ tân {recep.Fullname} đã chỉnh sửa phiếu {(existingTransaction.TransactionType ? "thu" : "chi")} vào lúc {DateTime.Now}",
                 "transaction", 0, $"financial-transactions/{existingTransaction.TransactionID}"), cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);
             }

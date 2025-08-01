@@ -43,7 +43,7 @@ public class ChangePasswordIntegrationTest
         SeedData();
 
         _handler = new ChangePasswordHandler(
-            new UserCommonRepository(_context, new Mock<IEmailService>().Object),
+            new UserCommonRepository(_context),
             _httpContextAccessor,
             _passwordHasher
         );

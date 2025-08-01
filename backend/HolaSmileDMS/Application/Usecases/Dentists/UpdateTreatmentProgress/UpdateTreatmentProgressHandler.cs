@@ -81,7 +81,7 @@ namespace Application.Usecases.Dentist.UpdateTreatmentProgress
                 await _mediator.Send(new SendNotificationCommand(
                     await _userCommonRepository.GetUserIdByRoleTableIdAsync("patient", progress.PatientID) ?? 0,
                     "Cập nhật tiến trình điều trị",
-                    $"Tiến trình điều trị #{progress.TreatmentProgressID} của bạn đã được cập nhật sang ngày {treatmentDate}.",
+                    $"Tiến trình điều trị #{progress.TreatmentProgressID} của bạn đã được cập nhật vào ngày {treatmentDate}.",
                     "Tiến trình điều trị",
                     0, $"patient/view-treatment-progress/{progress.TreatmentRecordID}?patientId={progress.PatientID}&dentistId={progress.DentistID}"
                 ), cancellationToken);

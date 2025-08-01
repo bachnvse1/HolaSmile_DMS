@@ -19,7 +19,7 @@ interface CreateInstructionDialogProps {
   setIsCreateModalOpen: (isOpen: boolean) => void
   newInstructionContent: string
   setNewInstructionContent: (content: string) => void
-  newInstructionTemplateId: number | string
+  newInstructionTemplateId: number | string | null
   onNewTemplateSelect: (value: string) => void
   handleCreateInstruction: () => void
   instructionTemplates: InstructionTemplateDTO[]
@@ -52,11 +52,12 @@ export default function CreateInstructionDialog({
             <Label htmlFor="newTemplate" className="text-right font-medium">
               Chọn Mẫu
             </Label>
-            <Select onValueChange={onNewTemplateSelect} value={String(newInstructionTemplateId)}>
+            <Select onValueChange={onNewTemplateSelect} value={newInstructionTemplateId ? String(newInstructionTemplateId) : "none"}>
               <SelectTrigger id="newTemplate" className="col-span-3">
-                <SelectValue placeholder="Chọn một mẫu chỉ dẫn" />
+                <SelectValue placeholder="Chọn một mẫu chỉ dẫn (tùy chọn)" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="none">Không sử dụng mẫu</SelectItem>
                 {instructionTemplates.map((template) => (
                   <SelectItem key={template.instruc_TemplateID} value={String(template.instruc_TemplateID)}>
                     {template.instruc_TemplateName}
@@ -74,7 +75,7 @@ export default function CreateInstructionDialog({
               value={newInstructionContent}
               onChange={(e) => setNewInstructionContent(e.target.value)}
               className="col-span-3 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-              placeholder="Nội dung chỉ dẫn sẽ được điền tự động từ mẫu hoặc bạn có thể nhập..."
+              placeholder="Nhập nội dung chỉ dẫn..."
             />
           </div>
         </div>

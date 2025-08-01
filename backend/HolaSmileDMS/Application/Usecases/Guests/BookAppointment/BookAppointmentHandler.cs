@@ -6,6 +6,7 @@ using Application.Interfaces;
 using Application.Usecases.SendNotification;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
+using HDMS_API.Application.Interfaces;
 
 namespace HDMS_API.Application.Usecases.Guests.BookAppointment
 {
@@ -18,7 +19,8 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public BookAppointmentHandler(IAppointmentRepository appointmentRepository, IMediator mediator, IPatientRepository patientRepository, IUserCommonRepository userCommonRepository, IMapper mapper, IDentistRepository dentistRepository, IHttpContextAccessor httpContextAccessor)
+        private readonly IEmailService _emailService;
+        public BookAppointmentHandler(IAppointmentRepository appointmentRepository, IMediator mediator, IPatientRepository patientRepository, IUserCommonRepository userCommonRepository, IMapper mapper, IDentistRepository dentistRepository, IHttpContextAccessor httpContextAccessor, IEmailService emailService)
 
         {
             _appointmentRepository = appointmentRepository;
@@ -29,6 +31,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             _mediator = mediator;
             _dentistRepository = dentistRepository;
             _httpContextAccessor = httpContextAccessor;
+            _emailService = emailService;
         }
         public async Task<string> Handle(BookAppointmentCommand request, CancellationToken cancellationToken)
         {
@@ -65,7 +68,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 {
                     try
                     {
-                        await _userCommonRepository.SendPasswordForGuestAsync(newUser.Email);
+                        await _emailService.SendPasswordAsync(newUser.Email, "123456");
                     }
                     catch (Exception ex)
                     {

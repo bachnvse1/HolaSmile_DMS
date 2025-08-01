@@ -48,7 +48,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Patients
                 new AppointmentRepository(_context),
             _httpContextAccessor,
             new DentistRepository(_context),
-                new UserCommonRepository(_context, new Mock<IEmailService>().Object),
+                new UserCommonRepository(_context),
                 _mediator.Object
             );
         }

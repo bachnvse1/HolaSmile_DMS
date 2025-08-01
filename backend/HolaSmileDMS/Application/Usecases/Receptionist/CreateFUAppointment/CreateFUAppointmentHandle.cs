@@ -82,13 +82,13 @@ namespace Application.Usecases.Receptionist.CreateFUAppointment
                 await _mediator.Send(new SendNotificationCommand(
                       patient.User.UserID,
                       "Đặt lịch hẹn tái khám",
-                      $"Lễ tân đã đặt lịch hẹn tái khám cho bạn với bác sĩ {dentist.User.Fullname} vào lúc {appointment.AppointmentDate} {appointment.AppointmentTime}",
-                      "appointment",0, $"appointments/{appointment.AppointmentId}"),cancellationToken);
+                      $"Lễ tân đã đặt lịch hẹn tái khám cho bạn với bác sĩ {dentist.User.Fullname} vào lúc {DateTime.Now}",
+                      "appointment",0, $"patient/appointments/{appointment.AppointmentId}"),cancellationToken);
              
                 await _mediator.Send(new SendNotificationCommand(
                       dentist.User.UserID,
                       "Đặt lịch hẹn tái khám",
-                      $"Lễ tân đã đặt lịch hẹn tái khám cho bệnh nhân {patient.User.Fullname} với bạn vào lúc {appointment.AppointmentDate} {appointment.AppointmentTime}",
+                      $"Lễ tân đã đặt lịch hẹn tái khám cho bệnh nhân {patient.User.Fullname} với bạn vào lúc {DateTime.Now}",
                       "appointment", 0, $"appointments/{appointment.AppointmentId}"), cancellationToken);
             }
             catch
