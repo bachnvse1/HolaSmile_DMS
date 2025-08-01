@@ -10,12 +10,12 @@ namespace Application.Usecases.Receptionist.De_ActivePromotion
     public class DeactivePromotionHandler : IRequestHandler<DeactivePromotionCommand, bool>
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IPromotionrepository _promotionRepository;
+        private readonly IPromotionRepository _promotionRepository;
         private readonly IProcedureRepository _procedureRepository;
         private readonly IOwnerRepository _ownerRepository;
         private readonly IMediator _mediator;
 
-        public DeactivePromotionHandler(IHttpContextAccessor httpContextAccessor, IPromotionrepository promotionRepository, IProcedureRepository procedureRepository, IOwnerRepository ownerRepository, IMediator mediator)
+        public DeactivePromotionHandler(IHttpContextAccessor httpContextAccessor, IPromotionRepository promotionRepository, IProcedureRepository procedureRepository, IOwnerRepository ownerRepository, IMediator mediator)
         {
             _httpContextAccessor = httpContextAccessor;
             _promotionRepository = promotionRepository;
@@ -53,8 +53,11 @@ namespace Application.Usecases.Receptionist.De_ActivePromotion
             }
             else
             {
+                if (discountProgram.CreateAt.Date != DateTime.Now.Date) throw new Exception("Ngày bắt đầu chương trình không khớp với hôm nay");
+
                 // bị xóa(khong active)  → sắp activate => áp dụng giảm giá
                 var activeProgram = await _promotionRepository.GetProgramActiveAsync();
+
                 if (activeProgram != null && activeProgram.DiscountProgramID != discountProgram.DiscountProgramID)
                     throw new Exception(MessageConstants.MSG.MSG121); // "Chỉ được phép có 1 chương trình khuyến mãi tại 1 thời điểm"
 

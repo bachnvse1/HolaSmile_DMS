@@ -31,7 +31,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
                 .Options;
 
             _context = new ApplicationDbContext(options);
-            _promotionRepository = new Promotionrepository(_context);
+            _promotionRepository = new PromotionRepository(_context);
             _procedureRepository = new ProcedureRepository(_context);
             _ownerRepository = new OwnerRepository(_context);
             _mediatorMock = new Mock<IMediator>();

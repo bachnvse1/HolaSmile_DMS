@@ -17,7 +17,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists;
 public class UpdateDiscountProgramHandlerIntegrationTests
 {
     private readonly ApplicationDbContext _context;
-    private readonly Promotionrepository _promotionRepo;
+    private readonly PromotionRepository _promotionRepo;
     private readonly ProcedureRepository _procedureRepo;
     private readonly OwnerRepository _ownerRepo;
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -29,7 +29,7 @@ public class UpdateDiscountProgramHandlerIntegrationTests
             .UseInMemoryDatabase(databaseName: $"UpdateDiscountProgramTest_{Guid.NewGuid()}")
             .Options;
         _context = new ApplicationDbContext(options);
-        _promotionRepo = new Promotionrepository(_context);
+        _promotionRepo = new PromotionRepository(_context);
         _procedureRepo = new ProcedureRepository(_context);
         _ownerRepo = new OwnerRepository(_context);
         _httpContextAccessor = new HttpContextAccessor();
@@ -171,7 +171,7 @@ public class UpdateDiscountProgramHandlerIntegrationTests
     public async System.Threading.Tasks.Task ITCID05_Throw_if_update_fails()
     {
         SetupHttpContext("Receptionist", 2);
-        var fakeRepo = new Mock<IPromotionrepository>();
+        var fakeRepo = new Mock<IPromotionRepository>();
         fakeRepo.Setup(x => x.GetDiscountProgramByIdAsync(1)).ReturnsAsync(new DiscountProgram());
         fakeRepo.Setup(x => x.UpdateDiscountProgramAsync(It.IsAny<DiscountProgram>())).ReturnsAsync(false);
 

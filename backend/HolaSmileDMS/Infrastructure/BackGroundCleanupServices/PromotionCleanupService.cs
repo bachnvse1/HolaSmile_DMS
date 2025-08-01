@@ -23,7 +23,7 @@ namespace Infrastructure.BackGroundCleanupServices
             while (!stoppingToken.IsCancellationRequested)
             {
                 using var scope = _scopeFactory.CreateScope();
-                var promoRepo = scope.ServiceProvider.GetRequiredService<IPromotionrepository>();
+                var promoRepo = scope.ServiceProvider.GetRequiredService<IPromotionRepository>();
                 var ownerRepo = scope.ServiceProvider.GetRequiredService<IOwnerRepository>();
                 var userRepo = scope.ServiceProvider.GetRequiredService<IUserCommonRepository>();
 
@@ -31,12 +31,14 @@ namespace Infrastructure.BackGroundCleanupServices
 
                 foreach (var promotion in promotions)
                 {
+                    bool statusChange = false;
                     // Bật promotion khi StartDate = hôm nay
                     if (promotion.IsDelete && promotion.CreateDate.Date == DateTime.Now.Date)
                     {
                         promotion.IsDelete = false;
                         promotion.UpdatedAt = DateTime.Now;
                         await promoRepo.UpdateDiscountProgramAsync(promotion);
+                        statusChange = true;
                     }
 
                     // Tắt promotion khi EndDate < hôm nay
@@ -45,7 +47,10 @@ namespace Infrastructure.BackGroundCleanupServices
                         promotion.IsDelete = true;
                         promotion.UpdatedAt = DateTime.Now;
                         await promoRepo.UpdateDiscountProgramAsync(promotion);
+                        statusChange = true;
                     }
+                    if (!statusChange)
+                        continue;
 
                     // Gửi notification cho owner và receptionist
                     try
@@ -59,7 +64,7 @@ namespace Infrastructure.BackGroundCleanupServices
                                 "Kết thúc chương trình khuyến mãi",
                                 $"Chương trình khuyến mãi {promotion.DiscountProgramName} đã {(promotion.IsDelete ? "kết thúc" : "áp dụng")} vào lúc {DateTime.Now}",
                                 "promotion", null, $"promotions/{promotion.DiscountProgramID}"),
-                            stoppingToken));
+                            stoppingToken)).ToList();
 
                         await System.Threading.Tasks.Task.WhenAll(notifyOwners);
 
@@ -68,7 +73,7 @@ namespace Infrastructure.BackGroundCleanupServices
                                 r.User.UserID,
                                 "Kết thúc chương trình khuyến mãi",
                                 $"Chương trình khuyến mãi {promotion.DiscountProgramName} đã {(promotion.IsDelete ? "kết thúc" : "áp dụng")} vào lúc {DateTime.Now}",
-                                "promotion", null, $"promotions/{promotion.DiscountProgramID}"), stoppingToken));
+                                "promotion", null, $"promotions/{promotion.DiscountProgramID}"), stoppingToken)).ToList();
 
                         await System.Threading.Tasks.Task.WhenAll(notifyReceps);
                     }
