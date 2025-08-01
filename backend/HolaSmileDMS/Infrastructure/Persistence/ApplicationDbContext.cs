@@ -46,6 +46,7 @@ namespace HDMS_API.Infrastructure.Persistence
         public DbSet<FinancialTransaction> FinancialTransactions { get; set; }
         public DbSet<DiscountProgram> DiscountPrograms { get; set; }
         public DbSet<ProcedureDiscountProgram> ProcedureDiscountPrograms { get; set; }
+        public DbSet<ChatBotKnowledge> ChatBotKnowledge { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
