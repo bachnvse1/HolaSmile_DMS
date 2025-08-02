@@ -1,16 +1,43 @@
 import React, { memo, useCallback, useEffect, useRef, useState, useMemo } from 'react';
-import { Send, MoreVertical, Phone, Video, Info, Paperclip, MessageCircle, Check, CheckCheck, Search, ArrowLeft } from 'lucide-react';
+import { Send, MoreVertical, Phone, Video, Info, Paperclip, MessageCircle, Check, CheckCheck, Search, ArrowLeft, Image, Video as VideoIcon, Camera } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useChatHub } from '@/components/chat/ChatHubProvider';
 import { useUnreadMessages } from '@/hooks/chat/useUnreadMessages';
 import type { ConversationUser } from '@/hooks/chat/useChatConversations';
 import type { ChatMessage } from '@/hooks/chat/useChatConversations';
+import axiosInstance from '@/lib/axios';
 
 interface ChatWindowProps {
   conversation: ConversationUser | null;
   onBack?: () => void;
   onMarkAsRead?: (senderId: string, receiverId: string) => void;
 }
+
+// 🔥 THÊM HÀM DETECT MOBILE
+const isMobile = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
+// 🔥 SỬA LẠI HÀM UPLOAD MEDIA
+const uploadMedia = async (file: File): Promise<string> => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const response = await axiosInstance.post('/chats/upload-media', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      withCredentials: true
+    });
+
+    console.log('Upload successful:', response.data);
+    return response.data.url;
+  } catch (error) {
+    console.error('Upload media error:', error);
+    throw error;
+  }
+};
 
 // Memoized message item component
 const MessageItem = memo(({
@@ -32,6 +59,65 @@ const MessageItem = memo(({
     });
   }, []);
 
+  // 🔥 RENDER MESSAGE CONTENT WITH IMAGE/VIDEO SUPPORT
+  const renderMessageContent = useCallback(() => {
+    // Kiểm tra nếu message là URL của ảnh/video
+    const isImageUrl = /\.(jpg|jpeg|png|gif|webp|bmp)(\?|$)/i.test(message.message) || 
+                      message.message.includes('/uploads/') && /image/i.test(message.message);
+    const isVideoUrl = /\.(mp4|webm|ogg|avi|mov)(\?|$)/i.test(message.message) || 
+                      message.message.includes('/uploads/') && /video/i.test(message.message);
+    
+    if (isImageUrl) {
+      return (
+        <div className="space-y-2">
+          <img 
+            src={message.message} 
+            alt="Shared image"
+            className="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+            style={{ maxHeight: '200px' }}
+            onClick={() => window.open(message.message, '_blank')}
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+              const fallback = document.createElement('div');
+              fallback.className = 'text-xs text-gray-500 p-2 bg-gray-100 rounded';
+              fallback.textContent = 'Không thể tải ảnh';
+              (e.target as HTMLImageElement).parentNode?.appendChild(fallback);
+            }}
+          />
+          <div className={`flex items-center gap-2 text-xs ${isMine ? 'text-blue-100' : 'text-gray-500'}`}>
+            <Image className="w-3 h-3" />
+            <span>Hình ảnh</span>
+          </div>
+        </div>
+      );
+    } else if (isVideoUrl) {
+      return (
+        <div className="space-y-2">
+          <video 
+            src={message.message} 
+            controls
+            className="max-w-full h-auto rounded-lg"
+            style={{ maxHeight: '200px' }}
+            onError={(e) => {
+              (e.target as HTMLVideoElement).style.display = 'none';
+              const fallback = document.createElement('div');
+              fallback.className = 'text-xs text-gray-500 p-2 bg-gray-100 rounded';
+              fallback.textContent = 'Không thể tải video';
+              (e.target as HTMLVideoElement).parentNode?.appendChild(fallback);
+            }}
+          />
+          <div className={`flex items-center gap-2 text-xs ${isMine ? 'text-blue-100' : 'text-gray-500'}`}>
+            <VideoIcon className="w-3 h-3" />
+            <span>Video</span>
+          </div>
+        </div>
+      );
+    }
+    
+    // Tin nhắn text thông thường
+    return <p className="whitespace-pre-wrap break-words">{message.message}</p>;
+  }, [message.message, isMine]);
+
   return (
     <div className={`flex gap-2 mb-3 ${isMine ? 'justify-end' : 'justify-start'}`}>
       <div className={`max-w-[70%] ${isMine ? 'order-last' : ''}`}>
@@ -44,9 +130,7 @@ const MessageItem = memo(({
             }
           `}
         >
-          <p className="whitespace-pre-wrap break-words">
-            {message.message}
-          </p>
+          {renderMessageContent()}
         </div>
 
         <div className={`text-xs text-gray-500 mt-1 flex items-center gap-1 ${isMine ? 'justify-end' : 'justify-start'}`}>
@@ -55,12 +139,8 @@ const MessageItem = memo(({
             <div className="flex items-center gap-1">
               {message.isDelivered ? (
                 message.isRead ? (
-                  <div className="flex items-center gap-1" title="Đã xem">
-                    <img
-                      src={conversationUser?.avatarUrl || "https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg"}
-                      alt="Seen"
-                      className="w-3 h-3 rounded-full object-cover"
-                    />
+                  <div title="Đã đọc">
+                    <CheckCheck className="w-3 h-3 text-blue-500" />
                   </div>
                 ) : (
                   <div title="Đã gửi">
@@ -138,9 +218,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const [hasMoreHistory, setHasMoreHistory] = useState(true);
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
   const [lastMessageCount, setLastMessageCount] = useState(0);
+  
+  // 🔥 THÊM STATES CHO FILE UPLOAD
+  const [isUploading, setIsUploading] = useState(false);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const MESSAGES_PER_PAGE = 15;
 
   // Mark messages as read when conversation is opened or changed
@@ -295,11 +380,65 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   }, [loadingMore, hasMoreHistory]);
 
-  // Handle send message
+  // 🔥 HANDLE KEY PRESS
+  const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  }, []);
+
+  // 🔥 HANDLE FILE UPLOAD - SỬ DỤNG API CÓ SẴN
+  const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Kiểm tra loại file
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+    
+    if (!isImage && !isVideo) {
+      alert('Chỉ hỗ trợ file ảnh và video!');
+      return;
+    }
+
+    // Kiểm tra kích thước file (50MB)
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    if (file.size > maxSize) {
+      alert('File không được vượt quá 50MB!');
+      return;
+    }
+
+    if (!conversation || !sendMessage) return;
+
+    setIsUploading(true);
+
+    try {
+      // 🔥 UPLOAD FILE LÊN SERVER TRƯỚC
+      const fileUrl = await uploadMedia(file);
+      
+      // 🔥 SAU ĐÓ GỬI URL QUA CHAT
+      await sendMessage(conversation.userId, fileUrl);
+      setShouldScrollToBottom(true);
+      
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('Có lỗi xảy ra khi gửi file!');
+    } finally {
+      setIsUploading(false);
+      // Reset input file
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }, [conversation, sendMessage]);
+
+  // 🔥 HANDLE SEND MESSAGE - CHỈ GỬI TEXT
   const handleSend = useCallback(() => {
     const trimmedInput = input.trim();
     if (!trimmedInput || !conversation || !sendMessage) return;
     
+    // Gửi tin nhắn text bình thường
     sendMessage(conversation.userId, trimmedInput);
     setInput('');
     setShouldScrollToBottom(true);
@@ -309,13 +448,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     }, 100);
   }, [input, conversation, sendMessage]);
 
-  // Handle key press
-  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
+  // 🔥 HANDLE PAPERCLIP CLICK
+  const handlePaperclipClick = useCallback(() => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
     }
-  }, [handleSend]);
+  }, []);
 
   if (!conversation) {
     return (
@@ -443,8 +581,24 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
       {/* Input Area */}
       <div className="p-4 border-t border-gray-200 bg-white">
-        <div className="flex items-end gap-2">
-          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+        {/* 🔥 HIDDEN FILE INPUT */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*,video/*"
+          onChange={handleFileUpload}
+          style={{ display: 'none' }}
+          multiple={false}
+        />
+
+        <div className="flex items-center gap-2">
+          {/* 🔥 PAPERCLIP BUTTON */}
+          <button 
+            onClick={handlePaperclipClick}
+            disabled={isUploading}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Chọn file ảnh/video"
+          >
             <Paperclip className="h-5 w-5 text-gray-600" />
           </button>
 
@@ -453,26 +607,39 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyPress}
               placeholder="Nhập tin nhắn..."
               className="w-full resize-none border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               rows={1}
               style={{ minHeight: '40px', maxHeight: '120px' }}
+              disabled={isUploading}
             />
           </div>
 
           <button
             onClick={handleSend}
-            disabled={!input.trim()}
-            className={`p-2 rounded-full transition-colors ${
-              input.trim()
+            disabled={(!input.trim()) || isUploading}
+            className={`p-2 rounded-full transition-colors flex-shrink-0 ${
+              input.trim() && !isUploading
                 ? 'bg-blue-600 hover:bg-blue-700 text-white'
                 : 'bg-gray-100 text-gray-400 cursor-not-allowed'
             }`}
           >
-            <Send className="h-5 w-5" />
+            {isUploading ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+            ) : (
+              <Send className="h-5 w-5" />
+            )}
           </button>
         </div>
+
+        {/* 🔥 UPLOADING INDICATOR */}
+        {isUploading && (
+          <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+            <span>Đang tải file lên...</span>
+          </div>
+        )}
       </div>
     </div>
   );
