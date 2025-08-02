@@ -8,6 +8,7 @@ import FilterBar from "@/components/patient/FilterBar"
 import SummaryStats from "@/components/patient/SummaryStats"
 import TreatmentTable from "@/components/patient/TreatmentTable"
 import TreatmentModal from "@/components/patient/TreatmentModal"
+import TreatmentRecordDetail from "@/components/patient/TreatmentRecordDetail" // Add this import
 
 import type { FilterFormData, TreatmentFormData, TreatmentRecord } from "@/types/treatment"
 import type { PatientDetail } from "@/services/patientService"
@@ -65,6 +66,10 @@ const PatientTreatmentRecords: React.FC = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [pendingSubmitEvent, setPendingSubmitEvent] = useState<React.FormEvent | null>(null)
 
+  // Add detail modal states
+  const [detailModalOpen, setDetailModalOpen] = useState(false)
+  const [selectedDetailRecord, setSelectedDetailRecord] = useState<TreatmentRecord | null>(null)
+
   useEffect(() => {
     if (!patientIdParam || isNaN(Number(patientIdParam))) {
       setPatientIdError("ID bệnh nhân không hợp lệ")
@@ -113,6 +118,17 @@ const PatientTreatmentRecords: React.FC = () => {
     email: '',
     role: role || '',
     avatar: undefined
+  }
+
+  // Add handler for view detail
+  const handleViewDetail = (record: TreatmentRecord) => {
+    setSelectedDetailRecord(record)
+    setDetailModalOpen(true)
+  }
+
+  const handleCloseDetailModal = () => {
+    setDetailModalOpen(false)
+    setSelectedDetailRecord(null)
   }
 
   const fetchPatientInfo = useCallback(async () => {
@@ -718,6 +734,7 @@ const PatientTreatmentRecords: React.FC = () => {
                     records={filteredRecords}
                     onEdit={handleEditRecord}
                     onToggleDelete={handleToggleDelete}
+                    onViewDetail={handleViewDetail}
                     patientId={patientId}
                     patientName={patient?.fullname || ""}
                   />
@@ -739,6 +756,13 @@ const PatientTreatmentRecords: React.FC = () => {
               updatedBy={Number(userId)}
               recordId={editingRecord?.treatmentRecordID}
               onSubmit={handleFormSubmit}
+            />
+
+            {/* Treatment Record Detail Modal */}
+            <TreatmentRecordDetail
+              isOpen={detailModalOpen}
+              onClose={handleCloseDetailModal}
+              record={selectedDetailRecord}
             />
 
             <ConfirmModal

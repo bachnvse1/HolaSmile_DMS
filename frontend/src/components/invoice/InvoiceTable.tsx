@@ -20,10 +20,10 @@ import { useState } from "react"
 import { invoiceService } from "@/services/invoiceService"
 import { useUserInfo } from "@/hooks/useUserInfo"
 import { toast } from "react-toastify"
+import { formatCurrency } from "@/utils/currencyUtils"
 
 interface InvoiceTableProps {
   displayData: Invoice[]
-  formatCurrency: (amount: number | null) => string
   formatDate: (dateString: string | null) => string
   getStatusBadge: (status: string) => JSX.Element
   getTransactionTypeBadge: (type: string) => JSX.Element
@@ -219,7 +219,6 @@ const ActionsDropdown = ({
 
 const InvoiceRow = ({
   invoice,
-  formatCurrency,
   formatDate,
   getStatusBadge,
   getTransactionTypeBadge,
@@ -227,7 +226,6 @@ const InvoiceRow = ({
   onUpdateInvoice
 }: {
   invoice: Invoice
-  formatCurrency: (amount: number | null) => string
   formatDate: (dateString: string | null) => string
   getStatusBadge: (status: string) => JSX.Element
   getTransactionTypeBadge: (type: string) => JSX.Element
@@ -434,13 +432,11 @@ const TreatmentRecordHeader = ({
   group,
   isExpanded,
   onToggle,
-  formatCurrency,
   formatDate
 }: {
   group: GroupedInvoice
   isExpanded: boolean
   onToggle: () => void
-  formatCurrency: (amount: number | null) => string
   formatDate: (dateString: string | null) => string
 }) => {
   return (
@@ -562,12 +558,10 @@ const PatientGroupHeader = ({
   patientGroup,
   isExpanded,
   onToggle,
-  formatCurrency
 }: {
   patientGroup: PatientGroup
   isExpanded: boolean
   onToggle: () => void
-  formatCurrency: (amount: number | null) => string
 }) => {
   return (
     <div
@@ -686,7 +680,6 @@ const PatientGroupHeader = ({
 
 export function InvoiceTable({
   displayData,
-  formatCurrency,
   formatDate,
   getStatusBadge,
   getTransactionTypeBadge,
@@ -803,7 +796,6 @@ export function InvoiceTable({
               patientGroup={patientGroup}
               isExpanded={expandedPatients.has(patientGroup.patientName)}
               onToggle={() => togglePatient(patientGroup.patientName)}
-              formatCurrency={formatCurrency}
             />
 
             {expandedPatients.has(patientGroup.patientName) && (
@@ -814,7 +806,6 @@ export function InvoiceTable({
                       group={treatmentGroup}
                       isExpanded={expandedTreatments.has(treatmentGroup.treatmentRecordId)}
                       onToggle={() => toggleTreatment(treatmentGroup.treatmentRecordId)}
-                      formatCurrency={formatCurrency}
                       formatDate={formatDate}
                     />
 
@@ -846,7 +837,6 @@ export function InvoiceTable({
                             <InvoiceRow
                               key={invoice.invoiceId}
                               invoice={invoice}
-                              formatCurrency={formatCurrency}
                               formatDate={formatDate}
                               getStatusBadge={getStatusBadge}
                               getTransactionTypeBadge={getTransactionTypeBadge}

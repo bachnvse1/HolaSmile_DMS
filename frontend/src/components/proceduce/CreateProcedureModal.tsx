@@ -15,7 +15,7 @@ import { useEffect, useState } from "react"
 import type { ProcedureCreateForm, Supply, SupplyItem } from "@/types/procedure"
 import { SupplySearch } from "./SupplySearch"
 import { ConfirmModal } from "../common/ConfirmModal"
-import { formatCurrency } from "@/utils/currencyUtils"
+import { formatCurrency, parseCurrency, handleCurrencyInput } from "@/utils/currencyUtils"
 
 interface CreateProcedureModalProps {
   isOpen: boolean
@@ -33,9 +33,52 @@ export function CreateProcedureModal({
   onSubmit,
 }: CreateProcedureModalProps) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  
+  // State for formatted currency display
+  const [formattedPrices, setFormattedPrices] = useState({
+    originalPrice: "",
+    price: "",
+    consumableCost: ""
+  })
+
+  // Initialize formatted prices when form changes
+  useEffect(() => {
+    setFormattedPrices({
+      originalPrice: form.originalPrice > 0 ? formatCurrency(form.originalPrice) : "",
+      price: form.price > 0 ? formatCurrency(form.price) : "",
+      consumableCost: form.consumableCost > 0 ? formatCurrency(form.consumableCost) : ""
+    })
+  }, [form.originalPrice, form.price, form.consumableCost])
 
   const updateForm = (field: keyof ProcedureCreateForm, value: string | number | Supply[]) => {
     onFormChange({ ...form, [field]: value })
+  }
+
+  // Handle currency input for originalPrice
+  const handleOriginalPriceChange = (value: string) => {
+    handleCurrencyInput(value, (formatted) => {
+      setFormattedPrices(prev => ({ ...prev, originalPrice: formatted }))
+      const numericValue = parseCurrency(formatted)
+      updateForm("originalPrice", numericValue)
+    })
+  }
+
+  // Handle currency input for price
+  const handlePriceChange = (value: string) => {
+    handleCurrencyInput(value, (formatted) => {
+      setFormattedPrices(prev => ({ ...prev, price: formatted }))
+      const numericValue = parseCurrency(formatted)
+      updateForm("price", numericValue)
+    })
+  }
+
+  // Handle currency input for consumable cost
+  const handleConsumableCostChange = (value: string) => {
+    handleCurrencyInput(value, (formatted) => {
+      setFormattedPrices(prev => ({ ...prev, consumableCost: formatted }))
+      const numericValue = parseCurrency(formatted)
+      updateForm("consumableCost", numericValue)
+    })
   }
 
   useEffect(() => {
@@ -43,6 +86,7 @@ export function CreateProcedureModal({
       const calculatedPrice = form.originalPrice * (1 - form.discount / 100)
       if (calculatedPrice !== form.price) {
         updateForm("price", Math.round(calculatedPrice))
+        setFormattedPrices(prev => ({ ...prev, price: formatCurrency(Math.round(calculatedPrice)) }))
       }
     }
   }, [form.originalPrice, form.discount])
@@ -168,20 +212,12 @@ export function CreateProcedureModal({
                   <Label htmlFor="originalPrice">Giá Gốc (VNĐ) *</Label>
                   <Input
                     id="originalPrice"
-                    type="number"
-                    min="1000"
-                    max="999999999"
-                    step="1000"
-                    value={form.originalPrice || ''}
-                    onChange={(e) => updateForm("originalPrice", Number.parseFloat(e.target.value) || 0)}
+                    type="text"
+                    value={formattedPrices.originalPrice}
+                    onChange={(e) => handleOriginalPriceChange(e.target.value)}
                     placeholder="0"
                     required
                   />
-                  {form.originalPrice > 0 && (
-                    <div className="text-sm text-muted-foreground">
-                      {formatCurrency(form.originalPrice)}
-                    </div>
-                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -202,20 +238,12 @@ export function CreateProcedureModal({
                   <Label htmlFor="price">Giá Bán (VNĐ) *</Label>
                   <Input
                     id="price"
-                    type="number"
-                    min="1000"
-                    max="999999999"
-                    step="1000"
-                    value={form.price || ''}
-                    onChange={(e) => updateForm("price", Number.parseFloat(e.target.value) || 0)}
+                    type="text"
+                    value={formattedPrices.price}
+                    onChange={(e) => handlePriceChange(e.target.value)}
                     placeholder="0"
                     required
                   />
-                  {form.price > 0 && (
-                    <div className="text-sm text-muted-foreground">
-                      {formatCurrency(form.price)}
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -223,19 +251,11 @@ export function CreateProcedureModal({
                 <Label htmlFor="consumableCost">Chi Phí Ước Tính (VNĐ)</Label>
                 <Input
                   id="consumableCost"
-                  type="number"
-                  min="0"
-                  max="999999999"
-                  step="1000"
-                  value={form.consumableCost || ''}
-                  onChange={(e) => updateForm("consumableCost", Number.parseFloat(e.target.value) || 0)}
+                  type="text"
+                  value={formattedPrices.consumableCost}
+                  onChange={(e) => handleConsumableCostChange(e.target.value)}
                   placeholder="0"
                 />
-                {form.consumableCost > 0 && (
-                  <div className="text-sm text-muted-foreground">
-                    {formatCurrency(form.consumableCost)}
-                  </div>
-                )}
               </div>
             </div>
 

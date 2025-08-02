@@ -19,10 +19,13 @@ import { useUserInfo } from "@/hooks/useUserInfo"
 import { AuthGuard } from "@/components/AuthGuard"
 import { StaffLayout } from "@/layouts/staff"
 import { PatientLayout } from "@/layouts/patient"
+import { formatCurrency } from "@/utils/currencyUtils"
 
 const INVOICE_STATUS_CONFIG = {
-    pending: { label: "Chờ thanh toán", variant: "secondary" as const },
+    pending: { label: "Chờ thanh toán", variant: "info" as const },
     paid: { label: "Đã thanh toán", variant: "default" as const },
+    cancelled: { label: "Đã hủy", variant: "warning" as const },
+    overdue: { label: "Quá hạn", variant: "destructive" as const },
 } as const
 
 const TRANSACTION_TYPE_CONFIG = {
@@ -367,14 +370,6 @@ export default function InvoiceList() {
         }))
     }, [])
 
-    const formatCurrency = useCallback((amount: number | null): string => {
-        if (amount === null || amount === undefined) return "N/A"
-        return new Intl.NumberFormat("vi-VN", {
-            style: "currency",
-            currency: "VND",
-        }).format(amount)
-    }, [])
-
     const formatDate = useCallback((dateString: string | null): string => {
         if (!dateString) return "Chưa thanh toán"
 
@@ -423,21 +418,26 @@ export default function InvoiceList() {
         setIsUpdating(true)
         try {
             await invoiceService.updateInvoice(formData)
-            
-            setAllInvoices(prevInvoices => 
-                prevInvoices.map(invoice => 
-                    invoice.invoiceId === formData.invoiceId 
-                        ? {
-                            ...invoice,
-                            paymentMethod: formData.paymentMethod,
-                            transactionType: formData.transactionType,
-                            status: formData.status,
-                            description: formData.description,
-                            paidAmount: formData.paidAmount,
-                        }
-                        : invoice
-                )
+
+            const updatedInvoices = allInvoices.map(invoice =>
+                invoice.invoiceId === formData.invoiceId
+                    ? {
+                        ...invoice,
+                        paymentMethod: formData.paymentMethod,
+                        transactionType: formData.transactionType,
+                        status: formData.status,
+                        description: formData.description,
+                        paidAmount: formData.paidAmount,
+                    }
+                    : invoice
             )
+
+            setAllInvoices(updatedInvoices)
+
+            setTimeout(() => {
+                const filtered = filterManager.applyFilters(updatedInvoices, filters)
+                setFilteredInvoices(filtered)
+            }, 0)
 
             toast.success("Cập nhật hóa đơn thành công")
             setIsUpdateModalOpen(false)
@@ -450,7 +450,7 @@ export default function InvoiceList() {
         } finally {
             setIsUpdating(false)
         }
-    }, [])
+    }, [allInvoices, filterManager, filters])
 
     const invoiceStats = useMemo(() => {
         const totalInvoices = allInvoices.length
@@ -666,12 +666,11 @@ export default function InvoiceList() {
 
                 <InvoiceTable
                     displayData={paginatedData}
-                    formatCurrency={formatCurrency}
                     formatDate={formatDate}
                     getStatusBadge={getStatusBadge}
                     getTransactionTypeBadge={getTransactionTypeBadge}
                     openInvoiceDetail={openInvoiceDetail}
-                    onUpdateInvoice={handleOpenUpdateModal} 
+                    onUpdateInvoice={handleOpenUpdateModal}
                     isLoading={isLoading}
                 />
 
@@ -682,7 +681,6 @@ export default function InvoiceList() {
                 isDetailOpen={isDetailOpen}
                 setIsDetailOpen={setIsDetailOpen}
                 selectedInvoice={selectedInvoice}
-                formatCurrency={formatCurrency}
                 formatDate={formatDate}
                 getStatusBadge={getStatusBadge}
                 getTransactionTypeBadge={getTransactionTypeBadge}
@@ -701,7 +699,7 @@ export default function InvoiceList() {
         isLoading, isFilterLoading, invoiceStats, paginatedData, formatCurrency,
         formatDate, getStatusBadge, getTransactionTypeBadge, openInvoiceDetail,
         isDetailOpen, selectedInvoice, PaginationComponent, filterErrors,
-        isUpdateModalOpen, invoiceToUpdate, handleOpenUpdateModal, 
+        isUpdateModalOpen, invoiceToUpdate, handleOpenUpdateModal,
         handleCloseUpdateModal, handleUpdateInvoice, isUpdating
     ])
 

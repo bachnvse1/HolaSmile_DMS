@@ -18,7 +18,7 @@ import type { Procedure, ProcedureUpdateForm, Supply, SupplyItem } from "@/types
 import { supplyApi, mapToSupplyItem } from "@/services/supplyApi"
 import React from "react"
 import { Badge } from "../ui/badge"
-import { formatCurrency } from "@/utils/currencyUtils"
+import { formatCurrency, parseCurrency, handleCurrencyInput } from "@/utils/currencyUtils"
 
 interface EditProcedureModalProps {
     procedure: Procedure | null
@@ -54,6 +54,13 @@ export function EditProcedureModal({
         originalPrice: 0,
         consumableCost: 0,
         suppliesUsed: [],
+    })
+
+    // State for formatted currency display
+    const [formattedPrices, setFormattedPrices] = React.useState({
+        originalPrice: "",
+        price: "",
+        estimatedCost: ""
     })
 
     const [errors, setErrors] = React.useState<FormErrors>({})
@@ -95,6 +102,14 @@ export function EditProcedureModal({
                 consumableCost: procedure.consumableCost,
                 suppliesUsed: procedure.suppliesUsed || [],
             })
+            
+            // Set formatted prices
+            setFormattedPrices({
+                originalPrice: formatCurrency(procedure.originalPrice),
+                price: formatCurrency(procedure.price),
+                estimatedCost: formatCurrency(procedure.consumableCost)
+            })
+            
             setErrors({})
 
             const totalCost = calculateTotalSupplyCost(procedure.suppliesUsed || [])
@@ -120,7 +135,9 @@ export function EditProcedureModal({
         if (autoCalculatePrice && form.originalPrice > 0) {
             const discountAmount = form.originalPrice * (form.discount / 100)
             const calculatedPrice = form.originalPrice - discountAmount + form.consumableCost
-            setForm(prev => ({ ...prev, price: Math.max(0, calculatedPrice) }))
+            const finalPrice = Math.max(0, calculatedPrice)
+            setForm(prev => ({ ...prev, price: finalPrice }))
+            setFormattedPrices(prev => ({ ...prev, price: formatCurrency(finalPrice) }))
         }
     }, [form.originalPrice, form.discount, autoCalculatePrice, form.consumableCost])
 
@@ -130,6 +147,33 @@ export function EditProcedureModal({
             setErrors(prev => ({ ...prev, [field]: undefined }))
         }
     }, [errors])
+
+    // Handle currency input for originalPrice
+    const handleOriginalPriceChange = (value: string) => {
+        handleCurrencyInput(value, (formatted) => {
+            setFormattedPrices(prev => ({ ...prev, originalPrice: formatted }))
+            const numericValue = parseCurrency(formatted)
+            updateForm("originalPrice", numericValue)
+        })
+    }
+
+    // Handle currency input for price
+    const handlePriceChange = (value: string) => {
+        handleCurrencyInput(value, (formatted) => {
+            setFormattedPrices(prev => ({ ...prev, price: formatted }))
+            const numericValue = parseCurrency(formatted)
+            updateForm("price", numericValue)
+        })
+    }
+
+    // Handle currency input for estimated cost
+    const handleEstimatedCostChange = (value: string) => {
+        handleCurrencyInput(value, (formatted) => {
+            setFormattedPrices(prev => ({ ...prev, estimatedCost: formatted }))
+            const numericValue = parseCurrency(formatted)
+            setEstimatedCost(numericValue)
+        })
+    }
 
     const validateForm = React.useCallback((): FormErrors => {
         const newErrors: FormErrors = {}
@@ -343,11 +387,9 @@ export function EditProcedureModal({
                                     <Label htmlFor="originalPrice">Giá Gốc (VNĐ) *</Label>
                                     <Input
                                         id="originalPrice"
-                                        type="number"
-                                        min="0"
-                                        step="1000"
-                                        value={form.originalPrice}
-                                        onChange={(e) => updateForm("originalPrice", Number.parseFloat(e.target.value) || 0)}
+                                        type="text"
+                                        value={formattedPrices.originalPrice}
+                                        onChange={(e) => handleOriginalPriceChange(e.target.value)}
                                         placeholder="0"
                                         disabled={isSubmitting}
                                         className={errors.originalPrice ? "border-destructive" : ""}
@@ -380,11 +422,9 @@ export function EditProcedureModal({
                                     <Label htmlFor="price">Giá Bán (VNĐ) *</Label>
                                     <Input
                                         id="price"
-                                        type="number"
-                                        min="0"
-                                        step="1000"
-                                        value={form.price}
-                                        onChange={(e) => updateForm("price", Number.parseFloat(e.target.value) || 0)}
+                                        type="text"
+                                        value={formattedPrices.price}
+                                        onChange={(e) => handlePriceChange(e.target.value)}
                                         placeholder="0"
                                         disabled={isSubmitting || autoCalculatePrice}
                                         className={errors.price ? "border-destructive" : ""}
@@ -404,10 +444,8 @@ export function EditProcedureModal({
                                 <Label htmlFor="consumableCost">Chi Phí Khấu Hao(VNĐ)</Label>
                                 <Input
                                     id="consumableCost"
-                                    type="number"
-                                    min="0"
-                                    step="1000"
-                                    value={form.consumableCost}
+                                    type="text"
+                                    value={formatCurrency(form.consumableCost)}
                                     placeholder="0"
                                     disabled={true}
                                 />
@@ -422,11 +460,9 @@ export function EditProcedureModal({
                                 </div>
                                 <Input
                                     id="estimatedCost"
-                                    type="number"
-                                    min="0"
-                                    step="1000"
-                                    value={estimatedCost}
-                                    onChange={(e) => setEstimatedCost(Number.parseFloat(e.target.value) || 0)}
+                                    type="text"
+                                    value={formattedPrices.estimatedCost}
+                                    onChange={(e) => handleEstimatedCostChange(e.target.value)}
                                     placeholder="0"
                                     disabled={isSubmitting}
                                     className={errors.consumableCost ? "border-destructive" : ""}

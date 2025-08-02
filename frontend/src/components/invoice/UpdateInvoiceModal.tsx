@@ -151,8 +151,9 @@ export const UpdateInvoiceModal: React.FC<UpdateInvoiceModalProps> = ({
     try {
       await onUpdateInvoice(formData);
       setUpdateOpen(false);
-      toast.success('Cập nhật hóa đơn thành công');
+      // Removed duplicate toast - success message is handled by parent component
     } catch (error: any) {
+      // Only show error toast here since parent component doesn't handle errors in UI
       const errorMessage = error?.response?.data?.message || error?.message || 'Lỗi khi cập nhật hóa đơn';
       toast.error(errorMessage);
     }
