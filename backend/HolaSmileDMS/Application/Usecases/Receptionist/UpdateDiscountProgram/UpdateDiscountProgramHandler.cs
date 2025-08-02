@@ -54,6 +54,11 @@ namespace Application.Usecases.Receptionist.UpdateDiscountProgram
             if (discountProgram == null)
                 throw new Exception(MessageConstants.MSG.MSG119);
 
+            if (!discountProgram.IsDelete)
+            {
+                throw new Exception("Chương trình khuyến mãi đang được áp dụng không thể cập nhật");
+            }
+
             var validProcedureIds = await _procedureRepository.GetAllProceddureIdAsync();
             foreach (var procedure in request.ListProcedure)
             {
