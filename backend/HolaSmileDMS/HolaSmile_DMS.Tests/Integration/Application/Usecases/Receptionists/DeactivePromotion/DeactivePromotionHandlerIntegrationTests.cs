@@ -18,7 +18,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
     public class DeactivePromotionHandlerIntegrationTests
     {
         private readonly ApplicationDbContext _context;
-        private readonly IPromotionrepository _promotionRepository;
+        private readonly IPromotionRepository _promotionRepository;
         private readonly IProcedureRepository _procedureRepository;
         private readonly IOwnerRepository _ownerRepository;
         private readonly Mock<IMediator> _mediatorMock;
@@ -31,7 +31,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
                 .Options;
 
             _context = new ApplicationDbContext(options);
-            _promotionRepository = new Promotionrepository(_context);
+            _promotionRepository = new PromotionRepository(_context);
             _procedureRepository = new ProcedureRepository(_context);
             _ownerRepository = new OwnerRepository(_context);
             _mediatorMock = new Mock<IMediator>();

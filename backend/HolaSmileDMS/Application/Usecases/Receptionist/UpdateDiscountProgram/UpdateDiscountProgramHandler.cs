@@ -11,12 +11,12 @@ namespace Application.Usecases.Receptionist.UpdateDiscountProgram
     public class UpdateDiscountProgramHandler : IRequestHandler<UpdateDiscountProgramCommand, bool>
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IPromotionrepository _promotionRepository;
+        private readonly IPromotionRepository _promotionRepository;
         private readonly IProcedureRepository _procedureRepository;
         private readonly IOwnerRepository _ownerRepository;
         private readonly IMediator _mediator;
 
-        public UpdateDiscountProgramHandler(IHttpContextAccessor httpContextAccessor, IPromotionrepository promotionRepository, IProcedureRepository procedureRepository, IOwnerRepository ownerRepository, IMediator mediator)
+        public UpdateDiscountProgramHandler(IHttpContextAccessor httpContextAccessor, IPromotionRepository promotionRepository, IProcedureRepository procedureRepository, IOwnerRepository ownerRepository, IMediator mediator)
         {
             _httpContextAccessor = httpContextAccessor;
             _promotionRepository = promotionRepository;
