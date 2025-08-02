@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Home,
   Calendar,
@@ -25,6 +25,7 @@ import { useNavigate, useLocation } from 'react-router';
 import { useAuth } from '@/hooks/useAuth';
 import { useUnreadMessages } from '@/hooks/chat/useUnreadMessages';
 import { useChatHub } from '@/components/chat/ChatHubProvider';
+import { useChatConversations } from '@/hooks/chat/useChatConversations';
 
 interface MenuItem {
   id: string;
@@ -34,6 +35,7 @@ interface MenuItem {
   children?: MenuItem[];
   roles: string[];
   element?: React.ReactNode;
+  unreadCount?: number; // 🔥 THÊM UNREAD COUNT
 }
 
 interface StaffSidebarProps {
@@ -56,24 +58,70 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
   };
 
   const { userId } = useAuth();
-  const { getTotalUnreadCount, refreshUnreadCounts } = useUnreadMessages(userId);
+  const { getTotalUnreadCount, getUnreadCount, refreshUnreadCounts, unreadCounts } = useUnreadMessages(userId);
   const { isConnected, messages } = useChatHub();
-  
-  
+
+  // 🔥 THÊM HOOK ĐỂ LẤY THÔNG TIN USER/CONVERSATIONS
+  const { conversations } = useChatConversations(); // Cần import hook này
+
+  // 🔥 TÍNH TOÁN UNREAD COUNT CHO TỪNG LOẠI TIN NHẮN
+  const messageStats = useMemo(() => {
+    if (!conversations || !unreadCounts || unreadCounts.length === 0) {
+      return {
+        internal: 0,          // Staff messages
+        patientConsultation: 0, // Patient messages  
+        guestConsultation: 0    // Guest messages
+      };
+    }
+
+    let internal = 0;
+    let patientConsultation = 0; 
+    let guestConsultation = 0;
+
+    unreadCounts.forEach(unread => {
+      // Tìm conversation tương ứng với senderId
+      const conversation = conversations.find(conv => conv.userId === unread.senderId);
+      console.log('🔥 StaffSidebar: Processing unread count for conversation:', conversation);
+      if (conversation) {
+        switch (conversation.role.toLowerCase()) {
+          case 'administrator':
+          case 'owner':
+          case 'receptionist':
+          case 'assistant':
+          case 'dentist':
+            internal += unread.unreadCount;
+            break;
+          case 'patient':
+            patientConsultation += unread.unreadCount;
+            break;
+          case 'guest':
+            guestConsultation += unread.unreadCount;
+            break;
+          default:
+            // Fallback - có thể là tin nhắn nội bộ
+            internal += unread.unreadCount;
+            break;
+        }
+      } else guestConsultation += unread.unreadCount;
+    });
+
+    return {
+      internal,
+      patientConsultation,
+      guestConsultation
+    };
+  }, [conversations, unreadCounts]);
+
   // 🔥 Force refresh unread counts khi có tin nhắn mới trong ChatHub
   useEffect(() => {
     if (!userId || messages.length === 0) return;
     
     const lastMessage = messages[messages.length - 1];
-    console.log('🔥 StaffSidebar: New message detected:', lastMessage);
     
     // Chỉ refresh nếu tin nhắn đến cho user hiện tại (không phải từ user hiện tại)
     if (lastMessage.receiverId === userId && lastMessage.senderId !== userId) {
-      console.log('🔥 StaffSidebar: Message is for current user, refreshing counts...');
-      // Delay để backend có thời gian xử lý
       const timer = setTimeout(() => {
         refreshUnreadCounts();
-        console.log('🔥 StaffSidebar: Refreshed unread counts');
       }, 1000); // Tăng delay lên 1 giây
       
       return () => clearTimeout(timer);
@@ -85,7 +133,6 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
     if (!userId) return;
     
     const interval = setInterval(() => {
-      console.log('🔥 StaffSidebar: Periodic refresh unread counts');
       refreshUnreadCounts();
     }, 30000); // 30 giây
     
@@ -143,21 +190,24 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           label: 'Tin Nhắn Nội Bộ',
           icon: <Users2 className="h-4 w-4" />,
           path: '/messages/internal',
-          roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
+          roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist'],
+          unreadCount: messageStats.internal // 🔥 THÊM UNREAD COUNT
         },
         {
           id: 'messages-patient-consultation',
           label: 'Tư Vấn Bệnh Nhân',
           icon: <UserCircle className="h-4 w-4" />,
           path: '/messages/patient-consultation',
-          roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
+          roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist'],
+          unreadCount: messageStats.patientConsultation // 🔥 THÊM UNREAD COUNT
         },
         {
           id: 'messages-customer-consultation',
           label: 'Tư Vấn Khách Hàng',
           icon: <Phone className="h-4 w-4" />,
           path: '/messages/guest-consultation',
-          roles: ['Receptionist']
+          roles: ['Receptionist'],
+          unreadCount: messageStats.guestConsultation // 🔥 THÊM UNREAD COUNT
         }
       ]
     },
@@ -304,6 +354,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
     const isExpanded = expandedItems.includes(item.id);
     const isActive = item.path ? isActiveItem(item.path) : false;
     const isMessagesItem = item.id === 'messages';
+    const hasUnreadMessages = (item.unreadCount || 0) > 0;
 
     return (
       <div key={item.id}>
@@ -315,62 +366,50 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           <div className="flex items-center space-x-3">
             <div className="relative">
               {item.icon}
-              {/* 🔥 REALTIME BADGE - với logging */}
-                                    {isMessagesItem && totalUnreadCount > 0 && (
-                    <div className="absolute -top-2 -right-2">
-                      {/* Ripple effect background */}
-                      <div 
-                        className="absolute inset-0 w-5 h-5 rounded-full bg-red-500"
-                        style={{
-                          animation: 'ripple 1.5s ease-out infinite'
-                        }}
-                      />
-                      {/* Main badge */}
-                      <div 
-                        className="relative w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white"
-                        title={`${totalUnreadCount} tin nhắn chưa đọc`}
-                        style={{
-                          animation: 'pulse 2s ease-in-out infinite'
-                        }}
-                      >
-                        <span className="text-[10px] text-white font-bold">
-                          {totalUnreadCount > 9 ? '9+' : totalUnreadCount}
-                        </span>
-                      </div>
-                      
-                      <style>{`
-                        @keyframes ripple {
-                          0% {
-                            transform: scale(1);
-                            opacity: 1;
-                          }
-                          70% {
-                            transform: scale(2.5);
-                            opacity: 0.3;
-                          }
-                          100% {
-                            transform: scale(3);
-                            opacity: 0;
-                          }
-                        }
-                        
-                        @keyframes pulse {
-                          0%, 100% {
-                            transform: scale(1);
-                            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
-                          }
-                          50% {
-                            transform: scale(1.1);
-                            box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
-                          }
-                        }
-                      `}</style>
-                    </div>
-                  )}
+              {/* 🔥 MAIN MESSAGES BADGE */}
+              {isMessagesItem && getTotalUnreadCount() > 0 && (
+                <div className="absolute -top-2 -right-2">
+                  <div 
+                    className="absolute inset-0 w-5 h-5 rounded-full bg-red-500"
+                    style={{ animation: 'ripple 1.5s ease-out infinite' }}
+                  />
+                  <div 
+                    className="relative w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white"
+                    title={`${getTotalUnreadCount()} tin nhắn chưa đọc`}
+                    style={{ animation: 'pulse 2s ease-in-out infinite' }}
+                  >
+                    <span className="text-[10px] text-white font-bold">
+                      {getTotalUnreadCount() > 9 ? '9+' : getTotalUnreadCount()}
+                    </span>
+                  </div>
+                </div>
+              )}
+              
+              {/* 🔥 SUB-MESSAGES BADGES */}
+              {!isMessagesItem && hasUnreadMessages && level > 0 && (
+                <div className="absolute -top-2 -right-2">
+                  <div 
+                    className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white"
+                    title={`${item.unreadCount} tin nhắn chưa đọc`}
+                  >
+                    <span className="text-[9px] text-white font-bold">
+                      {(item.unreadCount || 0) > 9 ? '9+' : item.unreadCount}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
             {!isCollapsed && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-1">
                 <span className="font-medium">{item.label}</span>
+                {/* 🔥 TEXT BADGE CHO SUB-ITEMS */}
+                {!isMessagesItem && hasUnreadMessages && level > 0 && (
+                  <div className="ml-auto">
+                    <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                      {(item.unreadCount || 0) > 99 ? '99+' : item.unreadCount}
+                    </span>
+                  </div>
+                )}
               </div>
             )}
           </div>
