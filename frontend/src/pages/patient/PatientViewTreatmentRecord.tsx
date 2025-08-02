@@ -24,10 +24,11 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Skeleton } from "@/components/ui/skeleton"
+import { ConfirmModal } from "@/components/ui/ConfirmModal"
 
 const formatDateForDisplay = (dateString: string | null): string => {
   if (!dateString) return 'N/A'
-  
+
   try {
     if (dateString.includes('/')) {
       const parts = dateString.split('/')
@@ -39,20 +40,18 @@ const formatDateForDisplay = (dateString: string | null): string => {
         }
       }
     }
-    
+
     const date = new Date(dateString)
     if (isNaN(date.getTime())) {
       return 'N/A'
     }
-    
+
     return date.toLocaleDateString('vi-VN')
   } catch (error) {
     console.error('Error formatting date for display:', error)
     return 'N/A'
   }
 }
-
-
 
 const PatientTreatmentRecords: React.FC = () => {
   const [searchParams] = useSearchParams()
@@ -62,7 +61,10 @@ const PatientTreatmentRecords: React.FC = () => {
   const [patientIdError, setPatientIdError] = useState<string | null>(null)
 
   const patientId = patientIdParam ? Number(patientIdParam) : null
-  
+
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [pendingSubmitEvent, setPendingSubmitEvent] = useState<React.FormEvent | null>(null)
+
   useEffect(() => {
     if (!patientIdParam || isNaN(Number(patientIdParam))) {
       setPatientIdError("ID bệnh nhân không hợp lệ")
@@ -98,6 +100,7 @@ const PatientTreatmentRecords: React.FC = () => {
   const [isEditingPatient, setIsEditingPatient] = useState(false)
   const [isUpdatingPatient, setIsUpdatingPatient] = useState(false)
   const [editingPatientData, setEditingPatientData] = useState<PatientDetail | null>(null)
+  const [patientErrors, setPatientErrors] = useState<{ [key: string]: string }>({})
 
   const searchTerm = watch("searchTerm")
   const filterStatus = watch("filterStatus")
@@ -114,7 +117,7 @@ const PatientTreatmentRecords: React.FC = () => {
 
   const fetchPatientInfo = useCallback(async () => {
     if (!patientId) return
-    
+
     setPatientLoading(true)
     try {
       const patientData = await getPatientById(patientId)
@@ -129,75 +132,131 @@ const PatientTreatmentRecords: React.FC = () => {
     }
   }, [patientId])
 
-const handlePatientUpdate = async (e: React.FormEvent) => {
-  e.preventDefault()
-  if (!editingPatientData || !patientId) return
+  const validatePatientData = (data: PatientDetail): { [key: string]: string } => {
+    const errors: { [key: string]: string } = {}
 
-  setIsUpdatingPatient(true)
-  const toastId = toast.loading("Đang cập nhật thông tin bệnh nhân...")
+    if (!data.fullname?.trim()) {
+      errors.fullname = "Vui lòng nhập họ tên"
+    }
 
-  try {
-    let formattedDob = null
-    
-    if (editingPatientData.dob && editingPatientData.dob.trim() !== '') {
-      if (editingPatientData.dob.includes('-')) {
+    if (!data.phone?.trim()) {
+      errors.phone = "Vui lòng nhập số điện thoại"
+    } else if (!/^[0-9]{10,11}$/.test(data.phone.replace(/\s/g, ''))) {
+      errors.phone = "Số điện thoại phải có 10-11 chữ số"
+    }
+
+    if (!data.email?.trim()) {
+      errors.email = "Vui lòng nhập email"
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      errors.email = "Định dạng email không đúng"
+    }
+
+    if (!data.address?.trim()) {
+      errors.address = "Vui lòng nhập địa chỉ"
+    }
+
+    if (!data.dob?.trim()) {
+      errors.dob = "Vui lòng chọn ngày sinh"
+    }
+
+    return errors
+  }
+
+  // Gọi khi người dùng ấn nút submit
+  const handlePatientSubmitRequest = (e: React.FormEvent) => {
+    e.preventDefault()
+    setPendingSubmitEvent(e)
+    setShowConfirmModal(true)
+  }
+
+  // Gọi sau khi người dùng xác nhận từ modal
+  const handlePatientUpdateConfirmed = async () => {
+    if (!editingPatientData || !patientId || !pendingSubmitEvent) return
+
+    // Đóng modal
+    setShowConfirmModal(false)
+
+    const validationErrors = validatePatientData(editingPatientData)
+    setPatientErrors(validationErrors)
+
+    if (Object.keys(validationErrors).length > 0) {
+      toast.error("Vui lòng sửa các lỗi trong form")
+      return
+    }
+
+    setIsUpdatingPatient(true)
+    const toastId = toast.loading("Đang cập nhật thông tin bệnh nhân...")
+
+    try {
+      let formattedDob = null
+      if (editingPatientData.dob?.includes('-')) {
         const [year, month, day] = editingPatientData.dob.split('-')
         formattedDob = `${day}/${month}/${year}`
-      } else if (editingPatientData.dob.includes('/')) {
+      } else {
         formattedDob = editingPatientData.dob
       }
+
+      const formattedData = {
+        ...editingPatientData,
+        dob: formattedDob,
+        gender: editingPatientData.gender ? "Male" : "Female"
+      }
+
+      await updatePatient(patientId, formattedData)
+      await fetchPatientInfo()
+      setIsEditingPatient(false)
+      setPatientErrors({})
+      toast.update(toastId, {
+        render: "Cập nhật thông tin bệnh nhân thành công",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      })
+    } catch (error: any) {
+      console.error("Error updating patient:", error)
+      if (error.response?.data?.errors) {
+        setPatientErrors(error.response.data.errors)
+      }
+      toast.update(toastId, {
+        render: error.response?.data?.message || "Không thể cập nhật thông tin bệnh nhân",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      })
+    } finally {
+      setIsUpdatingPatient(false)
+      setPendingSubmitEvent(null)
     }
-
-    console.log('Original dob:', editingPatientData.dob)
-    console.log('Formatted dob:', formattedDob)
-
-    const formattedData = {
-      ...editingPatientData,
-      dob: formattedDob
-    }
-
-    await updatePatient(patientId, formattedData)
-
-    await fetchPatientInfo()
-    setIsEditingPatient(false)
-
-    toast.update(toastId, {
-      render: "Cập nhật thông tin bệnh nhân thành công",
-      type: "success",
-      isLoading: false,
-      autoClose: 3000,
-    })
-  } catch (error: any) {
-    console.error("Error updating patient:", error)
-    toast.update(toastId, {
-      render: error.response?.data?.message || "Không thể cập nhật thông tin bệnh nhân",
-      type: "error",
-      isLoading: false,
-      autoClose: 3000,
-    })
-  } finally {
-    setIsUpdatingPatient(false)
   }
-}
 
-const formatDateForInput = (dateString: string | null): string => {
-  if (!dateString || dateString.trim() === '') return ''
-  
-  try {
-    if (dateString.includes('/')) {
-      const parts = dateString.split('/')
-      if (parts.length === 3) {
-        let [day, month, year] = parts
-        
-        const dayNum = parseInt(day)
-        const monthNum = parseInt(month)
-        const yearNum = parseInt(year)
-        
-        if (!isNaN(dayNum) && !isNaN(monthNum) && !isNaN(yearNum)) {
-          return `${yearNum}-${String(monthNum).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`
+
+  const formatDateForInput = (dateString: string | null): string => {
+    if (!dateString || dateString.trim() === '') return ''
+
+    try {
+      if (dateString.includes('/')) {
+        const parts = dateString.split('/')
+        if (parts.length === 3) {
+          let [day, month, year] = parts
+
+          const dayNum = parseInt(day)
+          const monthNum = parseInt(month)
+          const yearNum = parseInt(year)
+
+          if (!isNaN(dayNum) && !isNaN(monthNum) && !isNaN(yearNum)) {
+            return `${yearNum}-${String(monthNum).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`
+          }
+        }
+      } else if (dateString.includes('-')) {
+        const date = new Date(dateString)
+        if (!isNaN(date.getTime())) {
+          const year = date.getFullYear()
+          const month = String(date.getMonth() + 1).padStart(2, '0')
+          const day = String(date.getDate()).padStart(2, '0')
+          return `${year}-${month}-${day}`
         }
       }
-    } else if (dateString.includes('-')) {
+
       const date = new Date(dateString)
       if (!isNaN(date.getTime())) {
         const year = date.getFullYear()
@@ -205,26 +264,17 @@ const formatDateForInput = (dateString: string | null): string => {
         const day = String(date.getDate()).padStart(2, '0')
         return `${year}-${month}-${day}`
       }
+
+      return ''
+    } catch (error) {
+      console.error('Error formatting date for input:', error)
+      return ''
     }
-    
-    const date = new Date(dateString)
-    if (!isNaN(date.getTime())) {
-      const year = date.getFullYear()
-      const month = String(date.getMonth() + 1).padStart(2, '0')
-      const day = String(date.getDate()).padStart(2, '0')
-      return `${year}-${month}-${day}`
-    }
-    
-    return ''
-  } catch (error) {
-    console.error('Error formatting date for input:', error)
-    return ''
   }
-}
 
   const fetchRecords = useCallback(async () => {
     if (!patientId || isNaN(patientId)) return
-    
+
     try {
       setLoading(true)
       const data = await getTreatmentRecordsByPatientId(patientId)
@@ -260,11 +310,11 @@ const formatDateForInput = (dateString: string | null): string => {
       (record.dentistName?.toLowerCase().includes(searchLower) ?? false)
 
     const matchesStatus =
-      filterStatus === "all" || 
+      filterStatus === "all" ||
       record.treatmentStatus?.toLowerCase() === filterStatus.toLowerCase()
 
     const matchesDentist =
-      filterDentist === "all" || 
+      filterDentist === "all" ||
       record.dentistID?.toString() === filterDentist
 
     return matchesSearch && matchesStatus && matchesDentist
@@ -305,7 +355,7 @@ const formatDateForInput = (dateString: string | null): string => {
     }
 
     setEditingRecord(record)
-    
+
     let treatmentDate = ''
     if (record.treatmentDate) {
       try {
@@ -344,6 +394,7 @@ const formatDateForInput = (dateString: string | null): string => {
   const handleCancelEdit = () => {
     setIsEditingPatient(false)
     setEditingPatientData(patient)
+    setPatientErrors({})
   }
 
   const renderPatientInfo = () => {
@@ -393,7 +444,7 @@ const formatDateForInput = (dateString: string | null): string => {
 
         <CardContent>
           {isEditingPatient ? (
-            <form onSubmit={handlePatientUpdate} className="space-y-6">
+            <form onSubmit={handlePatientSubmitRequest} className="space-y-6" noValidate>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="fullname">
@@ -402,11 +453,20 @@ const formatDateForInput = (dateString: string | null): string => {
                   <Input
                     id="fullname"
                     value={editingPatientData?.fullname || ''}
-                    onChange={(e) => setEditingPatientData(prev => 
-                      prev ? { ...prev, fullname: e.target.value } : null
-                    )}
-                    required
+                    onChange={(e) => {
+                      setEditingPatientData(prev =>
+                        prev ? { ...prev, fullname: e.target.value } : null
+                      )
+                      // Clear error when user starts typing
+                      if (patientErrors.fullname) {
+                        setPatientErrors(prev => ({ ...prev, fullname: '' }))
+                      }
+                    }}
+                    className={patientErrors.fullname ? 'border-red-500 focus:border-red-500' : ''}
                   />
+                  {patientErrors.fullname && (
+                    <p className="text-sm text-red-500">{patientErrors.fullname}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -414,12 +474,12 @@ const formatDateForInput = (dateString: string | null): string => {
                     Giới tính <span className="text-red-500">*</span>
                   </Label>
                   <Select
-                    value={editingPatientData?.gender ? 'male' : 'female'}
-                    onValueChange={(value) => setEditingPatientData(prev => 
+                    value={editingPatientData?.gender === true ? 'male' : 'female'}
+                    onValueChange={(value) => setEditingPatientData(prev =>
                       prev ? { ...prev, gender: value === 'male' } : null
                     )}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className={patientErrors.gender ? 'border-red-500' : ''}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -427,6 +487,9 @@ const formatDateForInput = (dateString: string | null): string => {
                       <SelectItem value="female">Nữ</SelectItem>
                     </SelectContent>
                   </Select>
+                  {patientErrors.gender && (
+                    <p className="text-sm text-red-500">{patientErrors.gender}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -437,48 +500,82 @@ const formatDateForInput = (dateString: string | null): string => {
                     id="phone"
                     type="tel"
                     value={editingPatientData?.phone || ''}
-                    onChange={(e) => setEditingPatientData(prev => 
-                      prev ? { ...prev, phone: e.target.value } : null
-                    )}
-                    required
+                    readOnly
+                    className="bg-gray-100 cursor-not-allowed"
+                    title="Số điện thoại không thể chỉnh sửa"
                   />
+                  <p className="text-xs text-gray-500">Số điện thoại không thể chỉnh sửa</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">
+                    Email <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="email"
                     type="email"
                     value={editingPatientData?.email || ''}
-                    onChange={(e) => setEditingPatientData(prev => 
-                      prev ? { ...prev, email: e.target.value } : null
-                    )}
+                    onChange={(e) => {
+                      setEditingPatientData(prev =>
+                        prev ? { ...prev, email: e.target.value } : null
+                      )
+                      // Clear error when user starts typing
+                      if (patientErrors.email) {
+                        setPatientErrors(prev => ({ ...prev, email: '' }))
+                      }
+                    }}
+                    className={patientErrors.email ? 'border-red-500 focus:border-red-500' : ''}
                   />
+                  {patientErrors.email && (
+                    <p className="text-sm text-red-500">{patientErrors.email}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="dob">Ngày sinh</Label>
+                  <Label htmlFor="dob">
+                    Ngày sinh <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="dob"
                     type="date"
                     value={editingPatientData?.dob ? formatDateForInput(editingPatientData.dob) : ''}
-                    onChange={(e) => setEditingPatientData(prev => 
-                      prev ? { ...prev, dob: e.target.value } : null
-                    )}
+                    onChange={(e) => {
+                      setEditingPatientData(prev =>
+                        prev ? { ...prev, dob: e.target.value } : null
+                      )
+                      // Clear error when user starts typing
+                      if (patientErrors.dob) {
+                        setPatientErrors(prev => ({ ...prev, dob: '' }))
+                      }
+                    }}
+                    className={patientErrors.dob ? 'border-red-500 focus:border-red-500' : ''}
                   />
+                  {patientErrors.dob && (
+                    <p className="text-sm text-red-500">{patientErrors.dob}</p>
+                  )}
                 </div>
 
-
-
                 <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor="address">Địa chỉ</Label>
+                  <Label htmlFor="address">
+                    Địa chỉ <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="address"
                     value={editingPatientData?.address || ''}
-                    onChange={(e) => setEditingPatientData(prev => 
-                      prev ? { ...prev, address: e.target.value } : null
-                    )}
+                    onChange={(e) => {
+                      setEditingPatientData(prev =>
+                        prev ? { ...prev, address: e.target.value } : null
+                      )
+                      // Clear error when user starts typing
+                      if (patientErrors.address) {
+                        setPatientErrors(prev => ({ ...prev, address: '' }))
+                      }
+                    }}
+                    className={patientErrors.address ? 'border-red-500 focus:border-red-500' : ''}
                   />
+                  {patientErrors.address && (
+                    <p className="text-sm text-red-500">{patientErrors.address}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2 sm:col-span-3">
@@ -486,12 +583,22 @@ const formatDateForInput = (dateString: string | null): string => {
                   <Textarea
                     id="underlyingConditions"
                     value={editingPatientData?.underlyingConditions || ''}
-                    onChange={(e) => setEditingPatientData(prev => 
-                      prev ? { ...prev, underlyingConditions: e.target.value } : null
-                    )}
+                    onChange={(e) => {
+                      setEditingPatientData(prev =>
+                        prev ? { ...prev, underlyingConditions: e.target.value } : null
+                      )
+                      // Clear error when user starts typing
+                      if (patientErrors.underlyingConditions) {
+                        setPatientErrors(prev => ({ ...prev, underlyingConditions: '' }))
+                      }
+                    }}
                     rows={3}
                     placeholder="Nhập tiền sử bệnh lý của bệnh nhân..."
+                    className={patientErrors.underlyingConditions ? 'border-red-500 focus:border-red-500' : ''}
                   />
+                  {patientErrors.underlyingConditions && (
+                    <p className="text-sm text-red-500">{patientErrors.underlyingConditions}</p>
+                  )}
                 </div>
               </div>
 
@@ -544,8 +651,6 @@ const formatDateForInput = (dateString: string | null): string => {
                 </div>
               </div>
 
-
-
               <div className="sm:col-span-2">
                 <Label className="text-gray-700">Địa chỉ:</Label>
                 <div className="text-gray-900">{patient.address || 'N/A'}</div>
@@ -584,7 +689,7 @@ const formatDateForInput = (dateString: string | null): string => {
                         <ArrowLeft className="h-5 w-5" />
                       </Button>
                       <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                        <FileText className="h-5 w-5" /> 
+                        <FileText className="h-5 w-5" />
                         Hồ sơ điều trị nha khoa
                       </h2>
                     </div>
@@ -634,6 +739,17 @@ const formatDateForInput = (dateString: string | null): string => {
               updatedBy={Number(userId)}
               recordId={editingRecord?.treatmentRecordID}
               onSubmit={handleFormSubmit}
+            />
+
+            <ConfirmModal
+              isOpen={showConfirmModal}
+              onClose={() => setShowConfirmModal(false)}
+              onConfirm={handlePatientUpdateConfirmed}
+              title="Xác nhận lưu thay đổi"
+              message="Bạn có chắc chắn muốn cập nhật thông tin bệnh nhân?"
+              confirmText="Lưu"
+              confirmVariant="default"
+              isLoading={isUpdatingPatient}
             />
           </div>
         </div>

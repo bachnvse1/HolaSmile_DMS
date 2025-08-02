@@ -12,7 +12,8 @@ import {
   Printer,
   ChevronDown,
   ChevronRight,
-  Users
+  Users,
+  Edit
 } from "lucide-react"
 import type { JSX } from "react"
 import { useState } from "react"
@@ -27,6 +28,7 @@ interface InvoiceTableProps {
   getStatusBadge: (status: string) => JSX.Element
   getTransactionTypeBadge: (type: string) => JSX.Element
   openInvoiceDetail: (invoice: Invoice) => void
+  onUpdateInvoice?: (invoice: Invoice) => void
   isLoading?: boolean
 }
 
@@ -126,6 +128,7 @@ const EmptyState = () => (
 const ActionsDropdown = ({
   invoice,
   openInvoiceDetail,
+  onUpdateInvoice,
   onPayment,
   onPrint,
   paymentLoading,
@@ -133,6 +136,7 @@ const ActionsDropdown = ({
 }: {
   invoice: Invoice
   openInvoiceDetail: (invoice: Invoice) => void
+  onUpdateInvoice?: (invoice: Invoice) => void
   onPayment: () => void
   onPrint: () => void
   paymentLoading: boolean
@@ -147,6 +151,9 @@ const ActionsDropdown = ({
                         invoice.status !== "paid" && 
                         invoice.paymentMethod !== "cash" &&
                         (invoice.paymentUrl || invoice.orderCode) 
+
+  const canUpdateInvoice = (role === "Admin" || role === "Receptionist") && 
+                          invoice.status !== "paid"
 
   return (
     <DropdownMenu>
@@ -169,6 +176,18 @@ const ActionsDropdown = ({
           <Eye className="mr-2 h-4 w-4" />
           Xem chi tiết
         </DropdownMenuItem>
+
+        {canUpdateInvoice && onUpdateInvoice && (
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation()
+              onUpdateInvoice(invoice)
+            }}
+          >
+            <Edit className="mr-2 h-4 w-4" />
+            Cập nhật hóa đơn
+          </DropdownMenuItem>
+        )}
 
         <DropdownMenuItem
           onClick={(e) => {
@@ -204,7 +223,8 @@ const InvoiceRow = ({
   formatDate,
   getStatusBadge,
   getTransactionTypeBadge,
-  openInvoiceDetail
+  openInvoiceDetail,
+  onUpdateInvoice
 }: {
   invoice: Invoice
   formatCurrency: (amount: number | null) => string
@@ -212,6 +232,7 @@ const InvoiceRow = ({
   getStatusBadge: (status: string) => JSX.Element
   getTransactionTypeBadge: (type: string) => JSX.Element
   openInvoiceDetail: (invoice: Invoice) => void
+  onUpdateInvoice?: (invoice: Invoice) => void
 }) => {
   const [paymentLoading, setPaymentLoading] = useState(false)
   const [printLoading, setPrintLoading] = useState(false)
@@ -300,6 +321,7 @@ const InvoiceRow = ({
           <ActionsDropdown
             invoice={invoice}
             openInvoiceDetail={openInvoiceDetail}
+            onUpdateInvoice={onUpdateInvoice}
             onPayment={handlePayment}
             onPrint={handlePrint}
             paymentLoading={paymentLoading}
@@ -394,6 +416,7 @@ const InvoiceRow = ({
               <ActionsDropdown
                 invoice={invoice}
                 openInvoiceDetail={openInvoiceDetail}
+                onUpdateInvoice={onUpdateInvoice}
                 onPayment={handlePayment}
                 onPrint={handlePrint}
                 paymentLoading={paymentLoading}
@@ -668,6 +691,7 @@ export function InvoiceTable({
   getStatusBadge,
   getTransactionTypeBadge,
   openInvoiceDetail,
+  onUpdateInvoice,
   isLoading = false,
 }: InvoiceTableProps) {
   const [expandedPatients, setExpandedPatients] = useState<Set<string>>(new Set())
@@ -827,6 +851,7 @@ export function InvoiceTable({
                               getStatusBadge={getStatusBadge}
                               getTransactionTypeBadge={getTransactionTypeBadge}
                               openInvoiceDetail={openInvoiceDetail}
+                              onUpdateInvoice={onUpdateInvoice}
                             />
                           ))}
                         </div>
