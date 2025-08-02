@@ -47,7 +47,7 @@ namespace Application.Usecases.Assistant.CreateWarrantyCard
                 .Include(tr => tr.Procedure)
                 .Include(tr => tr.Appointment)
                 .FirstOrDefaultAsync(tr => tr.TreatmentRecordID == request.TreatmentRecordId && !tr.IsDeleted, ct)
-                ?? throw new KeyNotFoundException(MessageConstants.MSG.MSG101);
+                ?? throw new KeyNotFoundException(MessageConstants.MSG.MSG99);
 
             if (!string.Equals(treatmentRecord.TreatmentStatus.ToLower(), "completed", StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException(MessageConstants.MSG.MSG101);

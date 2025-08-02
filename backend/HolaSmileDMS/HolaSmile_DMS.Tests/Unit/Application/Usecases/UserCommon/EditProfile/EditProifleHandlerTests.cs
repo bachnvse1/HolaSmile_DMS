@@ -4,29 +4,34 @@ using HDMS_API.Application.Usecases.UserCommon.EditProfile;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using System.Security.Claims;
+using System.Text;
 using Xunit;
-
 
 namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon;
 
-public class EditProfileHandlerTests
+public class EditProfileHandlerTests : IDisposable
 {
     private readonly Mock<IUserCommonRepository> _repositoryMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
-    private readonly Mock<IFileStorageService> _fileStorageServiceMock;
+    private readonly Mock<ICloudinaryService> _cloudinaryMock;
     private readonly EditProfileHandler _handler;
+    private readonly string _testAvatarPath;
 
     public EditProfileHandlerTests()
     {
         _repositoryMock = new Mock<IUserCommonRepository>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        _fileStorageServiceMock = new Mock<IFileStorageService>();
+        _cloudinaryMock = new Mock<ICloudinaryService>();
 
         _handler = new EditProfileHandler(
             _repositoryMock.Object,
             _httpContextAccessorMock.Object,
-            _fileStorageServiceMock.Object
+            _cloudinaryMock.Object
         );
+
+        // Tạo test file
+        _testAvatarPath = Path.Combine(Path.GetTempPath(), $"test-avatar-{Guid.NewGuid()}.jpg");
+        File.WriteAllText(_testAvatarPath, "fake image content");
     }
 
     private void SetupHttpContext(int userId)
@@ -43,13 +48,21 @@ public class EditProfileHandlerTests
         _httpContextAccessorMock.Setup(h => h.HttpContext).Returns(context);
     }
 
-    [Fact(DisplayName = "Normal - UTCID01 - Update profile successfully without avatar")]
-    public async System.Threading.Tasks.Task UTCID01_Edit_Profile_Success_Without_Avatar()
+    [Fact(DisplayName = "Success - UTCID01 - Should update profile without avatar")]
+    public async System.Threading.Tasks.Task UTCID01_UpdateProfile_WithoutAvatar_Success()
     {
-        int userId = 1;
+        // Arrange
+        const int userId = 1;
         SetupHttpContext(userId);
 
-        var user = new User { UserID = userId, Fullname = "Old Name", DOB = "02/01/2003" };
+        var user = new User
+        {
+            UserID = userId,
+            Fullname = "Old Name",
+            Gender = true,
+            Address = "Old Address",
+            DOB = "02/01/2003"
+        };
 
         _repositoryMock.Setup(r => r.GetByIdAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
@@ -57,109 +70,139 @@ public class EditProfileHandlerTests
         _repositoryMock.Setup(r => r.EditProfileAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        var request = new EditProfileCommand
+        var command = new EditProfileCommand
         {
             Fullname = "New Name",
-            DOB = "01/01/2001"
+            Gender = false,
+            Address = "New Address",
+            DOB = "01/01/2001",
+            Avatar = null // Explicitly set null
         };
 
-        var result = await _handler.Handle(request, default);
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
 
+        // Assert
         Assert.True(result);
         Assert.Equal("New Name", user.Fullname);
+        Assert.False(user.Gender);
+        Assert.Equal("New Address", user.Address);
         Assert.Equal("01/01/2001", user.DOB);
+        Assert.NotNull(user.UpdatedAt);
+
+        _cloudinaryMock.Verify(c => c.UploadImageAsync(
+            It.IsAny<IFormFile>(), It.IsAny<string>()),
+            Times.Never);
     }
 
-    [Fact(DisplayName = "Normal - UTCID02 - Update profile with avatar successfully")]
-    public async System.Threading.Tasks.Task UTCID02_Edit_Profile_Success_With_Avatar()
+    [Fact(DisplayName = "Success - UTCID02 - Should update profile with avatar")]
+    public async System.Threading.Tasks.Task UTCID02_UpdateProfile_WithAvatar_Success()
     {
-        int userId = 2;
+        // Arrange
+        const int userId = 2;
         SetupHttpContext(userId);
 
-        var tempPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".jpg");
-        await File.WriteAllTextAsync(tempPath, "dummy-avatar-data");
-
         var user = new User { UserID = userId };
-
         _repositoryMock.Setup(r => r.GetByIdAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 
         _repositoryMock.Setup(r => r.EditProfileAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        _fileStorageServiceMock.Setup(s => s.SaveAvatar(It.IsAny<string>()))
-            .Returns("saved_avatar_url");
+        _cloudinaryMock.Setup(c => c.UploadImageAsync(It.IsAny<IFormFile>(), It.IsAny<string>()))
+            .ReturnsAsync("new-avatar-url.jpg");
 
-        var request = new EditProfileCommand
+        // Create test FormFile
+        var fileContent = "fake image content";
+        var fileName = "test-avatar.jpg";
+        var ms = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
+        var formFile = new FormFile(ms, 0, ms.Length, "file", fileName)
         {
-            Avatar = tempPath
+            Headers = new HeaderDictionary(),
+            ContentType = "image/jpeg"
         };
 
-        var result = await _handler.Handle(request, default);
+        var command = new EditProfileCommand
+        {
+            Avatar = formFile
+        };
 
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
         Assert.True(result);
-        Assert.Equal("saved_avatar_url", user.Avatar);
-
-        File.Delete(tempPath); // Dọn dẹp sau khi test
+        Assert.Equal("new-avatar-url.jpg", user.Avatar);
+        _cloudinaryMock.Verify(c => c.UploadImageAsync(
+            It.Is<IFormFile>(f => f.FileName == fileName),
+            It.Is<string>(s => s == "avatars")),
+            Times.Once);
     }
 
-
-
-    [Fact(DisplayName = "Abnormal - UTCID03 - Invalid DOB format should throw MSG34")]
-    public async System.Threading.Tasks.Task UTCID03_Edit_Profile_Invalid_DOB_Throws_MSG34()
+    [Fact(DisplayName = "Error - UTCID03 - Should throw on invalid DOB format")]
+    public async System.Threading.Tasks.Task UTCID03_InvalidDOB_ThrowsException()
     {
-        int userId = 3;
+        // Arrange
+        const int userId = 3;
         SetupHttpContext(userId);
 
         var user = new User { UserID = userId };
-
         _repositoryMock.Setup(r => r.GetByIdAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 
-        var request = new EditProfileCommand { DOB = "invalid-date" };
+        var command = new EditProfileCommand { DOB = "invalid-date" };
 
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _handler.Handle(request, default));
-
-        Assert.Equal(MessageConstants.MSG.MSG34, ex.Message);
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<Exception>(
+            () => _handler.Handle(command, CancellationToken.None));
+        Assert.Equal(MessageConstants.MSG.MSG34, exception.Message);
     }
 
-    [Fact(DisplayName = "Abnormal - UTCID04 - User not found should throw MSG16")]
-    public async System.Threading.Tasks.Task UTCID04_Edit_Profile_User_Not_Found_Throws_MSG16()
+    [Fact(DisplayName = "Error - UTCID04 - Should throw when user not found")]
+    public async System.Threading.Tasks.Task UTCID04_UserNotFound_ThrowsException()
     {
-        int userId = 4;
+        // Arrange
+        const int userId = 4;
         SetupHttpContext(userId);
 
         _repositoryMock.Setup(r => r.GetByIdAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
 
-        var request = new EditProfileCommand { Fullname = "Test" };
+        var command = new EditProfileCommand { Fullname = "Test" };
 
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _handler.Handle(request, default));
-
-        Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<Exception>(
+            () => _handler.Handle(command, CancellationToken.None));
+        Assert.Equal(MessageConstants.MSG.MSG16, exception.Message);
     }
 
-    [Fact(DisplayName = "Abnormal - UTCID05 - Repository fails to update should throw MSG58")]
-    public async System.Threading.Tasks.Task UTCID05_Edit_Profile_Fail_To_Save_Throws_MSG58()
+    [Fact(DisplayName = "Error - UTCID05 - Should throw when save fails")]
+    public async System.Threading.Tasks.Task UTCID05_SaveFails_ThrowsException()
     {
-        int userId = 5;
+        // Arrange
+        const int userId = 5;
         SetupHttpContext(userId);
 
         var user = new User { UserID = userId };
-
         _repositoryMock.Setup(r => r.GetByIdAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 
         _repositoryMock.Setup(r => r.EditProfileAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
-        var request = new EditProfileCommand { Fullname = "Update Fail" };
+        var command = new EditProfileCommand { Fullname = "Will Not Save" };
 
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _handler.Handle(request, default));
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<Exception>(
+            () => _handler.Handle(command, CancellationToken.None));
+        Assert.Equal(MessageConstants.MSG.MSG58, exception.Message);
+    }
 
-        Assert.Equal(MessageConstants.MSG.MSG58, ex.Message);
+    public void Dispose()
+    {
+        if (File.Exists(_testAvatarPath))
+        {
+            File.Delete(_testAvatarPath);
+        }
     }
 }

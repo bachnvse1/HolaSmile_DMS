@@ -3,6 +3,7 @@ using Application.Interfaces;
 using Application.Usecases.Assistant.ViewListWarrantyCards;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 public class ViewListWarrantyCardsHandler : IRequestHandler<ViewListWarrantyCardsCommand, List<ViewWarrantyCardDto>>
 {
@@ -18,7 +19,7 @@ public class ViewListWarrantyCardsHandler : IRequestHandler<ViewListWarrantyCard
     public async Task<List<ViewWarrantyCardDto>> Handle(ViewListWarrantyCardsCommand request, CancellationToken cancellationToken)
     {
         var user = _httpContextAccessor.HttpContext?.User;
-        var role = user?.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        var role = user?.FindFirst(ClaimTypes.Role)?.Value;
 
         if (user == null)
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG53);
@@ -27,6 +28,15 @@ public class ViewListWarrantyCardsHandler : IRequestHandler<ViewListWarrantyCard
             throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
         var cards = await _repository.GetAllWarrantyCardsWithProceduresAsync(cancellationToken);
+
+        // Nếu là Patient, lọc chỉ lấy warranty card của họ
+        if (role == "Patient")
+        {
+            var patientUserId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            cards = cards.Where(card =>
+                card.TreatmentRecord?.Appointment?.Patient?.User?.UserID == patientUserId
+            ).ToList();
+        }
 
         return cards.Select(card =>
         {
