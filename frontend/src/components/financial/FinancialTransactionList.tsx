@@ -99,11 +99,11 @@ export const FinancialTransactionList: React.FC = () => {
   // Calculate statistics
   const stats = React.useMemo(() => {
     const totalIncome = transactions
-      .filter(t => typeof t.transactionType === 'boolean' ? t.transactionType : t.transactionType?.toLowerCase() === 'thu')
+      .filter(t => typeof t.transactionType === 'boolean' ? t.transactionType : t.transactionType?.toLowerCase() === 'thu' &&  t.status=="approved")
       .reduce((sum, t) => sum + t.amount, 0);
     
     const totalExpense = transactions
-      .filter(t => typeof t.transactionType === 'boolean' ? !t.transactionType : t.transactionType?.toLowerCase() === 'chi')
+      .filter(t => typeof t.transactionType === 'boolean' ? !t.transactionType : t.transactionType?.toLowerCase() === 'chi' && t.status=="approved")
       .reduce((sum, t) => sum + t.amount, 0);
 
     return {
@@ -597,7 +597,8 @@ export const FinancialTransactionList: React.FC = () => {
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
-                              <Button
+                              {(transaction.status === 'pending' && transaction.createById === Number(userInfo?.id)) && (
+                                <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setEditTransaction(transaction.transactionID)}
@@ -607,6 +608,8 @@ export const FinancialTransactionList: React.FC = () => {
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
+                              )}
+                              
                             </div>
                           </td>
                         </tr>
@@ -691,7 +694,8 @@ export const FinancialTransactionList: React.FC = () => {
                           <Eye className="h-4 w-4 mr-1" />
                           Xem
                         </Button>
-                        <Button
+                      {(transaction.status === 'pending' && transaction.createById === Number(userInfo?.id)) && (
+                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => setEditTransaction(transaction.transactionID)}
@@ -701,6 +705,8 @@ export const FinancialTransactionList: React.FC = () => {
                           <Edit className="h-4 w-4 mr-1" />
                           Sửa
                         </Button>
+                      )}
+                       
                       </div>
                     </div>
                   </CardContent>

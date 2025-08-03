@@ -27,8 +27,12 @@ function mapSupplyFromApi(apiSupply: any): Supply {
     Price: apiSupply.price ?? apiSupply.Price ?? 0,
     CreatedAt: apiSupply.createdAt ?? apiSupply.CreatedAt ?? "",
     UpdatedAt: apiSupply.updatedAt ?? apiSupply.UpdatedAt ?? "",
-    CreatedBy: Number(apiSupply.createdBy ?? apiSupply.CreatedBy ?? 0),
-    UpdatedBy: Number(apiSupply.updateBy ?? apiSupply.UpdatedBy ?? 0),
+    CreatedBy: apiSupply.createdBy ?? apiSupply.CreatedBy ?? null,
+    UpdatedBy: (apiSupply.updateBy ?? apiSupply.UpdatedBy) === 0 || 
+               (apiSupply.updateBy ?? apiSupply.UpdatedBy) === null || 
+               (apiSupply.updateBy ?? apiSupply.UpdatedBy) === undefined ||
+               (apiSupply.updateBy ?? apiSupply.UpdatedBy) === 'unknown' ? 
+               null : (apiSupply.updateBy ?? apiSupply.UpdatedBy),
     IsDeleted: apiSupply.isDeleted ?? apiSupply.IsDeleted ?? false,
     isDeleted: apiSupply.isDeleted ?? apiSupply.IsDeleted ?? 0, // 0 = active, 1 = deleted
   };

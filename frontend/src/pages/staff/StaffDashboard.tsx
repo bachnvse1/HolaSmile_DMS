@@ -21,6 +21,7 @@ import {
   Cell
 } from 'recharts';
 import { useMemo, memo, useState } from 'react';
+import { AuthGuard } from '@/components/AuthGuard';
 
 // Memoized Chart Components to prevent re-render lag
 const RevenueChart = memo(({ data }: { data: Array<{ label: string, revenueInMillions: number, totalAppointments: number }> }) => (
@@ -233,7 +234,7 @@ export const StaffDashboard = () => {
                 };
                 return gradientMap[color as keyof typeof gradientMap] || 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200';
               };
-              
+
               const getIconBg = (color: string) => {
                 const iconBgMap = {
                   blue: 'bg-blue-500',
@@ -244,7 +245,7 @@ export const StaffDashboard = () => {
                 };
                 return iconBgMap[color as keyof typeof iconBgMap] || 'bg-gray-500';
               };
-              
+
               const getTextColor = (color: string) => {
                 const textColorMap = {
                   blue: 'text-blue-700',
@@ -255,7 +256,7 @@ export const StaffDashboard = () => {
                 };
                 return textColorMap[color as keyof typeof textColorMap] || 'text-gray-700';
               };
-              
+
               const getValueColor = (color: string) => {
                 const valueColorMap = {
                   blue: 'text-blue-900',
@@ -266,7 +267,7 @@ export const StaffDashboard = () => {
                 };
                 return valueColorMap[color as keyof typeof valueColorMap] || 'text-gray-900';
               };
-              
+
               return (
                 <Card key={index} className={getGradientClasses(stat.color)}>
                   <CardContent className="p-3 sm:p-4">
@@ -364,7 +365,7 @@ export const StaffDashboard = () => {
                   </div>
                   <Progress value={pieData ? (pieData.attended / (pieData.confirmed + pieData.attended + pieData.absented + pieData.canceled || 1)) * 100 : 0} className="h-2" />
                 </div>
-                
+
                 {/* Tỷ lệ vắng mặt */}
                 <div>
                   <div className="flex justify-between text-sm mb-2">
@@ -373,7 +374,7 @@ export const StaffDashboard = () => {
                   </div>
                   <Progress value={pieData ? (pieData.absented / (pieData.confirmed + pieData.attended + pieData.absented + pieData.canceled || 1)) * 100 : 0} className="h-2 [&>*]:bg-red-500" />
                 </div>
-                
+
                 {/* Trung bình lịch hẹn/tuần */}
                 <div>
                   <div className="flex justify-between text-sm mb-2">
@@ -382,7 +383,7 @@ export const StaffDashboard = () => {
                   </div>
                   <Progress value={lineData ? Math.min((lineData.data.reduce((sum, day) => sum + day.totalAppointments, 0) / 7) * 10, 100) : 0} className="h-2 [&>*]:bg-purple-500" />
                 </div>
-                
+
                 {/* Doanh thu/lịch hẹn trung bình */}
                 <div>
                   <div className="flex justify-between text-sm mb-2">
@@ -475,80 +476,82 @@ export const StaffDashboard = () => {
       </StaffLayout>
     );
   } return (
-    <StaffLayout userInfo={userInfo}>
-      <div className="space-y-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            {title}
-          </h1>
-          <p className="text-gray-600">
-            Chào mừng trở lại, {userInfo.name}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat, index) => {
-            const IconComponent = stat.icon;
-            return (
-              <div key={index} className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className={`p-2 rounded-lg ${getColorClasses(stat.color)}`}>
-                    <IconComponent className="h-6 w-6" />
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-lg font-semibold text-gray-900">{stat.label}</h3>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <AuthGuard requiredRoles={['Owner']}>
+      <StaffLayout userInfo={userInfo}>
+        <div className="space-y-6">
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Nhiệm Vụ Hôm Nay</h2>
-            <div className="space-y-4">
-              <div className="flex items-center p-4 bg-blue-50 rounded-lg">
-                <Calendar className="h-5 w-5 text-blue-600 mr-3" />
-                <div>
-                  <p className="font-medium text-gray-900">Meeting với team</p>
-                  <p className="text-sm text-gray-600">09:00 - 10:00</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              {title}
+            </h1>
+            <p className="text-gray-600">
+              Chào mừng trở lại, {userInfo.name}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {stats.map((stat, index) => {
+              const IconComponent = stat.icon;
+              return (
+                <div key={index} className="bg-white rounded-lg shadow p-6">
+                  <div className="flex items-center">
+                    <div className={`p-2 rounded-lg ${getColorClasses(stat.color)}`}>
+                      <IconComponent className="h-6 w-6" />
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-lg font-semibold text-gray-900">{stat.label}</h3>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Nhiệm Vụ Hôm Nay</h2>
+              <div className="space-y-4">
+                <div className="flex items-center p-4 bg-blue-50 rounded-lg">
+                  <Calendar className="h-5 w-5 text-blue-600 mr-3" />
+                  <div>
+                    <p className="font-medium text-gray-900">Meeting với team</p>
+                    <p className="text-sm text-gray-600">09:00 - 10:00</p>
+                  </div>
+                </div>
+                <div className="flex items-center p-4 bg-green-50 rounded-lg">
+                  <Users className="h-5 w-5 text-green-600 mr-3" />
+                  <div>
+                    <p className="font-medium text-gray-900">Khám bệnh nhân VIP</p>
+                    <p className="text-sm text-gray-600">14:00 - 15:30</p>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center p-4 bg-green-50 rounded-lg">
-                <Users className="h-5 w-5 text-green-600 mr-3" />
-                <div>
-                  <p className="font-medium text-gray-900">Khám bệnh nhân VIP</p>
-                  <p className="text-sm text-gray-600">14:00 - 15:30</p>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Thông Báo</h2>
+              <div className="space-y-4">
+                <div className="flex items-center p-4 bg-yellow-50 rounded-lg">
+                  <AlertCircle className="h-5 w-5 text-yellow-600 mr-3" />
+                  <div>
+                    <p className="font-medium text-gray-900">Cập nhật hệ thống</p>
+                    <p className="text-sm text-gray-600">Hệ thống sẽ bảo trì vào 23:00</p>
+                  </div>
+                </div>
+                <div className="flex items-center p-4 bg-red-50 rounded-lg">
+                  <AlertCircle className="h-5 w-5 text-red-600 mr-3" />
+                  <div>
+                    <p className="font-medium text-gray-900">Lịch hẹn cần xác nhận</p>
+                    <p className="text-sm text-gray-600">5 lịch hẹn đang chờ xác nhận</p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Thông Báo</h2>
-            <div className="space-y-4">
-              <div className="flex items-center p-4 bg-yellow-50 rounded-lg">
-                <AlertCircle className="h-5 w-5 text-yellow-600 mr-3" />
-                <div>
-                  <p className="font-medium text-gray-900">Cập nhật hệ thống</p>
-                  <p className="text-sm text-gray-600">Hệ thống sẽ bảo trì vào 23:00</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 bg-red-50 rounded-lg">
-                <AlertCircle className="h-5 w-5 text-red-600 mr-3" />
-                <div>
-                  <p className="font-medium text-gray-900">Lịch hẹn cần xác nhận</p>
-                  <p className="text-sm text-gray-600">5 lịch hẹn đang chờ xác nhận</p>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
-      </div>
-    </StaffLayout>
+      </StaffLayout>
+    </AuthGuard>
   );
 };

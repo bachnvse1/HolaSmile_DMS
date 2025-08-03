@@ -77,8 +77,10 @@ export const useAllDentistSchedules = () => {
 
       return response.data;
     },
-    staleTime: 0, // Luôn fetch dữ liệu mới
-    gcTime: 0, // Không cache dữ liệu (gcTime thay cho cacheTime trong v5)
+    staleTime: 5 * 60 * 1000, // 5 phút
+    gcTime: 10 * 60 * 1000, // 10 phút
+    refetchOnWindowFocus: false, // Không refetch khi focus window
+    refetchOnMount: false, // Không refetch khi mount lại nếu data vẫn fresh
   });
 };
 
@@ -236,10 +238,11 @@ export const useApproveSchedules = () => {
       );
       return response.data;
     },
+    retry: false, // Không retry để tránh gọi nhiều lần
     onSuccess: (data) => {
       console.log("Phê duyệt lịch thành công:", data);
+      // Chỉ invalidate một lần thôi, không cần refetch thêm
       queryClient.invalidateQueries({ queryKey: ["schedules"] });
-      queryClient.refetchQueries({ queryKey: ["schedules"] });
     },
     onError: (error: unknown) => {
       console.error("Lỗi khi phê duyệt lịch:", error);

@@ -83,7 +83,11 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children, userInfo }) 
         />
 
         {/* Scrollable Content with margin to avoid sidebar overlap */}
-        <main className={`flex-1 overflow-y-auto bg-gray-50 transition-all duration-300 ${
+        <main className={`flex-1 overflow-y-auto bg-gray-50 ${
+          isMobile 
+            ? '' 
+            : 'transition-[margin-left,padding-top] duration-300'
+        } ${
           isMobile ? '' : `pt-16 ${!isSidebarCollapsed ? 'ml-64' : 'ml-16'}`
         }`}>
           <div className="p-4 sm:p-6">
