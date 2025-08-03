@@ -77,7 +77,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Patients
             };
 
             _appointmentRepoMock.Setup(r => r.GetAppointmentByIdAsync(10)).ReturnsAsync(appointment);
-            _appointmentRepoMock.Setup(r => r.CancelAppointmentAsync(10, 5)).ReturnsAsync(true);
+            _appointmentRepoMock.Setup(r => r.UpdateAppointmentAsync(appointment)).ReturnsAsync(true);
             _dentistRepoMock.Setup(r => r.GetDentistByDentistIdAsync(2)).ReturnsAsync(dentist);
             _userCommonRepoMock.Setup(r => r.GetAllReceptionistAsync()).ReturnsAsync(receptionists);
 

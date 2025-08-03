@@ -18,7 +18,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
     public class CreateDiscountProgramHandlerIntegrationTests
     {
         private readonly ApplicationDbContext _context;
-        private readonly IPromotionrepository _promotionRepository;
+        private readonly IPromotionRepository _promotionRepository;
         private readonly IProcedureRepository _procedureRepository;
         private readonly IOwnerRepository _ownerRepository;
         private readonly Mock<IMediator> _mediatorMock;
