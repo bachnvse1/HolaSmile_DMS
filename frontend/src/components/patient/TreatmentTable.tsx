@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button2";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { TreatmentRecord } from "@/types/treatment";
 import RecordRow from "./RecordRow";
+import TreatmentRecordDetail from "./TreatmentRecordDetail"; // New import
 import { formatDateOnly } from "@/utils/date";
 import { CreateInvoiceModal } from "../invoice/CreateInvoiceModal";
 import { invoiceService } from "@/services/invoiceService";
@@ -15,6 +16,7 @@ interface TreatmentTableProps {
   records: TreatmentRecord[];
   onEdit: (record: TreatmentRecord) => void;
   onToggleDelete: (id: number) => void;
+  onViewDetail?: (record: TreatmentRecord) => void;
   patientId: number;
   patientName: string;
   readonly?: boolean;
@@ -51,6 +53,10 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
   const [isCreatingInvoice, setIsCreatingInvoice] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const [printingGroups, setPrintingGroups] = useState<Record<string, boolean>>({});
+
+  // New states for detail modal
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedDetailRecord, setSelectedDetailRecord] = useState<TreatmentRecord | null>(null);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -111,6 +117,17 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
       ...prev,
       [date]: !prev[date]
     }));
+  };
+
+  // New function to handle view detail
+  const handleViewDetail = (record: TreatmentRecord) => {
+    setSelectedDetailRecord(record);
+    setDetailModalOpen(true);
+  };
+
+  const handleCloseDetailModal = () => {
+    setDetailModalOpen(false);
+    setSelectedDetailRecord(null);
   };
 
   const handlePrintDentalRecord = async (appointmentId: number, date: string) => {
@@ -513,6 +530,7 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
                             onEdit={onEdit}
                             onToggleDelete={onToggleDelete}
                             onOpenInvoiceModal={handleOpenInvoiceModal}
+                            onViewDetail={handleViewDetail} // New prop
                             patientId={patientId}
                             readonly={readonly}
                             orderNumber={calculateRecordOrder(groupIndex, recordIndex)}
@@ -564,6 +582,13 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
           </p>
         </div>
       )}
+
+      {/* Treatment Record Detail Modal */}
+      <TreatmentRecordDetail
+        isOpen={detailModalOpen}
+        onClose={handleCloseDetailModal}
+        record={selectedDetailRecord}
+      />
 
       {/* Invoice Creation Modal */}
       {selectedRecord && (

@@ -107,7 +107,7 @@ export function Login() {
 
         <div className="space-y-2">
           <label htmlFor="email" className="block text-sm font-medium text-white/90">
-            Email hoặc số điện thoại
+            Tên đăng nhập
           </label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-white/70" size={18} />
@@ -118,7 +118,7 @@ export function Login() {
               value={formik.values.email}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              placeholder="Email hoặc số điện thoại"
+              placeholder="Tên đăng nhập"
               className={`w-full pl-11 pr-3 py-3 rounded-lg bg-white/10 backdrop-blur text-white placeholder:text-white/60 border focus:outline-none transition-all ${formik.touched.email && formik.errors.email
                   ? "border-red-400 focus:ring-2 focus:ring-red-400/50"
                   : "border-white/30 focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400"

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { useNavigate, useParams } from "react-router"
+import { useParams } from "react-router"
 import { toast } from "react-toastify"
 import { ArrowLeft, Loader2, Edit, Trash2, Plus, FileText, User, CalendarDays } from "lucide-react"
 import CreateInstructionDialog from "@/components/instruction/CreateInstruction"
@@ -32,7 +32,6 @@ export default function InstructionsPage() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [editInstructionContent, setEditInstructionContent] = useState("")
     const [editInstructionTemplateId, setEditInstructionTemplateId] = useState<number | string>("")
-    const navigate = useNavigate()
 
     const userInfo = useUserInfo()
 
@@ -149,8 +148,8 @@ export default function InstructionsPage() {
     }
 
     const handleGoBack = useCallback(() => {
-        navigate(`/appointments/${appointmentId}`)
-    }, [navigate, appointmentId])
+        window.history.back()
+    }, [])
 
     return (
         <AuthGuard requiredRoles={["Receptionist", "Assistant", "Dentist"]}>

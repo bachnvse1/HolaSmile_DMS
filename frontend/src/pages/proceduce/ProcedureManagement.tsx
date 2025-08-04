@@ -35,13 +35,8 @@ export default function ProcedureManagement() {
         price: 0,
         description: "",
         discount: 0,
-        warrantyPeriod: "",
         originalPrice: 0,
         consumableCost: 0,
-        referralCommissionRate: 0,
-        doctorCommissionRate: 0,
-        assistantCommissionRate: 0,
-        technicianCommissionRate: 0,
         suppliesUsed: [],
     })
 
@@ -91,13 +86,8 @@ export default function ProcedureManagement() {
                 price: 0,
                 description: "",
                 discount: 0,
-                warrantyPeriod: "",
                 originalPrice: 0,
                 consumableCost: 0,
-                referralCommissionRate: 0,
-                doctorCommissionRate: 0,
-                assistantCommissionRate: 0,
-                technicianCommissionRate: 0,
                 suppliesUsed: [],
             })
             setIsCreateModalOpen(false)

@@ -32,7 +32,7 @@ import {
 import { useUserInfo } from '@/hooks/useUserInfo';
 import type { Supply } from '@/types/supply';
 import { getErrorMessage } from '@/utils/formatUtils';
-import { formatCurrency } from '@/utils/formatUtils';
+import { formatCurrency } from '@/utils/currencyUtils'; 
 
 export const SupplyList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
