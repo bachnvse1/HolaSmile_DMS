@@ -53,7 +53,8 @@ public class UpdateDiscountProgramHandlerIntegrationTests
             DiscountProgramID = 1,
             DiscountProgramName = "Summer Sale",
             CreateDate = DateTime.Today.AddDays(-5),
-            EndDate = DateTime.Today.AddDays(5)
+            EndDate = DateTime.Today.AddDays(5),
+            IsDelete = true
         });
 
         _context.SaveChanges();

@@ -191,6 +191,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
             //_context.SaveChanges();
             var promo = await _promotionRepository.GetDiscountProgramByIdAsync(1);
             promo.IsDelete = true;
+            promo.CreateAt = DateTime.Now;
             await _promotionRepository.UpdateDiscountProgramAsync(promo);
 
             SetupHttpContext("receptionist", 1);
@@ -234,6 +235,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
             // Toggle main promotion to inactive
             var promo = await _promotionRepository.GetDiscountProgramByIdAsync(3);
             promo.IsDelete = true;
+            promo.CreateAt = DateTime.Now;
             await _promotionRepository.UpdateDiscountProgramAsync(promo);
 
             SetupHttpContext("receptionist", 1);
