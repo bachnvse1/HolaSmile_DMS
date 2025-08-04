@@ -9,12 +9,12 @@ namespace Application.Usecases.Receptionist.ViewPromotionProgram
         public class ViewDetailPromotionProgramHandler : IRequestHandler<ViewDetailPromotionProgramCommand, ViewPromotionResponse>
         {
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IPromotionrepository _promotionRepository;
+        private readonly IPromotionRepository _promotionRepository;
         private readonly IProcedureRepository _procedureRepository;
         private readonly IUserCommonRepository _userCommonRepository;
 
 
-        public ViewDetailPromotionProgramHandler(IHttpContextAccessor httpContextAccessor, IPromotionrepository promotionrepository, IProcedureRepository procedureRepository, IUserCommonRepository userCommonRepository)
+        public ViewDetailPromotionProgramHandler(IHttpContextAccessor httpContextAccessor, IPromotionRepository promotionrepository, IProcedureRepository procedureRepository, IUserCommonRepository userCommonRepository)
         {
             _httpContextAccessor = httpContextAccessor;
             _promotionRepository = promotionrepository;

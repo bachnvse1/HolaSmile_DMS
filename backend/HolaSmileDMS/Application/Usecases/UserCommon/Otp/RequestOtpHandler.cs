@@ -10,10 +10,12 @@ namespace HDMS_API.Application.Usecases.UserCommon.Otp
 {
     public class RequestOtpHandler : IRequestHandler<RequestOtpCommand, bool>
     {
+        private readonly IUserCommonRepository _userCommonRepository;
         private readonly IEmailService _emailService;
         private readonly IMemoryCache _memoryCache;
-        public RequestOtpHandler(IEmailService emailService, IMemoryCache memoryCache)
+        public RequestOtpHandler(IUserCommonRepository userCommonRepository,IEmailService emailService, IMemoryCache memoryCache)
         {
+            _userCommonRepository = userCommonRepository;
             _emailService = emailService;
             _memoryCache = memoryCache;
         }
@@ -23,6 +25,13 @@ namespace HDMS_API.Application.Usecases.UserCommon.Otp
             {
                 throw new Exception(MessageConstants.MSG.MSG08);
             }
+
+            var existUser = await _userCommonRepository.GetUserByEmailAsync(request.Email);
+            if (existUser == null)
+            {
+                return true;
+            }
+
             var OtpCode = GenerateOTPHelper.GenerateOTP();
 
             var subject = "Xác thực OTP từ Phòng khám HolaSmile";

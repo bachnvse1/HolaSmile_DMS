@@ -10,9 +10,9 @@ namespace Application.Usecases.Receptionist.ViewPromotionProgram
     public class ViewPromotionProgramHandler : IRequestHandler<ViewPromotionProgramCommand, List<DiscountProgram>>
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IPromotionrepository _promotionRepository;
+        private readonly IPromotionRepository _promotionRepository;
 
-        public ViewPromotionProgramHandler(IHttpContextAccessor httpContextAccessor, IPromotionrepository promotionrepository, IProcedureRepository procedureRepository)
+        public ViewPromotionProgramHandler(IHttpContextAccessor httpContextAccessor, IPromotionRepository promotionrepository, IProcedureRepository procedureRepository)
         {
             _httpContextAccessor = httpContextAccessor;
             _promotionRepository = promotionrepository;

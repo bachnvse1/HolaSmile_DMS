@@ -57,9 +57,15 @@ namespace Application.Usecases.Receptionist.EditPatientInformation
             {
                 throw new Exception(MessageConstants.MSG.MSG07); // "Vui lòng nhập thông tin bắt buộc"
             }
+
+            if(DateTime.Parse(request.Dob) >= DateTime.Now)
+            {
+                throw new Exception("Ngày sinh không hợp lệ");
+            }
+
             patient.User.Fullname = request.FullName;
             patient.User.Email = request.Email;
-            patient.User.DOB = FormatHelper.TryParseDob(request.Dob);
+            patient.User.DOB = FormatHelper.TryParseDob(request.Dob.ToString());
             patient.User.Gender = request.Gender;
             patient.User.Address = request.Address;
             patient.UnderlyingConditions = request.UnderlyingConditions;

@@ -47,5 +47,8 @@ public class Appointment
     
     public int? RescheduledFromAppointmentId { get; set; }
 
+    [MaxLength(200)]
+    public string? CancelReason { get; set; }
+
     public ICollection<TreatmentRecord> TreatmentRecords { get; set;}
 }

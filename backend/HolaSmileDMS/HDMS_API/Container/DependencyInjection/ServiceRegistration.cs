@@ -20,7 +20,6 @@ using Infrastructure.Services;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace HDMS_API.Container.DependencyInjection
 {
     public static class ServiceRegistration
@@ -33,6 +32,12 @@ namespace HDMS_API.Container.DependencyInjection
                 options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)),
                 ServiceLifetime.Scoped
             );
+
+            services.AddHttpClient("Gemini", client =>
+            {
+                client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/");
+            });
+
             // Repository & Services
             services.AddScoped<IAppointmentRepository, AppointmentRepository>();
             services.AddScoped<IEmailService, EmailService>();
@@ -72,7 +77,8 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<ICloudinaryService, CloudinaryService>();
             services.AddScoped<IImageRepository, ImageRepository>();
             services.AddScoped<ITransactionRepository, TransactionRepository>();
-            services.AddScoped<IPromotionrepository, Promotionrepository>();
+            services.AddScoped<IPromotionRepository, PromotionRepository>();
+            services.AddScoped<IChatBotKnowledgeRepository, ChatBotKnowledgeRepository>();
 
             services.AddHttpClient<IEsmsService, SmsService>();
 

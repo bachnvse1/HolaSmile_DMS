@@ -178,8 +178,9 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
       if (isEditMode && currentSchedule?.id) {
         // Chỉnh sửa lịch
         await editScheduleMutation.mutateAsync({
-          ...scheduleData,
-          id: currentSchedule.id
+          scheduleId: currentSchedule.id,
+          workDate: selectedDate,
+          shift: selectedShift as string
         });
         toast.success('Cập nhật lịch làm việc thành công!');
       } else {
@@ -204,36 +205,25 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
       return;
     }
 
-    try {
+    // Prevent multiple submissions
+    if (createScheduleMutation.isPending) {
+      return;
+    }
 
-      // Tạo nhiều lịch làm việc
-      const createPromises = selectedSlots.map(slot =>
-        createScheduleMutation.mutateAsync({
+    try {
+      
+      // Gửi 1 lần duy nhất với toàn bộ mảng slots
+      await createScheduleMutation.mutateAsync(
+        selectedSlots.map(slot => ({
           dentistId,
           date: slot.date,
           shift: slot.shift,
           status: ScheduleStatus.Pending,
           note: note.trim()
-        })
+        }))
       );
 
-      const results = await Promise.allSettled(createPromises);
-
-      // Đếm kết quả thành công và thất bại
-      let successCount = 0;
-
-      results.forEach(result => {
-        if (result.status === 'fulfilled') {
-          successCount++;
-        } else {
-          console.error('Lỗi khi tạo lịch:', result.reason);
-        }
-      });
-
-      // Hiển thị thông báo kết quả
-      if (successCount > 0) {
-        toast.success(`Đã tạo lịch làm việc thành công!`);
-      }
+      toast.success(`Đã tạo ${selectedSlots.length} lịch làm việc thành công!`);
 
       // Reset trạng thái
       setSelectedSlots([]);
@@ -509,7 +499,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
 
       {/* Delete confirmation dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="!max-w-md">
           <DialogHeader>
             <DialogTitle>Xác nhận hủy lịch làm việc</DialogTitle>
             <DialogDescription>
@@ -571,7 +561,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
 
       {/* Bulk create dialog */}
       <Dialog open={isBulkCreateDialogOpen} onOpenChange={setIsBulkCreateDialogOpen}>
-        <DialogContent className="max-h-[80vh] flex flex-col">
+        <DialogContent className="max-h-[80vh] flex flex-col !max-w-2xl">
           <DialogHeader>
             <DialogTitle>Tạo lịch làm việc hàng loạt</DialogTitle>
             <DialogDescription>
