@@ -1,5 +1,6 @@
 import { Linkedin, Twitter, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { useEffect, useState, useRef } from 'react';
 import doc1 from '@/assets/doc1.jpg';
 import doc2 from '@/assets/doc2.jpg';
 export const teamMembers = [
@@ -47,11 +48,33 @@ export const teamMembers = [
 
 export const TeamSection = () => {
   const navigate = useNavigate();
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section id="team" className="py-20 bg-white">
+    <section ref={sectionRef} id="team" className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-16">
+        <div className={`text-center mb-16 transform transition-all duration-1000 ${
+          isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+        }`}>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             Gặp Gỡ Đội Ngũ Của Chúng Tôi
           </h2>
@@ -64,7 +87,13 @@ export const TeamSection = () => {
         {/* Team Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {teamMembers.map((member, index) => (
-            <div key={index} className="text-center group">
+            <div 
+              key={index} 
+              className={`text-center group transform transition-all duration-700 hover:scale-105 ${
+                isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+              }`}
+              style={{ transitionDelay: `${index * 150}ms` }}
+            >
               <div className="relative mb-6">
                 <img
                   src={member.image}
@@ -91,21 +120,21 @@ export const TeamSection = () => {
               <div className="flex justify-center space-x-3">
                 <a
                   href="#"
-                  className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                  className="p-2 text-gray-400 hover:text-blue-600 transition-colors transform hover:scale-110"
                   aria-label="LinkedIn"
                 >
                   <Linkedin className="h-5 w-5" />
                 </a>
                 <a
                   href="#"
-                  className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                  className="p-2 text-gray-400 hover:text-blue-600 transition-colors transform hover:scale-110"
                   aria-label="Twitter"
                 >
                   <Twitter className="h-5 w-5" />
                 </a>
                 <a
                   href="#"
-                  className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                  className="p-2 text-gray-400 hover:text-blue-600 transition-colors transform hover:scale-110"
                   aria-label="Email"
                 >
                   <Mail className="h-5 w-5" />
@@ -116,7 +145,9 @@ export const TeamSection = () => {
         </div>
 
         {/* CTA */}
-        <div className="text-center mt-16">
+        <div className={`text-center mt-16 transform transition-all duration-1000 delay-500 ${
+          isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+        }`}>
           <div className="bg-blue-50 rounded-2xl p-8">
             <h3 className="text-2xl font-bold text-gray-900 mb-4">
               Đặt Lịch Hẹn Ngay Hôm Nay
@@ -125,7 +156,10 @@ export const TeamSection = () => {
               Chúng tôi sẵn sàng giúp bạn có nụ cười khỏe mạnh và rạng rỡ. 
               Hãy đặt lịch hẹn với chúng tôi để trải nghiệm dịch vụ chăm sóc nha khoa tốt nhất.
             </p>
-            <button onClick={() => navigate("/appointment-booking")} className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+            <button 
+              onClick={() => navigate("/appointment-booking")} 
+              className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+            >
               Đặt Lịch Tư Vấn
             </button>
           </div>

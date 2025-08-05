@@ -4,6 +4,8 @@ import bg2 from '@/assets/bg2.jpg';
 import bg3 from '@/assets/bg3.jpg';
 import bg4 from '@/assets/bg4.jpg';
 import bg5 from '@/assets/bg5.jpg';
+import { useEffect, useState, useRef } from 'react';
+
 const features = [
   {
     icon: CheckCircle,
@@ -28,12 +30,34 @@ const features = [
 ];
 
 export const AboutSection = () => {
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section id="about" className="py-20 bg-gray-50">
+    <section ref={sectionRef} id="about" className="py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
-          <div className="space-y-8">
+          <div className={`space-y-8 transform transition-all duration-1000 ${
+            isVisible ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'
+          }`}>
             <div>
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
                 Về HolaSmile
@@ -51,8 +75,14 @@ export const AboutSection = () => {
             {/* Features */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {features.map((feature, index) => (
-                <div key={index} className="flex items-start space-x-4">
-                  <div className="bg-blue-100 p-2 rounded-lg flex-shrink-0">
+                <div 
+                  key={index} 
+                  className={`flex items-start space-x-4 transform transition-all duration-500 hover:scale-105 ${
+                    isVisible ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0'
+                  }`}
+                  style={{ transitionDelay: `${index * 100}ms` }}
+                >
+                  <div className="bg-blue-100 p-2 rounded-lg flex-shrink-0 transform transition-transform duration-300 hover:rotate-12">
                     <feature.icon className="h-6 w-6 text-blue-600" />
                   </div>
                   <div>
@@ -63,40 +93,44 @@ export const AboutSection = () => {
               ))}
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className={`flex flex-col sm:flex-row gap-4 transform transition-all duration-1000 delay-300 ${
+              isVisible ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0'
+            }`}>
               <Link to="/learn-more"
-                className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-center"
+                className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg text-center"
               >
                 Tìm Hiểu Thêm
               </Link>
-              <Link to='/learn-more' className="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors">
+              <Link to='/learn-more' className="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-all duration-300 transform hover:scale-105">
                 Xem thông tin của chúng tôi
               </Link>
             </div>
           </div>
 
           {/* Right Content - Images */}
-          <div className="relative">
+          <div className={`relative transform transition-all duration-1000 delay-200 ${
+            isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'
+          }`}>
             <div className="grid grid-cols-2 gap-4">
               <img
                 src={bg2}
                 alt="Dental equipment"
-                className="rounded-lg h-48 w-full object-cover"
+                className="rounded-lg h-48 w-full object-cover transform transition-all duration-300 hover:scale-105 hover:shadow-lg"
               />
               <img
                 src={bg3}
                 alt="Dental office"
-                className="rounded-lg h-48 w-full object-cover mt-8"
+                className="rounded-lg h-48 w-full object-cover mt-8 transform transition-all duration-300 hover:scale-105 hover:shadow-lg"
               />
               <img
                 src={bg4}
                 alt="Happy patient"
-                className="rounded-lg h-48 w-full object-cover -mt-8"
+                className="rounded-lg h-48 w-full object-cover -mt-8 transform transition-all duration-300 hover:scale-105 hover:shadow-lg"
               />
               <img
                 src={bg5}
                 alt="Dental consultation"
-                className="rounded-lg h-48 w-full object-cover"
+                className="rounded-lg h-48 w-full object-cover transform transition-all duration-300 hover:scale-105 hover:shadow-lg"
               />
             </div>
           </div>
