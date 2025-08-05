@@ -208,128 +208,281 @@ public class Printer : IPrinter
         var base64Image = Convert.ToBase64String(imageBytes);
         var imageSrc = $"data:image/png;base64,{base64Image}";
 
+        var paidAmount = invoice.PaidAmount ?? 0;
+        var remainingAmount = invoice.RemainingAmount ?? 0;
+        var totalAmount = invoice.TotalAmount;
+
         var sb = new StringBuilder();
         sb.AppendLine("<html lang='vi'><head><meta charset='UTF-8'><style>");
         sb.AppendLine(@"
             body {
-                font-family: 'Times New Roman', serif;
-                font-size: 14px;
-                margin: 40px;
+                font-family: 'Segoe UI', Arial, sans-serif;
+                background: #b6caff;
+                margin: 0;
+                padding: 0;
             }
-            .note-top {
-                text-align: center;
-                font-style: italic;
-                font-size: 12px;
+            .invoice-container {
+                max-width: 800px;             /* tăng chiều rộng để nội dung, chữ ký rộng rãi */
+                min-height: 760px;            /* đảm bảo chiều cao cho chỗ ký tay */
+                margin: 80px auto 40px auto;  /* nhiều khoảng cách phía trên, căn giữa */
+                background: #fff;
+                border-radius: 18px;
+                box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+                padding: 36px 50px 70px 50px; /* padding dưới nhiều hơn cho phần chữ ký */
+                position: relative;
             }
-            .logo-text {
+            .blue-corner {
+                position: absolute;
+                top: 0; right: 0;
+                width: 140px; height: 90px;
+                background: linear-gradient(130deg, #e3edff 60%, #d2e0fc 100%);
+                border-radius: 0 15px 0 120px;
+                z-index: 0;
+            }
+            .invoice-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+            }
+            .logo-title {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+            }
+            .logo-title img {
+                height: 56px;
+                margin-right: 8px;
+            }
+            .clinic-name {
+                font-size: 22px;
+                color: #16348a;
                 font-weight: bold;
-                color: orange;
-                font-size: 14px;
-                margin-top: 5px;
+                margin-bottom: 2px;
             }
-            table {
-                width: 100%;
-                border-collapse: collapse;
+            .clinic-address {
+                font-size: 13px;
+                color: #6b7fa6;
+                margin-bottom: 3px;
             }
-            th, td {
-                padding: 6px;
-                text-align: left;
+            .clinic-hotline {
+                font-size: 13px;
+                color: #3366cc;
             }
-            .table-bordered th, .table-bordered td {
-                border: 1px solid black;
-                text-align: center;
+            .invoice-title {
+                font-size: 24px;
+                color: #1976d2;
+                font-weight: bold;
+                text-align: right;
+                margin-top: 6px;
+                text-shadow: 0 2px 8px rgba(26,35,126,0.08);
             }
-            .text-center {
-                text-align: center;
-            }
-            .text-right {
+            .sub-title {
+                font-size: 13px;
+                color: #888;
+                font-weight: 500;
                 text-align: right;
             }
-            .amount {
-                color: red;
+            .info-row {
+                margin-top: 26px;
+                display: flex;
+                justify-content: space-between;
+                font-size: 15px;
+            }
+            .info-group {
+                width: 48%;
+            }
+            .info-label {
+                color: #1a237e;
+                font-weight: 600;
+                margin-bottom: 3px;
+            }
+            .info-value {
+                color: #1976d2;
+                font-weight: 500;
+            }
+            .invoice-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 34px 0 20px 0;
+                font-size: 15px;
+                background: #f8fbff;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            .invoice-table th {
+                background: #16348a;
+                color: #fff;
+                padding: 10px 0;
+                font-weight: bold;
+                font-size: 15px;
+                letter-spacing: 1px;
+            }
+            .invoice-table td {
+                text-align: center;
+                padding: 9px 0;
+                border-bottom: 1px solid #e5eaf7;
+            }
+            .invoice-table tr:nth-child(even) td {
+                background: #e3edff;
+            }
+            .amount-summary {
+                float: right;
+                width: 320px;
+                margin-bottom: 8px;
+            }
+            .amount-summary td {
+                padding: 6px 0;
+                font-size: 15px;
+            }
+            .amount-summary .label {
+                color: #1a237e;
+                font-weight: 600;
+                text-align: right;
+            }
+            .amount-summary .value {
+                font-weight: 600;
+                text-align: right;
+            }
+            .amount-summary .total-label {
+                font-size: 17px;
+                color: #16348a;
+            }
+            .amount-summary .total-value {
+                font-size: 17px;
+                color: #1976d2;
                 font-weight: bold;
             }
-            .signature {
-                margin-top: 60px;
-                width: 100%;
-            }
-            .signature td {
-                text-align: center;
-                padding-top: 40px;
-            }
-            .bottom-note {
-                margin-top: 40px;
-                font-size: 12px;
+            .amount-words {
+                clear: both;
+                font-size: 13px;
+                margin-top: 8px;
+                color: #555;
                 font-style: italic;
-                text-align: center;
             }
+            .contact-section {
+                margin-top: 20px;
+                font-size: 13px;
+                color: #364152;
+            }
+            .terms-section {
+                font-size: 13px;
+                color: #546e7a;
+                margin-top: 16px;
+            }
+            .terms-section strong {
+                color: #1976d2;
+            }
+
+            /* Responsive */
+            @media (max-width: 900px) {
+                .invoice-container {
+                    max-width: 98vw;
+                    padding: 18px 6vw 60px 6vw;
+                }
+                .amount-summary {
+                    width: 98vw;
+                }
+                .invoice-header { flex-direction: column; gap: 12px; }
+                .info-row { flex-direction: column; gap: 10px; }
+            }
+
         ");
         sb.AppendLine("</style></head><body>");
+        sb.AppendLine("<div style=\"height: 100px;\"></div>\n");
+        sb.AppendLine("<div class='invoice-container'>");
+        sb.AppendLine("<div class='blue-corner'></div>");
+        sb.AppendLine("<div class='invoice-header'>");
+        sb.AppendLine("<div class='logo-title'>");
+        sb.AppendLine($"<img src='{imageSrc}' alt='Logo' />");
+        sb.AppendLine("<div>");
+        sb.AppendLine("<div class='clinic-name'>HOLASMILE DENTAL</div>");
+        sb.AppendLine("<div class='clinic-address'>Km29 Đại lộ Thăng Long, H.Thạch Thất, TP Hà Nội</div>");
+        sb.AppendLine("<div class='clinic-hotline'>Hotline: 18001260</div>");
+        sb.AppendLine("</div>");
+        sb.AppendLine("</div>");
+        sb.AppendLine("<div>");
+        sb.AppendLine("<div class='invoice-title'>HÓA ĐƠN THANH TOÁN DỊCH VỤ NHA KHOA</div>");
+        sb.AppendLine("<div class='sub-title'>(Dental Invoice)</div>");
+        sb.AppendLine("</div>");
+        sb.AppendLine("</div>");
 
-        sb.AppendLine("<div class='note-top'>Đơn vị cung cấp giải pháp hóa đơn điện tử: Tập đoàn Bưu chính Viễn thông Việt Nam. Điện thoại: 18001260</div>");
+        // Info hóa đơn & khách hàng
+        sb.AppendLine("<div class='info-row'>");
+        sb.AppendLine("<div class='info-group'>");
+        sb.AppendLine("<div class='info-label'>Khách hàng:</div>");
+        sb.AppendLine($"<div class='info-value'>{invoice.PatientName ?? "N/A"}</div>");
+        sb.AppendLine("<div class='info-label'>Địa chỉ:</div>");
+        sb.AppendLine($"<div class='info-value'>{invoice.PatientAddress ?? "N/A"}</div>");
+        sb.AppendLine("</div>");
+        sb.AppendLine("<div class='info-group'>");
+        sb.AppendLine("<div class='info-label'>Mã hóa đơn:</div>");
+        sb.AppendLine($"<div class='info-value'>{invoice.OrderCode ?? "N/A"}</div>");
+        sb.AppendLine("<div class='info-label'>Ngày thanh toán:</div>");
+        sb.AppendLine($"<div class='info-value'>{invoice.PaymentDate:dd/MM/yyyy}</div>");
+        sb.AppendLine("<div class='info-label'>Phương thức thanh toán:</div>");
+        sb.AppendLine($"<div class='info-value'>{(invoice.PaymentMethod ?? "N/A").ToUpper()}</div>");
+        sb.AppendLine("</div>");
+        sb.AppendLine("</div>");
 
-        // Header
-        sb.AppendLine("<table>");
+        // Bảng dịch vụ
+        sb.AppendLine("<table class='invoice-table'>");
         sb.AppendLine("<tr>");
-        sb.AppendLine("<td style='width: 25%; vertical-align: top;'>");
-        sb.AppendLine($"<img src='{imageSrc}' style='height: 70px;' /><div class='logo-text'>HOLASMILE DENTAL</div>");
-        sb.AppendLine("</td>");
-        sb.AppendLine("<td style='width: 50%; text-align: center;'>");
-        sb.AppendLine("<div style='font-size: 20px; color: red; font-weight: bold;'>HÓA ĐƠN GIÁ TRỊ GIA TĂNG</div>");
-        sb.AppendLine("<div style='font-style: italic;'>(VAT INVOICE)</div>");
-        sb.AppendLine($"<div>Ngày (Date) {DateTime.Now:dd} &nbsp;&nbsp; tháng (month) {DateTime.Now:MM} &nbsp;&nbsp; năm (year) {DateTime.Now:yyyy}</div>");
-        sb.AppendLine("</td>");
-        sb.AppendLine("<td style='width: 25%; text-align: right;'>");
-        sb.AppendLine("Ký hiệu (Series): <b style='color: red;'>1K25TAA</b><br/>");
-        sb.AppendLine($"Số (No.): <b style='color: red;'>{invoice.OrderCode}</b>");
-        sb.AppendLine("</td>");
+        sb.AppendLine("<th>STT</th>");
+        sb.AppendLine("<th>Mô tả</th>");
+        sb.AppendLine("<th>Đơn vị</th>");
+        sb.AppendLine("<th>Số lượng</th>");
+        sb.AppendLine("<th>Đơn giá</th>");
+        sb.AppendLine("<th>Thành tiền</th>");
         sb.AppendLine("</tr>");
-        sb.AppendLine("</table>");
-
-        // Thông tin người bán và người mua
-        sb.AppendLine("<br/><table>");
-        sb.AppendLine("<tr><td><strong>Tên đơn vị bán hàng (Seller):</strong> <span style='color:red;'>HOLASMILE DENTAL</span></td></tr>");
-        sb.AppendLine("<tr><td><strong>Mã số thuế (Tax code):</strong> 0102100740</td></tr>");
-        sb.AppendLine("<tr><td><strong>Địa chỉ (Address):</strong> Km29 Đại lộ Thăng Long, H.Thạch Thất, TP Hà Nội</td></tr>");
-        sb.AppendLine($"<tr><td><strong>Hình thức thanh toán (Payment method):</strong> {(invoice.PaymentMethod == "payos" ? "Chuyển khoản" : "Tiền mặt")}</td></tr>");
-        sb.AppendLine($"<tr><td><strong>Tên người mua hàng (Buyer):</strong> {invoice.PatientName}</td></tr>");
-        sb.AppendLine("</table>");
-
-        // Bảng hàng hóa (CÓ VIỀN)
-        sb.AppendLine("<br/><table class='table-bordered'>");
-        sb.AppendLine("<tr><th>STT (No.)</th><th>Mô tả (Description)</th><th>Đơn vị (Unit)</th><th>Số lượng (Qty)</th><th>Đơn giá (Unit price)</th><th>Thành tiền (Amount)</th></tr>");
         sb.AppendLine("<tr>");
         sb.AppendLine("<td>1</td>");
-        sb.AppendLine("<td>Thanh toán điều trị</td>");
+        sb.AppendLine("<td style='text-align:left;padding-left:6px'>Thanh toán điều trị</td>");
         sb.AppendLine("<td>Đợt</td>");
         sb.AppendLine("<td>1</td>");
-        sb.AppendLine($"<td>{invoice.PaidAmount:N0}</td>");
-        sb.AppendLine($"<td>{invoice.PaidAmount:N0}</td>");
+        sb.AppendLine($"<td>{paidAmount:N0}₫</td>");
+        sb.AppendLine($"<td>{paidAmount:N0}₫</td>");
         sb.AppendLine("</tr>");
         sb.AppendLine("</table>");
 
-        // Tổng tiền
-        sb.AppendLine("<br/><table>");
-        sb.AppendLine("<tr><td><strong>Thuế suất GTGT (VAT rate):</strong> KCT</td></tr>");
-        sb.AppendLine($"<tr><td><strong>Tổng cộng tiền thanh toán (Total payment):</strong> <span class='amount'>{invoice.PaidAmount:N0} VND</span></td></tr>");
-        sb.AppendLine($"<tr><td><strong>Số tiền viết bằng chữ (Amount in words):</strong> {ConvertAmountToWords(invoice.PaidAmount)}</td></tr>");
+        // Tổng tiền, VAT, số tiền bằng chữ
+        sb.AppendLine("<table class='amount-summary'>");
+        sb.AppendLine($"<tr><td class='label'>Tạm tính</td><td class='value'>{paidAmount:N0}₫</td></tr>");
+        sb.AppendLine("<tr><td class='label'>VAT</td><td class='value'>0₫</td></tr>");
+        sb.AppendLine($"<tr><td class='total-label'>Tổng thanh toán</td><td class='total-value'>{paidAmount:N0}₫</td></tr>");
+        if (remainingAmount > 0)
+            sb.AppendLine($"<tr><td class='label'>Còn lại</td><td class='value'>{remainingAmount:N0}₫</td></tr>");
         sb.AppendLine("</table>");
+        sb.AppendLine("<div style='clear:both'></div>");
+
+        sb.AppendLine($"<div class='amount-words'>Bằng chữ: <strong>{ConvertAmountToWords((long)paidAmount)}</strong></div>");
+
+        // Thông tin liên hệ & điều khoản
+        sb.AppendLine("<div class='contact-section'>");
+        sb.AppendLine("Mọi thắc mắc liên hệ: 18001260 hoặc email: info@holasmile.com<br/>");
+        sb.AppendLine("</div>");
+        sb.AppendLine("<div class='terms-section'><strong>Ghi chú:</strong> Hóa đơn này là căn cứ để đối chiếu, khiếu nại (nếu có). Quý khách vui lòng giữ hóa đơn cẩn thận.</div>");
 
         // Chữ ký
-        sb.AppendLine("<table class='signature'>");
-        sb.AppendLine("<tr>");
-        sb.AppendLine("<td>NGƯỜI MUA HÀNG<br/>(Buyer)<br/><br/><i>Ký, ghi rõ họ tên</i></td>");
-        sb.AppendLine("<td>NGƯỜI BÁN HÀNG<br/>(Seller)<br/><br/><i>Ký, đóng dấu, ghi rõ họ tên</i></td>");
-        sb.AppendLine("</tr>");
-        sb.AppendLine("</table>");
+        // Chữ ký - DÙNG TABLE CHO CHẮC
+        sb.AppendLine(@"<table style='width:100%;margin-top:38px;'>
+          <tr>
+            <td style='width:50%;text-align:center;vertical-align:top;'>
+              <div style='font-weight:bold;color:#16348a;'>Khách hàng</div>
+              <div style='font-size:13px;color:#888;margin-top:6px;'>(Ký, ghi rõ họ tên)</div>
+            </td>
+            <td style='width:50%;text-align:center;vertical-align:top;'>
+              <div style='font-weight:bold;color:#16348a;'>Người lập hóa đơn</div>
+              <div style='font-size:13px;color:#888;margin-top:6px;'>(Ký, ghi rõ họ tên)</div>
+            </td>
+          </tr>
+        </table>");
 
-        // Ghi chú cuối
-        sb.AppendLine("<div class='bottom-note'>Cần kiểm tra, đối chiếu khi lập, giao, nhận hóa đơn.<br/>Tra cứu hóa đơn tại: https://fpt-tt78.vnpt-invoice.com.vn/</div>");
 
+        sb.AppendLine("</div>"); // End container
         sb.AppendLine("</body></html>");
         return sb.ToString();
     }
-
+    
     public static string ConvertAmountToWords(decimal? amount)
     {
         string[] units = { "", "nghìn", "triệu", "tỷ" };
