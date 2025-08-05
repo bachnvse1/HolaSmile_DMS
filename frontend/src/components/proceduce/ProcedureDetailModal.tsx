@@ -207,10 +207,7 @@ export function ProcedureDetailModal({ procedure, isOpen, onOpenChange, onEdit, 
                                             <div className="flex items-center justify-between">
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-2">
-                                                        <h4 className="font-medium">{supply.supplyName || `Vật tư #${supply.supplyId}`}</h4>
-                                                        <Badge variant="outline" className="text-xs">
-                                                            ID: {supply.supplyId}
-                                                        </Badge>
+                                                        <h4 className="font-medium">{supply.supplyName}</h4>
                                                     </div>
                                                     <div className="mt-1 text-sm text-muted-foreground">
                                                         Số lượng: <span className="font-medium">{supply.quantity}</span>
