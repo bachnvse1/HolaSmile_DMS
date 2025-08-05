@@ -30,29 +30,6 @@ namespace Application.Usecases.Guests.AskChatBot
 
         public async Task<string> Handle(AskChatbotCommand request, CancellationToken cancellationToken)
         {
-            // --- B1: Kiểm tra nếu user hỏi về thủ thuật ---
-            //string normalized = request.UserQuestion.ToLower();
-            //if (normalized.Contains("thủ thuật nào") ||
-            //    normalized.Contains("các thủ thuật") ||
-            //    normalized.Contains("những thủ thuật") ||
-            //    normalized.Contains("liệt kê thủ thuật"))
-            //{
-            //    var procedures = await _procedureRepository.GetAll();
-            //    if (procedures == null || procedures.Count == 0)
-            //        return "Hiện hệ thống chưa có thủ thuật nào.";
-
-            //    var listThuThuat = procedures
-            //        .Select((x, i) => $"{i + 1}. {x.ProcedureName}")
-            //        .ToList();
-
-            //    string reply = "Các thủ thuật hiện có tại phòng khám:\n"
-            //        + string.Join("\n", listThuThuat)
-            //        + "\n\nBạn muốn tìm hiểu chi tiết về thủ thuật nào? Hãy nhập tên/thủ thuật để được giải thích thêm.";
-
-            //    return reply;
-            //}
-
-            // --- B2: Kiểm tra trong database FAQ ---
             var faqs = await _chatbotrepo.GetAllAsync();
             foreach (var faq in faqs)
             {
@@ -61,7 +38,8 @@ namespace Application.Usecases.Guests.AskChatBot
             }
 
             // --- B3: Nếu không có trong DB, gọi Gemini API ---
-            var context = "Bạn là chatbot tư vấn hệ thống phòng khám răng hàm mặt. Chỉ trả lời ngắn gọn về sản phẩm/dịch vụ của phòng khám răng hàm mặt.";
+            var context = "Bạn là chatbot tư vấn hệ thống phòng khám răng hàm mặt.Với vai trò là 1 lễ tân hãy trả lời ngắn gọn 2 đến 3 câu liên quan đến sản phẩm/dịch vụ của phòng khám răng hàm mặt." +
+                         "hãy đặt cho tôi câu \"Để hiểu rõ hơn bạn có thể liên hệ trực tiếp với lễ tân của bọn tôi qua chatbox hoặc số điện thoại 0111111111\" vào cuối câu";
             var body = new
             {
                 contents = new[]
