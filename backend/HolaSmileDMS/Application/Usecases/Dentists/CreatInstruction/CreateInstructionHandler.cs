@@ -72,24 +72,42 @@ namespace Application.Usecases.Dentists.CreatInstruction
 
             var result = await _repository.CreateAsync(instruction, cancellationToken);
             if (!result)
-                throw new Exception(MessageConstants.MSG.MSG58); // "Có lỗi xảy ra"
-            if (appointment.PatientId.HasValue)
+                throw new Exception(MessageConstants.MSG.MSG58);
+
+            // Gửi notification trong try/catch
+            try
             {
-                try
+                var patientUserId = appointment.Patient?.User?.UserID;
+
+                if (patientUserId.HasValue && patientUserId.Value > 0)
                 {
-                    await _mediator.Send(new SendNotificationCommand(
-                        appointment.PatientId.Value, // userId của bệnh nhân
+                    var notification = new SendNotificationCommand(
+                        patientUserId.Value,
                         "Chỉ dẫn điều trị mới",
                         "Bạn vừa nhận được chỉ dẫn điều trị mới từ phòng khám.",
-                        "Chỉ dẫn điều trị",
-                        null, "" // Có thể truyền thêm thông tin nếu cần
-                    ), cancellationToken);
+                        "Create",
+                        instruction.InstructionID,
+                        $"/patient/instructions/{appointment.AppointmentId}"
+                    );
+
+                    await _mediator.Send(notification, cancellationToken);
                 }
-                catch (Exception ex)
+                else
                 {
-                    // Có thể log lỗi nếu cần
+                    Console.WriteLine("Patient User ID is invalid or not found");
                 }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in notification process:");
+                Console.WriteLine($"Message: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+            }
+
             return MessageConstants.MSG.MSG114; // "Tạo chỉ dẫn thành công"
         }
     }

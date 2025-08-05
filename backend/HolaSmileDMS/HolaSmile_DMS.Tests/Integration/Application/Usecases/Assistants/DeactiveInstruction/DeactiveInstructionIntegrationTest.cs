@@ -1,14 +1,15 @@
 ﻿using Application.Constants;
+using Application.Interfaces;
 using Application.Usecases.Assistants.DeactiveInstruction;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using System.Security.Claims;
 using Xunit;
-using Application.Interfaces;
-using Moq;
 
 namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
 {
@@ -17,6 +18,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
         private readonly ApplicationDbContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly DeactiveInstructionHandler _handler;
+        private readonly Mock<IMediator> _mediatorMock;
 
         public DeactiveInstructionIntegrationTest()
         {
@@ -32,7 +34,11 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
 
             var instructionRepo = new InstructionRepository(_context);
 
-            _handler = new DeactiveInstructionHandler(instructionRepo, _httpContextAccessor);
+            // Add this line to create a mock IMediator
+            var mockMediator = new Moq.Mock<IMediator>();
+
+            // Pass the mockMediator.Object as the third argument
+            _handler = new DeactiveInstructionHandler(instructionRepo, _httpContextAccessor, mockMediator.Object);
 
             SeedData();
         }
@@ -161,14 +167,12 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             });
             context.SaveChanges();
 
-            // Replace this line:
-            // var mockRepo = new Moq.Mock<Application.Interfaces.IInstructionRepository>();
-            // With this line:
             var mockRepo = new Moq.Mock<IInstructionRepository>();
             mockRepo.Setup(r => r.GetByIdAsync(200, default)).ReturnsAsync(context.Instructions.Find(200));
             mockRepo.Setup(r => r.UpdateAsync(Moq.It.IsAny<Instruction>(), default)).ReturnsAsync(false);
 
-            var handler = new DeactiveInstructionHandler(mockRepo.Object, httpContextAccessor);
+            var mockMediator = new Moq.Mock<IMediator>();
+            var handler = new DeactiveInstructionHandler(mockRepo.Object, httpContextAccessor, mockMediator.Object);
 
             var httpContext = new DefaultHttpContext();
             httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]

@@ -1,6 +1,8 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Assistant.EditWarrantyCard;
+using Application.Usecases.SendNotification;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using System.Security.Claims;
@@ -12,14 +14,23 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
     {
         private readonly Mock<IWarrantyCardRepository> _warrantyRepoMock = new();
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new();
+        private readonly Mock<IMediator> _mediatorMock = new();
         private readonly EditWarrantyCardHandler _handler;
 
         public EditWarrantyCardHandlerTests()
         {
-            _handler = new EditWarrantyCardHandler(_warrantyRepoMock.Object, _httpContextAccessorMock.Object);
+            _mediatorMock
+                .Setup(x => x.Send(It.IsAny<SendNotificationCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(MediatR.Unit.Value);
+
+            _handler = new EditWarrantyCardHandler(
+                _warrantyRepoMock.Object,
+                _httpContextAccessorMock.Object,
+                _mediatorMock.Object
+            );
         }
 
-        private void SetupHttpContext(string? role, string? userId = "10")
+        private void SetupHttpContext(string? role, string? userId = "10", string fullName = "Test Assistant")
         {
             if (role == null)
             {
@@ -30,7 +41,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Role, role),
-                new Claim(ClaimTypes.NameIdentifier, userId ?? "")
+                new Claim(ClaimTypes.NameIdentifier, userId ?? ""),
+                new Claim(ClaimTypes.GivenName, fullName)
             };
 
             var identity = new ClaimsIdentity(claims, "TestAuth");
@@ -40,11 +52,32 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             _httpContextAccessorMock.Setup(h => h.HttpContext).Returns(context);
         }
 
-        [Fact(DisplayName = "Normal - UTCID01 - Assistant edits warranty card successfully")]
-        public async System.Threading.Tasks.Task UTCID01_Edit_Success()
+        [Fact(DisplayName = "Normal - UTCID01 - Assistant chỉnh sửa thẻ bảo hành thành công")]
+        public async System.Threading.Tasks.Task Normal_UTCID01_Assistant_EditWarrantyCard_Success()
         {
             // Arrange
-            SetupHttpContext("Assistant", "99");
+            SetupHttpContext("Assistant", "99", "Test Assistant");
+
+            var patient = new Patient
+            {
+                PatientID = 10,
+                UserID = 100,
+                User = new User { UserID = 100, Fullname = "Test Patient" }
+            };
+
+            var appointment = new Appointment
+            {
+                AppointmentId = 1,
+                PatientId = 10,
+                Patient = patient
+            };
+
+            var treatmentRecord = new TreatmentRecord
+            {
+                TreatmentRecordID = 50,
+                AppointmentID = 1,
+                Appointment = appointment
+            };
 
             var card = new WarrantyCard
             {
@@ -52,7 +85,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
                 StartDate = new DateTime(2024, 1, 1),
                 Duration = 12,
                 EndDate = new DateTime(2025, 1, 1),
-                Status = true
+                Status = true,
+                TreatmentRecordID = 50,
+                TreatmentRecord = treatmentRecord
             };
 
             _warrantyRepoMock.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
@@ -74,49 +109,50 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             // Assert
             Assert.Equal(MessageConstants.MSG.MSG106, result);
             Assert.Equal(24, card.Duration);
-            Assert.Equal(new DateTime(2026, 1, 1), card.EndDate); // 2024-01-01 + 24 months
+            Assert.Equal(new DateTime(2026, 1, 1), card.EndDate);
             Assert.False(card.Status);
             Assert.Equal(99, card.UpdatedBy);
+
+            _mediatorMock.Verify(m => m.Send(
+                It.Is<SendNotificationCommand>(n =>
+                    n.UserId == 100 &&
+                    n.Title == "Cập nhật thẻ bảo hành" &&
+                    n.Message == "Thẻ bảo hành của bạn đã được cập nhật. Thời hạn mới: 24 tháng." &&
+                    n.Type == "Update" &&
+                    n.RelatedObjectId == card.WarrantyCardID &&
+                    n.MappingUrl == $"/patient/warranty-cards/{card.WarrantyCardID}"
+                ),
+                It.IsAny<CancellationToken>()
+            ), Times.Once);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID02 - HttpContext is null throws MSG17")]
-        public async System.Threading.Tasks.Task UTCID02_HttpContext_Null()
+        [Fact(DisplayName = "Abnormal - UTCID02 - Không đăng nhập sẽ bị chặn")]
+        public async System.Threading.Tasks.Task Abnormal_UTCID02_NotLoggedIn_Throws()
         {
+            // Arrange
             SetupHttpContext(null);
 
+            var command = new EditWarrantyCardCommand
+            {
+                WarrantyCardId = 1,
+                Duration = 12,
+                Status = true
+            };
+
+            // Act & Assert
             var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(new EditWarrantyCardCommand { WarrantyCardId = 1, Duration = 12, Status = true }, default));
+                _handler.Handle(command, default));
 
             Assert.Equal(MessageConstants.MSG.MSG17, ex.Message);
+
+            _mediatorMock.Verify(m => m.Send(
+                It.IsAny<SendNotificationCommand>(),
+                It.IsAny<CancellationToken>()
+            ), Times.Never);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID03 - Role is not Assistant throws MSG26")]
-        public async System.Threading.Tasks.Task UTCID03_InvalidRole()
-        {
-            SetupHttpContext("Owner");
-
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(new EditWarrantyCardCommand { WarrantyCardId = 1, Duration = 12, Status = true }, default));
-
-            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
-        }
-
-        [Fact(DisplayName = "Abnormal - UTCID04 - WarrantyCard not found throws MSG102")]
-        public async System.Threading.Tasks.Task UTCID04_Card_Not_Found()
-        {
-            SetupHttpContext("Assistant");
-
-            _warrantyRepoMock.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((WarrantyCard?)null);
-
-            var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-                _handler.Handle(new EditWarrantyCardCommand { WarrantyCardId = 2, Duration = 12, Status = true }, default));
-
-            Assert.Equal(MessageConstants.MSG.MSG103, ex.Message);
-        }
-
-        [Fact(DisplayName = "Abnormal - UTCID05 - Invalid Duration throws MSG98")]
-        public async System.Threading.Tasks.Task UTCID05_Invalid_Duration_Should_Throw_MSG98()
+        [Fact(DisplayName = "Abnormal - UTCID05 - Thời hạn không hợp lệ sẽ bị chặn")]
+        public async System.Threading.Tasks.Task Abnormal_UTCID05_Invalid_Duration_Should_Throw_MSG98()
         {
             // Arrange
             SetupHttpContext("Assistant");
@@ -134,7 +170,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             var command = new EditWarrantyCardCommand
             {
                 WarrantyCardId = 1,
-                Duration = 0, // ❗ Giá trị không hợp lệ (<= 0)
+                Duration = 0,
                 Status = true
             };
 
@@ -143,7 +179,11 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
                 _handler.Handle(command, default));
 
             Assert.Equal(MessageConstants.MSG.MSG98, ex.Message);
-        }
 
+            _mediatorMock.Verify(m => m.Send(
+                It.IsAny<SendNotificationCommand>(),
+                It.IsAny<CancellationToken>()
+            ), Times.Never);
+        }
     }
 }

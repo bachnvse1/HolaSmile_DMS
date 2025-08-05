@@ -30,8 +30,12 @@ public class ImageRepository : IImageRepository
     }
     public async Task<Image?> GetByIdAsync(int imageId)
     {
-        return await _context.Images.FirstOrDefaultAsync(x => x.ImageId == imageId);
+        return await _context.Images
+            .Include(x => x.Patient)
+                .ThenInclude(p => p.User)
+            .FirstOrDefaultAsync(x => x.ImageId == imageId);
     }
+
 
     public async Task<bool> UpdateAsync(Image image)
     {

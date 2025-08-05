@@ -1,5 +1,4 @@
-﻿using System.Threading;
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Application.Usecases.SendNotification;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;

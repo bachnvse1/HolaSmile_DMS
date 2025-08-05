@@ -56,9 +56,17 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <h1 className="text-2xl font-bold text-blue-600 cursor-pointer">
-              HolaSmile
-            </h1>
+            <button onClick={() => navigate('/patient/dashboard')} className="flex items-center">
+              <img
+                src="/logo.png"
+                alt="HolaSmile Logo"
+                className="h-14 w-14"
+              />
+              <div className="flex flex-col items-start leading-none">
+                <span className="text-md font-medium text-gray-700 mt-1">NHA KHOA</span>
+                <span className="text-xl font-bold text-blue-600 -mt-1">HolaSmile</span>
+              </div>
+            </button>
           </div>
 
           {/* Desktop Navigation */}
@@ -72,26 +80,26 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
               </button> */}
               <button
                 onClick={() => navigate('/patient/appointments')}
-                className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-md font-medium"
               >
                 Lịch Hẹn
               </button>
 
               <button
                 onClick={() => navigate('/patient/treatment-records')}
-                className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-md font-medium"
               >
                 Hồ Sơ
               </button>
               <button
                 onClick={() => navigate('/patient/orthodontic-treatment-plans')}
-                className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-md font-medium"
               >
                 Kế Hoạch
               </button>
               <button
                 onClick={() => navigate('/invoices')}
-                className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-md font-medium"
               >
                 Hóa Đơn
               </button>

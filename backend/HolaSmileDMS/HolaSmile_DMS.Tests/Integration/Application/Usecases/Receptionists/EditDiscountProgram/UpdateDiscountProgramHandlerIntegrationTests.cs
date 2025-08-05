@@ -41,7 +41,7 @@ public class UpdateDiscountProgramHandlerIntegrationTests
         _context.Users.Add(new User { UserID = 2, Username = "receptionist", Fullname = "Lễ tân A", Phone = "0123" });
         _context.Users.Add(new User { UserID = 3, Username = "owner", Fullname = "Owner B", Phone = "0456" });
 
-        _context.Owners.Add(new Owner { OwnerId = 1, UserId = 3 });
+        _context.Owners.Add(new global::Owner { OwnerId = 1, UserId = 3 });
 
         _context.Procedures.AddRange(
             new Procedure { ProcedureId = 101, ProcedureName = "Tẩy trắng" },

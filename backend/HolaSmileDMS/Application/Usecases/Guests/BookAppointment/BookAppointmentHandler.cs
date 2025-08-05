@@ -120,7 +120,7 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 AppointmentDate = request.AppointmentDate,
                 AppointmentTime = request.AppointmentTime,
                 CreatedAt = DateTime.Now,
-                CreatedBy = currentUserId,
+                CreatedBy = currentUserId,  
                 IsDeleted = false
             };
             var isBookAppointment = await _appointmentRepository.CreateAppointmentAsync(appointment);

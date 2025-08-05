@@ -63,7 +63,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
                 new User { UserID = 2, Username = "0111111112", Fullname = "Owner B", Phone = "0111111112" }
             );
 
-            _context.Owners.Add(new Owner { OwnerId = 1, UserId = 2 });
+            _context.Owners.Add(new global::Owner { OwnerId = 1, UserId = 2 });
 
             _context.Procedures.Add(new Procedure
             {
