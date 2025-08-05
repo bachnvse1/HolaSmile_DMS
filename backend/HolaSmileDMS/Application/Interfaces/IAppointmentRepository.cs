@@ -19,5 +19,6 @@ namespace Application.Interfaces
         Task<List<Appointment>> GetAppointmentsByPatient(int userId);
         Task<List<Appointment>> GetAllAppointments();
         Task<List<Appointment>> GetAllCofirmAppoitmentAsync();
+        Task<Appointment> GetAppointmentByRescheduledFromAppointmentIdAsync(int RescheduledFromAppointmentId);
     }
 }

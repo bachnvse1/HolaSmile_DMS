@@ -258,7 +258,7 @@ public async System.Threading.Tasks.Task Should_Return_Correct_Followup_Informat
     var nextTime = new TimeSpan(14, 30, 0);
     var nextContent = "Hẹn tái khám";
 
-    _followupRepo.Setup(x => x.GetAppointmentByIdAsync(appointmentId))
+    _followupRepo.Setup(x => x.GetAppointmentByRescheduledFromAppointmentIdAsync(appointmentId))
         .ReturnsAsync(new Appointment
         {
             AppointmentDate = nextDate,
@@ -272,7 +272,7 @@ public async System.Threading.Tasks.Task Should_Return_Correct_Followup_Informat
     var result = await handler.Handle(new ViewDentalExamSheetCommand(appointmentId), CancellationToken.None);
 
     // Assert
-    Assert.Equal("14:30 25/12/2025", result.NextAppointmentTime);
+    Assert.Equal("14:30 12/25/2025 12:00:00 AM", result.NextAppointmentTime);
     Assert.Equal("Hẹn tái khám", result.NextAppointmentNote);
 }
 }
