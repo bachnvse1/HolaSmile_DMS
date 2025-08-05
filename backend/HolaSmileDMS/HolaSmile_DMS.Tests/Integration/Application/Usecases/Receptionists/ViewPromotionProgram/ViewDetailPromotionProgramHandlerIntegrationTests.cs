@@ -20,7 +20,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists;
 public class ViewDetailPromotionProgramHandlerIntegrationTests
 {
     private readonly ApplicationDbContext _context;
-    private readonly Promotionrepository _promotionRepo;
+    private readonly PromotionRepository _promotionRepo;
     private readonly ProcedureRepository _procedureRepo;
     private readonly UserCommonRepository _userCommonRepo;
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -37,7 +37,7 @@ public class ViewDetailPromotionProgramHandlerIntegrationTests
         var memoryCache = provider.GetRequiredService<IMemoryCache>();
 
         _context = new ApplicationDbContext(options);
-        _promotionRepo = new Promotionrepository(_context);
+        _promotionRepo = new PromotionRepository(_context);
         _procedureRepo = new ProcedureRepository(_context);
         _userCommonRepo = new UserCommonRepository(_context);
         _httpContextAccessor = new HttpContextAccessor();

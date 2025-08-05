@@ -25,8 +25,7 @@ namespace Application.Usecases.UserCommon.ForgotPasswordBySMS
                 throw new Exception(MessageConstants.MSG.MSG56);
 
             var user = await _userRepo.GetUserByPhoneAsync(request.PhoneNumber);
-            if (user == null)
-                throw new Exception(MessageConstants.MSG.MSG16);
+            if (user == null) { return true; }
 
             var newPassword = GeneratePassword();
 

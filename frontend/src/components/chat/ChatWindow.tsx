@@ -122,6 +122,19 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 }) => {
   const { userId } = useAuth();
   
+  // Function to convert role to Vietnamese
+  const getRoleDisplayName = useCallback((role: string) => {
+    const roleMap: { [key: string]: string } = {
+      'Receptionist': 'Lễ tân',
+      'Administrator': 'Quản trị viên',
+      'Owner': 'Chủ sở hữu',
+      'Assistant': 'Trợ lý',
+      'Dentist': 'Nha sĩ',
+      'Patient': 'Bệnh nhân'
+    };
+    return roleMap[role] || role;
+  }, []);
+  
   // 🔥 SỬ DỤNG HOOKS CÓ SẴN
   const { markAsRead } = useUnreadMessages(userId);
   const {
@@ -367,7 +380,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             <div>
               <h2 className="font-semibold text-gray-900">{conversation.fullName}</h2>
               <div className="flex items-center gap-2 text-sm text-gray-500">
-                <span className="capitalize">{conversation.role}</span>
+                <span className="capitalize">{getRoleDisplayName(conversation.role)}</span>
                 {conversation.phone && (
                   <>
                     <span>•</span>
@@ -443,8 +456,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
       {/* Input Area */}
       <div className="p-4 border-t border-gray-200 bg-white">
-        <div className="flex items-end gap-2">
-          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+        <div className="flex items-center gap-2">
+          <button 
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+            title="Đính kèm file"
+          >
             <Paperclip className="h-5 w-5 text-gray-600" />
           </button>
 
@@ -455,16 +471,16 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Nhập tin nhắn..."
-              className="w-full resize-none border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full resize-none border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[40px] max-h-[120px]"
               rows={1}
-              style={{ minHeight: '40px', maxHeight: '120px' }}
             />
           </div>
 
           <button
             onClick={handleSend}
             disabled={!input.trim()}
-            className={`p-2 rounded-full transition-colors ${
+            title="Gửi tin nhắn"
+            className={`p-2 rounded-full transition-colors flex-shrink-0 ${
               input.trim()
                 ? 'bg-blue-600 hover:bg-blue-700 text-white'
                 : 'bg-gray-100 text-gray-400 cursor-not-allowed'

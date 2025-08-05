@@ -56,6 +56,7 @@ export const PatientOrthodonticImagesPage: React.FC = () => {
               size="icon"
               onClick={handleGoBack}
               title="Quay lại danh sách kế hoạch điều trị"
+              className='border border-gray-300'
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>

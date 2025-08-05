@@ -10,7 +10,8 @@ import {
   TrendingUp,
   RefreshCw,
   AlertCircle,
-  Camera
+  Camera,
+  Eye
 } from "lucide-react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button2";
@@ -34,6 +35,7 @@ interface RecordRowProps {
   onEdit: (record: TreatmentRecord) => void;
   onToggleDelete: (id: number) => void;
   onOpenInvoiceModal: (patientId: number, treatmentRecordId: number) => void;
+  onViewDetail: (record: TreatmentRecord) => void; // New prop
   patientId: number;
   readonly?: boolean;
   orderNumber?: number;
@@ -44,22 +46,18 @@ const STATUS_CONFIG = {
   pending: {
     label: "Đã lên lịch",
     color: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    icon: "⏳",
   },
   "in-progress": {
     label: "Đang điều trị",
     color: "bg-blue-100 text-blue-800 border-blue-200",
-    icon: "🔄",
   },
   completed: {
     label: "Đã hoàn tất",
     color: "bg-green-100 text-green-800 border-green-200",
-    icon: "✅",
   },
   canceled: {
     label: "Đã huỷ",
     color: "bg-red-100 text-red-800 border-red-200",
-    icon: "❌",
   },
 } as const;
 
@@ -86,6 +84,7 @@ const RecordRow: React.FC<RecordRowProps> = ({
   onEdit,
   onToggleDelete,
   onOpenInvoiceModal,
+  onViewDetail, // New prop
   patientId,
   readonly = false,
   orderNumber,
@@ -275,6 +274,14 @@ const RecordRow: React.FC<RecordRowProps> = ({
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end" className="w-48">
+                {/* Xem chi tiết - Available for all users */}
+                <DropdownMenuItem onClick={() => onViewDetail(record)}>
+                  <Eye className="h-4 w-4 mr-2" />
+                  Xem chi tiết
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
                 {!readonly && userInfo.role === "Dentist" && (
                   <DropdownMenuItem onClick={() => onEdit(record)}>
                     <Edit2 className="h-4 w-4 mr-2" />

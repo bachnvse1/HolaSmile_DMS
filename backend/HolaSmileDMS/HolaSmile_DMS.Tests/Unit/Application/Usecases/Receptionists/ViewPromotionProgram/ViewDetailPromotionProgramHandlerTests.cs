@@ -13,7 +13,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
     public class ViewDetailPromotionProgramHandlerTests
     {
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new();
-        private readonly Mock<IPromotionrepository> _promotionRepositoryMock = new();
+        private readonly Mock<IPromotionRepository> _promotionRepositoryMock = new();
         private readonly Mock<IProcedureRepository> _procedureRepositoryMock = new();
         private readonly Mock<IUserCommonRepository> _userCommonRepositoryMock = new();
 

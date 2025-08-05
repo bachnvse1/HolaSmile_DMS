@@ -96,7 +96,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists
                 IsNewPatient = true,
                 Content = "Initial consultation",
                 CreatedAt = DateTime.Now,
-                Status = "confirmed"
+                Status = "attended"
             });
 
             _context.SaveChanges();

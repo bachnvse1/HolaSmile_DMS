@@ -168,21 +168,21 @@ export const ScheduleCalendarApproval: React.FC<Props> = ({
 
           <button
             onClick={handleSelectAllPending}
-            className="px-2 sm:px-3 py-2 text-xs bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
+            className="px-2 sm:px-3 py-2 text-xs bg-blue-100 text-blue-700 rounded-md border border-blue-300 hover:bg-blue-200 transition-colors"
           >
-            Tất cả lịch pending ({getPendingSchedules().length})
+            Tất cả lịch chờ duyệt ({getPendingSchedules().length})
           </button>
 
           <button
             onClick={handleSelectCurrentWeekPending}
-            className="px-2 sm:px-3 py-2 text-xs bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
+            className="px-2 sm:px-3 py-2 text-xs bg-green-100 text-green-700 rounded-md border border-green-300 hover:bg-green-200 transition-colors"
           >
             Tuần hiện tại ({getCurrentWeekPendingSchedules().length})
           </button>
 
           <button
             onClick={handleSelectCurrentAndNextWeekPending}
-            className="px-2 sm:px-3 py-2 text-xs bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200 transition-colors"
+            className="px-2 sm:px-3 py-2 text-xs bg-purple-100 text-purple-700 rounded-md border border-purple-300 hover:bg-purple-200 transition-colors"
           >
             Tuần hiện tại + tuần sau ({getCurrentAndNextWeekPendingSchedules().length})
           </button>
@@ -190,7 +190,7 @@ export const ScheduleCalendarApproval: React.FC<Props> = ({
           {selectedScheduleIds.length > 0 && (
             <button
               onClick={() => onScheduleSelect?.([])}
-              className="px-2 sm:px-3 py-2 text-xs bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
+              className="px-2 sm:px-3 py-2 text-xs bg-red-100 text-red-700 rounded-md border border-red-300 hover:bg-red-200 transition-colors"
             >
               Bỏ chọn tất cả
             </button>
@@ -309,6 +309,33 @@ export const ScheduleCalendarApproval: React.FC<Props> = ({
               ))}
             </div>
           </div>
+        </div>
+      </div>
+      
+      {/* Chú thích */}
+      <div className="px-3 sm:px-4 pb-3 sm:pb-4 pt-2 border-t border-gray-200">
+        <div className="flex flex-wrap gap-2 sm:gap-3 text-xs text-gray-600">
+          <div className="flex items-center">
+            <span className="inline-block w-3 h-3 bg-green-100 rounded-full mr-1"></span>
+            <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-1.5"></span>
+            <span>Đã duyệt</span>
+          </div>
+          <div className="flex items-center">
+            <span className="inline-block w-3 h-3 bg-yellow-100 rounded-full mr-1"></span>
+            <span className="inline-block w-2 h-2 bg-yellow-500 rounded-full mr-1.5"></span>
+            <span>Chờ duyệt</span>
+          </div>
+          <div className="flex items-center">
+            <span className="inline-block w-3 h-3 bg-red-100 rounded-full mr-1"></span>
+            <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-1.5"></span>
+            <span>Từ chối</span>
+          </div>
+          {!viewOnly && (
+            <div className="flex items-center">
+              <span className="inline-block w-3 h-3 bg-blue-50 rounded-full mr-1 ring-1 ring-blue-500"></span>
+              <span>Đã chọn</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

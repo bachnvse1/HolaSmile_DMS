@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Home,
   Calendar,
@@ -48,56 +48,8 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
-  
-  const { userId } = useAuth();
-  const { getTotalUnreadCount, refreshUnreadCounts } = useUnreadMessages(userId);
-  const { isConnected, messages } = useChatHub();
-  
-  // 🔥 Force refresh unread counts khi có tin nhắn mới trong ChatHub
-  useEffect(() => {
-    if (!userId || messages.length === 0) return;
-    
-    const lastMessage = messages[messages.length - 1];
-    console.log('🔥 StaffSidebar: New message detected:', lastMessage);
-    
-    // Chỉ refresh nếu tin nhắn đến cho user hiện tại (không phải từ user hiện tại)
-    if (lastMessage.receiverId === userId && lastMessage.senderId !== userId) {
-      console.log('🔥 StaffSidebar: Message is for current user, refreshing counts...');
-      // Delay để backend có thời gian xử lý
-      const timer = setTimeout(() => {
-        refreshUnreadCounts();
-        console.log('🔥 StaffSidebar: Refreshed unread counts');
-      }, 1000); // Tăng delay lên 1 giây
-      
-      return () => clearTimeout(timer);
-    }
-  }, [messages, userId, refreshUnreadCounts]);
-  
-  // 🔥 Periodic refresh mỗi 30 giây để đảm bảo sync
-  useEffect(() => {
-    if (!userId) return;
-    
-    const interval = setInterval(() => {
-      console.log('🔥 StaffSidebar: Periodic refresh unread counts');
-      refreshUnreadCounts();
-    }, 30000); // 30 giây
-    
-    return () => clearInterval(interval);
-  }, [userId, refreshUnreadCounts]);
-  
-  // 🔥 Refresh khi user thay đổi hoặc component mount
-  useEffect(() => {
-    if (userId) {
-      console.log('🔥 StaffSidebar: Initial refresh for user:', userId);
-      refreshUnreadCounts();
-    }
-  }, [userId, refreshUnreadCounts]);
-  
-  const totalUnreadCount = getTotalUnreadCount();
-  
-  console.log('🔥 StaffSidebar render - totalUnreadCount:', totalUnreadCount);
 
-  const menuItems: MenuItem[] = [
+  const menuItems: MenuItem[] = useMemo(() => [
     {
       id: 'dashboard',
       label: 'Tổng Quan',
@@ -263,15 +215,170 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
         }
       ]
     }
-  ];
+  ], []);
+
+  // Load expanded state from localStorage on mount
+  useEffect(() => {
+    const savedExpandedItems = localStorage.getItem('sidebar-expanded-items');
+    if (savedExpandedItems) {
+      try {
+        const parsed = JSON.parse(savedExpandedItems);
+        if (Array.isArray(parsed)) {
+          setExpandedItems(parsed);
+        }
+      } catch (error) {
+        console.error('Error parsing saved sidebar state:', error);
+      }
+    }
+  }, []);
+
+  // Save expanded state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('sidebar-expanded-items', JSON.stringify(expandedItems));
+  }, [expandedItems]);
+
+  // Auto-expand parent items based on current route
+  useEffect(() => {
+    const currentPath = location.pathname;
+    
+    // Find which parent item should be expanded based on current path
+    const findParentForPath = (): string | null => {
+      for (const item of menuItems) {
+        if (item.children) {
+          for (const child of item.children) {
+            if (child.path && (currentPath === child.path || currentPath.startsWith(child.path + '/'))) {
+              return item.id;
+            }
+          }
+        }
+      }
+      return null;
+    };
+
+    const parentId = findParentForPath();
+    if (parentId && !expandedItems.includes(parentId)) {
+      setExpandedItems(prev => {
+        if (!prev.includes(parentId)) {
+          return [...prev, parentId];
+        }
+        return prev;
+      });
+    }
+  }, [location.pathname]); // Removed menuItems and expandedItems from dependencies
+
+  const handleLogoClick = () => {
+    if (!isMobile && onToggle) {
+      onToggle();
+    }
+  };
+
+  const { userId } = useAuth();
+  const { getTotalUnreadCount, refreshUnreadCounts } = useUnreadMessages(userId);
+  const { isConnected, messages } = useChatHub();
+  
+  
+  // Force refresh unread counts khi có tin nhắn mới trong ChatHub
+  useEffect(() => {
+    if (!userId || messages.length === 0) return;
+    
+    const lastMessage = messages[messages.length - 1];
+    
+    // Chỉ refresh nếu tin nhắn đến cho user hiện tại (không phải từ user hiện tại)
+    if (lastMessage.receiverId === userId && lastMessage.senderId !== userId) {
+      // Delay để backend có thời gian xử lý
+      const timer = setTimeout(() => {
+        refreshUnreadCounts();
+      }, 1000); // Tăng delay lên 1 giây
+      
+      return () => clearTimeout(timer);
+    }
+  }, [messages, userId, refreshUnreadCounts]);
+  
+  // Periodic refresh mỗi 30 giây để đảm bảo sync
+  useEffect(() => {
+    if (!userId) return;
+    
+    const interval = setInterval(() => {
+      refreshUnreadCounts();
+    }, 30000); // 30 giây
+    
+    return () => clearInterval(interval);
+  }, [userId, refreshUnreadCounts]);
+  
+  // Refresh khi user thay đổi hoặc component mount
+  useEffect(() => {
+    if (userId) {
+      refreshUnreadCounts();
+    }
+  }, [userId, refreshUnreadCounts]);
+
+  // Refresh unread counts khi user visit message pages để cập nhật badge
+  useEffect(() => {
+    if (!userId) return;
+
+    // Các routes tin nhắn cần theo dõi
+    const messageRoutes = [
+      '/messages/internal',
+      '/messages/patient-consultation', 
+      '/messages/guest-consultation'
+    ];
+
+    const isOnMessagePage = messageRoutes.some(route => 
+      location.pathname === route || location.pathname.startsWith(route + '/')
+    );
+
+    if (isOnMessagePage) {
+      // Delay nhỏ để đảm bảo trang đã load và có thể mark messages as read
+      const timer = setTimeout(() => {
+        refreshUnreadCounts();
+      }, 2000); // 2 giây để đảm bảo trang đã load hoàn tất
+
+      return () => clearTimeout(timer);
+    }
+  }, [location.pathname, userId, refreshUnreadCounts]);
+
+  // Refresh ngay khi có focus/visibility change để cập nhật realtime
+  useEffect(() => {
+    if (!userId) return;
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        refreshUnreadCounts();
+      }
+    };
+
+    const handleFocus = () => {
+      refreshUnreadCounts();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [userId, refreshUnreadCounts]);
+  
+  const totalUnreadCount = getTotalUnreadCount();
 
   const toggleExpand = (itemId: string) => {
-    setExpandedItems(prev =>
-      prev.includes(itemId)
+    setExpandedItems(prev => {
+      const newItems = prev.includes(itemId)
         ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
-    );
+        : [...prev, itemId];
+      
+      // Save to localStorage immediately
+      localStorage.setItem('sidebar-expanded-items', JSON.stringify(newItems));
+      return newItems;
+    });
   };
+
+  // Function to clear all expanded items (useful for reset)
+  // const clearExpandedItems = () => {
+  //   setExpandedItems([]);
+  //   localStorage.removeItem('sidebar-expanded-items');
+  // };
 
   const isItemVisible = (item: MenuItem): boolean => {
     return item.roles.includes(userRole);
@@ -310,42 +417,62 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           <div className="flex items-center space-x-3">
             <div className="relative">
               {item.icon}
-              {/* 🔥 REALTIME BADGE - với logging */}
-              {isMessagesItem && totalUnreadCount > 0 && (
-                <div 
-                  className={`absolute -top-1 -right-1 w-3 h-3 rounded-full flex items-center justify-center ${
-                    isConnected ? 'bg-red-500 animate-pulse' : 'bg-orange-500'
-                  }`}
-                  title={`${totalUnreadCount} tin nhắn chưa đọc`}
-                >
-                  <span className="text-[8px] text-white font-bold">
-                    {totalUnreadCount > 9 ? '9+' : totalUnreadCount}
-                  </span>
-                </div>
-              )}
-              {/* Connection indicator */}
-              {isMessagesItem && !isConnected && (
-                <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-gray-400 rounded-full" title="Offline"></div>
-              )}
+              {/* REALTIME BADGE - với logging */}
+                                    {isMessagesItem && totalUnreadCount > 0 && (
+                    <div className="absolute -top-2 -right-2">
+                      {/* Ripple effect background */}
+                      <div 
+                        className="absolute inset-0 w-5 h-5 rounded-full bg-red-500"
+                        style={{
+                          animation: 'ripple 1.5s ease-out infinite'
+                        }}
+                      />
+                      {/* Main badge */}
+                      <div 
+                        className="relative w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white"
+                        title={`${totalUnreadCount} tin nhắn chưa đọc`}
+                        style={{
+                          animation: 'pulse 2s ease-in-out infinite'
+                        }}
+                      >
+                        <span className="text-[10px] text-white font-bold">
+                          {totalUnreadCount > 9 ? '9+' : totalUnreadCount}
+                        </span>
+                      </div>
+                      
+                      <style>{`
+                        @keyframes ripple {
+                          0% {
+                            transform: scale(1);
+                            opacity: 1;
+                          }
+                          70% {
+                            transform: scale(2.5);
+                            opacity: 0.3;
+                          }
+                          100% {
+                            transform: scale(3);
+                            opacity: 0;
+                          }
+                        }
+                        
+                        @keyframes pulse {
+                          0%, 100% {
+                            transform: scale(1);
+                            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+                          }
+                          50% {
+                            transform: scale(1.1);
+                            box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+                          }
+                        }
+                      `}</style>
+                    </div>
+                  )}
             </div>
             {!isCollapsed && (
               <div className="flex items-center gap-2">
                 <span className="font-medium">{item.label}</span>
-                {/* 🔥 EXPANDED BADGE - với logging */}
-                {isMessagesItem && totalUnreadCount > 0 && (
-                  <div 
-                    className={`text-white text-xs rounded-full px-1.5 py-0.5 min-w-[16px] flex items-center justify-center ${
-                      isConnected ? 'bg-red-500 animate-pulse' : 'bg-orange-500'
-                    }`}
-                    title={`${totalUnreadCount} tin nhắn chưa đọc`}
-                  >
-                    {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
-                  </div>
-                )}
-                {/* Connection status */}
-                {isMessagesItem && !isConnected && (
-                  <span className="text-xs text-gray-400">(Offline)</span>
-                )}
               </div>
             )}
           </div>
@@ -370,51 +497,93 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
   };
 
   return (
-    <aside
-      className={`
-        bg-white border-r border-gray-200 transition-all duration-300 flex flex-col
-        ${isCollapsed ? 'w-16' : 'w-64'}
-        ${isMobile 
-          ? 'fixed inset-y-0 left-0 z-50' 
-          : 'relative'
-        }
-      `}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        {!isCollapsed && (
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+    <>
+      {/* Mobile Overlay - Prevent interaction with content behind */}
+      {isMobile && !isCollapsed && (
+        <div
+          className="fixed inset-0 bg-opacity-30 z-20 md:hidden"
+          onClick={onClose}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`
+        ${isMobile ? 'fixed left-0 top-0 z-50' : 'fixed left-0 top-0 z-30'}
+        bg-white ${isMobile ? 'transition-transform duration-300' : 'transition-all duration-300 ease-in-out'}
+        ${isCollapsed ? (isMobile ? '-translate-x-full' : 'w-16') : 'w-64'}
+        h-screen flex flex-col
+      `}>
+        {/* Header - Fixed */}
+        <div className="p-4 flex-shrink-0 h-16 border-b border-gray-300">
+          {!isCollapsed && (
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-blue-600 cursor-pointer" onClick={handleLogoClick}>
+                HolaSmile
+              </h2>
+              <div className="flex items-center space-x-2">
+                {isMobile && (
+                  <button
+                    onClick={onClose}
+                    className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                    title="Close sidebar"
+                  >
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+                {!isMobile && onToggle && (
+                  <button
+                    onClick={onToggle}
+                    className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                    title="Collapse sidebar"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+          {isCollapsed && !isMobile && (
+            <div
+              className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center cursor-pointer hover:bg-blue-700 transition-colors"
+              onClick={handleLogoClick}
+              title="Expand sidebar"
+            >
               <span className="text-white font-bold text-sm">HS</span>
             </div>
-            <span className="font-bold text-gray-900">HolaSmile</span>
+          )}
+        </div>
+
+        {/* Navigation - Scrollable */}
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="space-y-1">
+            {menuItems.map(item => renderMenuItem(item))}
+
+            {/* Expand button when collapsed (non-mobile) */}
+            {isCollapsed && !isMobile && onToggle && (
+              <button
+                onClick={onToggle}
+                className="w-full flex items-center justify-center px-4 py-3 pl-3 text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                title="Expand sidebar"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            )}
           </div>
-        )}
-        <button
-          onClick={onToggle}
-          className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          <ChevronLeft className={`h-4 w-4 transition-transform ${isCollapsed ? 'rotate-180' : ''}`} />
-        </button>
-      </div>
-
-      {/* Menu Items */}
-      <nav className="flex-1 overflow-y-auto py-2">
-        {menuItems.map(item => renderMenuItem(item))}
-      </nav>
-
-      {/* Footer */}
-      <div className="p-4 border-t border-gray-200">
+        </nav>
+        <div className="p-4 border-t border-gray-200">
         {!isCollapsed && (
           <div className="text-xs text-gray-500 text-center">
             <div>Version 1.0.0</div>
-            {/* 🔥 DEBUG INFO */}
+            {/* DEBUG INFO - SỬ DỤNG useUnreadMessages */}
             <div className="mt-1">
-              Unread: {totalUnreadCount} | {isConnected ? '🟢 Online' : '🔴 Offline'}
+              Messages: {totalUnreadCount} | 🟢 "Online"
             </div>
           </div>
         )}
       </div>
-    </aside>
+      </div >
+    </>
   );
 };

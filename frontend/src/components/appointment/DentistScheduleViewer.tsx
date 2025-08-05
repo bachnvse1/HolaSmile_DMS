@@ -229,7 +229,7 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
         <div className="fixed inset-0 z-50">
           {/* Backdrop overlay */}
           <div
-            className="fixed inset-0 bg-white bg-opacity-50 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/20 bg-opacity-50"
             onClick={() => setShowBookingForm(false)}
           ></div>
 
@@ -260,7 +260,7 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
               ) : (
                 <>
                   {/* Email input if not available */}
-                  {!prefilledData?.email && (
+                  {/* {!prefilledData?.email && (
                     <div className="mb-4">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Email của bạn: <span className="text-red-500">*</span>
@@ -277,7 +277,7 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
                         Email sẽ được dùng để gửi xác nhận lịch hẹn
                       </p>
                     </div>
-                  )}
+                  )} */}
                   <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Vấn đề bạn gặp phải: <span className="text-red-500">*</span>

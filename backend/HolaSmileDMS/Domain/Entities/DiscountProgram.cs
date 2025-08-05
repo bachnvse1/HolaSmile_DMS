@@ -20,7 +20,7 @@ namespace Domain.Entities
         public int CreatedBy { get; set; }
         public int? UpdatedBy { get; set; }
 
-        public bool IsDelete { get; set; }
+        public bool IsDelete { get; set; } = true;
 
         // Quan hệ nhiều-nhiều với Procedure
         public ICollection<ProcedureDiscountProgram> ProcedureDiscountPrograms { get; set; } = new List<ProcedureDiscountProgram>();
