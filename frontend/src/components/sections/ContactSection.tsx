@@ -1,5 +1,5 @@
 import { MapPin, Phone, Mail, Clock, Send } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export const ContactSection = () => {
   const [formData, setFormData] = useState({
@@ -9,6 +9,25 @@ export const ContactSection = () => {
     service: '',
     message: ''
   });
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -25,10 +44,12 @@ export const ContactSection = () => {
   };
 
   return (
-    <section id="contact" className="py-20 bg-gray-50">
+    <section ref={sectionRef} id="contact" className="py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-16">
+        <div className={`text-center mb-16 transform transition-all duration-1000 ${
+          isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+        }`}>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             Liên Hệ Với Chúng Tôi
           </h2>
@@ -40,7 +61,9 @@ export const ContactSection = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Contact Information */}
-          <div className="space-y-8">
+          <div className={`space-y-8 transform transition-all duration-1000 delay-200 ${
+            isVisible ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'
+          }`}>
             <div>
               <h3 className="text-2xl font-bold text-gray-900 mb-6">Thông Tin</h3>
               <p className="text-gray-600 mb-8">
@@ -51,7 +74,7 @@ export const ContactSection = () => {
 
             {/* Contact Details */}
             <div className="space-y-6">
-              <div className="flex items-start space-x-4">
+              <div className="flex items-start space-x-4 transform transition-all duration-500 hover:scale-105">
                 <div className="bg-blue-100 p-3 rounded-lg">
                   <MapPin className="h-6 w-6 text-blue-600" />
                 </div>
@@ -61,7 +84,7 @@ export const ContactSection = () => {
                 </div>
               </div>
 
-              <div className="flex items-start space-x-4">
+              <div className="flex items-start space-x-4 transform transition-all duration-500 hover:scale-105">
                 <div className="bg-blue-100 p-3 rounded-lg">
                   <Phone className="h-6 w-6 text-blue-600" />
                 </div>
@@ -71,7 +94,7 @@ export const ContactSection = () => {
                 </div>
               </div>
 
-              <div className="flex items-start space-x-4">
+              <div className="flex items-start space-x-4 transform transition-all duration-500 hover:scale-105">
                 <div className="bg-blue-100 p-3 rounded-lg">
                   <Mail className="h-6 w-6 text-blue-600" />
                 </div>
@@ -81,7 +104,7 @@ export const ContactSection = () => {
                 </div>
               </div>
 
-              <div className="flex items-start space-x-4">
+              <div className="flex items-start space-x-4 transform transition-all duration-500 hover:scale-105">
                 <div className="bg-blue-100 p-3 rounded-lg">
                   <Clock className="h-6 w-6 text-blue-600" />
                 </div>
@@ -97,7 +120,7 @@ export const ContactSection = () => {
             </div>
 
             {/* Emergency Contact */}
-            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6 transform transition-all duration-500 hover:scale-105">
               <h4 className="font-semibold text-red-900 mb-2">Số Điện Thoại Khẩn Cấp</h4>
               <p className="text-red-700 text-sm">
                 Trong trường hợp khẩn cấp nha khoa ngoài giờ làm việc, vui lòng gọi:
@@ -107,7 +130,9 @@ export const ContactSection = () => {
           </div>
 
           {/* Contact Form */}
-          <div className="bg-white rounded-2xl shadow-lg p-8">
+          <div className={`bg-white rounded-2xl shadow-lg p-8 transform transition-all duration-1000 delay-400 ${
+            isVisible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'
+          }`}>
             <h3 className="text-2xl font-bold text-gray-900 mb-6">Gửi tin nhắn cho chúng tôi</h3>
             
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -123,7 +148,7 @@ export const ContactSection = () => {
                     value={formData.name}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                     placeholder="Your full name"
                   />
                 </div>
@@ -139,7 +164,7 @@ export const ContactSection = () => {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                     placeholder="your@email.com"
                   />
                 </div>
@@ -156,7 +181,7 @@ export const ContactSection = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                     placeholder="(555) 123-4567"
                   />
                 </div>
@@ -170,7 +195,7 @@ export const ContactSection = () => {
                     name="service"
                     value={formData.service}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                   >
                     <option value="">Chọn một dịch vụ</option>
                     <option value="general">Nha Khoa Tổng Quát</option>
@@ -193,14 +218,14 @@ export const ContactSection = () => {
                   value={formData.message}
                   onChange={handleInputChange}
                   rows={5}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                   placeholder="Tell us about your dental needs or questions..."
                 ></textarea>
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center"
+                className="w-full bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center justify-center"
               >
                 Gửi Tin Nhắn
                 <Send className="ml-2 h-5 w-5" />
@@ -209,8 +234,10 @@ export const ContactSection = () => {
           </div>
         </div>        
         {/* Map Section */}
-        <div className="mt-16">
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div className={`mt-16 transform transition-all duration-1000 delay-600 ${
+          isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+        }`}>
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
             <div className="h-96">
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.5063419425055!2d105.52271427509262!3d21.01241668063283!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135abc60e7d3f19%3A0x2be9d7d0b5abcbf4!2sFPT%20University!5e0!3m2!1sen!2s!4v1749738836602!5m2!1sen!2s"
