@@ -128,7 +128,7 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
                 PatientId = appointment?.PatientId,
                 DentistId = request.DentistId,
                 Status = "confirmed",
-                Content = $"Lịch hẹn điều trị vào ngày {request.TreatmentDate}",
+                Content = $"Lịch hẹn điều trị vào ngày {request.TreatmentDate} dựa vào lịch hẹn gốc #{appointment?.AppointmentDate.Date} {appointment?.AppointmentTime} được tạo bởi nha sĩ {fullName}",
                 IsNewPatient = false,
                 AppointmentType = "treatment",
                 AppointmentDate = request.TreatmentDate.Date,
@@ -153,7 +153,7 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
                         await _mediator.Send(new SendNotificationCommand(
                             userIdNotification,
                             "Tạo lịch hẹn điều trị",
-                            $"Lịch hẹn điều trị mới của bạn là ngày {request.TreatmentDate} đã được nha sĩ {fullName} tạo.",
+                            $"Lịch hẹn điều trị mới của bạn là ngày {request.TreatmentDate} đã được nha sĩ {fullName} tạo",
                             "Lịch điều trị",
                             0, ""
                         ), cancellationToken);

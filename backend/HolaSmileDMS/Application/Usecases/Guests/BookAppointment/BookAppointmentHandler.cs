@@ -96,9 +96,9 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 var checkValidAppointment = await _appointmentRepository.GetLatestAppointmentByPatientIdAsync(patient.PatientID);
                 if (checkValidAppointment != null &&
                     (checkValidAppointment.Status == "confirmed" ||
-                     (checkValidAppointment.AppointmentDate.Date >= DateTime.Now.Date && checkValidAppointment.Status != "absented")))
+                     (checkValidAppointment.AppointmentDate.Date >= DateTime.Now.Date && checkValidAppointment.Status == "confirmed")))
                 {
-                    throw new Exception(MessageConstants.MSG.MSG89); // "Kế hoạch điều trị đã tồn tại"
+                    throw new Exception(MessageConstants.MSG.MSG89); 
                 }
                 appType = "follow-up";
 
@@ -124,10 +124,11 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
                 IsDeleted = false
             };
             var isBookAppointment = await _appointmentRepository.CreateAppointmentAsync(appointment);
-            var dentist = await _dentistRepository.GetDentistByDentistIdAsync(request.DentistId);
-            var receptionists = await _userCommonRepository.GetAllReceptionistAsync();
+
             try
             {
+                var dentist = await _dentistRepository.GetDentistByDentistIdAsync(request.DentistId);
+                var receptionists = await _userCommonRepository.GetAllReceptionistAsync();
                 //GỬI THÔNG BÁO CHO DENTIST
                 await _mediator.Send(new SendNotificationCommand(
                     dentist.User.UserID,
@@ -139,9 +140,9 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
 
                 var notifyReceptionists = receptionists.Select(async r =>
                  await _mediator.Send(new SendNotificationCommand(
-                               r.UserId,
+                               r.User.UserID,
                                "Đăng ký khám",
-                                $"Bệnh nhân mới đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
+                                $"Bệnh nhân đã đăng ký khám vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
                                 "appointment", 0, $"appointments/{appointment.AppointmentId}"),
                                 cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyReceptionists);

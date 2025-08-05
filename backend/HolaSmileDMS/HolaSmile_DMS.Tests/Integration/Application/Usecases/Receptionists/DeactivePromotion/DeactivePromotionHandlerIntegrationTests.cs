@@ -18,7 +18,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
     public class DeactivePromotionHandlerIntegrationTests
     {
         private readonly ApplicationDbContext _context;
-        private readonly IPromotionrepository _promotionRepository;
+        private readonly IPromotionRepository _promotionRepository;
         private readonly IProcedureRepository _procedureRepository;
         private readonly IOwnerRepository _ownerRepository;
         private readonly Mock<IMediator> _mediatorMock;
@@ -31,7 +31,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
                 .Options;
 
             _context = new ApplicationDbContext(options);
-            _promotionRepository = new Promotionrepository(_context);
+            _promotionRepository = new PromotionRepository(_context);
             _procedureRepository = new ProcedureRepository(_context);
             _ownerRepository = new OwnerRepository(_context);
             _mediatorMock = new Mock<IMediator>();
@@ -191,6 +191,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
             //_context.SaveChanges();
             var promo = await _promotionRepository.GetDiscountProgramByIdAsync(1);
             promo.IsDelete = true;
+            promo.CreateAt = DateTime.Now;
             await _promotionRepository.UpdateDiscountProgramAsync(promo);
 
             SetupHttpContext("receptionist", 1);
@@ -234,6 +235,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
             // Toggle main promotion to inactive
             var promo = await _promotionRepository.GetDiscountProgramByIdAsync(3);
             promo.IsDelete = true;
+            promo.CreateAt = DateTime.Now;
             await _promotionRepository.UpdateDiscountProgramAsync(promo);
 
             SetupHttpContext("receptionist", 1);

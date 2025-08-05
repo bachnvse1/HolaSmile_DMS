@@ -10,7 +10,6 @@ namespace Application.Interfaces
         Task<List<AppointmentDTO>> GetAllAppointmentAsync();
         Task<AppointmentDTO> GetDetailAppointmentByAppointmentIDAsync(int appointmentId);
         Task<Appointment> GetAppointmentByIdAsync(int appointmentId);
-        Task<bool> CancelAppointmentAsync(int appId, int cancleBy);
         Task<bool> CheckPatientAppointmentByUserIdAsync(int appId, int userId);
         Task<bool> CheckDentistAppointmentByUserIdAsync(int appId, int userId);
         Task<bool> ExistsAppointmentAsync(int patientId, DateTime date);
