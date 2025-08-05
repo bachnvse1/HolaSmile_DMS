@@ -8,13 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@radix-ui/react-label"
 import { Textarea } from "@/components/ui/textarea"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { CalendarIcon, Save, X, AlertCircle, FileText, Clock, User } from "lucide-react"
 import { format, isBefore, startOfToday } from "date-fns"
@@ -22,7 +15,6 @@ import { Calendar } from "@/components/ui/calendar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { createTreatmentProgress } from "@/services/treatmentProgressService"
 
-// Constants
 const STATUS_OPTIONS = [
     { value: "pending", label: "Đã lên lịch", icon: Clock, color: "text-gray-600" },
     { value: "in-progress", label: "Đang điều trị", icon: FileText, color: "text-blue-600" },
@@ -33,12 +25,11 @@ const STATUS_OPTIONS = [
 const DEFAULT_FORM_VALUES = {
     progressName: "",
     progressContent: "",
-    status: undefined as "pending" | "in-progress" | "completed" | "canceled" | undefined,
+    status: "in-progress" as const, 
     duration: undefined as number | undefined,
     description: "",
 }
 
-// Utility functions
 const toVietnamISOString = (date: Date): string => {
     const vietnamOffset = -date.getTimezoneOffset()
     const localTime = new Date(date.getTime() + vietnamOffset * 60000)
@@ -52,7 +43,6 @@ const getCurrentDateTime = () => {
     return { date, time }
 }
 
-// Validation schema
 const validationSchema = yup.object({
     progressName: yup
         .string()
@@ -83,7 +73,6 @@ const validationSchema = yup.object({
 
 type FormData = yup.InferType<typeof validationSchema>
 
-// Types
 interface Props {
     treatmentRecordID: number
     patientID: number
@@ -98,7 +87,6 @@ interface DateTimeState {
     error: string | null
 }
 
-// Custom hooks
 const useDateTimeState = () => {
     const [state, setState] = useState<DateTimeState>(() => {
         const { date, time } = getCurrentDateTime()
@@ -153,11 +141,9 @@ export default function NewTreatmentProgress({
     const { state: dateTimeState, updateState, handleDateSelect, handleTimeChange } = useDateTimeState()
     const [submitError, setSubmitError] = useState<string | null>(null)
 
-    // Form setup
     const {
         register,
         handleSubmit,
-        setValue,
         watch,
         reset,
         formState: { errors, isSubmitting, isValid },
@@ -168,12 +154,8 @@ export default function NewTreatmentProgress({
     })
 
     const watchedValues = watch()
-    const selectedStatus = watch("status")
 
-    // Computed values
-    const selectedStatusInfo = useMemo(() => {
-        return STATUS_OPTIONS.find(opt => opt.value === selectedStatus)
-    }, [selectedStatus])
+    const inProgressStatus = STATUS_OPTIONS.find(opt => opt.value === "in-progress")!
 
     const canSubmit = useMemo(() => {
         return isValid && 
@@ -183,7 +165,6 @@ export default function NewTreatmentProgress({
                !isSubmitting
     }, [isValid, dateTimeState.selectedDate, dateTimeState.selectedTime, dateTimeState.error, isSubmitting])
 
-    // Event handlers
     const handleReset = useCallback(() => {
         reset(DEFAULT_FORM_VALUES)
         const { date, time } = getCurrentDateTime()
@@ -198,18 +179,15 @@ export default function NewTreatmentProgress({
     const onSubmit = async (data: FormData) => {
         setSubmitError(null)
 
-        // Validate date and time
         if (!dateTimeState.selectedDate || !dateTimeState.selectedTime) {
             updateState({ error: "Vui lòng chọn ngày và giờ kết thúc" })
             return
         }
 
-        // Combine date and time
         const [hour, minute] = dateTimeState.selectedTime.split(":").map(Number)
         const combinedDate = new Date(dateTimeState.selectedDate)
         combinedDate.setHours(hour, minute, 0, 0)
 
-        // Validate combined date is not in the past
         if (isBefore(combinedDate, new Date())) {
             updateState({ error: "Thời gian kết thúc không thể ở quá khứ" })
             return
@@ -228,10 +206,8 @@ export default function NewTreatmentProgress({
             const result = await createTreatmentProgress(progressData)
             toast.success(result.message || "Tạo tiến trình thành công")
             
-            // Call success callback
             onCreated(result.data || progressData)
             
-            // Close modal after short delay
             setTimeout(() => {
                 onClose()
             }, 500)
@@ -244,7 +220,6 @@ export default function NewTreatmentProgress({
         }
     }
 
-    // Render functions
     const renderHeader = () => (
         <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -311,37 +286,11 @@ export default function NewTreatmentProgress({
     const renderStatusAndDuration = () => (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-                <Label htmlFor="status">Trạng thái *</Label>
-                <Select
-                    value={selectedStatus}
-                    onValueChange={(value) => setValue("status", value as "pending" | "in-progress" | "completed" | "canceled")}
-                >
-                    <SelectTrigger className={errors.status ? "border-red-500" : ""}>
-                        <SelectValue placeholder="Chọn trạng thái điều trị" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {STATUS_OPTIONS.map((option) => {
-                            const IconComponent = option.icon
-                            return (
-                                <SelectItem key={option.value} value={option.value}>
-                                    <div className="flex items-center gap-2">
-                                        <IconComponent className={`h-4 w-4 ${option.color}`} />
-                                        {option.label}
-                                    </div>
-                                </SelectItem>
-                            )
-                        })}
-                    </SelectContent>
-                </Select>
-                {errors.status && (
-                    <p className="text-red-500 text-sm mt-1">{errors.status.message}</p>
-                )}
-                {selectedStatusInfo && (
-                    <p className="text-xs text-gray-600 mt-1 flex items-center gap-1">
-                        <selectedStatusInfo.icon className={`h-3 w-3 ${selectedStatusInfo.color}`} />
-                        {selectedStatusInfo.label}
-                    </p>
-                )}
+                <Label>Trạng thái</Label>
+                <div className="p-3 border rounded-md bg-gray-50 flex items-center gap-2">
+                    <inProgressStatus.icon className={`h-4 w-4 ${inProgressStatus.color}`} />
+                    <span className="text-sm font-medium">{inProgressStatus.label}</span>
+                </div>
             </div>
 
             <div>

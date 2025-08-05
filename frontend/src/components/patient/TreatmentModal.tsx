@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import type { UseFormReturn } from "react-hook-form";
 import type { TreatmentFormData } from "@/types/treatment";
 import { useCalculateTotal } from "@/hooks/useCalculateTotal";
-import { formatCurrency } from "@/utils/currencyUtils";
+import { formatCurrency, parseCurrency, handleCurrencyInput } from "@/utils/currencyUtils";
 import {
   createTreatmentRecord,
   updateTreatmentRecord,
@@ -16,6 +16,26 @@ import type { Procedure } from "@/types/procedure";
 import { SHIFT_TIME_MAP } from "@/utils/schedule";
 import { parseLocalDate } from "@/utils/dateUtils";
 import { ProcedureService } from "@/services/procedureService";
+
+// Status configuration
+const STATUS_CONFIG = {
+  pending: {
+    label: "Đã lên lịch",
+    color: "bg-yellow-100 text-yellow-800 border-yellow-200",
+  },
+  "in-progress": {
+    label: "Đang điều trị",
+    color: "bg-blue-100 text-blue-800 border-blue-200",
+  },
+  completed: {
+    label: "Đã hoàn tất",
+    color: "bg-green-100 text-green-800 border-green-200",
+  },
+  canceled: {
+    label: "Đã huỷ",
+    color: "bg-red-100 text-red-800 border-red-200",
+  },
+} as const;
 
 interface TreatmentRecord {
   id: number;
@@ -72,13 +92,58 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
   const [createdRecords, setCreatedRecords] = useState<TreatmentRecord[]>([]);
   const [procedureLoading, setProcedureLoading] = useState(false);
 
+  // State for formatted currency display
+  const [formattedPrices, setFormattedPrices] = useState({
+    unitPrice: "",
+    discountAmount: ""
+  });
+
   const selectedDentistId = watch("dentistID");
   const selectedProcedureId = watch("procedureID");
   const unitPrice = watch("unitPrice") || 0;
   const quantity = watch("quantity") || 0;
   const discountAmount = watch("discountAmount") || 0;
   const discountPercentage = watch("discountPercentage") || 0;
+  const treatmentDate = watch("treatmentDate");
+  const treatmentStatus = watch("treatmentStatus");
   const totalAmount = useCalculateTotal(unitPrice, quantity, discountAmount, discountPercentage);
+
+  // Update formatted prices when form values change
+  useEffect(() => {
+    setFormattedPrices({
+      unitPrice: unitPrice > 0 ? formatCurrency(unitPrice) : "",
+      discountAmount: discountAmount > 0 ? formatCurrency(discountAmount) : ""
+    });
+  }, [unitPrice, discountAmount]);
+
+  // Handle currency input for discount amount
+  const handleDiscountAmountChange = (value: string) => {
+    handleCurrencyInput(value, (formatted) => {
+      setFormattedPrices(prev => ({ ...prev, discountAmount: formatted }));
+      const numericValue = parseCurrency(formatted);
+      setValue("discountAmount", numericValue, { shouldValidate: true });
+    });
+  };
+
+  // Format treatment date for display
+  const formatTreatmentDate = (dateString: string) => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString;
+      
+      // Format as DD/MM/YYYY HH:mm
+      return date.toLocaleString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      return dateString;
+    }
+  };
 
   useEffect(() => {
     if (!isEditing) {
@@ -171,8 +236,9 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
         setValue("appointmentID", appointmentID);
         setValue("treatmentStatus", treatmentStatus);
 
-        // Clear procedure selection
+        // Clear procedure selection and formatted prices
         setSelectedProcedure(null);
+        setFormattedPrices({ unitPrice: "", discountAmount: "" });
 
         // Only call onSubmit if we should close after create
         if (!keepOpenAfterCreate && onSubmit) {
@@ -189,6 +255,7 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
   const handleClose = () => {
     setCreatedRecords([]);
     setSelectedProcedure(null);
+    setFormattedPrices({ unitPrice: "", discountAmount: "" });
     onClose();
   };
 
@@ -258,6 +325,10 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                           setSelectedProcedure(procedure);
                           setValue("procedureID", procedure.procedureId, { shouldValidate: true });
                           setValue("unitPrice", procedure.price, { shouldValidate: true });
+                          setFormattedPrices(prev => ({ 
+                            ...prev, 
+                            unitPrice: formatCurrency(procedure.price) 
+                          }));
                           toast.success(`Đã chọn thủ thuật: ${procedure.procedureName}`);
                         }
                       }}
@@ -281,23 +352,58 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className={`grid grid-cols-1 gap-6 ${isEditing ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Vị trí răng *</label>
                     <input
                       {...register("toothPosition", { required: "Bắt buộc" })}
                       className="w-full border border-gray-300 rounded-md px-3 py-2"
                     />
+                    {errors.toothPosition && (
+                      <p className="text-sm text-red-500 mt-1">{errors.toothPosition.message}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Ngày điều trị *</label>
                     <input
-                      {...register("treatmentDate", { required: "Bắt buộc" })}
+                      value={formatTreatmentDate(treatmentDate || "")}
                       type="text"
                       disabled
                       className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100"
+                      placeholder="Chưa chọn ngày điều trị"
                     />
+                    {errors.treatmentDate && (
+                      <p className="text-sm text-red-500 mt-1">{errors.treatmentDate.message}</p>
+                    )}
                   </div>
+                  {/* Only show treatment status field in editing mode */}
+                  {isEditing && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái điều trị *</label>
+                      <select
+                        {...register("treatmentStatus", { required: isEditing ? "Bắt buộc" : false })}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      >
+                        <option value="">Chọn trạng thái</option>
+                        {Object.entries(STATUS_CONFIG).map(([key, config]) => (
+                          <option key={key} value={key}>
+                            {config.label}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.treatmentStatus && (
+                        <p className="text-sm text-red-500 mt-1">{errors.treatmentStatus.message}</p>
+                      )}
+                      {/* Display current status with styled badge */}
+                      {treatmentStatus && (
+                        <div className="mt-2">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${STATUS_CONFIG[treatmentStatus as keyof typeof STATUS_CONFIG]?.color || 'bg-gray-100 text-gray-800 border-gray-200'}`}>
+                            {STATUS_CONFIG[treatmentStatus as keyof typeof STATUS_CONFIG]?.label || treatmentStatus}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -314,20 +420,22 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Đơn giá *</label>
                     <input
-                      {...register("unitPrice", { required: "Bắt buộc", min: 0, valueAsNumber: true })}
-                      type="number"
-                      step="0.01"
+                      value={formattedPrices.unitPrice}
+                      type="text"
                       className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100"
                       disabled
+                      placeholder="Chọn thủ thuật để hiển thị giá"
                     />
+                    {errors.unitPrice && <p className="text-sm text-red-500 mt-1">{errors.unitPrice.message}</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Giảm trực tiếp</label>
                     <input
-                      {...register("discountAmount", { min: { value: 0, message: "Phải lớn hơn bằng 0" }, valueAsNumber: true })}
-                      type="number"
-                      step="0.01"
+                      value={formattedPrices.discountAmount}
+                      onChange={(e) => handleDiscountAmountChange(e.target.value)}
+                      type="text"
                       className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      placeholder="0"
                     />
                     {errors.discountAmount && <p className="text-sm text-red-500 mt-1">{errors.discountAmount.message}</p>}
                   </div>
@@ -357,6 +465,9 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                     rows={2}
                     className="w-full border border-gray-300 rounded-md px-3 py-2"
                   />
+                  {errors.symptoms && (
+                    <p className="text-sm text-red-500 mt-1">{errors.symptoms.message}</p>
+                  )}
                 </div>
 
                 <div>
@@ -366,6 +477,9 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                     rows={2}
                     className="w-full border border-gray-300 rounded-md px-3 py-2"
                   />
+                  {errors.diagnosis && (
+                    <p className="text-sm text-red-500 mt-1">{errors.diagnosis.message}</p>
+                  )}
                 </div>
               </fieldset>
 

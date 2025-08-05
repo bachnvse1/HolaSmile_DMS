@@ -60,6 +60,19 @@ export const invoiceService = {
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Lỗi khi in hóa đơn");
     }
+  },
+
+  async updateInvoice(data: {
+    invoiceId: number
+    patientId: number
+    paymentMethod: string
+    transactionType: string
+    status: string
+    description: string
+    paidAmount: number
+  }): Promise<any> {
+    const response = await axiosInstance.put("/invoice/update", data)
+    return response.data
   }
 
 }

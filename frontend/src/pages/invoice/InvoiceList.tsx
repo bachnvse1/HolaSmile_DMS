@@ -9,6 +9,7 @@ import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-r
 import { InvoiceFilterForm } from "@/components/invoice/InvoiceFilterForm"
 import { InvoiceTable } from "@/components/invoice/InvoiceTable"
 import { InvoiceDetailModal } from "@/components/invoice/InvoiceDetailModal"
+import { UpdateInvoiceModal } from "@/components/invoice/UpdateInvoiceModal"
 
 import { invoiceService } from "@/services/invoiceService"
 import { getAllPatients } from "@/services/patientService"
@@ -18,10 +19,13 @@ import { useUserInfo } from "@/hooks/useUserInfo"
 import { AuthGuard } from "@/components/AuthGuard"
 import { StaffLayout } from "@/layouts/staff"
 import { PatientLayout } from "@/layouts/patient"
+import { formatCurrency } from "@/utils/currencyUtils"
 
 const INVOICE_STATUS_CONFIG = {
-    pending: { label: "Chờ thanh toán", variant: "secondary" as const },
+    pending: { label: "Chờ thanh toán", variant: "info" as const },
     paid: { label: "Đã thanh toán", variant: "default" as const },
+    cancelled: { label: "Đã hủy", variant: "warning" as const },
+    overdue: { label: "Quá hạn", variant: "destructive" as const },
 } as const
 
 const TRANSACTION_TYPE_CONFIG = {
@@ -45,6 +49,16 @@ interface PaginationState {
     pageSize: number
     totalPages: number
     totalItems: number
+}
+
+interface UpdateInvoiceFormData {
+    invoiceId: number;
+    patientId: number;
+    paymentMethod: string;
+    transactionType: string;
+    status: string;
+    description: string;
+    paidAmount: number;
 }
 
 class InvoiceFilterManager {
@@ -200,6 +214,10 @@ export default function InvoiceList() {
     const [isInitialized, setIsInitialized] = useState(false)
     const [filterErrors, setFilterErrors] = useState<string[]>([])
 
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
+    const [isUpdating, setIsUpdating] = useState(false)
+    const [invoiceToUpdate, setInvoiceToUpdate] = useState<Invoice | null>(null)
+
     const [pagination, setPagination] = useState<PaginationState>({
         currentPage: 1,
         pageSize: DEFAULT_PAGE_SIZE,
@@ -352,14 +370,6 @@ export default function InvoiceList() {
         }))
     }, [])
 
-    const formatCurrency = useCallback((amount: number | null): string => {
-        if (amount === null || amount === undefined) return "N/A"
-        return new Intl.NumberFormat("vi-VN", {
-            style: "currency",
-            currency: "VND",
-        }).format(amount)
-    }, [])
-
     const formatDate = useCallback((dateString: string | null): string => {
         if (!dateString) return "Chưa thanh toán"
 
@@ -393,6 +403,54 @@ export default function InvoiceList() {
         setSelectedInvoice(invoice)
         setIsDetailOpen(true)
     }, [])
+
+    const handleOpenUpdateModal = useCallback((invoice: Invoice) => {
+        setInvoiceToUpdate(invoice)
+        setIsUpdateModalOpen(true)
+    }, [])
+
+    const handleCloseUpdateModal = useCallback(() => {
+        setIsUpdateModalOpen(false)
+        setInvoiceToUpdate(null)
+    }, [])
+
+    const handleUpdateInvoice = useCallback(async (formData: UpdateInvoiceFormData) => {
+        setIsUpdating(true)
+        try {
+            await invoiceService.updateInvoice(formData)
+
+            const updatedInvoices = allInvoices.map(invoice =>
+                invoice.invoiceId === formData.invoiceId
+                    ? {
+                        ...invoice,
+                        paymentMethod: formData.paymentMethod,
+                        transactionType: formData.transactionType,
+                        status: formData.status,
+                        description: formData.description,
+                        paidAmount: formData.paidAmount,
+                    }
+                    : invoice
+            )
+
+            setAllInvoices(updatedInvoices)
+
+            setTimeout(() => {
+                const filtered = filterManager.applyFilters(updatedInvoices, filters)
+                setFilteredInvoices(filtered)
+            }, 0)
+
+            toast.success("Cập nhật hóa đơn thành công")
+            setIsUpdateModalOpen(false)
+            setInvoiceToUpdate(null)
+        } catch (error: any) {
+            console.error("Error updating invoice:", error)
+            const errorMessage = error?.response?.data?.message || error?.message || "Lỗi khi cập nhật hóa đơn"
+            toast.error(errorMessage)
+            throw error
+        } finally {
+            setIsUpdating(false)
+        }
+    }, [allInvoices, filterManager, filters])
 
     const invoiceStats = useMemo(() => {
         const totalInvoices = allInvoices.length
@@ -451,7 +509,6 @@ export default function InvoiceList() {
 
         return (
             <div className="flex flex-col sm:flex-row items-center justify-between px-2 py-4 border-t bg-gray-50 gap-4">
-                {/* Mobile-first info display */}
                 <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
                     <div className="text-sm text-gray-600">
                         Hiển thị {startItem} - {endItem} trong tổng số {pagination.totalItems} hóa đơn
@@ -474,9 +531,7 @@ export default function InvoiceList() {
                     </div>
                 </div>
 
-                {/* Responsive pagination controls */}
                 <div className="flex items-center gap-1 sm:gap-2">
-                    {/* First and Previous buttons */}
                     <Button
                         variant="outline"
                         size="sm"
@@ -495,7 +550,6 @@ export default function InvoiceList() {
                         <ChevronLeft className="w-4 h-4" />
                     </Button>
 
-                    {/* Page numbers - adaptive display */}
                     <div className="flex items-center gap-1">
                         {Array.from({ length: Math.min(3, pagination.totalPages) }, (_, i) => {
                             let pageNumber
@@ -523,7 +577,6 @@ export default function InvoiceList() {
                         })}
                     </div>
 
-                    {/* Next and Last buttons */}
                     <Button
                         variant="outline"
                         size="sm"
@@ -613,11 +666,11 @@ export default function InvoiceList() {
 
                 <InvoiceTable
                     displayData={paginatedData}
-                    formatCurrency={formatCurrency}
                     formatDate={formatDate}
                     getStatusBadge={getStatusBadge}
                     getTransactionTypeBadge={getTransactionTypeBadge}
                     openInvoiceDetail={openInvoiceDetail}
+                    onUpdateInvoice={handleOpenUpdateModal}
                     isLoading={isLoading}
                 />
 
@@ -628,17 +681,26 @@ export default function InvoiceList() {
                 isDetailOpen={isDetailOpen}
                 setIsDetailOpen={setIsDetailOpen}
                 selectedInvoice={selectedInvoice}
-                formatCurrency={formatCurrency}
                 formatDate={formatDate}
                 getStatusBadge={getStatusBadge}
                 getTransactionTypeBadge={getTransactionTypeBadge}
+            />
+
+            <UpdateInvoiceModal
+                updateOpen={isUpdateModalOpen}
+                setUpdateOpen={handleCloseUpdateModal}
+                invoice={invoiceToUpdate}
+                onUpdateInvoice={handleUpdateInvoice}
+                isUpdating={isUpdating}
             />
         </Card>
     ), [
         filters, patientList, handleFilterChange, clearFilters, hidePatientSelect,
         isLoading, isFilterLoading, invoiceStats, paginatedData, formatCurrency,
         formatDate, getStatusBadge, getTransactionTypeBadge, openInvoiceDetail,
-        isDetailOpen, selectedInvoice, PaginationComponent, filterErrors
+        isDetailOpen, selectedInvoice, PaginationComponent, filterErrors,
+        isUpdateModalOpen, invoiceToUpdate, handleOpenUpdateModal,
+        handleCloseUpdateModal, handleUpdateInvoice, isUpdating
     ])
 
     return (
