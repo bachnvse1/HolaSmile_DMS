@@ -18,18 +18,17 @@ import {
 } from "lucide-react"
 import { toast } from "react-toastify"
 import type { Invoice } from "@/types/invoice"
+import { formatCurrency } from "@/utils/currencyUtils"
 
 interface InvoiceDetailModalProps {
   isDetailOpen: boolean
   setIsDetailOpen: (open: boolean) => void
   selectedInvoice: Invoice | null
-  formatCurrency: (amount: number | null) => string
   formatDate: (dateString: string | null) => string
   getStatusBadge: (status: string) => React.ReactNode 
   getTransactionTypeBadge: (type: string) => React.ReactNode 
 }
 
-// Status icons mapping
 const statusIcons = {
   pending: <Clock className="h-4 w-4 text-yellow-500" />,
   paid: <CheckCircle className="h-4 w-4 text-green-500" />,
@@ -116,7 +115,6 @@ export function InvoiceDetailModal({
   isDetailOpen,
   setIsDetailOpen,
   selectedInvoice,
-  formatCurrency,
   formatDate,
   getStatusBadge,
   getTransactionTypeBadge,

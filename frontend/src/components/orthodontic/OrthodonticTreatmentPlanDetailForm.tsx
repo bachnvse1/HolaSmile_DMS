@@ -559,7 +559,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
       {/* Header */}
       <div className="flex items-center justify-between mb-6 print:hidden">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={handleGoBack}>
+          <Button variant="ghost" size="icon" onClick={handleGoBack} className='border border-gray-300'>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
@@ -1021,7 +1021,8 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
                   <span className="text-sm font-medium text-blue-800">Tổng chi phí:</span>
                   <span className="text-lg font-bold text-blue-900">{formatCurrency(totalCost)} ₫</span>
                 </div>
-              </div>                <div className="space-y-2">
+              </div>                
+              <div className="space-y-2">
                 <label className="text-sm font-medium">Chi phí khác (nếu có)</label>
                 <div className="relative">
                   <Input

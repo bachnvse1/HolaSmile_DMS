@@ -1,8 +1,6 @@
-﻿using Application.Usecases.Dentist.ViewDentistSchedule;
-using Application.Usecases.Dentist.ViewListDentistName;
+﻿using Application.Usecases.Dentist.ViewListDentistName;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HDMS_API.Controllers

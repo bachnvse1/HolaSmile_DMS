@@ -13,7 +13,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists;
 public class ViewPromotionProgramHandlerIntegrationTests
 {
     private readonly ApplicationDbContext _context;
-    private readonly Promotionrepository _promotionRepo;
+    private readonly PromotionRepository _promotionRepo;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     public ViewPromotionProgramHandlerIntegrationTests()
@@ -23,7 +23,7 @@ public class ViewPromotionProgramHandlerIntegrationTests
             .Options;
 
         _context = new ApplicationDbContext(options);
-        _promotionRepo = new Promotionrepository(_context);
+        _promotionRepo = new PromotionRepository(_context);
         _httpContextAccessor = new HttpContextAccessor();
 
         SeedData();

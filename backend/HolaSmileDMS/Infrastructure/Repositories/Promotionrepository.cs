@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
-    public class Promotionrepository : IPromotionrepository
+    public class PromotionRepository : IPromotionRepository
     {
         private readonly ApplicationDbContext _context;
 
-        public Promotionrepository(ApplicationDbContext context)
+        public PromotionRepository(ApplicationDbContext context)
         {
             _context = context;
         }

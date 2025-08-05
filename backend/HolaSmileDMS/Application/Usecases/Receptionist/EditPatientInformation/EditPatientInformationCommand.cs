@@ -15,6 +15,6 @@ namespace Application.Usecases.Receptionist.EditPatientInformation
         public bool Gender { get; set; }
         public string Email { get; set; }
         public string Address { get; set; }
-        public string UnderlyingConditions { get; set; }
+        public string? UnderlyingConditions { get; set; }
     }
 }

@@ -12,21 +12,23 @@ import {
   Printer,
   ChevronDown,
   ChevronRight,
-  Users
+  Users,
+  Edit
 } from "lucide-react"
 import type { JSX } from "react"
 import { useState } from "react"
 import { invoiceService } from "@/services/invoiceService"
 import { useUserInfo } from "@/hooks/useUserInfo"
 import { toast } from "react-toastify"
+import { formatCurrency } from "@/utils/currencyUtils"
 
 interface InvoiceTableProps {
   displayData: Invoice[]
-  formatCurrency: (amount: number | null) => string
   formatDate: (dateString: string | null) => string
   getStatusBadge: (status: string) => JSX.Element
   getTransactionTypeBadge: (type: string) => JSX.Element
   openInvoiceDetail: (invoice: Invoice) => void
+  onUpdateInvoice?: (invoice: Invoice) => void
   isLoading?: boolean
 }
 
@@ -126,6 +128,7 @@ const EmptyState = () => (
 const ActionsDropdown = ({
   invoice,
   openInvoiceDetail,
+  onUpdateInvoice,
   onPayment,
   onPrint,
   paymentLoading,
@@ -133,6 +136,7 @@ const ActionsDropdown = ({
 }: {
   invoice: Invoice
   openInvoiceDetail: (invoice: Invoice) => void
+  onUpdateInvoice?: (invoice: Invoice) => void
   onPayment: () => void
   onPrint: () => void
   paymentLoading: boolean
@@ -147,6 +151,9 @@ const ActionsDropdown = ({
                         invoice.status !== "paid" && 
                         invoice.paymentMethod !== "cash" &&
                         (invoice.paymentUrl || invoice.orderCode) 
+
+  const canUpdateInvoice = (role === "Admin" || role === "Receptionist") && 
+                          invoice.status !== "paid"
 
   return (
     <DropdownMenu>
@@ -169,6 +176,18 @@ const ActionsDropdown = ({
           <Eye className="mr-2 h-4 w-4" />
           Xem chi tiết
         </DropdownMenuItem>
+
+        {canUpdateInvoice && onUpdateInvoice && (
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation()
+              onUpdateInvoice(invoice)
+            }}
+          >
+            <Edit className="mr-2 h-4 w-4" />
+            Cập nhật hóa đơn
+          </DropdownMenuItem>
+        )}
 
         <DropdownMenuItem
           onClick={(e) => {
@@ -200,18 +219,18 @@ const ActionsDropdown = ({
 
 const InvoiceRow = ({
   invoice,
-  formatCurrency,
   formatDate,
   getStatusBadge,
   getTransactionTypeBadge,
-  openInvoiceDetail
+  openInvoiceDetail,
+  onUpdateInvoice
 }: {
   invoice: Invoice
-  formatCurrency: (amount: number | null) => string
   formatDate: (dateString: string | null) => string
   getStatusBadge: (status: string) => JSX.Element
   getTransactionTypeBadge: (type: string) => JSX.Element
   openInvoiceDetail: (invoice: Invoice) => void
+  onUpdateInvoice?: (invoice: Invoice) => void
 }) => {
   const [paymentLoading, setPaymentLoading] = useState(false)
   const [printLoading, setPrintLoading] = useState(false)
@@ -300,6 +319,7 @@ const InvoiceRow = ({
           <ActionsDropdown
             invoice={invoice}
             openInvoiceDetail={openInvoiceDetail}
+            onUpdateInvoice={onUpdateInvoice}
             onPayment={handlePayment}
             onPrint={handlePrint}
             paymentLoading={paymentLoading}
@@ -394,6 +414,7 @@ const InvoiceRow = ({
               <ActionsDropdown
                 invoice={invoice}
                 openInvoiceDetail={openInvoiceDetail}
+                onUpdateInvoice={onUpdateInvoice}
                 onPayment={handlePayment}
                 onPrint={handlePrint}
                 paymentLoading={paymentLoading}
@@ -411,13 +432,11 @@ const TreatmentRecordHeader = ({
   group,
   isExpanded,
   onToggle,
-  formatCurrency,
   formatDate
 }: {
   group: GroupedInvoice
   isExpanded: boolean
   onToggle: () => void
-  formatCurrency: (amount: number | null) => string
   formatDate: (dateString: string | null) => string
 }) => {
   return (
@@ -539,12 +558,10 @@ const PatientGroupHeader = ({
   patientGroup,
   isExpanded,
   onToggle,
-  formatCurrency
 }: {
   patientGroup: PatientGroup
   isExpanded: boolean
   onToggle: () => void
-  formatCurrency: (amount: number | null) => string
 }) => {
   return (
     <div
@@ -663,11 +680,11 @@ const PatientGroupHeader = ({
 
 export function InvoiceTable({
   displayData,
-  formatCurrency,
   formatDate,
   getStatusBadge,
   getTransactionTypeBadge,
   openInvoiceDetail,
+  onUpdateInvoice,
   isLoading = false,
 }: InvoiceTableProps) {
   const [expandedPatients, setExpandedPatients] = useState<Set<string>>(new Set())
@@ -779,7 +796,6 @@ export function InvoiceTable({
               patientGroup={patientGroup}
               isExpanded={expandedPatients.has(patientGroup.patientName)}
               onToggle={() => togglePatient(patientGroup.patientName)}
-              formatCurrency={formatCurrency}
             />
 
             {expandedPatients.has(patientGroup.patientName) && (
@@ -790,7 +806,6 @@ export function InvoiceTable({
                       group={treatmentGroup}
                       isExpanded={expandedTreatments.has(treatmentGroup.treatmentRecordId)}
                       onToggle={() => toggleTreatment(treatmentGroup.treatmentRecordId)}
-                      formatCurrency={formatCurrency}
                       formatDate={formatDate}
                     />
 
@@ -822,11 +837,11 @@ export function InvoiceTable({
                             <InvoiceRow
                               key={invoice.invoiceId}
                               invoice={invoice}
-                              formatCurrency={formatCurrency}
                               formatDate={formatDate}
                               getStatusBadge={getStatusBadge}
                               getTransactionTypeBadge={getTransactionTypeBadge}
                               openInvoiceDetail={openInvoiceDetail}
+                              onUpdateInvoice={onUpdateInvoice}
                             />
                           ))}
                         </div>

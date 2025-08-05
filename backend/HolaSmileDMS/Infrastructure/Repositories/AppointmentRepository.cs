@@ -223,21 +223,6 @@ namespace HDMS_API.Infrastructure.Repositories
                 .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
             return result ;
         }
-        public async Task<bool> CancelAppointmentAsync(int appId, int CancleBy)
-        {
-            var appointment = await _context.Appointments
-                .FirstOrDefaultAsync(a => a.AppointmentId == appId && !a.IsDeleted);
-            if (appointment == null)
-            {
-                return false;
-            }
-            appointment.Status = "canceled";
-            appointment.UpdatedAt = DateTime.Now;
-            appointment.UpdatedBy = CancleBy;
-            _context.Appointments.Update(appointment);
-            var result = await _context.SaveChangesAsync();
-            return true;
-        }
         public async Task<bool> CheckPatientAppointmentByUserIdAsync(int appId, int userId)
         {
             var result = await _context.Appointments.AnyAsync(a => a.AppointmentId == appId && a.Patient.User.UserID == userId);
@@ -266,8 +251,7 @@ namespace HDMS_API.Infrastructure.Repositories
         public async Task<bool> UpdateAppointmentAsync(Appointment appointment)
         {
             _context.Appointments.Update(appointment);
-            await _context.SaveChangesAsync();
-            return true;
+            return await _context.SaveChangesAsync() > 0;
         }
         public async Task<List<Appointment>> GetAppointmentsByPatient(int userId)
         {

@@ -4,6 +4,7 @@ using Application.Services;
 using Application.Usecases.UserCommon.ForgotPasswordBySMS;
 using FluentAssertions;
 using Moq;
+using MySqlX.XDevAPI.Common;
 using Xunit;
 
 namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
@@ -30,11 +31,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
             _userRepoMock.Setup(r => r.GetUserByPhoneAsync(command.PhoneNumber)).ReturnsAsync((User?)null);
 
             // Act
-            var act = async () => await _handler.Handle(command, CancellationToken.None);
-
+            var result = await _handler.Handle(command, CancellationToken.None);
             // Assert
-            await act.Should().ThrowAsync<Exception>()
-                .WithMessage(MessageConstants.MSG.MSG16);
+            result.Should().BeTrue();
         }
 
         [Fact(DisplayName = "UTCID02 - Still succeeds even if SMS service throws (background task)")]

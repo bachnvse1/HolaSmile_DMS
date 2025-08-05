@@ -18,13 +18,8 @@ export interface Procedure {
   price: number
   description: string
   discount: number
-  warrantyPeriod: string
   originalPrice: number
   consumableCost: number
-  referralCommissionRate: number
-  doctorCommissionRate: number
-  assistantCommissionRate: number
-  technicianCommissionRate: number
   createdAt: string
   updatedAt: string | null
   createdBy: string | null
@@ -40,13 +35,8 @@ export interface ProcedureCreateForm {
   price: number
   description: string
   discount: number
-  warrantyPeriod: string
   originalPrice: number
   consumableCost: number
-  referralCommissionRate: number
-  doctorCommissionRate: number
-  assistantCommissionRate: number
-  technicianCommissionRate: number
   suppliesUsed: Supply[]
 }
 
@@ -56,12 +46,7 @@ export interface ProcedureUpdateForm {
   price: number
   description: string
   discount: number
-  warrantyPeriod: string
   originalPrice: number
   consumableCost: number
-  referralCommissionRate: number
-  doctorCommissionRate: number
-  assistantCommissionRate: number
-  technicianCommissionRate: number
   suppliesUsed?: Supply[]
 }

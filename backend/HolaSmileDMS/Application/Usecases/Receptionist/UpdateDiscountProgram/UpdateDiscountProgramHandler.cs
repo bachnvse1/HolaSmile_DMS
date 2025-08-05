@@ -11,12 +11,12 @@ namespace Application.Usecases.Receptionist.UpdateDiscountProgram
     public class UpdateDiscountProgramHandler : IRequestHandler<UpdateDiscountProgramCommand, bool>
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IPromotionrepository _promotionRepository;
+        private readonly IPromotionRepository _promotionRepository;
         private readonly IProcedureRepository _procedureRepository;
         private readonly IOwnerRepository _ownerRepository;
         private readonly IMediator _mediator;
 
-        public UpdateDiscountProgramHandler(IHttpContextAccessor httpContextAccessor, IPromotionrepository promotionRepository, IProcedureRepository procedureRepository, IOwnerRepository ownerRepository, IMediator mediator)
+        public UpdateDiscountProgramHandler(IHttpContextAccessor httpContextAccessor, IPromotionRepository promotionRepository, IProcedureRepository procedureRepository, IOwnerRepository ownerRepository, IMediator mediator)
         {
             _httpContextAccessor = httpContextAccessor;
             _promotionRepository = promotionRepository;
@@ -53,6 +53,11 @@ namespace Application.Usecases.Receptionist.UpdateDiscountProgram
             var discountProgram = await _promotionRepository.GetDiscountProgramByIdAsync(request.ProgramId);
             if (discountProgram == null)
                 throw new Exception(MessageConstants.MSG.MSG119);
+
+            if (!discountProgram.IsDelete)
+            {
+                throw new Exception("Chương trình khuyến mãi đang được áp dụng không thể cập nhật");
+            }
 
             var validProcedureIds = await _procedureRepository.GetAllProceddureIdAsync();
             foreach (var procedure in request.ListProcedure)
