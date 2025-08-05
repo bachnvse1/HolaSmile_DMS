@@ -1,5 +1,6 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
+using Application.Usecases.SendNotification;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
@@ -11,13 +12,16 @@ namespace Application.Usecases.Assistant.EditWarrantyCard
     {
         private readonly IWarrantyCardRepository _warrantyRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IMediator _mediator;
 
         public EditWarrantyCardHandler(
             IWarrantyCardRepository warrantyRepository,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IMediator mediator)
         {
             _warrantyRepository = warrantyRepository;
             _httpContextAccessor = httpContextAccessor;
+            _mediator = mediator;
         }
 
         public async Task<string> Handle(EditWarrantyCardCommand request, CancellationToken cancellationToken)
@@ -46,7 +50,30 @@ namespace Application.Usecases.Assistant.EditWarrantyCard
             card.UpdatedBy = int.TryParse(userId, out var uid) ? uid : null;
 
             await _warrantyRepository.UpdateWarrantyCardAsync(card, cancellationToken);
-
+            
+            // Gửi notification cho bệnh nhân
+            try
+            {
+                if (card.TreatmentRecord?.Appointment?.PatientId != null)
+                {
+                    var patientUserId = card.TreatmentRecord.Appointment.Patient?.UserID ?? 0;
+                    if (patientUserId > 0)
+                    {
+                        await _mediator.Send(new SendNotificationCommand(
+                            patientUserId,
+                            "Cập nhật thẻ bảo hành",
+                            $"Thẻ bảo hành của bạn đã được cập nhật. Thời hạn mới: {card.Duration} tháng.",
+                            "Update",
+                            card.WarrantyCardID,
+                            $"/patient/warranty-cards/{card.WarrantyCardID}"
+                        ), cancellationToken);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Notification Error] {ex.Message}");
+            }
             return MessageConstants.MSG.MSG106;
         }
     }

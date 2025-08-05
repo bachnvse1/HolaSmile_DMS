@@ -1,8 +1,10 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
+using Application.Usecases.SendNotification;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace Application.Usecases.Assistants.UpdateInstruction
 {
@@ -11,15 +13,18 @@ namespace Application.Usecases.Assistants.UpdateInstruction
         private readonly IInstructionRepository _instructionRepository;
         private readonly IInstructionTemplateRepository _templateRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IMediator _mediator;
 
         public UpdateInstructionHandler(
             IInstructionRepository instructionRepository,
             IInstructionTemplateRepository templateRepository,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+             IMediator mediator)
         {
             _instructionRepository = instructionRepository;
             _templateRepository = templateRepository;
             _httpContextAccessor = httpContextAccessor;
+            _mediator = mediator;
         }
 
         public async Task<string> Handle(UpdateInstructionCommand request, CancellationToken cancellationToken)
@@ -63,6 +68,58 @@ namespace Application.Usecases.Assistants.UpdateInstruction
             var result = await _instructionRepository.UpdateAsync(instruction, cancellationToken);
             if (!result)
                 throw new Exception(MessageConstants.MSG.MSG58); // "Có lỗi xảy ra"
+            
+            // Gửi notification trong try/catch
+            try
+            {
+                Console.WriteLine($"Instruction ID: {instruction.InstructionID}");
+                Console.WriteLine($"Appointment: {(instruction.Appointment != null ? "exists" : "null")}");
+
+                if (instruction.Appointment != null)
+                {
+                    Console.WriteLine($"Patient: {(instruction.Appointment.Patient != null ? "exists" : "null")}");
+
+                    if (instruction.Appointment.Patient?.User != null)
+                    {
+                        var patientUserId = instruction.Appointment.Patient.User.UserID;
+                        Console.WriteLine($"Patient User ID: {patientUserId}");
+
+                        if (patientUserId > 0)
+                        {
+                            var notification = new SendNotificationCommand(
+                                patientUserId,
+                                "Cập nhật chỉ dẫn điều trị",
+                                "Chỉ dẫn điều trị của bạn vừa được cập nhật.",
+                                "Update",
+                                instruction.InstructionID,
+                                $"/patient/instructions/{instruction.AppointmentId}"
+                            );
+
+                            Console.WriteLine($"Sending notification: {JsonSerializer.Serialize(notification)}");
+                            await _mediator.Send(notification, cancellationToken);
+                            Console.WriteLine("Notification sent successfully");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Patient User ID is invalid");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Patient or User is null");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in notification process:");
+                Console.WriteLine($"Message: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+            }
 
             return "Cập nhật chỉ dẫn thành công";
         }

@@ -56,8 +56,9 @@ namespace HDMS_API.Controllers
 
         [Authorize]
         [HttpPut("profile")]
-        public async Task<IActionResult> EditProfile([FromBody] EditProfileCommand command,
-            CancellationToken cancellationToken)
+        [Consumes("multipart/form-data")] // quan trọng để Swagger render file upload
+        public async Task<IActionResult> EditProfile([FromForm] EditProfileCommand command,
+    CancellationToken cancellationToken)
         {
             try
             {
@@ -68,12 +69,10 @@ namespace HDMS_API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new
-                {
-                    ex.Message
-                });
+                return BadRequest(new { ex.Message });
             }
         }
+
 
         [HttpPost("OTP/Request")]
         public async Task<IActionResult> RequestOtp([FromBody] RequestOtpCommand request)

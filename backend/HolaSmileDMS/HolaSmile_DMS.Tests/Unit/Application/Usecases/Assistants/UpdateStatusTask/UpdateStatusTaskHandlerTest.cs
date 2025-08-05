@@ -1,6 +1,8 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Assistant.UpdateTaskStatus;
+using Application.Usecases.SendNotification;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using System.Security.Claims;
@@ -12,13 +14,32 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
     {
         private readonly Mock<ITaskRepository> _taskRepoMock = new();
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new();
+        private readonly Mock<IMediator> _mediatorMock = new();
+        private readonly Mock<IUserCommonRepository> _userCommonRepositoryMock = new();
         private readonly UpdateTaskStatusHandler _handler;
 
         public UpdateTaskStatusHandlerTests()
         {
+            // Setup mặc định cho notification
+            _mediatorMock
+                .Setup(m => m.Send(It.IsAny<SendNotificationCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(MediatR.Unit.Value);
+
+            _userCommonRepositoryMock
+                .Setup(x => x.GetUserIdByRoleTableIdAsync(It.IsAny<string>(), It.IsAny<int>()))
+                .ReturnsAsync(1);
+
+            // Setup mặc định cho TreatmentProgress
+            var treatmentProgress = new TreatmentProgress { DentistID = 1 };
+            _taskRepoMock
+                .Setup(r => r.GetTreatmentProgressByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(treatmentProgress);
+
             _handler = new UpdateTaskStatusHandler(
                 _taskRepoMock.Object,
-                _httpContextAccessorMock.Object
+                _httpContextAccessorMock.Object,
+                _mediatorMock.Object,
+                _userCommonRepositoryMock.Object
             );
         }
 
@@ -53,7 +74,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             {
                 TaskID = 10,
                 AssistantID = 1,
-                Status = false
+                Status = false,
+                ProgressName = "Test Task",
+                TreatmentProgressID = 1
             };
 
             _taskRepoMock.Setup(r => r.GetTaskByIdAsync(10, It.IsAny<CancellationToken>()))
@@ -70,6 +93,17 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             Assert.Equal(MessageConstants.MSG.MSG97, result); // Lưu thành công
             Assert.True(task.Status);
             Assert.Equal(1, task.UpdatedBy);
+
+            // Verify notification
+            _mediatorMock.Verify(x => x.Send(
+                It.Is<SendNotificationCommand>(n =>
+                    n.UserId == 1 &&
+                    n.Title == "Cập nhật trạng thái công việc trợ lý" && // Sửa lại title
+                    n.Message == "Tiến trình: Test Task - đã hoàn thành" &&
+                    n.Type == "Update" &&
+                    n.MappingUrl == "/dentist/assigned-tasks"),
+                It.IsAny<CancellationToken>()
+            ), Times.Once);
         }
 
         [Fact(DisplayName = "UTCID02 - HttpContext null => UnauthorizedAccessException")]
@@ -85,6 +119,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
                 _handler.Handle(command, default));
 
             Assert.Equal(MessageConstants.MSG.MSG53, ex.Message); // Chưa đăng nhập
+
+            // Verify no notification sent
+            _mediatorMock.Verify(x => x.Send(It.IsAny<SendNotificationCommand>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact(DisplayName = "UTCID03 - Role not Assistant => UnauthorizedAccessException")]
@@ -100,6 +137,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
                 _handler.Handle(command, default));
 
             Assert.Equal(MessageConstants.MSG.MSG26, ex.Message); // Không có quyền
+
+            // Verify no notification sent
+            _mediatorMock.Verify(x => x.Send(It.IsAny<SendNotificationCommand>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact(DisplayName = "UTCID04 - Task not found => KeyNotFoundException")]
@@ -118,6 +158,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
                 _handler.Handle(command, default));
 
             Assert.Equal(MessageConstants.MSG.MSG16, ex.Message); // Không có dữ liệu phù hợp
+
+            // Verify no notification sent
+            _mediatorMock.Verify(x => x.Send(It.IsAny<SendNotificationCommand>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact(DisplayName = "UTCID05 - Task belongs to other assistant => UnauthorizedAccessException")]
@@ -142,6 +185,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
                 _handler.Handle(command, default));
 
             Assert.Equal(MessageConstants.MSG.MSG26, ex.Message); // Không có quyền
+
+            // Verify no notification sent
+            _mediatorMock.Verify(x => x.Send(It.IsAny<SendNotificationCommand>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact(DisplayName = "UTCID06 - Update fails => return MSG58")]
@@ -154,7 +200,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             {
                 TaskID = 1,
                 AssistantID = 1,
-                Status = false
+                Status = false,
+                TreatmentProgressID = 1
             };
 
             _taskRepoMock.Setup(r => r.GetTaskByIdAsync(1, It.IsAny<CancellationToken>()))
@@ -169,6 +216,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
 
             // Assert
             Assert.Equal(MessageConstants.MSG.MSG58, result); // Cập nhật thất bại
+
+            // Verify no notification sent
+            _mediatorMock.Verify(x => x.Send(It.IsAny<SendNotificationCommand>(), It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }

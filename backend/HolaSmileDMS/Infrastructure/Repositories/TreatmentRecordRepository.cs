@@ -105,5 +105,12 @@ public class TreatmentRecordRepository : ITreatmentRecordRepository
     {
         return _context.TreatmentRecords.AsQueryable();
     }
-
+    public async Task<TreatmentRecord?> GetTreatmentRecordById(int id, CancellationToken ct)
+    {
+        return await _context.TreatmentRecords
+            .Include(tr => tr.Appointment)
+                .ThenInclude(a => a.Patient)
+                    .ThenInclude(p => p.User)
+            .FirstOrDefaultAsync(tr => tr.TreatmentRecordID == id && !tr.IsDeleted, ct);
+    }
 }
