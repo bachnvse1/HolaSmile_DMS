@@ -102,12 +102,12 @@ namespace HDMS_API.Controllers
 
         [Authorize]
         [HttpPut]
-        [Route("cancelAppointment/{appointmentId}")]
-        public async Task<IActionResult> ViewDetailPatientAppointment([FromRoute] int appointmentId, CancellationToken cancellationToken)
+        [Route("cancelAppointment")]
+        public async Task<IActionResult> ViewDetailPatientAppointment([FromBody] CancelAppointmentCommand command, CancellationToken cancellationToken)
         {
             try
             {
-                var result = await _mediator.Send(new CancelAppointmentCommand(appointmentId), cancellationToken);
+                var result = await _mediator.Send(command, cancellationToken);
                 return Ok(result);
             }
             catch (Exception ex)
