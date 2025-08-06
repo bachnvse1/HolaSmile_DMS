@@ -433,8 +433,8 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
               <table className="w-full relative">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
-                      STT
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Mã điều trị
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Lịch hẹn
@@ -533,7 +533,7 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
                             onViewDetail={handleViewDetail} // New prop
                             patientId={patientId}
                             readonly={readonly}
-                            orderNumber={calculateRecordOrder(groupIndex, recordIndex)}
+                            orderNumber={record.treatmentRecordID}
                           />
                         ))}
 
