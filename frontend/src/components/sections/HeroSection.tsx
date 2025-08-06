@@ -1,7 +1,6 @@
-import bg1 from '@/assets/bg1.png'
-import bg2 from '@/assets/bg2.jpg'
-import bg3 from '@/assets/bg3.jpg'
-import bg4 from '@/assets/bg4.jpg'
+import bg1 from '@/assets/bg1-new.jpg'
+import bg2 from '@/assets/bg2-new.jpg'
+import bg3 from '@/assets/bg3-new.jpg'
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { useState, useEffect } from 'react';
 import { Phone } from 'lucide-react';
@@ -25,12 +24,6 @@ const heroImages = [
     title: "Không Gian Thân Thiện",
     subtitle: "Môi trường thoải mái, an toàn"
   },
-  {
-    src: bg4,
-    alt: "Happy patient",
-    title: "Bệnh Nhân Hài Lòng",
-    subtitle: "Chăm sóc tận tâm, chuyên nghiệp"
-  }
 ];
 
 export const HeroSection = () => {
