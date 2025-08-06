@@ -1,9 +1,9 @@
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button2"
 import { Input } from "@/components/ui/input"
@@ -15,9 +15,9 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { TimePicker } from "../ui/time-picker"
-import { Save, UserPlus, Loader2 } from "lucide-react"
-import type { TaskAssignment } from "@/types/task"
-import { assignTaskApi } from "@/services/taskService"
+import { Save, Edit, Loader2 } from "lucide-react"
+import type { BasicTask } from "@/types/task"
+import { taskService } from "@/services/taskService"
 import { toast } from "react-toastify"
 import { DialogDescription } from "@radix-ui/react-dialog"
 
@@ -45,30 +45,50 @@ const isTimeAfter = (timeA: string, timeB: string): boolean => {
   return hA * 60 + mA > hB * 60 + mB
 }
 
-// Types - Updated to match API response
+// Helper function to extract time from datetime string or return as-is if already in HH:MM format
+const extractTimeString = (timeString: string): string => {
+  if (!timeString) return ""
+  
+  // If it's already in HH:MM format, return as-is
+  if (timeString.match(/^\d{2}:\d{2}$/)) {
+    return timeString
+  }
+  
+  // If it's a datetime string, extract the time part
+  try {
+    const date = new Date(timeString)
+    return date.toTimeString().slice(0, 5)
+  } catch {
+    return timeString
+  }
+}
+
+// Types
 interface Assistant {
   assistantId: number
   fullname: string
   phone: string
 }
 
-interface AssignTaskModalProps {
-  onTaskAssign: (task: TaskAssignment) => void
-  treatmentProgressID: number
-  trigger?: React.ReactNode
+interface EditTaskModalProps {
+  task: BasicTask | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onTaskUpdate: () => void
   assistants: Assistant[]
 }
 
-type TaskAssignmentFormData = {
+type TaskEditFormData = {
   assistantId: string
   progressName: string
   description: string
   startTime: string
   endTime: string
+  status: string
 }
 
-// Validation schema - Updated to remove availability check since API doesn't provide it
-const createTaskAssignmentSchema = () => yup.object({
+// Validation schema
+const createTaskEditSchema = () => yup.object({
   assistantId: yup
     .string()
     .required("Vui lòng chọn trợ lý"),
@@ -96,29 +116,33 @@ const createTaskAssignmentSchema = () => yup.object({
       const { startTime } = this.parent
       return value && startTime ? isTimeAfter(value, startTime) : false
     }),
+  status: yup
+    .string()
+    .required("Vui lòng chọn trạng thái")
 })
 
-export function AssignTaskModal({
-  onTaskAssign,
-  trigger,
-  treatmentProgressID,
+export function EditTaskModal({
+  task,
+  open,
+  onOpenChange,
+  onTaskUpdate,
   assistants
-}: AssignTaskModalProps) {
-  const [open, setOpen] = useState(false)
+}: EditTaskModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const [formData, setFormData] = useState<TaskAssignmentFormData | null>(null)
+  const [formData, setFormData] = useState<TaskEditFormData | null>(null)
 
-  const taskAssignmentSchema = createTaskAssignmentSchema()
+  const taskEditSchema = createTaskEditSchema()
 
   const {
     control,
     handleSubmit,
     watch,
     reset,
+    setValue,
     formState: { errors, isValid },
-  } = useForm<TaskAssignmentFormData>({
-    resolver: yupResolver(taskAssignmentSchema),
+  } = useForm<TaskEditFormData>({
+    resolver: yupResolver(taskEditSchema),
     mode: "onChange",
     defaultValues: {
       assistantId: "",
@@ -126,84 +150,94 @@ export function AssignTaskModal({
       description: "",
       startTime: "",
       endTime: "",
+      status: "Pending",
     },
   })
+
+  useEffect(() => {
+    if (task && open) {
+      const taskData = task as any
+      setValue("assistantId", taskData.assistantId?.toString() || "")
+      setValue("progressName", taskData.progressName || "")
+      setValue("description", taskData.description || "")
+      setValue("startTime", extractTimeString(taskData.startTime) || "")
+      setValue("endTime", extractTimeString(taskData.endTime) || "")
+      setValue("status", taskData.status || "Pending")
+    }
+  }, [task, open, setValue])
 
   const selectedAssistant = assistants.find(
     (a) => a.assistantId.toString() === watch("assistantId")
   )
 
-  const handleSubmitConfirm = useCallback((data: TaskAssignmentFormData) => {
+  const handleSubmitConfirm = useCallback((data: TaskEditFormData) => {
     setFormData(data)
     setConfirmOpen(true)
   }, [])
 
-  const handleConfirmAssign = useCallback(async () => {
-    if (!formData || !treatmentProgressID) return
+  const handleConfirmUpdate = useCallback(async () => {
+    if (!formData || !task) return
 
     setIsSubmitting(true)
     try {
-      const payload: TaskAssignment = {
-        assistantId: parseInt(formData.assistantId, 10),
-        treatmentProgressID,
-        status: false,
+      const updateData = {
+        taskId: task.taskId,
         progressName: formData.progressName.trim(),
         description: formData.description.trim(),
+        status: formData.status === "Completed",
         startTime: formData.startTime,
         endTime: formData.endTime,
       }
 
-      await assignTaskApi(payload)
-      toast.success("Phân công nhiệm vụ thành công!")
-      onTaskAssign(payload)
-      reset()
-      setOpen(false)
+      await taskService.updateTask(updateData)
+      toast.success("Cập nhật nhiệm vụ thành công!")
+      onTaskUpdate()
+      onOpenChange(false)   
       setConfirmOpen(false)
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Đã xảy ra lỗi khi phân công nhiệm vụ")
+      toast.error(err?.response?.data?.message || "Đã xảy ra lỗi khi cập nhật nhiệm vụ")
     } finally {
       setIsSubmitting(false)
     }
-  }, [formData, treatmentProgressID, onTaskAssign, reset])
+  }, [formData, task, onTaskUpdate, onOpenChange])
 
   const handleCancel = useCallback(() => {
     reset()
-    setOpen(false)
+    onOpenChange(false)
     setConfirmOpen(false)
-  }, [reset])
+  }, [reset, onOpenChange])
 
   const handleDialogChange = useCallback((newOpen: boolean) => {
-    setOpen(newOpen)
+    onOpenChange(newOpen)
     if (!newOpen) {
       reset()
       setConfirmOpen(false)
     }
-  }, [reset])
+  }, [reset, onOpenChange])
+
+  if (!task) return null
+
+  const statusOptions = [
+    { value: "Pending", label: "Chưa hoàn thành" },
+    { value: "Completed", label: "Hoàn thành" }
+  ]
 
   return (
     <>
       <Dialog open={open} onOpenChange={handleDialogChange}>
-        <DialogTrigger asChild>
-          {trigger || (
-            <Button className="flex items-center gap-2">
-              <UserPlus className="h-4 w-4" />
-              Phân Công Nhiệm Vụ
-            </Button>
-          )}
-        </DialogTrigger>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5" />
-              Phân Công Nhiệm Vụ
+              <Edit className="h-5 w-5" />
+              Chỉnh Sửa Nhiệm Vụ
             </DialogTitle>
             <DialogDescription>
-              Vui lòng điền đầy đủ thông tin để tạo nhiệm vụ mới.
+              Cập nhật thông tin nhiệm vụ và trạng thái thực hiện.
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSubmit(handleSubmitConfirm)} className="space-y-4">
-            {/* Assistant Selection */}
+            {/* Assistant Selection - Read-only for editing */}
             <div className="space-y-2">
               <Label htmlFor="assistantId">Trợ lý *</Label>
               <Controller
@@ -304,6 +338,37 @@ export function AssignTaskModal({
                   </p>
                 )}
               </div>
+
+              {/* Status Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="status">Trạng thái *</Label>
+                <Controller
+                  name="status"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger
+                        className={errors.status ? "border-red-500" : ""}
+                        aria-describedby={errors.status ? "status-error" : undefined}
+                      >
+                        <SelectValue placeholder="Chọn trạng thái..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {statusOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.status && (
+                  <p id="status-error" className="text-red-500 text-sm">
+                    {errors.status.message}
+                  </p>
+                )}
+              </div>
             </div>
 
             <Separator />
@@ -366,7 +431,7 @@ export function AssignTaskModal({
                 ) : (
                   <Save className="h-4 w-4" />
                 )}
-                {isSubmitting ? "Đang phân công..." : "Phân Công"}
+                {isSubmitting ? "Đang cập nhật..." : "Cập Nhật"}
               </Button>
             </div>
           </form>
@@ -377,15 +442,18 @@ export function AssignTaskModal({
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Xác nhận phân công</DialogTitle>
+            <DialogTitle>Xác nhận cập nhật</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p>Bạn có chắc chắn muốn giao nhiệm vụ này không?</p>
+            <p>Bạn có chắc chắn muốn cập nhật nhiệm vụ này không?</p>
             {formData && (
               <div className="bg-gray-50 p-4 rounded-lg space-y-2">
                 <p><strong>Nhiệm vụ:</strong> {formData.progressName}</p>
                 <p><strong>Thời gian:</strong> {formData.startTime} - {formData.endTime}</p>
                 <p><strong>Trợ lý:</strong> {selectedAssistant?.fullname}</p>
+                <p><strong>Trạng thái:</strong> {
+                  statusOptions.find(s => s.value === formData.status)?.label
+                }</p>
               </div>
             )}
           </div>
@@ -397,11 +465,11 @@ export function AssignTaskModal({
             >
               Hủy
             </Button>
-            <Button onClick={handleConfirmAssign} disabled={isSubmitting}>
+            <Button onClick={handleConfirmUpdate} disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Đang phân công...
+                  Đang cập nhật...
                 </>
               ) : (
                 "Xác nhận"

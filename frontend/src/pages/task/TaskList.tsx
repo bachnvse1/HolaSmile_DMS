@@ -9,13 +9,37 @@ import { getAllTasks } from "@/services/taskService"
 import { getAllAssistants } from "@/services/assistantService"
 import { toast } from "react-toastify"
 
+interface Assistant {
+  assistantId: number
+  fullname: string
+  phone: string
+}
+
 export default function TaskList({ treatmentProgressID }: { treatmentProgressID: number }) {
   const [taskList, setTaskList] = useState<BasicTask[]>([])
-  const [assistants, setAssistants] = useState<any[]>([])
+  const [assistants, setAssistants] = useState<Assistant[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("Tất cả")
   const [selectedTask, setSelectedTask] = useState<BasicTask | null>(null)
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
+
+  const fetchTasksData = async () => {
+    try {
+      const rawTasks = await getAllTasks()
+      const tasks = rawTasks as any
+
+      if (Array.isArray(tasks)) {
+        const filteredTasks = tasks.filter(task => 
+          task.treatmentProgressId === treatmentProgressID
+        )
+        setTaskList(filteredTasks)
+      } else {
+        setTaskList([])
+      }
+    } catch (error: any) {
+      toast.error("Có lỗi xảy ra khi tải danh sách nhiệm vụ")
+    }
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -55,21 +79,11 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
   }
 
   const handleTaskAssign = async () => {
-    try {
-      const rawTasks = await getAllTasks()
-      const tasks = rawTasks as any
+    await fetchTasksData()
+  }
 
-      if (Array.isArray(tasks)) {
-        const filteredTasks = tasks.filter(task => 
-          task.treatmentProgressId === treatmentProgressID
-        )
-        setTaskList(filteredTasks)
-      } else {
-        toast.warning(tasks?.message || "Không thể tải lại danh sách nhiệm vụ")
-      }
-    } catch (error: any) {
-      toast.error("Có lỗi xảy ra khi tải lại dữ liệu")
-    }
+  const handleTaskUpdate = async () => {
+    await fetchTasksData()
   }
 
   const filteredTasks = taskList.filter((task) => {
@@ -120,6 +134,8 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
             key={task.taskId}
             task={task}
             onViewDetail={handleViewDetail}
+            onTaskUpdate={handleTaskUpdate}
+            assistants={assistants}
           />
         ))}
 
