@@ -28,6 +28,8 @@ namespace Infrastructure.Repositories
             // Lấy luôn toàn bộ chuỗi quan hệ cần thiết, tránh N+1
             return await _context.Tasks
                 .Where(t => t.AssistantID == assistantId)
+                .Include(t => t.Assistant)                   // include Assistant
+                    .ThenInclude(a => a.User)                // include User của Assistant
                 .Include(t => t.TreatmentProgress!)
                     .ThenInclude(tp => tp.TreatmentRecord!)
                         .ThenInclude(tr => tr.Procedure)
@@ -61,6 +63,8 @@ namespace Infrastructure.Repositories
                     TreatmentRecordId = t.TreatmentProgress!.TreatmentRecordID,
                     ProcedureName = t.TreatmentProgress!.TreatmentRecord!.Procedure.ProcedureName,
                     DentistName = t.TreatmentProgress!.TreatmentRecord!.Dentist.User.Fullname,
+
+                    AssistantName = t.Assistant.User.Fullname,
 
                     CreatedAt = t.CreatedAt.Date,
                 })
