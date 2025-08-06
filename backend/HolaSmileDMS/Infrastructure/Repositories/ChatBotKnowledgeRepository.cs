@@ -22,5 +22,16 @@ namespace Infrastructure.Repositories
             _context.ChatBotKnowledge.Add(knowledge);
             return await _context.SaveChangesAsync() > 0;
         }
+
+        public async Task<ChatBotKnowledge?> GetByIdAsync(int id)
+        {
+            return await _context.ChatBotKnowledge.FindAsync(id);
+        }
+
+        public async Task<bool> UpdateResponseAsync(ChatBotKnowledge chatBotKnowledge)
+        {
+            _context.ChatBotKnowledge.Update(chatBotKnowledge);
+            return await _context.SaveChangesAsync() > 0;
+        }
     }
 }

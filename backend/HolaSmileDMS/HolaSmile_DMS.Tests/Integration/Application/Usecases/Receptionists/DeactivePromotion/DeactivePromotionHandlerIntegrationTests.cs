@@ -67,7 +67,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
             });
 
             // Owner
-            _context.Owners.Add(new Owner
+            _context.Owners.Add(new global::Owner
             {
                 OwnerId = 1,
                 UserId = 2

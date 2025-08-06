@@ -11,14 +11,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Edit, Percent, Package, Trash2, AlertCircle, Loader2, Calculator } from "lucide-react"
+import { Edit, Package, Trash2, AlertCircle, Loader2, Calculator } from "lucide-react"
 import { SupplySearch } from "./SupplySearch"
 import { ConfirmModal } from "../common/ConfirmModal"
 import type { Procedure, ProcedureUpdateForm, Supply, SupplyItem } from "@/types/procedure"
 import { supplyApi, mapToSupplyItem } from "@/services/supplyApi"
 import React from "react"
 import { Badge } from "../ui/badge"
-import { formatCurrency } from "@/utils/currencyUtils"
+import { formatCurrency, parseCurrency, handleCurrencyInput } from "@/utils/currencyUtils"
 
 interface EditProcedureModalProps {
     procedure: Procedure | null
@@ -35,7 +35,6 @@ interface FormErrors {
     price?: string
     discount?: string
     consumableCost?: string
-    commissionRates?: string
     general?: string
 }
 
@@ -52,14 +51,16 @@ export function EditProcedureModal({
         price: 0,
         description: "",
         discount: 0,
-        warrantyPeriod: "",
         originalPrice: 0,
         consumableCost: 0,
-        referralCommissionRate: 0,
-        doctorCommissionRate: 0,
-        assistantCommissionRate: 0,
-        technicianCommissionRate: 0,
         suppliesUsed: [],
+    })
+
+    // State for formatted currency display
+    const [formattedPrices, setFormattedPrices] = React.useState({
+        originalPrice: "",
+        price: "",
+        estimatedCost: ""
     })
 
     const [errors, setErrors] = React.useState<FormErrors>({})
@@ -97,15 +98,18 @@ export function EditProcedureModal({
                 price: procedure.price,
                 description: procedure.description,
                 discount: procedure.discount ?? 0,
-                warrantyPeriod: procedure.warrantyPeriod,
                 originalPrice: procedure.originalPrice,
                 consumableCost: procedure.consumableCost,
-                referralCommissionRate: procedure.referralCommissionRate,
-                doctorCommissionRate: procedure.doctorCommissionRate,
-                assistantCommissionRate: procedure.assistantCommissionRate,
-                technicianCommissionRate: procedure.technicianCommissionRate,
                 suppliesUsed: procedure.suppliesUsed || [],
             })
+            
+            // Set formatted prices
+            setFormattedPrices({
+                originalPrice: formatCurrency(procedure.originalPrice),
+                price: formatCurrency(procedure.price),
+                estimatedCost: formatCurrency(procedure.consumableCost)
+            })
+            
             setErrors({})
 
             const totalCost = calculateTotalSupplyCost(procedure.suppliesUsed || [])
@@ -123,7 +127,6 @@ export function EditProcedureModal({
         }, 0)
     }, [supplyItems])
 
-
     React.useEffect(() => {
         setForm(prev => ({ ...prev, consumableCost: estimatedCost + calculateTotalSupplyCost(form.suppliesUsed) }));
     }, [estimatedCost, calculateTotalSupplyCost, form.suppliesUsed])
@@ -132,11 +135,11 @@ export function EditProcedureModal({
         if (autoCalculatePrice && form.originalPrice > 0) {
             const discountAmount = form.originalPrice * (form.discount / 100)
             const calculatedPrice = form.originalPrice - discountAmount + form.consumableCost
-            setForm(prev => ({ ...prev, price: Math.max(0, calculatedPrice) }))
+            const finalPrice = Math.max(0, calculatedPrice)
+            setForm(prev => ({ ...prev, price: finalPrice }))
+            setFormattedPrices(prev => ({ ...prev, price: formatCurrency(finalPrice) }))
         }
     }, [form.originalPrice, form.discount, autoCalculatePrice, form.consumableCost])
-
-
 
     const updateForm = React.useCallback((field: keyof ProcedureUpdateForm, value: string | number | Supply[]) => {
         setForm((prev) => ({ ...prev, [field]: value }))
@@ -144,6 +147,33 @@ export function EditProcedureModal({
             setErrors(prev => ({ ...prev, [field]: undefined }))
         }
     }, [errors])
+
+    // Handle currency input for originalPrice
+    const handleOriginalPriceChange = (value: string) => {
+        handleCurrencyInput(value, (formatted) => {
+            setFormattedPrices(prev => ({ ...prev, originalPrice: formatted }))
+            const numericValue = parseCurrency(formatted)
+            updateForm("originalPrice", numericValue)
+        })
+    }
+
+    // Handle currency input for price
+    const handlePriceChange = (value: string) => {
+        handleCurrencyInput(value, (formatted) => {
+            setFormattedPrices(prev => ({ ...prev, price: formatted }))
+            const numericValue = parseCurrency(formatted)
+            updateForm("price", numericValue)
+        })
+    }
+
+    // Handle currency input for estimated cost
+    const handleEstimatedCostChange = (value: string) => {
+        handleCurrencyInput(value, (formatted) => {
+            setFormattedPrices(prev => ({ ...prev, estimatedCost: formatted }))
+            const numericValue = parseCurrency(formatted)
+            setEstimatedCost(numericValue)
+        })
+    }
 
     const validateForm = React.useCallback((): FormErrors => {
         const newErrors: FormErrors = {}
@@ -177,25 +207,6 @@ export function EditProcedureModal({
         if (form.consumableCost < 0) {
             newErrors.consumableCost = "Chi phí vật tư không được âm"
         }
-
-        const commissionFields = [
-            'doctorCommissionRate',
-            'assistantCommissionRate',
-            'technicianCommissionRate',
-            'referralCommissionRate'
-        ] as const
-
-        const totalCommission = commissionFields.reduce((sum, field) => sum + (form[field] || 0), 0)
-
-        if (totalCommission > 100) {
-            newErrors.commissionRates = "Tổng tỷ lệ hoa hồng không được vượt quá 100%"
-        }
-
-        commissionFields.forEach(field => {
-            if (form[field] < 0 || form[field] > 100) {
-                newErrors.commissionRates = "Tỷ lệ hoa hồng phải từ 0% đến 100%"
-            }
-        })
 
         if (autoCalculatePrice) {
             const expectedPrice = form.originalPrice * (1 - form.discount / 100) + form.consumableCost
@@ -285,8 +296,6 @@ export function EditProcedureModal({
     if (!procedure) return null
 
     const currentSupplies = form.suppliesUsed || []
-    const totalCommission = form.doctorCommissionRate + form.assistantCommissionRate +
-        form.technicianCommissionRate + form.referralCommissionRate
     const totalSupplyCost = calculateTotalSupplyCost(currentSupplies)
 
     return (
@@ -378,11 +387,9 @@ export function EditProcedureModal({
                                     <Label htmlFor="originalPrice">Giá Gốc (VNĐ) *</Label>
                                     <Input
                                         id="originalPrice"
-                                        type="number"
-                                        min="0"
-                                        step="1000"
-                                        value={form.originalPrice}
-                                        onChange={(e) => updateForm("originalPrice", Number.parseFloat(e.target.value) || 0)}
+                                        type="text"
+                                        value={formattedPrices.originalPrice}
+                                        onChange={(e) => handleOriginalPriceChange(e.target.value)}
                                         placeholder="0"
                                         disabled={isSubmitting}
                                         className={errors.originalPrice ? "border-destructive" : ""}
@@ -415,11 +422,9 @@ export function EditProcedureModal({
                                     <Label htmlFor="price">Giá Bán (VNĐ) *</Label>
                                     <Input
                                         id="price"
-                                        type="number"
-                                        min="0"
-                                        step="1000"
-                                        value={form.price}
-                                        onChange={(e) => updateForm("price", Number.parseFloat(e.target.value) || 0)}
+                                        type="text"
+                                        value={formattedPrices.price}
+                                        onChange={(e) => handlePriceChange(e.target.value)}
                                         placeholder="0"
                                         disabled={isSubmitting || autoCalculatePrice}
                                         className={errors.price ? "border-destructive" : ""}
@@ -439,10 +444,8 @@ export function EditProcedureModal({
                                 <Label htmlFor="consumableCost">Chi Phí Khấu Hao(VNĐ)</Label>
                                 <Input
                                     id="consumableCost"
-                                    type="number"
-                                    min="0"
-                                    step="1000"
-                                    value={form.consumableCost}
+                                    type="text"
+                                    value={formatCurrency(form.consumableCost)}
                                     placeholder="0"
                                     disabled={true}
                                 />
@@ -451,122 +454,22 @@ export function EditProcedureModal({
                                 </p>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <Label htmlFor="estimatedCost">Chi Phí Ước Tính (VNĐ)</Label>
-                                    </div>
-                                    <Input
-                                        id="estimatedCost"
-                                        type="number"
-                                        min="0"
-                                        step="1000"
-                                        value={estimatedCost}
-                                        onChange={(e) => setEstimatedCost(Number.parseFloat(e.target.value) || 0)}
-                                        placeholder="0"
-                                        disabled={isSubmitting}
-                                        className={errors.consumableCost ? "border-destructive" : ""}
-                                    />
-                                    {errors.consumableCost && (
-                                        <p className="text-sm text-destructive">{errors.consumableCost}</p>
-                                    )}
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="estimatedCost">Chi Phí Ước Tính (VNĐ)</Label>
                                 </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="warrantyPeriod">Thời Gian Bảo Hành</Label>
-                                    <Input
-                                        id="warrantyPeriod"
-                                        value={form.warrantyPeriod}
-                                        onChange={(e) => updateForm("warrantyPeriod", e.target.value)}
-                                        placeholder="6 tháng"
-                                        disabled={isSubmitting}
-                                        maxLength={3}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Commission Rates */}
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-lg font-semibold flex items-center gap-2">
-                                    <Percent className="w-5 h-5" />
-                                    Tỷ Lệ Hoa Hồng (%)
-                                </h3>
-                                <Badge
-                                    variant={totalCommission > 100 ? "destructive" : totalCommission > 80 ? "secondary" : "default"}
-                                >
-                                    Tổng: {totalCommission.toFixed(1)}%
-                                </Badge>
-                            </div>
-
-                            {errors.commissionRates && (
-                                <Alert variant="destructive">
-                                    <AlertCircle className="h-4 w-4" />
-                                    <AlertDescription>{errors.commissionRates}</AlertDescription>
-                                </Alert>
-                            )}
-
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="doctorCommissionRate">Bác Sĩ</Label>
-                                    <Input
-                                        id="doctorCommissionRate"
-                                        type="number"
-                                        min="0"
-                                        max="100"
-                                        step="0.1"
-                                        value={form.doctorCommissionRate}
-                                        onChange={(e) => updateForm("doctorCommissionRate", Number.parseFloat(e.target.value) || 0)}
-                                        placeholder="0"
-                                        disabled={isSubmitting}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="assistantCommissionRate">Trợ Lý</Label>
-                                    <Input
-                                        id="assistantCommissionRate"
-                                        type="number"
-                                        min="0"
-                                        max="100"
-                                        step="0.1"
-                                        value={form.assistantCommissionRate}
-                                        onChange={(e) => updateForm("assistantCommissionRate", Number.parseFloat(e.target.value) || 0)}
-                                        placeholder="0"
-                                        disabled={isSubmitting}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="technicianCommissionRate">Kỹ Thuật Viên</Label>
-                                    <Input
-                                        id="technicianCommissionRate"
-                                        type="number"
-                                        min="0"
-                                        max="100"
-                                        step="0.1"
-                                        value={form.technicianCommissionRate}
-                                        onChange={(e) => updateForm("technicianCommissionRate", Number.parseFloat(e.target.value) || 0)}
-                                        placeholder="0"
-                                        disabled={isSubmitting}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="referralCommissionRate">Giới Thiệu</Label>
-                                    <Input
-                                        id="referralCommissionRate"
-                                        type="number"
-                                        min="0"
-                                        max="100"
-                                        step="0.1"
-                                        value={form.referralCommissionRate}
-                                        onChange={(e) => updateForm("referralCommissionRate", Number.parseFloat(e.target.value) || 0)}
-                                        placeholder="0"
-                                        disabled={isSubmitting}
-                                    />
-                                </div>
+                                <Input
+                                    id="estimatedCost"
+                                    type="text"
+                                    value={formattedPrices.estimatedCost}
+                                    onChange={(e) => handleEstimatedCostChange(e.target.value)}
+                                    placeholder="0"
+                                    disabled={isSubmitting}
+                                    className={errors.consumableCost ? "border-destructive" : ""}
+                                />
+                                {errors.consumableCost && (
+                                    <p className="text-sm text-destructive">{errors.consumableCost}</p>
+                                )}
                             </div>
                         </div>
 
