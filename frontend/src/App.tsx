@@ -66,6 +66,7 @@ import NotFound from './pages/error/NotFound';
 import GuestConsultationPage from "./pages/messages/guest-consultation-new";
 import PatientConsultationPage from "./pages/messages/patient-consultation-new";
 import InternalMessagesPage from "./pages/messages/internal-new";
+import { ChatWrapper } from './components/chat/ChatWrapper';
 
 function App() {
   return (
@@ -152,15 +153,12 @@ function App() {
                   <Route path="/messages/patient-consultation" element={<PatientConsultationPage />} />
                   <Route path="/messages/internal" element={<InternalMessagesPage />} />
                 </Routes>
-
-                {/* Floating chat chỉ hiển thị khi có ChatHubProvider */}
-                {/* <GuestSupportChatWrapper />
-                <FloatingChatButton /> */}
               </>
             </ChatHubProvider>
           }
         />
       </Routes>
+      <ChatWrapper />
     </>
   );
 }

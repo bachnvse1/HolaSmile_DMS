@@ -123,8 +123,8 @@ export const HeroSection = () => {
         </div>
 
         {/* Indicator Dots */}
-        <div className="absolute bottom-2 sm:bottom-4 md:bottom-6 left-1/2 transform -translate-x-1/2">
-          <div className="flex space-x-2 sm:space-x-3 bg-black/20 backdrop-blur-sm rounded-full px-3 py-2 sm:px-4 sm:py-2">
+        <div className="absolute bottom-2 sm:bottom-4 md:bottom-4 left-1/2 transform -translate-x-1/2">
+          <div className="flex space-x-2 sm:space-x-3 rounded-full px-3 py-2 sm:px-4 sm:py-2">
             {heroImages.map((_, index) => (
               <button
                 key={index}

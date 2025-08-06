@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Menu, User, LogOut, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { AuthService } from '@/services/AuthService';
 import { NotificationButton } from "@/components/notification/NotificationButton"; // cập nhật đúng path của bạn
 
 interface UserInfo {
@@ -40,8 +41,7 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSide
   }, [isUserMenuOpen]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
+    AuthService.logout();
     navigate('/');
   };
 

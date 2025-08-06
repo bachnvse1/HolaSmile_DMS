@@ -148,6 +148,8 @@ export class TokenUtils {
         localStorage.setItem("refreshToken", refreshToken);
       }
 
+      window.dispatchEvent(new Event('authChange'));
+
       return true;
     } catch {
       console.error("Error saving login token");
@@ -166,6 +168,8 @@ export class TokenUtils {
       if (refreshToken) {
         localStorage.setItem("refreshToken", refreshToken);
       }
+
+      window.dispatchEvent(new Event('authChange'));
 
       return true;
     } catch {
@@ -235,6 +239,7 @@ export class TokenUtils {
     localStorage.removeItem("avatar");
     localStorage.removeItem("userId");
     localStorage.removeItem("username");
+    window.dispatchEvent(new Event('authChange'));
   }
 
   /**

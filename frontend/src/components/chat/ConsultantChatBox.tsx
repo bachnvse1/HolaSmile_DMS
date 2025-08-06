@@ -16,6 +16,11 @@ type ChatMessage = {
   fileSize?: number;
 };
 
+interface ConsultantChatBoxProps {
+  onOpenStateChange?: (isOpen: boolean) => void;
+  forceClose?: boolean;
+}
+
 function getOrCreateGuestId(): string {
   let id = localStorage.getItem("guestId");
   if (!id) {
@@ -53,7 +58,7 @@ const isMobile = () => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 };
 
-export default function ConsultantChatBox() {
+export default function ConsultantChatBox({ onOpenStateChange, forceClose = false }: ConsultantChatBoxProps) {
   const guestId = getOrCreateGuestId();
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<ChatMessage[]>([]);
@@ -87,6 +92,13 @@ export default function ConsultantChatBox() {
   useEffect(() => {
     fetchChatHistory(CONSULTANT.id).then(setHistory);
   }, [guestId, fetchChatHistory]);
+
+  useEffect(() => {
+    if (forceClose && isOpen) {
+      setIsOpen(false);
+      onOpenStateChange?.(false);
+    }
+  }, [forceClose, isOpen, onOpenStateChange]);
 
   const allMessages = useMemo(() => {
     const merged = [...history, ...realtimeMessages].filter(
@@ -212,6 +224,12 @@ export default function ConsultantChatBox() {
     setIsOpen(true);
     // Tắt thông báo đỏ khi mở chat
     setHasUnreadMessage(false);
+    onOpenStateChange?.(true);
+  };
+
+  const handleCloseChat = () => {
+    setIsOpen(false);
+    onOpenStateChange?.(false);
   };
 
   const formatTime = (ts?: string) => {
@@ -304,7 +322,7 @@ export default function ConsultantChatBox() {
 
       {/* Floating Chat Button */}
       {!isOpen && (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="fixed bottom-6 right-6 z-40">
           <button
             onClick={handleOpenChat}
             className={`
@@ -329,9 +347,8 @@ export default function ConsultantChatBox() {
         </div>
       )}
 
-      {/* Chat Window */}
       {isOpen && (
-        <div className={`fixed bottom-6 right-6 z-50 ${isMobile() ? 'w-[calc(100vw-1rem)] max-w-sm' : 'w-96 max-w-[calc(100vw-2rem)]'}`}>
+        <div className={`fixed bottom-6 right-6 z-40 ${isMobile() ? 'w-[calc(100vw-1rem)] max-w-sm' : 'w-96 max-w-[calc(100vw-2rem)]'}`}>
           <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4">
@@ -349,7 +366,7 @@ export default function ConsultantChatBox() {
                   </div>
                 </div>
                 <button
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleCloseChat}
                   className="text-white/80 hover:text-white hover:bg-white/10 rounded-full p-2 transition-colors"
                 >
                   <X className="w-5 h-5" />
