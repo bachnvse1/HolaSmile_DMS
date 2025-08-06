@@ -46,7 +46,7 @@ namespace HDMS_API.Controllers
             }
         }
 
-        [HttpPut]
+        [HttpPost]
         public async Task<IActionResult> Ask([FromBody] string userQuestion)
         {
             try
@@ -72,7 +72,7 @@ namespace HDMS_API.Controllers
             }
         }
 
-        [HttpPost("update")]
+        [HttpPut("update")]
         public async Task<IActionResult> UpdateChatbotData([FromBody] UpdateChatbotDataCommand command)
         {
             try

@@ -66,6 +66,7 @@ import NotFound from './pages/error/NotFound';
 import GuestConsultationPage from "./pages/messages/guest-consultation-new";
 import PatientConsultationPage from "./pages/messages/patient-consultation-new";
 import InternalMessagesPage from "./pages/messages/internal-new";
+import ChatbotKnowledgeManagement from "./pages/chatbot/ChatbotKnowledgeManagement";
 import { ChatWrapper } from './components/chat/ChatWrapper';
 
 function App() {
@@ -152,6 +153,7 @@ function App() {
                   <Route path="/messages/guest-consultation" element={<GuestConsultationPage />} />
                   <Route path="/messages/patient-consultation" element={<PatientConsultationPage />} />
                   <Route path="/messages/internal" element={<InternalMessagesPage />} />
+                  <Route path="/chatbot/knowledge" element={<ChatbotKnowledgeManagement />} />
                 </Routes>
               </>
             </ChatHubProvider>

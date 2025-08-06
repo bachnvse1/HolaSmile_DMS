@@ -110,7 +110,7 @@ export const ViewPromotionPage: React.FC = () => {
             </div>
           </div>
           
-          {canEdit && (
+          {canEdit && program.isDelete != false && (
             <div className="flex flex-col sm:flex-row gap-2">
               <Button
                 variant="outline"

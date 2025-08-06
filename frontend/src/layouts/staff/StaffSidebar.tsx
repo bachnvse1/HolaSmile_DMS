@@ -19,7 +19,8 @@ import {
   MessageCircle,
   Users2,
   UserCircle,
-  Phone
+  Phone,
+  Bot
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 import { useAuth } from '@/hooks/useAuth';
@@ -192,6 +193,13 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       icon: <UserCheck className="h-5 w-5" />,
       path: '/administrator/user-list',
       roles: ['Administrator']
+    },
+    {
+      id: 'chatbot-management',
+      label: 'Quản Lý Chatbot',
+      icon: <Bot className="h-5 w-5" />,
+      path: '/chatbot/knowledge',
+      roles: ['Administrator', 'Owner']
     },
     {
       id: 'settings',
