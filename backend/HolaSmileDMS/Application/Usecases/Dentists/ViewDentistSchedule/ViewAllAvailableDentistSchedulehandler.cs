@@ -20,6 +20,7 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
             }
 
             var result = schedules
+                         .Where(s => s.Dentist.User.Status == true) // Filter schedules before grouping
                          .GroupBy(s => s.DentistId)
                          .Select(g => new DentistScheduleDTO
                          {

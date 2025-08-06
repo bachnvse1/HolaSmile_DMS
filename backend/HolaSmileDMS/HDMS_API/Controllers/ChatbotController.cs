@@ -46,7 +46,7 @@ namespace HDMS_API.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPut]
         public async Task<IActionResult> Ask([FromBody] string userQuestion)
         {
             try

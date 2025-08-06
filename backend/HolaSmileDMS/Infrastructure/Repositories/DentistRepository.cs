@@ -32,7 +32,7 @@ namespace Infrastructure.Repositories
         {
             var dentists = await _context.Dentists
                 .Include(d => d.User)
-                .Where(d => d.User != null && d.User.Status == true)
+                .Where(d => d.User != null && d.User.Status == true && d.User.Status == true)
                 .Select(d => new DentistRecordDto
                 {
                     DentistId = d.DentistId,
