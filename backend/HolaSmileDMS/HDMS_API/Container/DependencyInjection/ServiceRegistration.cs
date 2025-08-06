@@ -77,7 +77,7 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<ICloudinaryService, CloudinaryService>();
             services.AddScoped<IImageRepository, ImageRepository>();
             services.AddScoped<ITransactionRepository, TransactionRepository>();
-            services.AddScoped<IPromotionrepository, Promotionrepository>();
+            services.AddScoped<IPromotionRepository, PromotionRepository>();
             services.AddScoped<IMaintenanceRepository, MaintenanceRepository>();
             services.AddScoped<IChatBotKnowledgeRepository, ChatBotKnowledgeRepository>();
 
