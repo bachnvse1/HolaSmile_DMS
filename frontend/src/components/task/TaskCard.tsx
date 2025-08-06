@@ -9,12 +9,11 @@ import type { BasicTask, TaskStatus } from "@/types/task"
 
 interface TaskCardProps {
   task: BasicTask
-  onToggleStatus: (taskId: number) => void
   onViewDetail: (task: BasicTask) => void
   isUpdating?: boolean
 }
 
-export function TaskCard({ task, onToggleStatus, onViewDetail, isUpdating = false }: TaskCardProps) {
+export function TaskCard({ task, onViewDetail, isUpdating = false }: TaskCardProps) {
   const statusText = task.status === "Completed" ? "Hoàn thành" : "Chưa hoàn thành"
 
   const getStatusIcon = (status: TaskStatus) =>
@@ -83,7 +82,6 @@ export function TaskCard({ task, onToggleStatus, onViewDetail, isUpdating = fals
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-
             {/* More actions dropdown */}
             <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -100,12 +98,6 @@ export function TaskCard({ task, onToggleStatus, onViewDetail, isUpdating = fals
                 Xem Chi Tiết
               </DropdownMenuItem>
               <DropdownMenuItem>Chỉnh Sửa</DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => onToggleStatus(task.taskId)}
-                disabled={isUpdating}
-              >
-                {task.status === "Completed" ? "Đánh dấu chưa hoàn thành" : "Đánh dấu hoàn thành"}
-              </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-red-600"
                 disabled={isUpdating}

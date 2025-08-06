@@ -5,7 +5,7 @@ import { TaskStats } from "@/components/task/TaskStats"
 import { AssignTaskModal } from "@/components/task/AssignTaskModal"
 import { TaskDetailModal } from "@/components/task/TaskDetailModal"
 import type { BasicTask } from "@/types/task"
-import { getAllTasks, taskService } from "@/services/taskService"
+import { getAllTasks } from "@/services/taskService"
 import { getAllAssistants } from "@/services/assistantService"
 import { toast } from "react-toastify"
 
@@ -14,7 +14,6 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
   const [assistants, setAssistants] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("Tất cả")
-  const [isUpdating, setIsUpdating] = useState<number | null>(null)
   const [selectedTask, setSelectedTask] = useState<BasicTask | null>(null)
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
 
@@ -35,14 +34,12 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
           )
           setTaskList(filteredTasks)
         } else {
-          toast.warning(tasks?.message || "Không thể tải danh sách nhiệm vụ")
           setTaskList([])
         }
 
         if (Array.isArray(assistantList)) {
           setAssistants(assistantList)
         } else {
-          toast.warning(assistantList?.message || "Không thể tải danh sách trợ lý")
           setAssistants([])
         }
       } catch (error: any) {
@@ -57,37 +54,6 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
     setIsDetailModalOpen(true)
   }
 
-  const handleToggleStatus = async (taskId: number) => {
-    setIsUpdating(taskId)
-    
-    try {
-      const currentTask = taskList.find(task => task.taskId === taskId)
-      if (!currentTask) {
-        toast.error("Không tìm thấy nhiệm vụ")
-        return
-      }
-
-      const isCompleted = currentTask.status !== "Completed"
-      
-      const result = await taskService.updateTaskStatus(taskId, isCompleted)
-      
-      setTaskList(prevTasks => 
-        prevTasks.map(task => 
-          task.taskId === taskId 
-            ? { ...task, status: isCompleted ? "Completed" : "Pending" }
-            : task
-        )
-      )
-      
-      toast.success(result.message || "Cập nhật trạng thái thành công")
-      
-    } catch (error: any) {
-      toast.error(error.message || "Không thể cập nhật trạng thái nhiệm vụ")
-    } finally {
-      setIsUpdating(null)
-    }
-  }
-
   const handleTaskAssign = async () => {
     try {
       const rawTasks = await getAllTasks()
@@ -98,7 +64,6 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
           task.treatmentProgressId === treatmentProgressID
         )
         setTaskList(filteredTasks)
-        toast.success("Phân công nhiệm vụ thành công")
       } else {
         toast.warning(tasks?.message || "Không thể tải lại danh sách nhiệm vụ")
       }
@@ -154,9 +119,7 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
           <TaskCard
             key={task.taskId}
             task={task}
-            onToggleStatus={handleToggleStatus}
             onViewDetail={handleViewDetail}
-            isUpdating={isUpdating === task.taskId}
           />
         ))}
 
@@ -167,7 +130,6 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
         )}
       </div>
 
-      {/* Modal chi tiết task */}
       <TaskDetailModal
         task={selectedTask}
         open={isDetailModalOpen}
