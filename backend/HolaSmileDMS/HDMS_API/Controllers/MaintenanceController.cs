@@ -84,25 +84,25 @@ namespace HDMS_API.Controllers
             {
                 var result = await _mediator.Send(command);
                 if (result)
-                    return Ok(new { success = true, message = "Tạo phiếu chi thành công" });
+                    return Ok(new { message = "Tạo phiếu chi thành công" });
 
-                return BadRequest(new { success = false, message = "Tạo phiếu chi thất bại" });
+                return BadRequest(new { message = "Tạo phiếu chi thất bại" });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return StatusCode(StatusCodes.Status403Forbidden, new { success = false, message = ex.Message });
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { success = false, message = ex.Message });
+                return BadRequest(new { message = ex.Message });
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { success = false, message = ex.Message });
+                return NotFound(new { message = ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
             }
         }
 
@@ -113,21 +113,55 @@ namespace HDMS_API.Controllers
             {
                 var result = await _mediator.Send(new DeleteMaintenanceCommand(id));
                 if (!result)
-                    return BadRequest(new { success = false, message = "Không thể xóa phiếu bảo trì." });
+                    return BadRequest(new {  message = "Không thể xóa phiếu bảo trì." });
 
-                return Ok(new { success = true, message = "Xóa thành công." });
+                return Ok(new { message = "Xóa thành công." });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return StatusCode(StatusCodes.Status403Forbidden, new { success = false, message = ex.Message });
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { success = false, message = ex.Message });
+                return NotFound(new { message = ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
+            }
+        }
+
+        [HttpPut("update-status")]
+        public async Task<IActionResult> UpdateMaintenanceStatus([FromBody] UpdateMaintenanceStatusCommand command)
+        {
+            try
+            {
+                var result = await _mediator.Send(command);
+                if (result)
+                {
+                    return Ok(new
+                    {
+                        Message = "Cập nhật trạng thái bảo trì thành công",
+                    });
+                }
+                return BadRequest(new
+                {
+                    Message = "Cập nhật trạng thái bảo trì thất bại",
+                });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new
+                {
+                    Message = ex.Message,
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    Message = ex.Message,
+                });
             }
         }
     }
