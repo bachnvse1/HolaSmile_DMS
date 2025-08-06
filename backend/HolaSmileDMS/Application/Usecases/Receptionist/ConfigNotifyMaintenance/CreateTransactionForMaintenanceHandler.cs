@@ -50,6 +50,9 @@ namespace Application.Usecases.Receptionist.ConfigNotifyMaintenance
             if (maintenance == null)
                 throw new Exception("Không tìm thấy thông tin bảo trì.");
 
+            if (!string.Equals(maintenance.Status, "Approved", StringComparison.OrdinalIgnoreCase))
+                throw new Exception("Chỉ những bảo trì đã được phê duyệt mới có thể tạo phiếu chi.");
+
             var transaction = new FinancialTransaction
             {
                 TransactionDate = DateTime.Now,
@@ -58,7 +61,7 @@ namespace Application.Usecases.Receptionist.ConfigNotifyMaintenance
                 Category = "Chi phí bảo trì",
                 PaymentMethod = true, // Tiền mặt
                 Amount = Math.Round(request.Price, 2),
-                status = "approved",
+                status = "Approved",
                 CreatedAt = DateTime.Now,
                 CreatedBy = currentUserId,
                 IsDelete = false
