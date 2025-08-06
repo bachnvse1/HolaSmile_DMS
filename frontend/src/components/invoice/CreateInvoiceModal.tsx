@@ -85,7 +85,6 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
     );
   };
 
-  // Handle form field changes
   const handleFieldChange = (field: keyof InvoiceFormData, value: string | number) => {
     setNewInvoice(prev => ({
       ...prev,
@@ -93,7 +92,6 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
     }));
   };
 
-  // Handle payment amount change với handleCurrencyInput
   const handleAmountChange = (value: string) => {
     handleCurrencyInput(value, (formattedValue) => {
       setFormattedAmount(formattedValue);
@@ -104,7 +102,6 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
     });
   };
 
-  // Auto-fill amount based on transaction type
   const handleTransactionTypeChange = (value: string) => {
     handleFieldChange('transactionType', value);
     if (value === 'full') {
@@ -119,7 +116,6 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
  const handleCreateInvoiceWithNavigation = async () => {
     try {
       await handleCreateInvoice();
-      toast.success('Hóa đơn đã được tạo thành công');
       setTimeout(() => {
         window.location.href = '/invoices';
       }, 1000);

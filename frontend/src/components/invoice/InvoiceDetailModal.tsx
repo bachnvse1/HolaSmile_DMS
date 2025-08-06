@@ -127,7 +127,7 @@ export function InvoiceDetailModal({
   const paymentProgress = selectedInvoice.totalAmount ? 
     Math.round(((selectedInvoice.paidAmount || 0) / selectedInvoice.totalAmount) * 100) : 0
   
-  const remainingAmount = (selectedInvoice.totalAmount || 0) - (selectedInvoice.paidAmount || 0)
+  const remainingAmount = selectedInvoice.remainingAmount || 0
   const isFullyPaid = remainingAmount <= 0
   const isPending = selectedInvoice.status === 'pending'
   const isOverdue = selectedInvoice.status === 'overdue'

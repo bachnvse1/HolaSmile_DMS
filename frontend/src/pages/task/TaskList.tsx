@@ -30,7 +30,6 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
         const assistantList = rawAssistants as any
 
         if (Array.isArray(tasks)) {
-          // Lọc chỉ lấy các task thuộc về treatmentProgressID này
           const filteredTasks = tasks.filter(task => 
             task.treatmentProgressId === treatmentProgressID
           )
@@ -51,20 +50,17 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
       }
     }
     fetchData()
-  }, [treatmentProgressID]) // Thêm treatmentProgressID vào dependency array
+  }, [treatmentProgressID]) 
 
-  // Hàm xử lý xem chi tiết task
   const handleViewDetail = (task: BasicTask) => {
     setSelectedTask(task)
     setIsDetailModalOpen(true)
   }
 
-  // Hàm xử lý thay đổi trạng thái task
   const handleToggleStatus = async (taskId: number) => {
     setIsUpdating(taskId)
     
     try {
-      // Tìm task hiện tại để xác định trạng thái
       const currentTask = taskList.find(task => task.taskId === taskId)
       if (!currentTask) {
         toast.error("Không tìm thấy nhiệm vụ")
@@ -73,10 +69,8 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
 
       const isCompleted = currentTask.status !== "Completed"
       
-      // Gọi API để cập nhật trạng thái
       const result = await taskService.updateTaskStatus(taskId, isCompleted)
       
-      // Cập nhật state local
       setTaskList(prevTasks => 
         prevTasks.map(task => 
           task.taskId === taskId 
@@ -94,14 +88,12 @@ export default function TaskList({ treatmentProgressID }: { treatmentProgressID:
     }
   }
 
-  // Hàm refresh danh sách task sau khi assign
   const handleTaskAssign = async () => {
     try {
       const rawTasks = await getAllTasks()
       const tasks = rawTasks as any
 
       if (Array.isArray(tasks)) {
-        // Lọc chỉ lấy các task thuộc về treatmentProgressID này
         const filteredTasks = tasks.filter(task => 
           task.treatmentProgressId === treatmentProgressID
         )
