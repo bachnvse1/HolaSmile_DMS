@@ -11,16 +11,16 @@ namespace HDMS_API.Application.Usecases.UserCommon.EditProfile
     {
         private readonly IUserCommonRepository _repository;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IFileStorageService _fileStorageService;
+        private readonly ICloudinaryService _cloudinaryService;
 
         public EditProfileHandler(
             IUserCommonRepository repository,
             IHttpContextAccessor httpContextAccessor,
-            IFileStorageService fileStorageService)
+            ICloudinaryService cloudinaryService)
         {
             _repository = repository;
             _httpContextAccessor = httpContextAccessor;
-            _fileStorageService = fileStorageService;
+            _cloudinaryService = cloudinaryService;
         }
 
         public async Task<bool> Handle(EditProfileCommand request, CancellationToken cancellationToken)
@@ -39,10 +39,12 @@ namespace HDMS_API.Application.Usecases.UserCommon.EditProfile
             currentUser.Gender = request.Gender ?? currentUser.Gender;
             currentUser.Address = request.Address ?? currentUser.Address;
             currentUser.DOB = FormatHelper.TryParseDob(request.DOB) ?? currentUser.DOB;
-            if (!string.IsNullOrEmpty(request.Avatar) && File.Exists(request.Avatar))
+            if (request.Avatar != null && request.Avatar.Length > 0)
             {
-                currentUser.Avatar = _fileStorageService.SaveAvatar(request.Avatar);
+                var avatarUrl = await _cloudinaryService.UploadImageAsync(request.Avatar, "avatars");
+                currentUser.Avatar = avatarUrl; // lưu URL vào DB
             }
+
 
             currentUser.UpdatedAt = DateTime.UtcNow;
 

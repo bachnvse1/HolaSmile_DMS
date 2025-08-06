@@ -1,5 +1,4 @@
-﻿
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -12,13 +11,13 @@ namespace Application.Usecases.Receptionist.CreateDiscountProgram
     public class CreateDiscountProgramHandler : IRequestHandler<CreateDiscountProgramCommand, bool>
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IPromotionrepository _promotionRepository;
+        private readonly IPromotionRepository _promotionRepository;
         private readonly IProcedureRepository _procedureRepository;
         private readonly IOwnerRepository _ownerRepository;
         private readonly IMediator _mediator;
 
 
-        public CreateDiscountProgramHandler(IHttpContextAccessor httpContextAccessor, IPromotionrepository promotionrepository, IProcedureRepository procedureRepository, IOwnerRepository ownerRepository, IMediator mediator)
+        public CreateDiscountProgramHandler(IHttpContextAccessor httpContextAccessor, IPromotionRepository promotionrepository, IProcedureRepository procedureRepository, IOwnerRepository ownerRepository, IMediator mediator)
         {
             _httpContextAccessor = httpContextAccessor;
             _promotionRepository = promotionrepository;

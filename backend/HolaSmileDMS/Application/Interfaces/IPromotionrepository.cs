@@ -3,7 +3,7 @@ using Domain.Entities;
 
 namespace Application.Interfaces
 {
-    public interface IPromotionrepository
+    public interface IPromotionRepository
     {
         Task<List<DiscountProgram>> GetAllPromotionProgramsAsync();
          Task<bool> CreateDiscountProgramAsync(DiscountProgram discountProgram);

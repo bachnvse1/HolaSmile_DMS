@@ -51,6 +51,7 @@ export const PatientTreatmentImagesPage: React.FC = () => {
               size="icon"
               onClick={handleGoBack}
               title="Quay lại danh sách hồ sơ điều trị"
+              className='border border-gray-300'
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>

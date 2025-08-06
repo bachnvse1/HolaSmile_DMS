@@ -167,7 +167,7 @@ export const PrescriptionTemplateList: React.FC = () => {
             className="w-full sm:w-auto"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Tạo Mẫu Đơn Mới
+            Tạo Mẫu Đơn Thuốc Mới
           </Button>
         )}
       </div>
@@ -204,7 +204,7 @@ export const PrescriptionTemplateList: React.FC = () => {
             {!searchQuery && canEdit && (
               <Button onClick={() => navigate('/prescription-templates/create')}>
                 <Plus className="h-4 w-4 mr-2" />
-                Tạo Mẫu Đơn Mới
+                Tạo Mẫu Đơn Thuốc Mới
               </Button>
             )}
           </CardContent>

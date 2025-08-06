@@ -33,28 +33,34 @@ export const Navigation = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex-shrink-0">
-            <button onClick={handleNavClick('#home')}>
-              <h1 className="text-2xl font-bold text-blue-600 cursor-pointer">
-                HolaSmile
-              </h1>
+            <button onClick={handleNavClick('#home')} className="flex items-center">
+              <img 
+                src="/logo.png" 
+                alt="HolaSmile Logo" 
+                className="h-14 w-14"
+              />
+              <div className="flex flex-col items-start leading-none">
+                <span className="text-md font-medium text-gray-700 mt-1">NHA KHOA</span>
+                <span className="text-xl font-bold text-blue-600 -mt-1">HolaSmile</span>
+              </div>
             </button>
           </div>
 
           <div className="hidden lg:block">
             <div className="ml-10 flex items-baseline space-x-4">
-              <button onClick={handleNavClick('#home')} className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+              <button onClick={handleNavClick('#home')} className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-md font-medium">
                 Trang Chủ
               </button>
-              <button onClick={handleNavClick('#services')} className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+              <button onClick={handleNavClick('#services')} className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-md font-medium">
                 Dịch Vụ
               </button>
-              <button onClick={handleNavClick('#about')} className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+              <button onClick={handleNavClick('#about')} className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-md font-medium">
                 Về Chúng Tôi
               </button>
-              <button onClick={handleNavClick('#team')} className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+              <button onClick={handleNavClick('#team')} className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-md font-medium">
                 Đội Ngũ
               </button>
-              <button onClick={handleNavClick('#contact')} className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+              <button onClick={handleNavClick('#contact')} className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-md font-medium">
                 Liên Hệ
               </button>
             </div>

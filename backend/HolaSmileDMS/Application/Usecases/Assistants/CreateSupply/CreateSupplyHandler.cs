@@ -96,7 +96,7 @@ namespace Application.Usecases.Assistant.CreateSupply
                       o.User.UserID,
                       "Nhập vật tư",
                       $"Trợ lý {assistant.Fullname} nhập vật tư mới {newSupply.Name} vào lúc {DateTime.Now}",
-                      "procedure", 0, $"proceduces"),
+                      "supply", 0, $"inventory/{newSupply.SupplyId}"),
                 cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);
             }

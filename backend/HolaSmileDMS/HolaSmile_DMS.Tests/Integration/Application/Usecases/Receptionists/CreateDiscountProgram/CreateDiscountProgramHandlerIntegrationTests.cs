@@ -18,7 +18,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
     public class CreateDiscountProgramHandlerIntegrationTests
     {
         private readonly ApplicationDbContext _context;
-        private readonly IPromotionrepository _promotionRepository;
+        private readonly IPromotionRepository _promotionRepository;
         private readonly IProcedureRepository _procedureRepository;
         private readonly IOwnerRepository _ownerRepository;
         private readonly Mock<IMediator> _mediatorMock;
@@ -31,7 +31,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
                 .Options;
 
             _context = new ApplicationDbContext(options);
-            _promotionRepository = new Promotionrepository(_context);
+            _promotionRepository = new PromotionRepository(_context);
             _procedureRepository = new ProcedureRepository(_context);
             _ownerRepository = new OwnerRepository(_context);
             _mediatorMock = new Mock<IMediator>();
@@ -63,7 +63,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
                 new User { UserID = 2, Username = "0111111112", Fullname = "Owner B", Phone = "0111111112" }
             );
 
-            _context.Owners.Add(new Owner { OwnerId = 1, UserId = 2 });
+            _context.Owners.Add(new global::Owner { OwnerId = 1, UserId = 2 });
 
             _context.Procedures.Add(new Procedure
             {

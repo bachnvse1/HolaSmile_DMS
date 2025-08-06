@@ -1,6 +1,8 @@
 import { Smile, Shield, Zap, Heart, Eye, Baby } from 'lucide-react';
 import { Link } from 'react-router'
 import { useNavigate } from 'react-router';
+import { useEffect, useState, useRef } from 'react';
+
 const services = [
   {
     icon: Smile,
@@ -42,11 +44,33 @@ const services = [
 
 export const ServicesSection = () => {
   const navigate = useNavigate();
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section id="services" className="py-20 bg-white">
+    <section ref={sectionRef} id="services" className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-16">
+        <div className={`text-center mb-16 transform transition-all duration-1000 ${
+          isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+        }`}>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             Dịch Vụ Của Chúng Tôi
           </h2>
@@ -60,30 +84,42 @@ export const ServicesSection = () => {
           {services.map((service, index) => (
             <div
               key={index}
-              className="bg-white border border-gray-200 rounded-xl p-8 hover:shadow-lg transition-shadow duration-300"
+              className={`bg-white border border-gray-200 rounded-xl p-8 hover:shadow-lg transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 ${
+                isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+              }`}
+              style={{ 
+                transitionDelay: `${index * 100}ms`,
+                animationDelay: `${index * 100}ms`
+              }}
             >
-              <div className="bg-blue-100 w-16 h-16 rounded-lg flex items-center justify-center mb-6">
+              <div className="bg-blue-100 w-16 h-16 rounded-lg flex items-center justify-center mb-6 transform transition-transform duration-300 hover:rotate-12">
                 <service.icon className="h-8 w-8 text-blue-600" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-4">
                 {service.title}
               </h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-600 leading-relaxed mb-6">
                 {service.description}
               </p>
               <Link
                 to={`/services/${service.slug}`}
-                className="mt-6 text-blue-600 font-medium hover:text-blue-700 transition-colors"
+                className="text-blue-600 font-medium hover:text-blue-700 transition-colors group"
               >
-                Tìm Hiểu Thêm →
+                Tìm Hiểu Thêm 
+                <span className="inline-block ml-1 transform group-hover:translate-x-1 transition-transform">→</span>
               </Link>
             </div>
           ))}
         </div>
 
         {/* CTA */}
-        <div className="text-center mt-16">
-          <button onClick={() => navigate("/appointment-booking")} className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+        <div className={`text-center mt-16 transform transition-all duration-1000 delay-600 ${
+          isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+        }`}>
+          <button 
+            onClick={() => navigate("/appointment-booking")} 
+            className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+          >
             Đặt Lịch Tư Vấn
           </button>
         </div>

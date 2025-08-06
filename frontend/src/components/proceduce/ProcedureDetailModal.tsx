@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button2"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogOverlay } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
-import { FileText, Percent, Shield, Package, Calendar, User, Clock, Activity } from "lucide-react"
+import { FileText, Package, Calendar, User, Clock } from "lucide-react"
 import type { Procedure } from "@/types/procedure"
 import { formatCurrency } from "@/utils/currencyUtils"
 
@@ -67,7 +67,7 @@ export function ProcedureDetailModal({ procedure, isOpen, onOpenChange, onEdit, 
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
                             <h2 className="text-2xl font-bold">{procedure.procedureName}</h2>
-                            <Badge variant={procedure.isDeleted !== true ? "default" : "secondary"}>
+                            <Badge variant={procedure.isDeleted !== true ? "default" : "destructive"}>
                                 {procedure.isDeleted !== true ? "Hoạt động" : "Không hoạt động"}
                             </Badge>
                         </div>
@@ -90,16 +90,17 @@ export function ProcedureDetailModal({ procedure, isOpen, onOpenChange, onEdit, 
                                 <p className="text-xl font-bold text-blue-600">{formatCurrency(procedure.originalPrice)}</p>
                             </div>
 
-                            <div className="bg-muted/50 p-4 rounded-lg">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <Percent className="w-4 h-4 text-red-600" />
-                                    <span className="text-sm font-medium">Giảm Giá</span>
+                            {procedure.discount > 0 && (
+                                <div className="bg-muted/50 p-4 rounded-lg">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <span className="text-sm font-medium">Giảm Giá</span>
+                                    </div>
+                                    <p className="text-xl font-bold text-red-600">{procedure.discount}%</p>
+                                    {calculateSavings() > 0 && (
+                                        <p className="text-xs text-muted-foreground">Tiết kiệm: {formatCurrency(calculateSavings())}</p>
+                                    )}
                                 </div>
-                                <p className="text-xl font-bold text-red-600">{procedure.discount}%</p>
-                                {calculateSavings() > 0 && (
-                                    <p className="text-xs text-muted-foreground">Tiết kiệm: {formatCurrency(calculateSavings())}</p>
-                                )}
-                            </div>
+                            )}
 
                             <div className="bg-muted/50 p-4 rounded-lg">
                                 <div className="flex items-center gap-2 mb-2">
@@ -121,99 +122,12 @@ export function ProcedureDetailModal({ procedure, isOpen, onOpenChange, onEdit, 
 
                     <Separator />
 
-                    {/* Thông tin hoa hồng */}
-                    <div className="space-y-4">
-                        <h3 className="text-lg font-semibold flex items-center gap-2">
-                            <Percent className="w-5 h-5" />
-                            Tỷ Lệ Hoa Hồng
-                        </h3>
-
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="bg-muted/50 p-4 rounded-lg text-center">
-                                <div className="flex items-center justify-center gap-2 mb-2">
-                                    <User className="w-4 h-4 text-blue-600" />
-                                    <span className="text-sm font-medium">Bác Sĩ</span>
-                                </div>
-                                <p className="text-2xl font-bold text-blue-600">{procedure.doctorCommissionRate}%</p>
-                                <p className="text-xs text-muted-foreground">
-                                    {formatCurrency((procedure.price * procedure.doctorCommissionRate) / 100)}
-                                </p>
-                            </div>
-
-                            <div className="bg-muted/50 p-4 rounded-lg text-center">
-                                <div className="flex items-center justify-center gap-2 mb-2">
-                                    <User className="w-4 h-4 text-green-600" />
-                                    <span className="text-sm font-medium">Trợ Lý</span>
-                                </div>
-                                <p className="text-2xl font-bold text-green-600">{procedure.assistantCommissionRate}%</p>
-                                <p className="text-xs text-muted-foreground">
-                                    {formatCurrency((procedure.price * procedure.assistantCommissionRate) / 100)}
-                                </p>
-                            </div>
-
-                            <div className="bg-muted/50 p-4 rounded-lg text-center">
-                                <div className="flex items-center justify-center gap-2 mb-2">
-                                    <User className="w-4 h-4 text-purple-600" />
-                                    <span className="text-sm font-medium">Kỹ Thuật Viên</span>
-                                </div>
-                                <p className="text-2xl font-bold text-purple-600">{procedure.technicianCommissionRate}%</p>
-                                <p className="text-xs text-muted-foreground">
-                                    {formatCurrency((procedure.price * procedure.technicianCommissionRate) / 100)}
-                                </p>
-                            </div>
-
-                            <div className="bg-muted/50 p-4 rounded-lg text-center">
-                                <div className="flex items-center justify-center gap-2 mb-2">
-                                    <User className="w-4 h-4 text-orange-600" />
-                                    <span className="text-sm font-medium">Giới Thiệu</span>
-                                </div>
-                                <p className="text-2xl font-bold text-orange-600">{procedure.referralCommissionRate}%</p>
-                                <p className="text-xs text-muted-foreground">
-                                    {formatCurrency((procedure.price * procedure.referralCommissionRate) / 100)}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="bg-blue-50 p-4 rounded-lg">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Activity className="w-4 h-4 text-blue-600" />
-                                <span className="font-medium text-blue-800">Tổng Hoa Hồng</span>
-                            </div>
-                            <p className="text-lg font-bold text-blue-800">
-                                {procedure.doctorCommissionRate +
-                                    procedure.assistantCommissionRate +
-                                    procedure.technicianCommissionRate +
-                                    procedure.referralCommissionRate}
-                                % (
-                                {formatCurrency(
-                                    (procedure.price *
-                                        (procedure.doctorCommissionRate +
-                                            procedure.assistantCommissionRate +
-                                            procedure.technicianCommissionRate +
-                                            procedure.referralCommissionRate)) /
-                                    100,
-                                )}
-                                )
-                            </p>
-                        </div>
-                    </div>
-
-                    <Separator />
-
                     {/* Thông tin bổ sung */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
                             <h3 className="text-lg font-semibold">Thông Tin Bổ Sung</h3>
 
                             <div className="space-y-3">
-                                <div className="flex items-center gap-2">
-                                    <Shield className="w-4 h-4 text-blue-600" />
-                                    <div>
-                                        <p className="text-sm font-medium">Thời Gian Bảo Hành</p>
-                                        <p className="text-sm text-muted-foreground">{procedure.warrantyPeriod || "Không có bảo hành"}</p>
-                                    </div>
-                                </div>
-
                                 {procedure.duration && (
                                     <div className="flex items-center gap-2">
                                         <Clock className="w-4 h-4 text-green-600" />

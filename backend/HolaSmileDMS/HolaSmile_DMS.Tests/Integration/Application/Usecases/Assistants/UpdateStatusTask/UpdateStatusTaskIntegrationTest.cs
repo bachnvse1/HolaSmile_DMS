@@ -1,10 +1,14 @@
 ﻿using Application.Constants;
+using Application.Interfaces;
 using Application.Usecases.Assistant.UpdateTaskStatus;
+using Application.Usecases.SendNotification;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using System.Security.Claims;
 using Xunit;
 
@@ -15,6 +19,8 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
         private readonly ApplicationDbContext _context;
         private readonly UpdateTaskStatusHandler _handler;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly Mock<IMediator> _mediatorMock;
+        private readonly Mock<IUserCommonRepository> _userCommonRepositoryMock;
 
         public UpdateTaskStatusIntegrationTests()
         {
@@ -30,9 +36,23 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             _context = provider.GetRequiredService<ApplicationDbContext>();
             _httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
 
+            _mediatorMock = new Mock<IMediator>();
+            _userCommonRepositoryMock = new Mock<IUserCommonRepository>();
+
+            // Thiết lập mock mặc định cho notification
+            _mediatorMock.Setup(m => m.Send(It.IsAny<SendNotificationCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(MediatR.Unit.Value);
+
+            _userCommonRepositoryMock.Setup(x => x.GetUserIdByRoleTableIdAsync(It.IsAny<string>(), It.IsAny<int>()))
+                .ReturnsAsync(1);
+
             var taskRepository = new TaskRepository(_context);
 
-            _handler = new UpdateTaskStatusHandler(taskRepository, _httpContextAccessor);
+            _handler = new UpdateTaskStatusHandler(
+                taskRepository,
+                _httpContextAccessor,
+                _mediatorMock.Object,
+                _userCommonRepositoryMock.Object);
 
             SeedData();
         }
@@ -52,15 +72,26 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
 
         private void SeedData()
         {
-            _context.Tasks.RemoveRange(_context.Tasks);
-            _context.SaveChanges();
+            _context.Database.EnsureDeleted();
+            _context.Database.EnsureCreated();
+
+            // Thêm TreatmentProgress
+            var treatmentProgress = new TreatmentProgress
+            {
+                TreatmentProgressID = 1,
+                DentistID = 1,
+                EndTime = DateTime.UtcNow.AddDays(7)
+            };
+            _context.TreatmentProgresses.Add(treatmentProgress);
 
             _context.Tasks.AddRange(
                 new Task
                 {
                     TaskID = 1,
                     AssistantID = 100,
+                    TreatmentProgressID = 1,
                     Status = false,
+                    ProgressName = "Task 1",
                     Description = "Task for assistant 100",
                     CreatedAt = DateTime.UtcNow
                 },
@@ -68,7 +99,9 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
                 {
                     TaskID = 2,
                     AssistantID = 200,
+                    TreatmentProgressID = 1,
                     Status = false,
+                    ProgressName = "Task 2",
                     Description = "Task for another assistant",
                     CreatedAt = DateTime.UtcNow
                 }
@@ -97,6 +130,17 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
 
             var updatedTask = _context.Tasks.First(t => t.TaskID == 1);
             Assert.True(updatedTask.Status);
+
+            // Verify notification was sent
+            _mediatorMock.Verify(x => x.Send(
+                It.Is<SendNotificationCommand>(n =>
+                    n.UserId == 1 &&
+                    n.Title == "Cập nhật trạng thái công việc trợ lý" &&  // Sửa lại title
+                    n.Message == "Tiến trình: Task 1 - đã hoàn thành" &&
+                    n.Type == "Update" &&
+                    n.MappingUrl == "/dentist/assigned-tasks"),
+                It.IsAny<CancellationToken>()
+            ), Times.Once);
         }
 
         [Fact(DisplayName = "UTCID02 - Not logged in should throw MSG53")]

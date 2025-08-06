@@ -36,10 +36,12 @@ namespace Application.Usecases.Dentists.CreatePrescription
 
             var existApp = await _appointmentRepository.GetAppointmentByIdAsync(request.AppointmentId) ?? throw new Exception(MessageConstants.MSG.MSG28);
 
+            if (existApp.Status != "attended") throw new Exception("Bạn chỉ có thể tạo đơn thuốc với khi khách đã đến");
+
             var existPrescription = await _prescriptionRepository.GetPrescriptionByAppointmentIdAsync(request.AppointmentId);
             if (existPrescription != null) throw new Exception(MessageConstants.MSG.MSG108);
 
-            if (string.IsNullOrEmpty(request.contents.Trim())) throw new Exception(MessageConstants.MSG.MSG07);  // "Vui lòng nhập thông tin bắt buộc"
+            if (string.IsNullOrWhiteSpace(request.contents)) throw new Exception(MessageConstants.MSG.MSG07);  // "Vui lòng nhập thông tin bắt buộc"
 
             var prescription = new Prescription
             {

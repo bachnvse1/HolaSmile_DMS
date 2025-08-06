@@ -236,6 +236,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
                   size="icon"
                   onClick={() => navigate('/patients')}
                   title="Quay lại danh sách bệnh nhân"
+                  className='border border-gray-300'
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
@@ -354,6 +355,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
               size="icon"
               onClick={() => navigate('/patients')}
               title="Quay lại danh sách bệnh nhân"
+              className='border border-gray-300'
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>

@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Http;
 
 namespace HDMS_API.Application.Usecases.UserCommon.EditProfile
 {
@@ -8,7 +9,7 @@ namespace HDMS_API.Application.Usecases.UserCommon.EditProfile
         public bool? Gender { get; set; }
         public string? Address { get; set; }
         public string? DOB { get; set; }
-        public string? Avatar { get; set; }
+        public IFormFile? Avatar { get; set; }
     }
 
 }

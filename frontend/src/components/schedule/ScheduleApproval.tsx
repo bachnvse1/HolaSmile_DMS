@@ -87,7 +87,7 @@ export const ScheduleApproval: React.FC<{ viewOnlyApproved?: boolean }> = ({ vie
     setDateFilter('all');
   };
 
-  // Lọc schedules theo trạng thái pending và theo searchTerm nếu có
+  // Lọc schedules theo trạng thái pending
   const pendingSchedules = React.useMemo(() => {
     return allSchedules
       .filter((schedule: any) => {
@@ -98,7 +98,7 @@ export const ScheduleApproval: React.FC<{ viewOnlyApproved?: boolean }> = ({ vie
         // Sắp xếp theo ngày, mới nhất lên đầu
         return new Date(a.workDate).getTime() - new Date(b.workDate).getTime();
       });
-  }, [allSchedules, searchTerm]);
+  }, [allSchedules]); // Bỏ searchTerm dependency vì không sử dụng trong logic filter
 
   const handleSelectSchedule = (ids: number | number[]) => {
     if (Array.isArray(ids)) {
@@ -133,7 +133,7 @@ export const ScheduleApproval: React.FC<{ viewOnlyApproved?: boolean }> = ({ vie
   };
 
   const handleConfirmAction = async () => {
-    if (!approvalAction) return;
+    if (!approvalAction || approveMutation.isPending) return; // Thêm check isPending
 
     try {
       await approveMutation.mutateAsync({
@@ -402,7 +402,7 @@ export const ScheduleApproval: React.FC<{ viewOnlyApproved?: boolean }> = ({ vie
       {/* Các nút phê duyệt/từ chối giữ nguyên */}
       <div className="flex gap-2 mt-4">
         <Button onClick={openApproveDialog} disabled={selectedSchedules.length === 0}>Phê duyệt</Button>
-        <Button variant="outline" onClick={openRejectDialog} disabled={selectedSchedules.length === 0}>Từ chối</Button>
+        <Button variant="destructive" className="text-white" onClick={openRejectDialog} disabled={selectedSchedules.length === 0}>Từ chối</Button>
       </div>
 
 

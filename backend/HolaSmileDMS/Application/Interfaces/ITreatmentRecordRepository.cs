@@ -13,6 +13,7 @@ public interface ITreatmentRecordRepository
     Task<TreatmentRecord?> GetByProcedureIdAsync(int procedureId, CancellationToken cancellationToken);
     Task<Patient?> GetPatientByPatientIdAsync(int patientId);
     IQueryable<TreatmentRecord> Query();
+    Task<TreatmentRecord?> GetTreatmentRecordById(int id, CancellationToken cancellationToken);
 
 
 }

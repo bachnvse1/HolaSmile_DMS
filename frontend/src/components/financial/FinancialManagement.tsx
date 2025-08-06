@@ -14,15 +14,15 @@ export const FinancialManagement: React.FC = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="transactions" className="w-full">
-        <TabsList className="mb-6">
-          {isOwner && (
-            <>
+        {isOwner && (
+          <>
+            <TabsList className="mb-6">
               <TabsTrigger value="transactions">Giao dịch tài chính</TabsTrigger>
-              <TabsTrigger value="approve">Phê duyệt phiếu chi</TabsTrigger>
-              <TabsTrigger value="approved">Phiếu chi đã duyệt</TabsTrigger>
-            </>
-          )}
-        </TabsList>
+              <TabsTrigger value="approve">Phê duyệt giao dịch</TabsTrigger>
+              <TabsTrigger value="approved">Giao dịch đã duyệt</TabsTrigger>
+            </TabsList>
+          </>
+        )}
 
         {/* Tab Giao dịch tài chính */}
         <TabsContent value="transactions" className="py-4">

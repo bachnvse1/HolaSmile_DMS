@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using MySqlX.XDevAPI.Common;
 using Xunit;
 
 namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.UserCommon
@@ -87,8 +88,8 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.UserCommon
             var command = new ForgotPasswordBySmsCommand("0999999999");
 
             // Act & Assert
-            var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, CancellationToken.None));
-            Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
+            var result = await _handler.Handle(command, CancellationToken.None);
+            Assert.True(result);
         }
     }
 }

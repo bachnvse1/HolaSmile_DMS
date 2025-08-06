@@ -12,10 +12,8 @@ import {
   CalendarIcon,
   Clock,
   AlertCircle,
-  Activity,
   Stethoscope,
   Timer,
-  UserX,
   FileText,
   ClipboardList,
   StickyNote,
@@ -36,10 +34,10 @@ import { useAuth } from "@/hooks/useAuth"
 
 // Constants
 const STATUS_OPTIONS = [
-  { value: "pending", label: "Đã lên lịch", color: "text-gray-600", icon: CalendarIcon },
-  { value: "in-progress", label: "Đang điều trị", color: "text-blue-600", icon: Activity },
-  { value: "completed", label: "Đã hoàn thành", color: "text-gray-800", icon: UserCheck },
-  { value: "canceled", label: "Đã huỷ", color: "text-gray-600", icon: UserX },
+  { value: "pending", label: "Đã lên lịch", color: "text-gray-600" },
+  { value: "in-progress", label: "Đang điều trị", color: "text-blue-600" },
+  { value: "completed", label: "Đã hoàn thành", color: "text-gray-800" },
+  { value: "canceled", label: "Đã huỷ", color: "text-gray-600" },
 ] as const
 
 const STATUS_COLORS = {
@@ -267,14 +265,12 @@ export function TreatmentProgressView({ progress }: Props) {
   )
 
   const renderProgressInfo = () => {
-    const StatusIcon = statusInfo.icon
     
     return (
       <div className="bg-white rounded-b-lg p-6 space-y-6">
         {/* Status Badge */}
         <div className="flex items-center justify-center">
           <div className={`px-4 py-2 rounded-full text-sm font-semibold border flex items-center gap-2 ${STATUS_COLORS[progress.status as keyof typeof STATUS_COLORS] || STATUS_COLORS.pending}`}>
-            <StatusIcon className="h-4 w-4" />
             {statusInfo.label}
           </div>
         </div>

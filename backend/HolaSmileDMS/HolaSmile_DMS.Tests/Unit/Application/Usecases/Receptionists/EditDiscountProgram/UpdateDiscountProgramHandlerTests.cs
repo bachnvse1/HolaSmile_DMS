@@ -15,7 +15,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
     public class UpdateDiscountProgramHandlerTests
     {
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new();
-        private readonly Mock<IPromotionrepository> _promotionRepoMock = new();
+        private readonly Mock<IPromotionRepository> _promotionRepoMock = new();
         private readonly Mock<IProcedureRepository> _procedureRepoMock = new();
         private readonly Mock<IOwnerRepository> _ownerRepoMock = new();
         private readonly Mock<IMediator> _mediatorMock = new();

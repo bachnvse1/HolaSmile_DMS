@@ -1,5 +1,6 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
+using Application.Usecases.SendNotification;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
@@ -10,11 +11,12 @@ namespace Application.Usecases.Assistants.DeactivePatientDentalImage
     {
         private readonly IImageRepository _imageRepo;
         private readonly IHttpContextAccessor _httpContext;
-
-        public DeactivePatientDentalImageHandler(IImageRepository imageRepo, IHttpContextAccessor httpContext)
+        private readonly IMediator _mediator;
+        public DeactivePatientDentalImageHandler(IImageRepository imageRepo, IHttpContextAccessor httpContext, IMediator mediator)
         {
             _imageRepo = imageRepo;
             _httpContext = httpContext;
+            _mediator = mediator;
         }
 
         public async Task<string> Handle(DeactivePatientDentalImageCommand request, CancellationToken cancellationToken)
@@ -36,6 +38,32 @@ namespace Application.Usecases.Assistants.DeactivePatientDentalImage
             var success = await _imageRepo.UpdateAsync(image);
             if (!success)
                 throw new Exception("Không thể xoá ảnh khỏi hệ thống.");
+
+            Console.WriteLine(image.Patient?.User?.UserID);
+
+            // ✅ Gửi notification trong try/catch
+            try
+            {
+                var patientUserId = image.Patient?.User?.UserID ?? 0;
+
+                if (patientUserId > 0)
+                {
+                    await _mediator.Send(new SendNotificationCommand(
+                        patientUserId,
+                        "Xoá ảnh nha khoa",
+                        "Một ảnh nha khoa trong hồ sơ của bạn vừa bị xoá.",
+                        "Delete",
+                        image.TreatmentRecordId,
+                        $"/patient/treatment-records/{image.TreatmentRecordId}/images"
+                    ), cancellationToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log lỗi để debug, không throw để không ảnh hưởng luồng chính
+                Console.WriteLine($"Notification send failed: {ex.Message}");
+            }
+
 
             return "Xoá ảnh thành công.";
         }

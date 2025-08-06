@@ -48,7 +48,16 @@ namespace Application.Usecases.Patients.CancelAppointment
             {
                 throw new Exception("Bạn chỉ có thể hủy lịch ở trạng thái xác nhận");
             }
-            var cancleApp = await _appointmentRepository.CancelAppointmentAsync(request.AppointmentId, currentUserId);
+
+            var cancleApp = await _appointmentRepository.GetAppointmentByIdAsync(request.AppointmentId);
+            cancleApp.Status = "canceled";
+            cancleApp.CancelReason = request.Reason;
+            cancleApp.UpdatedAt = DateTime.Now;
+            cancleApp.UpdatedBy = currentUserId;
+            var isCancel = await _appointmentRepository.UpdateAppointmentAsync(cancleApp);
+
+            //var cancleApp = await _appointmentRepository.CancelAppointmentAsync(request.AppointmentId, currentUserId);
+
 
             //GỬI THÔNG BÁO CHO DENTIST
             try
@@ -79,7 +88,7 @@ namespace Application.Usecases.Patients.CancelAppointment
             }
             catch { }
 
-            return cancleApp ? MessageConstants.MSG.MSG06 : MessageConstants.MSG.MSG58;
+            return isCancel ? MessageConstants.MSG.MSG06 : MessageConstants.MSG.MSG58;
         }
     }
     }

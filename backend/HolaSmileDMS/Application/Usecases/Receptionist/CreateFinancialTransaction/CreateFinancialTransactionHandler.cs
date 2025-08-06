@@ -46,7 +46,8 @@ namespace Application.Usecases.Receptionist.CreateFinancialTransaction
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
             }
 
-            if (request.Description.Trim().IsNullOrEmpty()) throw new Exception(MessageConstants.MSG.MSG07);
+
+            if (request.Description.Trim().IsNullOrEmpty() || request.Category.Trim().IsNullOrEmpty()) throw new Exception(MessageConstants.MSG.MSG07);
             if (request.Amount <= 0) throw new Exception(MessageConstants.MSG.MSG95);
 
             var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/bmp", "image/webp", "image/tiff", "image/heic" };

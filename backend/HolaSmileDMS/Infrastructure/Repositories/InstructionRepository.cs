@@ -41,6 +41,9 @@ public class InstructionRepository : IInstructionRepository
     public async Task<Instruction?> GetByIdAsync(int instructionId, CancellationToken ct = default)
     {
         return await _context.Instructions
+            .Include(i => i.Appointment)
+                .ThenInclude(a => a.Patient)
+                    .ThenInclude(p => p.User)
             .FirstOrDefaultAsync(i => i.InstructionID == instructionId && !i.IsDeleted, ct);
     }
     public async Task<bool> UpdateAsync(Instruction instruction, CancellationToken ct = default)

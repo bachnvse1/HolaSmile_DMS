@@ -101,7 +101,7 @@ export const ViewPromotionPage: React.FC = () => {
         {/* Header */}
         <div className="flex flex-row sm:flex-row sm:items-center justify-between mb-6 gap-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={handleBack}>
+            <Button variant="ghost" size="icon" onClick={handleBack} className='border border-gray-300'>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>

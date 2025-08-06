@@ -62,8 +62,8 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Administrators
 
             // Thêm Owner
             _context.Owners.AddRange(
-                new Owner { OwnerId = 1, UserId = 2 },
-                new Owner { OwnerId = 2, UserId = 3 }
+                new global::Owner { OwnerId = 1, UserId = 2 },
+                new global::Owner { OwnerId = 2, UserId = 3 }
             );
 
             _context.SaveChanges();
