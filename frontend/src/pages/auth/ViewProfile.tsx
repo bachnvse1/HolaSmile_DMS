@@ -426,7 +426,7 @@ export default function ViewProfile() {
       resetPasswordForm()
       setShowPasswordForm(false)
     } catch (error: any) {
-      toast.error(error.message || "Lỗi đổi mật khẩu")
+      toast.error(error?.response?.data?.message || error.message || "Lỗi đổi mật khẩu")
     }
   }
 
