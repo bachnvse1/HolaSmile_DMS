@@ -11,7 +11,7 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { usePromotionPrograms, useDeactivatePromotionProgram } from '@/hooks/usePromotions';
 import { formatDateShort, getDaysRemaining } from '@/utils/date';
 import { getErrorMessage } from '@/utils/formatUtils';
-import type { PromotionProgram } from '@/services/promotionApi';
+import type { PromotionProgram } from '@/types/promotion.types';
 import { CreatePromotionModal } from './CreatePromotionModal';
 import { EditPromotionModal } from './EditPromotionModal';
 import { useUserInfo } from '@/hooks/useUserInfo';
@@ -414,7 +414,7 @@ export const PromotionList: React.FC = () => {
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          {canEdit && (<Button
+                          {canEdit && program.isDelete != false && (<Button
                             size="sm"
                             variant="ghost"
                             onClick={() => handleEdit(program.discountProgramID)}
