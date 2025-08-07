@@ -20,7 +20,7 @@ interface FormValues {
   email: string
   avatar: string
   phone: string
-  address: string
+  address: string 
   dob: string
   gender: Gender
 }
@@ -111,25 +111,29 @@ const getUserProfile = async (): Promise<FormValues> => {
 const updateUserProfile = async (
   formData: FormValues,
   token: string,
-  originalAvatar: string
+  avatarFile: File | null = null
 ): Promise<void> => {
-  const payload: any = {
-    fullname: formData.fullname.trim(),
-    gender: formData.gender === "Nam",
-    address: formData.address.trim(),
-    dob: formData.dob,
-  };
+  // Tạo FormData object
+  const formDataToSend = new FormData();
 
-  if (
-    formData.avatar &&
-    formData.avatar !== DEFAULT_AVATAR &&
-    formData.avatar !== originalAvatar
-  ) {
-    payload.avatar = formData.avatar;
+  // Thêm các field thông tin cơ bản
+  formDataToSend.append('fullname', formData.fullname.trim());
+  formDataToSend.append('gender', formData.gender === "Nam" ? "true" : "false");
+  formDataToSend.append('address', formData.address.trim());
+  formDataToSend.append('dob', formData.dob);
+
+  // Thêm file ảnh nếu có
+  if (avatarFile) {
+    formDataToSend.append('avatar', avatarFile);
   }
 
-  await axiosInstance.put("/user/profile", payload, {
-    headers: { "ngrok-skip-browser-warning": "true", Authorization: `Bearer ${token}` },
+  // Gửi request với Content-Type multipart/form-data
+  await axiosInstance.put("/user/profile", formDataToSend, {
+    headers: { 
+      "ngrok-skip-browser-warning": "true", 
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'multipart/form-data'
+    },
   });
 };
 
@@ -158,6 +162,8 @@ const useTokenValidation = () => {
 
 const useImageUpload = (setValue: UseFormSetValue<FormValues>) => {
   const [imageError, setImageError] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
   const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -172,16 +178,43 @@ const useImageUpload = (setValue: UseFormSetValue<FormValues>) => {
       return
     }
 
+    // Lưu file và tạo preview URL
+    setSelectedFile(file)
     const url = URL.createObjectURL(file)
+    setPreviewUrl(url)
 
+    // Cập nhật form với preview URL để hiển thị
     setValue("avatar", url, { shouldDirty: true })
 
-    e.target.value = ""
-
+    // Cleanup function để revoke URL
     return () => URL.revokeObjectURL(url)
   }, [setValue])
 
-  return { handleImageUpload, imageError }
+  // Cleanup preview URL khi component unmount hoặc file thay đổi
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl)
+      }
+    }
+  }, [previewUrl])
+
+  const clearSelectedFile = useCallback(() => {
+    setSelectedFile(null)
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl)
+      setPreviewUrl(null)
+    }
+    setImageError(null)
+  }, [previewUrl])
+
+  return { 
+    handleImageUpload, 
+    imageError, 
+    selectedFile, 
+    previewUrl,
+    clearSelectedFile 
+  }
 }
 
 const LoadingState = () => (
@@ -359,7 +392,12 @@ export default function ViewProfile() {
     return rawAvatar;
   }, [rawAvatar]);
 
-  const { handleImageUpload, imageError } = useImageUpload(setValue)
+  const { 
+    handleImageUpload, 
+    imageError, 
+    selectedFile, 
+    clearSelectedFile 
+  } = useImageUpload(setValue)
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["user-profile"],
@@ -377,7 +415,8 @@ export default function ViewProfile() {
   }, [data, reset])
 
   const onSubmit = async (formData: FormValues) => {
-    const avatarChanged = formData.avatar !== data?.avatar;
+    const avatarChanged = selectedFile !== null;
+    
     if (!isDirty && !avatarChanged) {
       toast.info("Không có thay đổi nào để lưu");
       return;
@@ -385,12 +424,18 @@ export default function ViewProfile() {
 
     try {
       setIsSubmitting(true)
-      await updateUserProfile(formData, token, data?.avatar || "")
+      
+      // Gửi request với file ảnh (nếu có)
+      await updateUserProfile(formData, token, selectedFile)
 
+      // Cập nhật cache với dữ liệu mới
       queryClient.setQueryData(["user-profile"], formData)
 
       toast.success("Cập nhật thành công!")
       setIsEditing(false)
+      
+      // Clear selected file sau khi upload thành công
+      clearSelectedFile()
     } catch (err: any) {
       const message = err.response?.data?.message || err.message || "Lỗi không xác định."
       toast.error(`${message}`)
@@ -434,8 +479,9 @@ export default function ViewProfile() {
     if (data) {
       reset(data)
     }
+    clearSelectedFile() // Clear selected file khi cancel
     setIsEditing(false)
-  }, [data, reset])
+  }, [data, reset, clearSelectedFile])
 
   const handleEdit = useCallback(() => {
     setIsEditing(true)
@@ -602,7 +648,7 @@ export default function ViewProfile() {
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting || !isDirty}
+                  disabled={isSubmitting || (!isDirty && !selectedFile)}
                   className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <Save size={16} />
@@ -651,6 +697,11 @@ export default function ViewProfile() {
                 <p className="text-xs">
                   Hỗ trợ: JPEG, PNG, WebP (tối đa 5MB)
                 </p>
+                {selectedFile && (
+                  <div className="text-xs text-green-600 bg-green-50 p-2 rounded">
+                    ✓ Đã chọn: {selectedFile.name}
+                  </div>
+                )}
               </div>
             )}
 
