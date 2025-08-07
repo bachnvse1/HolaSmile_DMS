@@ -39,6 +39,7 @@ namespace HDMS_API.Application.Usecases.UserCommon.EditProfile
             currentUser.Gender = request.Gender ?? currentUser.Gender;
             currentUser.Address = request.Address ?? currentUser.Address;
             currentUser.DOB = FormatHelper.TryParseDob(request.DOB) ?? currentUser.DOB;
+            currentUser.Email = request.Email ?? currentUser.Email;
             if (request.Avatar != null && request.Avatar.Length > 0)
             {
                 var avatarUrl = await _cloudinaryService.UploadImageAsync(request.Avatar, "avatars");
