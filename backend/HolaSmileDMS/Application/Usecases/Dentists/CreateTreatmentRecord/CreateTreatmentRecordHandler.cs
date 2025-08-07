@@ -155,7 +155,7 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
                             "Tạo lịch hẹn điều trị",
                             $"Lịch hẹn điều trị mới của bạn là ngày {request.TreatmentDate} đã được nha sĩ {fullName} tạo",
                             "Lịch điều trị",
-                            0, ""
+                            0, "patient/appointments"
                         ), cancellationToken);
                     }
                     catch (Exception ex)
@@ -167,9 +167,9 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
                         await _mediator.Send(new SendNotificationCommand(
                             currentUserId,
                             "Tạo lịch hẹn điều trị",
-                            $"Lịch hẹn điều trị mới của bạn là ngày {request.TreatmentDate} đã được nha sĩ {fullName} tạo.",
+                            $"Lịch hẹn điều trị mới của BN {patient.User.Fullname} là ngày {request.TreatmentDate} đã được nha sĩ {fullName} tạo.",
                             "Lịch điều trị",
-                            0, ""
+                            0, "appointments"
                         ), cancellationToken);
                     }
                     catch (Exception ex)
@@ -195,14 +195,14 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
                         "Tạo thủ thuật điều trị",
                         message,
                         "Xem hồ sơ",
-                        0, $"patient/view-treatment-records?patientId={appointment.PatientId}"
+                        0, $"patient/treatment-records"
                     ), cancellationToken);
                     
-                    var messageDentist = $"Mã hồ sơ điều trị: #{record.TreatmentRecordID} của bạn được nha sĩ {fullName} tạo và thực hiện trong {record.TreatmentDate}!";
+                    var messageDentist = $"Mã hồ sơ điều trị: #{record.TreatmentRecordID} của BN {appointment.Patient.User.Fullname} được nha sĩ {fullName} tạo và thực hiện trong {record.TreatmentDate}!";
                     await _mediator.Send(new SendNotificationCommand(
                         currentUserId,
                         "Tạo thủ thuật điều trị",
-                        message,
+                        messageDentist,
                         "Xem hồ sơ",
                         0, $"patient/view-treatment-records?patientId={appointment.PatientId}"
                     ), cancellationToken);

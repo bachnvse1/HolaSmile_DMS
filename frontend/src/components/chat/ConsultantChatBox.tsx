@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useChatHubGuest } from "@/hooks/chat/useChatHubGuest";
-import { MessageCircle, X, Send, User, Headphones, Image, Video, Paperclip, Camera } from "lucide-react";
+import { MessageCircle, X, Send, User, Headphones, Image, Video, Paperclip } from "lucide-react";
+import axiosInstance from '@/lib/axios';
 
 const CONSULTANT = { id: "3", name: "Nhân viên tư vấn" };
 
@@ -25,25 +26,23 @@ function getOrCreateGuestId(): string {
   return id;
 }
 
-// Hàm upload file lên backend API
-const uploadFileToAPI = async (file: File): Promise<string> => {
+// 🔥 SỬA LẠI HÀM UPLOAD MEDIA - DÙNG GIỐNG CHATWINDOW
+const uploadMedia = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append('file', file);
 
   try {
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
+    const response = await axiosInstance.post('/chats/upload-media', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      withCredentials: true
     });
 
-    if (!response.ok) {
-      throw new Error('Upload failed');
-    }
-
-    const data = await response.json();
-    return data.url; // Backend trả về URL của file đã upload
+    console.log('Upload successful:', response.data);
+    return response.data.url;
   } catch (error) {
-    console.error('Upload error:', error);
+    console.error('Upload media error:', error);
     throw error;
   }
 };
@@ -61,12 +60,10 @@ export default function ConsultantChatBox() {
   const [hasUnreadMessage, setHasUnreadMessage] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [showFileOptions, setShowFileOptions] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastProcessedMessage = useRef<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const { realtimeMessages, sendMessage, fetchChatHistory } =
     useChatHubGuest(guestId);
@@ -153,17 +150,18 @@ export default function ConsultantChatBox() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [allMessages]);
 
-  const handleSend = () => {
+  // 🔥 HANDLE SEND MESSAGE - CHỈ GỬI TEXT
+  const handleSend = useCallback(() => {
     const text = input.trim();
     if (!text) return;
 
     // ✅ Gọi sendMessage từ hook
     sendMessage(text);
     setInput("");
-  };
+  }, [input, sendMessage]);
 
-  // Xử lý upload file
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  // 🔥 HANDLE FILE UPLOAD - SỬ DỤNG API GIỐNG CHATWINDOW
+  const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -176,37 +174,40 @@ export default function ConsultantChatBox() {
       return;
     }
 
-    // Kiểm tra kích thước file (giới hạn 50MB cho mobile, 10MB cho desktop)
-    const maxSize = isMobile() ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+    // Kiểm tra kích thước file (50MB)
+    const maxSize = 50 * 1024 * 1024; // 50MB
     if (file.size > maxSize) {
-      alert(`File không được vượt quá ${isMobile() ? '50MB' : '10MB'}!`);
+      alert('File không được vượt quá 50MB!');
       return;
     }
 
     setIsUploading(true);
-    setShowFileOptions(false);
 
     try {
-      // Upload file lên backend API
-      const fileUrl = await uploadFileToAPI(file);
+      // 🔥 UPLOAD FILE LÊN SERVER TRƯỚC
+      const fileUrl = await uploadMedia(file);
       
-      // Gửi tin nhắn với URL từ backend
+      // 🔥 SAU ĐÓ GỬI URL QUA CHAT
       sendMessage(fileUrl);
       
     } catch (error) {
       console.error('Error uploading file:', error);
-      alert('Có lỗi xảy ra khi upload file!');
+      alert('Có lỗi xảy ra khi gửi file!');
     } finally {
       setIsUploading(false);
       // Reset input file
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-      if (cameraInputRef.current) {
-        cameraInputRef.current.value = '';
-      }
     }
-  };
+  }, [sendMessage]);
+
+  // 🔥 HANDLE PAPERCLIP CLICK
+  const handlePaperclipClick = useCallback(() => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  }, []);
 
   const handleOpenChat = () => {
     setIsOpen(true);
@@ -220,8 +221,8 @@ export default function ConsultantChatBox() {
     return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
-  // Hàm render nội dung tin nhắn
-  const renderMessageContent = (msg: ChatMessage) => {
+  // 🔥 RENDER MESSAGE CONTENT WITH IMAGE/VIDEO SUPPORT - GIỐNG CHATWINDOW
+  const renderMessageContent = useCallback((msg: ChatMessage) => {
     // Kiểm tra nếu message là URL của ảnh/video
     const isImageUrl = /\.(jpg|jpeg|png|gif|webp|bmp)(\?|$)/i.test(msg.message) || 
                       msg.message.includes('/uploads/') && /image/i.test(msg.message);
@@ -238,7 +239,6 @@ export default function ConsultantChatBox() {
             style={{ maxHeight: '200px' }}
             onClick={() => window.open(msg.message, '_blank')}
             onError={(e) => {
-              // Fallback nếu ảnh không load được
               (e.target as HTMLImageElement).style.display = 'none';
               const fallback = document.createElement('div');
               fallback.className = 'text-xs text-gray-500 p-2 bg-gray-100 rounded';
@@ -261,7 +261,6 @@ export default function ConsultantChatBox() {
             className="max-w-full h-auto rounded-lg"
             style={{ maxHeight: '200px' }}
             onError={(e) => {
-              // Fallback nếu video không load được
               (e.target as HTMLVideoElement).style.display = 'none';
               const fallback = document.createElement('div');
               fallback.className = 'text-xs text-gray-500 p-2 bg-gray-100 rounded';
@@ -278,28 +277,19 @@ export default function ConsultantChatBox() {
     }
     
     // Tin nhắn text thông thường
-    return <p className="text-sm leading-relaxed">{msg.message}</p>;
-  };
+    return <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{msg.message}</p>;
+  }, []);
 
   return (
     <>
-      {/* Hidden file inputs */}
+      {/* 🔥 HIDDEN FILE INPUT */}
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*,video/*"
         onChange={handleFileUpload}
-        className="hidden"
-      />
-      
-      {/* Camera input for mobile */}
-      <input
-        ref={cameraInputRef}
-        type="file"
-        accept="image/*,video/*"
-        capture="environment"
-        onChange={handleFileUpload}
-        className="hidden"
+        style={{ display: 'none' }}
+        multiple={false}
       />
 
       {/* Floating Chat Button */}
@@ -425,6 +415,16 @@ export default function ConsultantChatBox() {
             {/* Input Area */}
             <div className="p-4 bg-white border-t border-gray-100">
               <div className="flex items-center gap-2">
+                {/* 🔥 PAPERCLIP BUTTON */}
+                <button 
+                  onClick={handlePaperclipClick}
+                  disabled={isUploading}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Chọn file ảnh/video"
+                >
+                  <Paperclip className="h-5 w-5 text-gray-600" />
+                </button>
+
                 <div className="flex-1">
                   <textarea
                     value={input}
@@ -433,6 +433,7 @@ export default function ConsultantChatBox() {
                     className="w-full resize-none border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     rows={1}
                     style={{height: '44px', maxHeight: '100px'}}
+                    disabled={isUploading}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
@@ -440,47 +441,6 @@ export default function ConsultantChatBox() {
                       }
                     }}
                   />
-                </div>
-                
-                {/* File Upload Options */}
-                <div className="relative flex-shrink-0">
-                  <button
-                    onClick={() => setShowFileOptions(!showFileOptions)}
-                    disabled={isUploading}
-                    className="w-11 h-11 rounded-xl transition-all duration-200 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Gửi file"
-                  >
-                    <Paperclip className="w-5 h-5" />
-                  </button>
-
-                  {/* File Options Dropdown */}
-                  {showFileOptions && (
-                    <div className="absolute bottom-full right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-10">
-                      <button
-                        onClick={() => {
-                          fileInputRef.current?.click();
-                          setShowFileOptions(false);
-                        }}
-                        className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-sm text-gray-700 w-full text-left whitespace-nowrap"
-                      >
-                        <Image className="w-4 h-4" />
-                        <span>Thư viện</span>
-                      </button>
-                      
-                      {isMobile() && (
-                        <button
-                          onClick={() => {
-                            cameraInputRef.current?.click();
-                            setShowFileOptions(false);
-                          }}
-                          className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-sm text-gray-700 w-full text-left whitespace-nowrap"
-                        >
-                          <Camera className="w-4 h-4" />
-                          <span>Chụp ảnh</span>
-                        </button>
-                      )}
-                    </div>
-                  )}
                 </div>
 
                 <button
@@ -494,12 +454,24 @@ export default function ConsultantChatBox() {
                     }
                   `}
                 >
-                  <Send className="w-5 h-5" />
+                  {isUploading ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  ) : (
+                    <Send className="w-5 h-5" />
+                  )}
                 </button>
               </div>
               
+              {/* 🔥 UPLOADING INDICATOR */}
+              {isUploading && (
+                <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  <span>Đang tải file lên...</span>
+                </div>
+              )}
+              
               <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
-                <span className="hidden sm:block">Enter để gửi • Shift+Enter xuống dòng</span>
+                <span className="hidden sm:block">📎 File • Enter gửi • Shift+Enter xuống dòng</span>
                 <span className="sm:hidden">📎 File • Enter gửi</span>
                 <div className="flex items-center gap-1">
                   <div className="w-2 h-2 bg-green-400 rounded-full"></div>
@@ -510,26 +482,6 @@ export default function ConsultantChatBox() {
           </div>
         </div>
       )}
-
-      {/* Overlay to close file options */}
-      {showFileOptions && (
-        <div 
-          className="fixed inset-0 z-40" 
-          onClick={() => setShowFileOptions(false)}
-        />
-      )}
-
-      {/* Custom Styles */}
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-5px); }
-        }
-        
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-      `}</style>
     </>
   );
 }

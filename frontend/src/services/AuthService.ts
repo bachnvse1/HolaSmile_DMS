@@ -7,6 +7,12 @@ export interface OTPRequestPayload {
   phoneNumber: string;
 }
 
+export interface PasswordForm {
+  currentPassword: string
+  newPassword: string
+  confirmPassword: string
+}
+
 export interface LoginResponse {
   success: boolean;
   token: string;
@@ -169,6 +175,26 @@ export class AuthService {
       return false;
     }
   }
+
+  static async changePassword(
+    currentPassword: string,
+    newPassword: string,
+    confirmPassword: string
+  ): Promise<void> {
+    try {
+      await axiosInstance.put("/user/change-password", {
+        currentPassword,
+        newPassword,
+        confirmPassword,
+      });
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || "Lỗi đổi mật khẩu");
+      }
+      throw new Error("Lỗi không xác định khi đổi mật khẩu");
+    }
+  }
+
 }
 
 // Setup axios interceptor to automatically add auth token
@@ -232,3 +258,6 @@ export const requestOtpSms = async (payload: OTPRequestPayload): Promise<string>
     throw new Error("Network error");
   }
 };
+
+
+

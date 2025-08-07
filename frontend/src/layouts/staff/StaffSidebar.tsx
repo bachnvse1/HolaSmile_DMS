@@ -25,6 +25,7 @@ import { useNavigate, useLocation } from 'react-router';
 import { useAuth } from '@/hooks/useAuth';
 import { useUnreadMessages } from '@/hooks/chat/useUnreadMessages';
 import { useChatHub } from '@/components/chat/ChatHubProvider';
+import { useChatConversations } from '@/hooks/chat/useChatConversations';
 
 interface MenuItem {
   id: string;
@@ -34,6 +35,7 @@ interface MenuItem {
   children?: MenuItem[];
   roles: string[];
   element?: React.ReactNode;
+  unreadCount?: number; // 🔥 THÊM UNREAD COUNT
 }
 
 interface StaffSidebarProps {
@@ -49,7 +51,105 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
   const navigate = useNavigate();
   const location = useLocation();
 
-  const menuItems: MenuItem[] = useMemo(() => [
+  const handleLogoClick = () => {
+    if (!isMobile && onToggle) {
+      onToggle();
+    }
+  };
+
+  const { userId } = useAuth();
+  const { getTotalUnreadCount, getUnreadCount, refreshUnreadCounts, unreadCounts } = useUnreadMessages(userId);
+  const { isConnected, messages } = useChatHub();
+
+  // 🔥 THÊM HOOK ĐỂ LẤY THÔNG TIN USER/CONVERSATIONS
+  const { conversations } = useChatConversations(); // Cần import hook này
+
+  // 🔥 TÍNH TOÁN UNREAD COUNT CHO TỪNG LOẠI TIN NHẮN
+  const messageStats = useMemo(() => {
+    if (!conversations || !unreadCounts || unreadCounts.length === 0) {
+      return {
+        internal: 0,          // Staff messages
+        patientConsultation: 0, // Patient messages  
+        guestConsultation: 0    // Guest messages
+      };
+    }
+
+    let internal = 0;
+    let patientConsultation = 0; 
+    let guestConsultation = 0;
+
+    unreadCounts.forEach(unread => {
+      // Tìm conversation tương ứng với senderId
+      const conversation = conversations.find(conv => conv.userId === unread.senderId);
+      console.log('🔥 StaffSidebar: Processing unread count for conversation:', conversation);
+      if (conversation) {
+        switch (conversation.role.toLowerCase()) {
+          case 'administrator':
+          case 'owner':
+          case 'receptionist':
+          case 'assistant':
+          case 'dentist':
+            internal += unread.unreadCount;
+            break;
+          case 'patient':
+            patientConsultation += unread.unreadCount;
+            break;
+          case 'guest':
+            guestConsultation += unread.unreadCount;
+            break;
+          default:
+            // Fallback - có thể là tin nhắn nội bộ
+            internal += unread.unreadCount;
+            break;
+        }
+      } else guestConsultation += unread.unreadCount;
+    });
+
+    return {
+      internal,
+      patientConsultation,
+      guestConsultation
+    };
+  }, [conversations, unreadCounts]);
+
+  // 🔥 Force refresh unread counts khi có tin nhắn mới trong ChatHub
+  useEffect(() => {
+    if (!userId || messages.length === 0) return;
+    
+    const lastMessage = messages[messages.length - 1];
+    
+    // Chỉ refresh nếu tin nhắn đến cho user hiện tại (không phải từ user hiện tại)
+    if (lastMessage.receiverId === userId && lastMessage.senderId !== userId) {
+      const timer = setTimeout(() => {
+        refreshUnreadCounts();
+      }, 1000); // Tăng delay lên 1 giây
+      
+      return () => clearTimeout(timer);
+    }
+  }, [messages, userId, refreshUnreadCounts]);
+  
+  // 🔥 Periodic refresh mỗi 30 giây để đảm bảo sync
+  useEffect(() => {
+    if (!userId) return;
+    
+    const interval = setInterval(() => {
+      refreshUnreadCounts();
+    }, 30000); // 30 giây
+    
+    return () => clearInterval(interval);
+  }, [userId, refreshUnreadCounts]);
+  
+  // 🔥 Refresh khi user thay đổi hoặc component mount
+  useEffect(() => {
+    if (userId) {
+      refreshUnreadCounts();
+    }
+  }, [userId, refreshUnreadCounts]);
+  
+  const totalUnreadCount = getTotalUnreadCount();
+  
+
+  const menuItems: MenuItem[] = [
     {
       id: 'dashboard',
       label: 'Tổng Quan',
@@ -90,21 +190,24 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           label: 'Tin Nhắn Nội Bộ',
           icon: <Users2 className="h-4 w-4" />,
           path: '/messages/internal',
-          roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
+          roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist'],
+          unreadCount: messageStats.internal // 🔥 THÊM UNREAD COUNT
         },
         {
           id: 'messages-patient-consultation',
           label: 'Tư Vấn Bệnh Nhân',
           icon: <UserCircle className="h-4 w-4" />,
           path: '/messages/patient-consultation',
-          roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
+          roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist'],
+          unreadCount: messageStats.patientConsultation // 🔥 THÊM UNREAD COUNT
         },
         {
           id: 'messages-customer-consultation',
           label: 'Tư Vấn Khách Hàng',
           icon: <Phone className="h-4 w-4" />,
           path: '/messages/guest-consultation',
-          roles: ['Receptionist']
+          roles: ['Receptionist'],
+          unreadCount: messageStats.guestConsultation // 🔥 THÊM UNREAD COUNT
         }
       ]
     },
@@ -215,170 +318,15 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
         }
       ]
     }
-  ], []);
-
-  // Load expanded state from localStorage on mount
-  useEffect(() => {
-    const savedExpandedItems = localStorage.getItem('sidebar-expanded-items');
-    if (savedExpandedItems) {
-      try {
-        const parsed = JSON.parse(savedExpandedItems);
-        if (Array.isArray(parsed)) {
-          setExpandedItems(parsed);
-        }
-      } catch (error) {
-        console.error('Error parsing saved sidebar state:', error);
-      }
-    }
-  }, []);
-
-  // Save expanded state to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('sidebar-expanded-items', JSON.stringify(expandedItems));
-  }, [expandedItems]);
-
-  // Auto-expand parent items based on current route
-  useEffect(() => {
-    const currentPath = location.pathname;
-    
-    // Find which parent item should be expanded based on current path
-    const findParentForPath = (): string | null => {
-      for (const item of menuItems) {
-        if (item.children) {
-          for (const child of item.children) {
-            if (child.path && (currentPath === child.path || currentPath.startsWith(child.path + '/'))) {
-              return item.id;
-            }
-          }
-        }
-      }
-      return null;
-    };
-
-    const parentId = findParentForPath();
-    if (parentId && !expandedItems.includes(parentId)) {
-      setExpandedItems(prev => {
-        if (!prev.includes(parentId)) {
-          return [...prev, parentId];
-        }
-        return prev;
-      });
-    }
-  }, [location.pathname]); // Removed menuItems and expandedItems from dependencies
-
-  const handleLogoClick = () => {
-    if (!isMobile && onToggle) {
-      onToggle();
-    }
-  };
-
-  const { userId } = useAuth();
-  const { getTotalUnreadCount, refreshUnreadCounts } = useUnreadMessages(userId);
-  const { isConnected, messages } = useChatHub();
-  
-  
-  // Force refresh unread counts khi có tin nhắn mới trong ChatHub
-  useEffect(() => {
-    if (!userId || messages.length === 0) return;
-    
-    const lastMessage = messages[messages.length - 1];
-    
-    // Chỉ refresh nếu tin nhắn đến cho user hiện tại (không phải từ user hiện tại)
-    if (lastMessage.receiverId === userId && lastMessage.senderId !== userId) {
-      // Delay để backend có thời gian xử lý
-      const timer = setTimeout(() => {
-        refreshUnreadCounts();
-      }, 1000); // Tăng delay lên 1 giây
-      
-      return () => clearTimeout(timer);
-    }
-  }, [messages, userId, refreshUnreadCounts]);
-  
-  // Periodic refresh mỗi 30 giây để đảm bảo sync
-  useEffect(() => {
-    if (!userId) return;
-    
-    const interval = setInterval(() => {
-      refreshUnreadCounts();
-    }, 30000); // 30 giây
-    
-    return () => clearInterval(interval);
-  }, [userId, refreshUnreadCounts]);
-  
-  // Refresh khi user thay đổi hoặc component mount
-  useEffect(() => {
-    if (userId) {
-      refreshUnreadCounts();
-    }
-  }, [userId, refreshUnreadCounts]);
-
-  // Refresh unread counts khi user visit message pages để cập nhật badge
-  useEffect(() => {
-    if (!userId) return;
-
-    // Các routes tin nhắn cần theo dõi
-    const messageRoutes = [
-      '/messages/internal',
-      '/messages/patient-consultation', 
-      '/messages/guest-consultation'
-    ];
-
-    const isOnMessagePage = messageRoutes.some(route => 
-      location.pathname === route || location.pathname.startsWith(route + '/')
-    );
-
-    if (isOnMessagePage) {
-      // Delay nhỏ để đảm bảo trang đã load và có thể mark messages as read
-      const timer = setTimeout(() => {
-        refreshUnreadCounts();
-      }, 2000); // 2 giây để đảm bảo trang đã load hoàn tất
-
-      return () => clearTimeout(timer);
-    }
-  }, [location.pathname, userId, refreshUnreadCounts]);
-
-  // Refresh ngay khi có focus/visibility change để cập nhật realtime
-  useEffect(() => {
-    if (!userId) return;
-
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        refreshUnreadCounts();
-      }
-    };
-
-    const handleFocus = () => {
-      refreshUnreadCounts();
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [userId, refreshUnreadCounts]);
-  
-  const totalUnreadCount = getTotalUnreadCount();
+  ];
 
   const toggleExpand = (itemId: string) => {
-    setExpandedItems(prev => {
-      const newItems = prev.includes(itemId)
+    setExpandedItems(prev =>
+      prev.includes(itemId)
         ? prev.filter(id => id !== itemId)
-        : [...prev, itemId];
-      
-      // Save to localStorage immediately
-      localStorage.setItem('sidebar-expanded-items', JSON.stringify(newItems));
-      return newItems;
-    });
+        : [...prev, itemId]
+    );
   };
-
-  // Function to clear all expanded items (useful for reset)
-  // const clearExpandedItems = () => {
-  //   setExpandedItems([]);
-  //   localStorage.removeItem('sidebar-expanded-items');
-  // };
 
   const isItemVisible = (item: MenuItem): boolean => {
     return item.roles.includes(userRole);
@@ -406,6 +354,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
     const isExpanded = expandedItems.includes(item.id);
     const isActive = item.path ? isActiveItem(item.path) : false;
     const isMessagesItem = item.id === 'messages';
+    const hasUnreadMessages = (item.unreadCount || 0) > 0;
 
     return (
       <div key={item.id}>
@@ -417,62 +366,50 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           <div className="flex items-center space-x-3">
             <div className="relative">
               {item.icon}
-              {/* REALTIME BADGE - với logging */}
-                                    {isMessagesItem && totalUnreadCount > 0 && (
-                    <div className="absolute -top-2 -right-2">
-                      {/* Ripple effect background */}
-                      <div 
-                        className="absolute inset-0 w-5 h-5 rounded-full bg-red-500"
-                        style={{
-                          animation: 'ripple 1.5s ease-out infinite'
-                        }}
-                      />
-                      {/* Main badge */}
-                      <div 
-                        className="relative w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white"
-                        title={`${totalUnreadCount} tin nhắn chưa đọc`}
-                        style={{
-                          animation: 'pulse 2s ease-in-out infinite'
-                        }}
-                      >
-                        <span className="text-[10px] text-white font-bold">
-                          {totalUnreadCount > 9 ? '9+' : totalUnreadCount}
-                        </span>
-                      </div>
-                      
-                      <style>{`
-                        @keyframes ripple {
-                          0% {
-                            transform: scale(1);
-                            opacity: 1;
-                          }
-                          70% {
-                            transform: scale(2.5);
-                            opacity: 0.3;
-                          }
-                          100% {
-                            transform: scale(3);
-                            opacity: 0;
-                          }
-                        }
-                        
-                        @keyframes pulse {
-                          0%, 100% {
-                            transform: scale(1);
-                            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
-                          }
-                          50% {
-                            transform: scale(1.1);
-                            box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
-                          }
-                        }
-                      `}</style>
-                    </div>
-                  )}
+              {/* 🔥 MAIN MESSAGES BADGE */}
+              {isMessagesItem && getTotalUnreadCount() > 0 && (
+                <div className="absolute -top-2 -right-2">
+                  <div 
+                    className="absolute inset-0 w-5 h-5 rounded-full bg-red-500"
+                    style={{ animation: 'ripple 1.5s ease-out infinite' }}
+                  />
+                  <div 
+                    className="relative w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white"
+                    title={`${getTotalUnreadCount()} tin nhắn chưa đọc`}
+                    style={{ animation: 'pulse 2s ease-in-out infinite' }}
+                  >
+                    <span className="text-[10px] text-white font-bold">
+                      {getTotalUnreadCount() > 9 ? '9+' : getTotalUnreadCount()}
+                    </span>
+                  </div>
+                </div>
+              )}
+              
+              {/* 🔥 SUB-MESSAGES BADGES */}
+              {!isMessagesItem && hasUnreadMessages && level > 0 && (
+                <div className="absolute -top-2 -right-2">
+                  <div 
+                    className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white"
+                    title={`${item.unreadCount} tin nhắn chưa đọc`}
+                  >
+                    <span className="text-[9px] text-white font-bold">
+                      {(item.unreadCount || 0) > 9 ? '9+' : item.unreadCount}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
             {!isCollapsed && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-1">
                 <span className="font-medium">{item.label}</span>
+                {/* 🔥 TEXT BADGE CHO SUB-ITEMS */}
+                {!isMessagesItem && hasUnreadMessages && level > 0 && (
+                  <div className="ml-auto">
+                    <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                      {(item.unreadCount || 0) > 99 ? '99+' : item.unreadCount}
+                    </span>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -509,7 +446,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       {/* Sidebar */}
       <div className={`
         ${isMobile ? 'fixed left-0 top-0 z-50' : 'fixed left-0 top-0 z-30'}
-        bg-white ${isMobile ? 'transition-transform duration-300' : 'transition-all duration-300 ease-in-out'}
+        bg-white transition-all duration-300 ease-in-out
         ${isCollapsed ? (isMobile ? '-translate-x-full' : 'w-16') : 'w-64'}
         h-screen flex flex-col
       `}>
@@ -556,8 +493,8 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
         </div>
 
         {/* Navigation - Scrollable */}
-        <nav className="flex-1 overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          <div className="space-y-1">
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden">
+          <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {menuItems.map(item => renderMenuItem(item))}
 
             {/* Expand button when collapsed (non-mobile) */}
@@ -576,7 +513,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
         {!isCollapsed && (
           <div className="text-xs text-gray-500 text-center">
             <div>Version 1.0.0</div>
-            {/* DEBUG INFO - SỬ DỤNG useUnreadMessages */}
+            {/* 🔥 DEBUG INFO - SỬ DỤNG useUnreadMessages */}
             <div className="mt-1">
               Messages: {totalUnreadCount} | 🟢 "Online"
             </div>

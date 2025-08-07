@@ -14,10 +14,8 @@ import { useDentistSchedule } from "@/hooks/useDentistSchedule";
 import { ProcedureSelectionModal } from "./ProcedureSelectionModal";
 import type { Procedure } from "@/types/procedure";
 import { SHIFT_TIME_MAP } from "@/utils/schedule";
-import { parseLocalDate } from "@/utils/dateUtils";
 import { ProcedureService } from "@/services/procedureService";
 
-// Status configuration
 const STATUS_CONFIG = {
   pending: {
     label: "Đã lên lịch",
@@ -92,7 +90,6 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
   const [createdRecords, setCreatedRecords] = useState<TreatmentRecord[]>([]);
   const [procedureLoading, setProcedureLoading] = useState(false);
 
-  // State for formatted currency display
   const [formattedPrices, setFormattedPrices] = useState({
     unitPrice: "",
     discountAmount: ""
@@ -108,7 +105,6 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
   const treatmentStatus = watch("treatmentStatus");
   const totalAmount = useCalculateTotal(unitPrice, quantity, discountAmount, discountPercentage);
 
-  // Update formatted prices when form values change
   useEffect(() => {
     setFormattedPrices({
       unitPrice: unitPrice > 0 ? formatCurrency(unitPrice) : "",
@@ -116,7 +112,6 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
     });
   }, [unitPrice, discountAmount]);
 
-  // Handle currency input for discount amount
   const handleDiscountAmountChange = (value: string) => {
     handleCurrencyInput(value, (formatted) => {
       setFormattedPrices(prev => ({ ...prev, discountAmount: formatted }));
@@ -125,23 +120,65 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
     });
   };
 
-  // Format treatment date for display
+  // Fixed timezone handling function
   const formatTreatmentDate = (dateString: string) => {
     if (!dateString) return "";
     try {
-      const date = new Date(dateString);
+      let date: Date;
+      
+      // Check if the date string contains timezone info
+      if (dateString.includes('Z') || dateString.includes('+') || (dateString.includes('T') && dateString.lastIndexOf('-') > dateString.indexOf('T'))) {
+        // It's already in UTC or has timezone info, convert to local
+        date = new Date(dateString);
+      } else {
+        // It's a local datetime string, treat as local
+        date = new Date(dateString);
+      }
+      
       if (isNaN(date.getTime())) return dateString;
       
-      // Format as DD/MM/YYYY HH:mm
+      // Always display in Vietnam timezone
       return date.toLocaleString('vi-VN', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        timeZone: 'Asia/Ho_Chi_Minh' // Ensure Vietnam timezone
       });
     } catch (error) {
+      console.error("Date formatting error:", error);
       return dateString;
+    }
+  };
+
+  // Helper function to convert local datetime to proper format for backend
+  const formatDateForBackend = (localDateString: string) => {
+    if (!localDateString) return localDateString;
+    
+    try {
+      // If it's already a local datetime string (YYYY-MM-DDTHH:mm:ss), keep it as is
+      // The backend should handle timezone conversion
+      if (localDateString.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/)) {
+        return localDateString;
+      }
+      
+      // If it's in other formats, normalize it
+      const date = new Date(localDateString);
+      if (isNaN(date.getTime())) return localDateString;
+      
+      // Return in local ISO format without timezone info
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      
+      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    } catch (error) {
+      console.error("Backend date formatting error:", error);
+      return localDateString;
     }
   };
 
@@ -152,14 +189,12 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
     }
   }, [isEditing, appointmentId, defaultStatus, setValue]);
 
-  // Reset created records when modal opens/closes
   useEffect(() => {
     if (isOpen && !isEditing) {
       setCreatedRecords([]);
     }
   }, [isOpen, isEditing]);
 
-  // Load procedure info when in editing mode
   useEffect(() => {
     const loadProcedureInfo = async () => {
       if (isEditing && selectedProcedureId && !selectedProcedure) {
@@ -179,7 +214,6 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
     loadProcedureInfo();
   }, [isEditing, selectedProcedureId, selectedProcedure]);
 
-  // Clear procedure when not editing and procedureID changes to null/undefined
   useEffect(() => {
     if (!isEditing && !selectedProcedureId) {
       setSelectedProcedure(null);
@@ -192,22 +226,25 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
     try {
       setIsSubmitting(true);
 
+      // Format the date properly for backend
+      const formattedData = {
+        ...data,
+        treatmentDate: formatDateForBackend(data.treatmentDate)
+      };
+
       if (isEditing) {
-        // Editing mode - update and close
-        const result: { message?: string } = await updateTreatmentRecord(recordId!, data, totalAmount, updatedBy);
+        const result: { message?: string } = await updateTreatmentRecord(recordId!, formattedData, totalAmount, updatedBy);
         toast.success(result.message || "Cập nhật thành công");
-        if (onSubmit) onSubmit(data);
+        if (onSubmit) onSubmit(formattedData);
         formMethods.reset();
         onClose();
       } else {
-        // Creating mode - create and stay open
         const result: { message?: string; recordId?: number } = await createTreatmentRecord(
-          { ...data },
+          formattedData,
           totalAmount,
           updatedBy
         );
 
-        // Add to created records history
         const newRecord: TreatmentRecord = {
           id: result.recordId || Date.now(),
           procedureName: selectedProcedure?.procedureName || "Không xác định",
@@ -216,13 +253,12 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
           quantity: data.quantity,
           unitPrice: data.unitPrice,
           totalAmount: totalAmount,
-          createdAt: new Date().toLocaleString('vi-VN'),
+          createdAt: new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }),
         };
 
         setCreatedRecords(prev => [...prev, newRecord]);
         toast.success(result.message || "Tạo mới thành công");
 
-        // Reset form for next entry but keep some values
         const dentistId = selectedDentistId;
         const treatmentDate = watch("treatmentDate");
         const appointmentID = watch("appointmentID");
@@ -230,19 +266,16 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
 
         reset();
 
-        // Restore some values
         setValue("dentistID", dentistId);
         setValue("treatmentDate", treatmentDate);
         setValue("appointmentID", appointmentID);
         setValue("treatmentStatus", treatmentStatus);
 
-        // Clear procedure selection and formatted prices
         setSelectedProcedure(null);
         setFormattedPrices({ unitPrice: "", discountAmount: "" });
 
-        // Only call onSubmit if we should close after create
         if (!keepOpenAfterCreate && onSubmit) {
-          onSubmit(data);
+          onSubmit(formattedData);
         }
       }
     } catch (error: any) {
@@ -261,7 +294,11 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
 
   const handleComplete = () => {
     if (onSubmit && createdRecords.length > 0) {
-      onSubmit(formMethods.getValues());
+      const data = formMethods.getValues();
+      onSubmit({
+        ...data,
+        treatmentDate: formatDateForBackend(data.treatmentDate)
+      });
     }
     handleClose();
     if (patientId && patientId > 0) {
@@ -288,7 +325,6 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
         </div>
 
         <div className="flex">
-          {/* Main Form */}
           <div className={`${!isEditing && createdRecords.length > 0 ? 'w-2/3' : 'w-full'} border-r border-gray-200`}>
             <form
               onSubmit={(e) => {
@@ -376,7 +412,6 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                       <p className="text-sm text-red-500 mt-1">{errors.treatmentDate.message}</p>
                     )}
                   </div>
-                  {/* Only show treatment status field in editing mode */}
                   {isEditing && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái điều trị *</label>
@@ -394,7 +429,6 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                       {errors.treatmentStatus && (
                         <p className="text-sm text-red-500 mt-1">{errors.treatmentStatus.message}</p>
                       )}
-                      {/* Display current status with styled badge */}
                       {treatmentStatus && (
                         <div className="mt-2">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${STATUS_CONFIG[treatmentStatus as keyof typeof STATUS_CONFIG]?.color || 'bg-gray-100 text-gray-800 border-gray-200'}`}>
@@ -493,7 +527,6 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                   {isEditing ? "Huỷ" : "Đóng"}
                 </button>
 
-                {/* Show "Hoàn tất" button if we have created records */}
                 {!isEditing && createdRecords.length > 0 && (
                   <button
                     type="button"
@@ -516,7 +549,6 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
             </form>
           </div>
 
-          {/* History Panel - Only show in create mode */}
           {!isEditing && createdRecords.length > 0 && (
             <div className="w-1/3 p-6 bg-gray-50">
               <div className="flex items-center gap-2 mb-4">
@@ -549,7 +581,6 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
           )}
         </div>
 
-        {/* Confirm Modal */}
         {showConfirm && (
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
@@ -594,7 +625,6 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
           </div>
         )}
 
-        {/* Chọn bác sĩ */}
         <SelectDentistModal
           isOpen={showDentistModal}
           onClose={() => setShowDentistModal(false)}
@@ -607,18 +637,20 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
           onConfirm={(dentist, date, slot) => {
             try {
               const time = SHIFT_TIME_MAP[slot as keyof typeof SHIFT_TIME_MAP];
-              const isoLike = `${date}T${time}:00`;
-              const parsed = parseLocalDate(isoLike);
-
-              if (!parsed || isNaN(parsed.getTime())) {
+              // Create local datetime string without timezone conversion
+              const localDateTime = `${date}T${time}:00`;
+              
+              // Validate the date format
+              const testDate = new Date(localDateTime);
+              if (isNaN(testDate.getTime())) {
                 toast.error("Thời gian không hợp lệ");
                 return;
               }
 
               setValue("dentistID", Number(dentist.id), { shouldValidate: true });
-              setValue("treatmentDate", parsed.toISOString(), { shouldValidate: true });
+              setValue("treatmentDate", localDateTime, { shouldValidate: true });
 
-              toast.success(`Đã chọn ${dentist.name} vào ${date}`);
+              toast.success(`Đã chọn ${dentist.name} vào ${date} lúc ${time}`);
             } catch (error) {
               console.error("Lỗi xử lý lịch:", error);
               toast.error("Không thể xác định thời gian lịch hẹn.");

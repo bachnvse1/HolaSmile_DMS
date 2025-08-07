@@ -104,7 +104,6 @@ export function NotificationButton() {
     }).catch(console.error);
 
     connection.on("ReceiveNotification", (notification: NotificationDto) => {
-      toast.info(notification.title);
       setNotifications((prev) => [notification, ...prev]);
       setHasUnread(true);
       audioRef.current?.play().catch(err => console.warn("Không thể phát âm thanh:", err));

@@ -80,7 +80,7 @@ export const useUnreadMessages = (userId: string | null) => {
   // Bulk mark messages as read for conversation
   const markConversationAsRead = useCallback(async (otherUserId: string, currentUserId: string) => {
     try {
-      const response = await axiosInstance.post('/api/chats/mark-conversation-read', {
+      const response = await axiosInstance.post('/chats/mark-conversation-read', {
         userId: currentUserId,
         otherUserId
       }, {

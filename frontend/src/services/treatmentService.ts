@@ -16,6 +16,46 @@ export const deleteTreatmentRecord = async (id: number) => {
   }
 }
 
+const formatDateForBackend = (dateString: string): string => {
+  if (!dateString) return dateString;
+  
+  if (dateString.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/)) {
+    return dateString;
+  }
+  
+  try {
+    let dateToFormat: Date;
+    
+    if (dateString.includes('T')) {
+      const cleanDateString = dateString.replace(/Z.*$/, '').replace(/[+-]\d{2}:?\d{2}$/, '');
+      const [datePart, timePart] = cleanDateString.split('T');
+      const [year, month, day] = datePart.split('-').map(Number);
+      const [hours, minutes, seconds = 0] = timePart.split(':').map(Number);
+      
+      dateToFormat = new Date(year, month - 1, day, hours, minutes, seconds);
+    } else {
+      dateToFormat = new Date(dateString);
+    }
+    
+    if (isNaN(dateToFormat.getTime())) {
+      console.warn("Invalid date, returning original string:", dateString);
+      return dateString;
+    }
+    
+    const year = dateToFormat.getFullYear();
+    const month = String(dateToFormat.getMonth() + 1).padStart(2, '0');
+    const day = String(dateToFormat.getDate()).padStart(2, '0');
+    const hours = String(dateToFormat.getHours()).padStart(2, '0');
+    const minutes = String(dateToFormat.getMinutes()).padStart(2, '0');
+    const seconds = String(dateToFormat.getSeconds()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+  } catch (error) {
+    console.error("Error formatting date for backend:", error);
+    return dateString;
+  }
+};
+
 export const createTreatmentRecord = async (
   data: TreatmentFormData,
   totalAmount: number,
@@ -36,12 +76,11 @@ export const createTreatmentRecord = async (
     treatmentStatus: data.treatmentStatus,
     symptoms: data.symptoms,
     diagnosis: data.diagnosis,
-    treatmentDate: new Date(data.treatmentDate).toISOString(),
+    treatmentDate: formatDateForBackend(data.treatmentDate),
     updatedBy,
   }
 
   try {
-
     const response = await axiosInstance.post("/treatment-records", payload)
     return response.data
   } catch (error: any) {
@@ -65,18 +104,18 @@ export const updateTreatmentRecord = async (
     treatmentStatus: data.treatmentStatus,
     symptoms: data.symptoms,
     diagnosis: data.diagnosis,
-    treatmentDate: new Date(data.treatmentDate).toISOString(),
+    treatmentDate: formatDateForBackend(data.treatmentDate),
     updatedBy,
   }
 
   try {
+    console.log("Updating with treatmentDate:", payload.treatmentDate); // Debug log
     const response = await axiosInstance.put(`/treatment-records/${recordId}`, payload)
     return response.data
   } catch (error: any) {
     throw new Error(error.response?.data?.message || "Lỗi hệ thống không xác định")
   }
 }
-
 
 export const fetchAllTreatmentRecords = async (): Promise<TreatmentRecord[]> => {
   const res = await axiosInstance.get("/treatment-records/List")

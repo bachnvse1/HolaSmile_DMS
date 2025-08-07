@@ -278,5 +278,9 @@ namespace HDMS_API.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<Appointment> GetAppointmentByRescheduledFromAppointmentIdAsync(int id)
+        {
+            return await _context.Appointments.FirstOrDefaultAsync(x=>x.RescheduledFromAppointmentId == id);
+        }
     }
 }
