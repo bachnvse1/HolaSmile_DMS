@@ -2,7 +2,6 @@
 using Application.Interfaces;
 using HDMS_API.Application.Common.Helpers;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace HDMS_API.Application.Usecases.UserCommon.ForgotPassword
