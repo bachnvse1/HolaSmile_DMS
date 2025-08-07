@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button2"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Edit, AlertCircle, CheckCircle2 } from "lucide-react"
+import { Edit, AlertCircle } from "lucide-react"
 import type { WarrantyCard } from "@/types/warranty"
 import { formatDateShort } from "@/utils"
 
@@ -64,28 +64,17 @@ export function WarrantyTable({ cards, onEdit, onToggleStatus }: WarrantyTablePr
                   <Edit className="w-4 h-4 mr-2" />
                   Chỉnh sửa
                 </Button>
-                <Button
-                  variant={card.status ? "destructive" : "default"}
-                  size="sm"
-                  onClick={() => onToggleStatus(card.warrantyCardId)}
-                  className={
-                    card.status
-                      ? "bg-red-500 hover:bg-red-600 text-white text-xs px-2"
-                      : "bg-green-500 hover:bg-green-600 text-white text-xs px-2"
-                  }
-                >
-                  {card.status ? (
-                    <>
-                      <AlertCircle className="w-3 h-3 mr-1" />
-                      Vô hiệu hóa
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-3 h-3 mr-1" />
-                      Kích hoạt
-                    </>
-                  )}
-                </Button>
+{card.status && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => onToggleStatus(card.warrantyCardId)}
+                    className="bg-red-500 hover:bg-red-600 text-white text-xs px-2"
+                  >
+                    <AlertCircle className="w-3 h-3 mr-1" />
+                    Vô hiệu hóa
+                  </Button>
+                )}
               </div>
             </div>
           ))}
@@ -125,28 +114,17 @@ export function WarrantyTable({ cards, onEdit, onToggleStatus }: WarrantyTablePr
                       <Button variant="ghost" size="sm" onClick={() => onEdit(card)}>
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button
-                        variant={card.status ? "destructive" : "default"}
-                        size="sm"
-                        onClick={() => onToggleStatus(card.warrantyCardId)}
-                        className={
-                          card.status
-                            ? "bg-red-500 hover:bg-red-600 text-white text-xs px-2"
-                            : "bg-green-500 hover:bg-green-600 text-white text-xs px-2"
-                        }
-                      >
-                        {card.status ? (
-                          <>
-                            <AlertCircle className="w-3 h-3 mr-1" />
-                            Tắt
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle2 className="w-3 h-3 mr-1" />
-                            Bật
-                          </>
-                        )}
-                      </Button>
+                      {card.status && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => onToggleStatus(card.warrantyCardId)}
+                          className="bg-red-500 hover:bg-red-600 text-white text-xs px-2"
+                        >
+                          <AlertCircle className="w-3 h-3 mr-1" />
+                          Vô hiệu hóa
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

@@ -144,7 +144,7 @@ const ActionsDropdown = ({
 }) => {
   const { role } = useUserInfo()
 
-  const remainingAmount = (invoice.totalAmount || 0) - (invoice.paidAmount || 0)
+  const remainingAmount = invoice.remainingAmount ?? ((invoice.totalAmount || 0) - (invoice.paidAmount || 0))
 
   const canMakePayment = (role === "Patient" || role === "Receptionist") && 
                         remainingAmount > 0 && 
@@ -235,7 +235,7 @@ const InvoiceRow = ({
   const [paymentLoading, setPaymentLoading] = useState(false)
   const [printLoading, setPrintLoading] = useState(false)
 
-  const remainingAmount = (invoice.totalAmount || 0) - (invoice.paidAmount || 0)
+  const remainingAmount = invoice.remainingAmount ?? ((invoice.totalAmount || 0) - (invoice.paidAmount || 0))
 
   const handlePayment = async () => {
     setPaymentLoading(true)

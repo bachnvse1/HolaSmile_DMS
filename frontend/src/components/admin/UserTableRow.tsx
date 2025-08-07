@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button2"
 import { Badge } from "@/components/ui/badge"
 import { TableCell, TableRow } from "@/components/ui/table"
-import { Ban, UserCheck } from "lucide-react"
 import type { User } from "@/types/user"
 import { formatDate } from "@/utils/dateUtils"
 
@@ -62,19 +61,25 @@ export function UserTableRow({ user, index, onToggleStatus }: UserTableRowProps)
             </TableCell>
             <TableCell>{formatDate(user.createdAt)}</TableCell>
             <TableCell>
-                <Badge variant={user.status ? "default" : "destructive"}>{user.status ? "Đang hoạt động" : "Đã cấm"}</Badge>
+                <Badge variant={user.status ? "default" : "destructive"}>{user.status ? "Đang hoạt động" : "Đã chặn"}</Badge>
             </TableCell>
             <TableCell className="text-right">
-                <Button variant={user.status ? "default" : "destructive"} size="sm" onClick={() => onToggleStatus(Number(user.userId))}>
+                <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => onToggleStatus(Number(user.userId))}
+                    className={user.status 
+                        ? "bg-red-500 text-white border-red-500 hover:bg-red-600 hover:border-red-600" 
+                        : "bg-green-500 text-white border-green-500 hover:bg-green-600 hover:border-green-600"
+                    }
+                >
                     {user.status ? (
                         <>
-                            <Ban className="w-4 h-4 mr-1" />
-                            Cấm
+                            Chặn
                         </>
                     ) : (
                         <>
-                            <UserCheck className="w-4 h-4 mr-1" />
-                            Bỏ cấm
+                            Bỏ chặn
                         </>
                     )}
                 </Button>

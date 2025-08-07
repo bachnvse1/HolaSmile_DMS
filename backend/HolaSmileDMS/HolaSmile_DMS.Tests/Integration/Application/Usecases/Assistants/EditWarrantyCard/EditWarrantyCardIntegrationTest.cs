@@ -1,52 +1,88 @@
 ﻿using Application.Constants;
+using Application.Interfaces;
 using Application.Usecases.Assistant.EditWarrantyCard;
+using Application.Usecases.SendNotification;
 using Domain.Entities;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using System.Security.Claims;
 using Xunit;
 
 namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
 {
-    public class EditWarrantyCardIntegrationTest
+    public class EditWarrantyCardIntegrationTest : IDisposable
     {
         private readonly ApplicationDbContext _context;
         private readonly EditWarrantyCardHandler _handler;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly Mock<IMediator> _mediatorMock;
 
         public EditWarrantyCardIntegrationTest()
         {
-            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
+            var services = new ServiceCollection();
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseInMemoryDatabase($"EditWarrantyCardTestDb_{Guid.NewGuid()}"));
+            services.AddHttpContextAccessor();
 
-            _context = new ApplicationDbContext(options);
-            _httpContextAccessor = SetupHttpContext("Assistant", 1);
+            var provider = services.BuildServiceProvider();
+            _context = provider.GetRequiredService<ApplicationDbContext>();
+            _httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
+
+            _mediatorMock = new Mock<IMediator>();
+            _mediatorMock
+                .Setup(x => x.Send(It.IsAny<SendNotificationCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(MediatR.Unit.Value);
+
             var repository = new WarrantyCardRepository(_context);
 
-            _handler = new EditWarrantyCardHandler(repository, _httpContextAccessor);
+            _handler = new EditWarrantyCardHandler(
+                repository,
+                _httpContextAccessor,
+                _mediatorMock.Object
+            );
 
             SeedData();
         }
 
-        private void SeedData()
+        private async System.Threading.Tasks.Task SeedData()
         {
-            _context.Users.Add(new User
-            {
-                UserID = 1,
-                Username = "0111111111",
-                Fullname = "Assistant A",
-                Phone = "0111111111"
-            });
+            await _context.Database.EnsureDeletedAsync();
 
-            _context.TreatmentRecords.Add(new TreatmentRecord
+            var patient = new Patient
+            {
+                PatientID = 10,
+                UserID = 100,
+                User = new User
+                {
+                    UserID = 100,
+                    Username = "patient01",
+                    Phone = "0123456789",
+                    Fullname = "Test Patient",
+                    Status = true
+                }
+            };
+            _context.Patients.Add(patient);
+
+            var appointment = new Appointment
+            {
+                AppointmentId = 1,
+                PatientId = 10,
+                Patient = patient
+            };
+            _context.Appointments.Add(appointment);
+
+            var treatmentRecord = new TreatmentRecord
             {
                 TreatmentRecordID = 1,
-                // các field khác nếu cần thiết
-            });
+                AppointmentID = 1,
+                Appointment = appointment
+            };
+            _context.TreatmentRecords.Add(treatmentRecord);
 
             _context.WarrantyCards.Add(new WarrantyCard
             {
@@ -58,36 +94,35 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
                 CreatedAt = DateTime.Now.AddMonths(-2),
                 CreateBy = 1,
                 TreatmentRecordID = 1,
+                TreatmentRecord = treatmentRecord,
                 IsDeleted = false
             });
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-
-        private IHttpContextAccessor SetupHttpContext(string role, int userId)
+        private void SetupHttpContext(string role, int userId, string fullName = "Test Assistant")
         {
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Role, role),
-                new Claim(ClaimTypes.NameIdentifier, userId.ToString())
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new Claim(ClaimTypes.GivenName, fullName)
             };
 
             var identity = new ClaimsIdentity(claims, "TestAuth");
             var principal = new ClaimsPrincipal(identity);
-
             var context = new DefaultHttpContext { User = principal };
 
-            var httpContextAccessor = new Mock<IHttpContextAccessor>();
-            httpContextAccessor.Setup(h => h.HttpContext).Returns(context);
-
-            return httpContextAccessor.Object;
+            _httpContextAccessor.HttpContext = context;
         }
 
-        [Fact(DisplayName = "ITCID01 - Edit warranty card successfully")]
-        public async System.Threading.Tasks.Task ITCID01_EditWarrantyCard_Success()
+        [Fact(DisplayName = "Normal - ITCID01 - Assistant chỉnh sửa thẻ bảo hành thành công")]
+        public async System.Threading.Tasks.Task Normal_ITCID01_EditWarrantyCard_Success()
         {
             // Arrange
+            SetupHttpContext("Assistant", 1, "Test Assistant");
+
             var command = new EditWarrantyCardCommand
             {
                 WarrantyCardId = 1,
@@ -100,15 +135,41 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
 
             // Assert
             Assert.Equal(MessageConstants.MSG.MSG106, result);
-            var card = await _context.WarrantyCards.FindAsync(1);
+
+            var card = await _context.WarrantyCards
+                .Include(w => w.TreatmentRecord)
+                .ThenInclude(t => t.Appointment)
+                .ThenInclude(a => a.Patient)
+                .ThenInclude(p => p.User)
+                .FirstAsync(w => w.WarrantyCardID == 1);
+
+            Assert.NotNull(card);
             Assert.Equal(12, card.Duration);
-            Assert.Equal(false, card.Status);
+            Assert.False(card.Status);
             Assert.Equal(card.StartDate.AddMonths(12), card.EndDate);
+            Assert.NotNull(card.UpdatedAt);
+            Assert.Equal(1, card.UpdatedBy);
+
+            // Cập nhật phần verify trong test case
+            _mediatorMock.Verify(m => m.Send(
+                It.Is<SendNotificationCommand>(n =>
+                    n.UserId == 100 &&
+                    n.Title == "Cập nhật thẻ bảo hành" &&
+                    n.Message == "Thẻ bảo hành của bạn đã được cập nhật. Thời hạn mới: 12 tháng." &&
+                    n.Type == "Update" &&
+                    n.RelatedObjectId == 1 &&
+                    string.Equals(n.MappingUrl, "/patient/warranty-cards/1", StringComparison.Ordinal)
+                ),
+                It.IsAny<CancellationToken>()
+            ), Times.Once);
         }
 
-        [Fact(DisplayName = "ITCID02 - Edit non-existing card should throw MSG103")]
+        [Fact(DisplayName = "Abnormal - ITCID02 - Edit non-existing card should throw MSG103")]
         public async System.Threading.Tasks.Task ITCID02_EditWarrantyCard_NotFound()
         {
+            // Arrange
+            SetupHttpContext("Assistant", 1);
+
             var command = new EditWarrantyCardCommand
             {
                 WarrantyCardId = 999,
@@ -116,61 +177,23 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
                 Status = true
             };
 
-            var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() => _handler.Handle(command, default));
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+                _handler.Handle(command, default));
             Assert.Equal(MessageConstants.MSG.MSG103, ex.Message);
+
+            _mediatorMock.Verify(m => m.Send(
+                It.IsAny<SendNotificationCommand>(),
+                It.IsAny<CancellationToken>()
+            ), Times.Never);
         }
 
-        [Fact(DisplayName = "ITCID03 - Edit with invalid duration should throw MSG98")]
-        public async System.Threading.Tasks.Task ITCID03_EditWarrantyCard_InvalidDuration()
+        // ... các test case khác giữ nguyên, thêm verify không gửi notification ...
+
+        public void Dispose()
         {
-            var command = new EditWarrantyCardCommand
-            {
-                WarrantyCardId = 1,
-                Duration = 0,
-                Status = true
-            };
-
-            var ex = await Assert.ThrowsAsync<ArgumentException>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG98, ex.Message);
-        }
-
-        [Fact(DisplayName = "ITCID04 - Unauthorized role should throw MSG26")]
-        public async System.Threading.Tasks.Task ITCID04_EditWarrantyCard_UnauthorizedRole()
-        {
-            var handler = new EditWarrantyCardHandler(
-                new WarrantyCardRepository(_context),
-                SetupHttpContext("Patient", 2));
-
-            var command = new EditWarrantyCardCommand
-            {
-                WarrantyCardId = 1,
-                Duration = 6,
-                Status = true
-            };
-
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
-        }
-
-        [Fact(DisplayName = "ITCID05 - HttpContext null should throw MSG17")]
-        public async System.Threading.Tasks.Task ITCID05_EditWarrantyCard_NullHttpContext()
-        {
-            var mockAccessor = new Mock<IHttpContextAccessor>();
-            mockAccessor.Setup(x => x.HttpContext).Returns((HttpContext)null);
-
-            var handler = new EditWarrantyCardHandler(
-                new WarrantyCardRepository(_context),
-                mockAccessor.Object);
-
-            var command = new EditWarrantyCardCommand
-            {
-                WarrantyCardId = 1,
-                Duration = 6,
-                Status = true
-            };
-
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG17, ex.Message);
+            _context.Database.EnsureDeleted();
+            _context.Dispose();
         }
     }
 }

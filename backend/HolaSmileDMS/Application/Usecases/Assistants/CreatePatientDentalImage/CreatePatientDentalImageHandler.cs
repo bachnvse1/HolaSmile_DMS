@@ -1,5 +1,6 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
+using Application.Usecases.SendNotification;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
@@ -14,14 +15,15 @@ namespace Application.Usecases.Assistants.CreatePatientDentalImage
         private readonly IHttpContextAccessor _httpContext;
         private readonly ITreatmentRecordRepository _treatmentRecordRepo;
         private readonly IOrthodonticTreatmentPlanRepository _orthoPlanRepo;
-
+        private readonly IMediator _mediator;
         public CreatePatientDentalImageHandler(
             IPatientRepository patientRepo,
             IImageRepository imageRepo,
             ICloudinaryService cloudService,
             IHttpContextAccessor httpContext,
             ITreatmentRecordRepository treatmentRecordRepo,
-            IOrthodonticTreatmentPlanRepository orthoPlanRepo)
+            IOrthodonticTreatmentPlanRepository orthoPlanRepo,
+            IMediator mediator)
         {
             _patientRepo = patientRepo;
             _imageRepo = imageRepo;
@@ -29,6 +31,7 @@ namespace Application.Usecases.Assistants.CreatePatientDentalImage
             _httpContext = httpContext;
             _treatmentRecordRepo = treatmentRecordRepo;
             _orthoPlanRepo = orthoPlanRepo;
+            _mediator = mediator;
         }
 
         public async Task<string> Handle(CreatePatientDentalImageCommand request, CancellationToken cancellationToken)
@@ -85,6 +88,30 @@ namespace Application.Usecases.Assistants.CreatePatientDentalImage
 
             if (!isCreated)
                 throw new Exception("Không thể lưu ảnh vào hệ thống");
+
+            // Sau khi lưu ảnh thành công
+            var fullName = _httpContext.HttpContext.User.FindFirst(ClaimTypes.GivenName)?.Value;
+            if (patient.UserID.HasValue && patient.UserID.Value > 0)
+            {
+                try
+                {
+                    await _mediator.Send(new SendNotificationCommand(
+                        patient.UserID.Value,
+                        "Tạo ảnh nha khoa",
+                        $"Một ảnh nha khoa mới đã được thêm vào hồ sơ của bạn bởi {fullName}.",
+                        "Create",
+                        0,
+                        $"patient/treatment-records/{image.TreatmentRecordId}/images"
+                    ), cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    // TODO: log lỗi nếu cần
+                    // Không throw exception để không chặn luồng chính
+                }
+            }
+
+
             return MessageConstants.MSG.MSG113;
 
         }

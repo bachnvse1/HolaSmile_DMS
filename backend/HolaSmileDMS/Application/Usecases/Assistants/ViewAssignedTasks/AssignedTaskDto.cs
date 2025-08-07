@@ -22,5 +22,6 @@
         public string? DentistName { get; set; }
 
         public DateTime? CreatedAt { get; set; }
+        public string? AssistantName { get; set; }
     }
 }

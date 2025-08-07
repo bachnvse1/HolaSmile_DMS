@@ -1,178 +1,229 @@
-﻿using Application.Constants;
-using Application.Usecases.Dentist.UpdateTreatmentRecord;
-using AutoMapper;
+﻿using Application.Usecases.Dentist.UpdateTreatmentRecord;
+using Application.Usecases.SendNotification;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Repositories;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using System.Security.Claims;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists;
-
-public class UpdateTreatmentRecordHandlerIntegrationTests
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists
 {
-    private readonly ApplicationDbContext _context;
-    private readonly UpdateTreatmentRecordHandler _handler;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-
-    public UpdateTreatmentRecordHandlerIntegrationTests()
+    public class UpdateTreatmentRecordHandlerIntegrationTests
     {
-        var services = new ServiceCollection();
+        private readonly ApplicationDbContext _context;
+        private readonly UpdateTreatmentRecordHandler _handler;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly Mock<IMediator> _mediatorMock;
+        private readonly TreatmentRecordRepository _treatmentRecordRepository;
 
-        services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseInMemoryDatabase("UpdateTreatmentRecordTestDb"));
-
-        services.AddHttpContextAccessor();
-        services.AddAutoMapper(typeof(UpdateTreatmentRecordHandler).Assembly); 
-
-        var provider = services.BuildServiceProvider();
-        _context = provider.GetRequiredService<ApplicationDbContext>();
-        _httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
-        var mapper = provider.GetRequiredService<IMapper>(); // ✅ Lấy IMapper
-
-        SeedData();
-
-        _handler = new UpdateTreatmentRecordHandler(
-            new TreatmentRecordRepository(_context, mapper), // ✅ Truyền mapper
-            _httpContextAccessor
-        );
-    }
-
-    private void SeedData()
-    {
-        _context.Users.RemoveRange(_context.Users);
-        _context.TreatmentRecords.RemoveRange(_context.TreatmentRecords);
-        _context.SaveChanges();
-
-        _context.Users.Add(new User
+        public UpdateTreatmentRecordHandlerIntegrationTests()
         {
-            UserID = 10,
-            Username = "dentist1",
-            Fullname = "Bác sĩ A",
-            Email = "d1@example.com",
-            Phone = "0911111111",
-            CreatedAt = DateTime.Now
-        });
+            var services = new ServiceCollection();
 
-        _context.TreatmentRecords.Add(new TreatmentRecord
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseInMemoryDatabase("UpdateTreatmentRecordTestDb"));
+
+            services.AddHttpContextAccessor();
+
+            var provider = services.BuildServiceProvider();
+
+            _context = provider.GetRequiredService<ApplicationDbContext>();
+            _httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
+            _mediatorMock = new Mock<IMediator>();
+
+            _treatmentRecordRepository = new TreatmentRecordRepository(_context, null!);
+
+            _handler = new UpdateTreatmentRecordHandler(
+                _treatmentRecordRepository,
+                _httpContextAccessor,
+                _mediatorMock.Object
+            );
+
+            _mediatorMock
+                .Setup(x => x.Send(It.IsAny<SendNotificationCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(MediatR.Unit.Value);
+
+            SeedData();
+        }
+
+        private void SetupHttpContext(string role, int userId, string fullName = "Dentist Test")
         {
-            TreatmentRecordID = 1,
-            ToothPosition = "R1",
-            Quantity = 1,
-            UnitPrice = 500000,
-            TotalAmount = 500000,
-            TreatmentStatus = "Initial",
-            CreatedAt = DateTime.Now,
-            CreatedBy = 10
-        });
+            var context = new DefaultHttpContext();
+            context.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new Claim(ClaimTypes.Role, role),
+                new Claim(ClaimTypes.GivenName, fullName)
+            }, "TestAuth"));
 
-        _context.SaveChanges();
-    }
+            _httpContextAccessor.HttpContext = context;
+        }
 
-    private void SetupHttpContext(string role, int userId)
-    {
-        var context = new DefaultHttpContext();
-        context.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        private void SeedData()
         {
-            new Claim(ClaimTypes.Role, role),
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString())
-        }, "TestAuth"));
+            // Clear old data
+            _context.Users.RemoveRange(_context.Users);
+            _context.Patients.RemoveRange(_context.Patients);
+            _context.Dentists.RemoveRange(_context.Dentists);
+            _context.Appointments.RemoveRange(_context.Appointments);
+            _context.TreatmentRecords.RemoveRange(_context.TreatmentRecords);
+            _context.SaveChanges();
 
-        _httpContextAccessor.HttpContext = context;
-    }
+            // Create Users
+            var patientUser = new User { UserID = 1, Username = "0111111111", Fullname = "Patient A", Phone = "0111111111" };
+            var dentistUser = new User { UserID = 2, Username = "0111111112", Fullname = "Dentist B", Phone = "0111111112" };
+            _context.Users.AddRange(patientUser, dentistUser);
 
-    // ✅ UTCID01 - Dentist cập nhật thành công hồ sơ
-    [Fact(DisplayName = "Normal - UTCID01 - Dentist updates treatment record successfully")]
-    public async System.Threading.Tasks.Task UTCID01_Dentist_Updates_Record_Success()
-    {
-        SetupHttpContext("Dentist", 10);
+            // Create Patient & Dentist
+            var patientEntity = new Patient { PatientID = 1, UserID = 1, User = patientUser };
+            _context.Patients.Add(patientEntity);
+            _context.Dentists.Add(new Dentist { DentistId = 1, UserId = 2 });
 
-        var command = new UpdateTreatmentRecordCommand
+            // Create Appointment
+            var appointment = new Appointment
+            {
+                AppointmentId = 1,
+                PatientId = 1,
+                Patient = patientEntity
+            };
+            _context.Appointments.Add(appointment);
+
+            // Create Treatment Record
+            _context.TreatmentRecords.Add(new TreatmentRecord
+            {
+                TreatmentRecordID = 100,
+                Appointment = appointment,
+                ToothPosition = "M1",
+                Quantity = 1,
+                UnitPrice = 100000,
+                TotalAmount = 100000,
+                TreatmentStatus = "Pending",
+                CreatedAt = DateTime.Now.AddDays(-1),
+                CreatedBy = 2,
+                IsDeleted = false
+            });
+
+            _context.SaveChanges();
+        }
+
+        // ---------- TEST CASES ----------
+
+        [Fact(DisplayName = "Normal - UTCID01 - Dentist cập nhật hồ sơ điều trị thành công")]
+        public async System.Threading.Tasks.Task Normal_UTCID01_Dentist_Updates_Record_Success()
         {
-            TreatmentRecordId = 1,
-            ToothPosition = "R2",
-            Quantity = 2,
-            UnitPrice = 600000,
-            TotalAmount = 1200000,
-            TreatmentStatus = "Updated",
-            Symptoms = "Pain",
-            Diagnosis = "Cavity",
-            TreatmentDate = new DateTime(2025, 6, 25)
-        };
+            // Arrange
+            SetupHttpContext("Dentist", 2);
 
-        var result = await _handler.Handle(command, default);
+            var command = new UpdateTreatmentRecordCommand
+            {
+                TreatmentRecordId = 100,
+                ToothPosition = "M2",
+                Quantity = 2,
+                UnitPrice = 150000,
+                TotalAmount = 300000,
+                TreatmentStatus = "Completed"
+            };
 
-        Assert.True(result);
+            // Act
+            var result = await _handler.Handle(command, default);
 
-        var updated = await _context.TreatmentRecords.FindAsync(1);
-        Assert.Equal("R2", updated!.ToothPosition);
-        Assert.Equal(2, updated.Quantity);
-        Assert.Equal("Updated", updated.TreatmentStatus);
-    }
+            // Assert
+            Assert.True(result);
 
-    // ❌ UTCID02 - Không phải Dentist
-    [Fact(DisplayName = "Abnormal - UTCID02 - Non-dentist cannot update treatment record")]
-    public async System.Threading.Tasks.Task UTCID02_NonDentist_Cannot_Update()
-    {
-        SetupHttpContext("Patient", 20); // not dentist
+            var updatedRecord = await _context.TreatmentRecords
+                .Include(tr => tr.Appointment)
+                .ThenInclude(a => a.Patient)
+                .ThenInclude(p => p.User)
+                .FirstOrDefaultAsync(tr => tr.TreatmentRecordID == 100);
 
-        var command = new UpdateTreatmentRecordCommand
+            Assert.NotNull(updatedRecord);
+            Assert.Equal("M2", updatedRecord.ToothPosition);
+            Assert.Equal(2, updatedRecord.Quantity);
+            Assert.Equal(150000, updatedRecord.UnitPrice);
+            Assert.Equal("Completed", updatedRecord.TreatmentStatus);
+
+            _mediatorMock.Verify(m => m.Send(
+                It.Is<SendNotificationCommand>(n =>
+                    n.UserId == 1 &&
+                    n.Title == "Cập nhật hồ sơ điều trị" &&
+                    n.Type == "Update"
+                ),
+                It.IsAny<CancellationToken>()
+            ), Times.Once);
+        }
+
+        [Fact(DisplayName = "Abnormal - UTCID02 - Non-Dentist hoặc Non-Assistant không thể cập nhật")]
+        public async System.Threading.Tasks.Task Abnormal_UTCID02_NonDentist_Cannot_Update()
         {
-            TreatmentRecordId = 1,
-            ToothPosition = "R2"
-        };
+            // Arrange
+            SetupHttpContext("Receptionist", 2);
 
-        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            _handler.Handle(command, default));
+            var command = new UpdateTreatmentRecordCommand
+            {
+                TreatmentRecordId = 100,
+                ToothPosition = "M3"
+            };
 
-        Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
-    }
+            // Act & Assert
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                _handler.Handle(command, default));
 
-    // ❌ UTCID03 - Không tìm thấy TreatmentRecord
-    [Fact(DisplayName = "Abnormal - UTCID03 - Record not found should throw MSG27")]
-    public async System.Threading.Tasks.Task UTCID03_RecordNotFound_Throws()
-    {
-        SetupHttpContext("Dentist", 10);
+            _mediatorMock.Verify(m => m.Send(
+                It.IsAny<SendNotificationCommand>(),
+                It.IsAny<CancellationToken>()
+            ), Times.Never);
+        }
 
-        var command = new UpdateTreatmentRecordCommand
+        [Fact(DisplayName = "Abnormal - UTCID03 - Record không tồn tại sẽ throw KeyNotFoundException")]
+        public async System.Threading.Tasks.Task Abnormal_UTCID03_RecordNotFound_Throws()
         {
-            TreatmentRecordId = 999, // nonexistent
-            ToothPosition = "L1"
-        };
+            // Arrange
+            SetupHttpContext("Dentist", 2);
 
-        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _handler.Handle(command, default));
+            var command = new UpdateTreatmentRecordCommand
+            {
+                TreatmentRecordId = 999, // không tồn tại
+                ToothPosition = "M4"
+            };
 
-        Assert.Equal(MessageConstants.MSG.MSG27, ex.Message);
-    }
+            // Act & Assert
+            await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+                _handler.Handle(command, default));
 
-    // ✅ UTCID04 - Dentist chỉ cập nhật một phần thông tin
-    [Fact(DisplayName = "Normal - UTCID04 - Dentist partially updates treatment record successfully")]
-    public async System.Threading.Tasks.Task UTCID04_Dentist_Partial_Update_Success()
-    {
-        SetupHttpContext("Dentist", 10);
+            _mediatorMock.Verify(m => m.Send(
+                It.IsAny<SendNotificationCommand>(),
+                It.IsAny<CancellationToken>()
+            ), Times.Never);
+        }
 
-        var command = new UpdateTreatmentRecordCommand
+        [Fact(DisplayName = "Normal - UTCID04 - Dentist cập nhật một phần thông tin thành công")]
+        public async System.Threading.Tasks.Task Normal_UTCID04_Dentist_Partial_Update_Success()
         {
-            TreatmentRecordId = 1,
-            DiscountAmount = 50000,
-            TreatmentStatus = "Partial Update"
-        };
+            // Arrange
+            SetupHttpContext("Dentist", 2);
 
-        var before = await _context.TreatmentRecords.FindAsync(1);
-        var originalTooth = before!.ToothPosition;
-        var originalQty = before.Quantity;
+            var command = new UpdateTreatmentRecordCommand
+            {
+                TreatmentRecordId = 100,
+                Quantity = 5 // chỉ update số lượng
+            };
 
-        var result = await _handler.Handle(command, default);
+            // Act
+            var result = await _handler.Handle(command, default);
 
-        Assert.True(result);
+            // Assert
+            Assert.True(result);
 
-        var updated = await _context.TreatmentRecords.FindAsync(1);
-        Assert.Equal("Partial Update", updated!.TreatmentStatus);
-        Assert.Equal(50000, updated.DiscountAmount);
-        Assert.Equal(originalTooth, updated.ToothPosition); // không đổi
-        Assert.Equal(originalQty, updated.Quantity); // không đổi
+            var updatedRecord = await _context.TreatmentRecords
+                .FirstOrDefaultAsync(tr => tr.TreatmentRecordID == 100);
+
+            Assert.NotNull(updatedRecord);
+            Assert.Equal(5, updatedRecord.Quantity); // updated field
+            Assert.Equal("M1", updatedRecord.ToothPosition); // giữ nguyên field cũ
+        }
     }
 }

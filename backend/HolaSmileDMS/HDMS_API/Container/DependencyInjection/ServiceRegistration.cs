@@ -78,6 +78,7 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<IImageRepository, ImageRepository>();
             services.AddScoped<ITransactionRepository, TransactionRepository>();
             services.AddScoped<IPromotionRepository, PromotionRepository>();
+            services.AddScoped<IMaintenanceRepository, MaintenanceRepository>();
             services.AddScoped<IChatBotKnowledgeRepository, ChatBotKnowledgeRepository>();
 
             services.AddHttpClient<IEsmsService, SmsService>();

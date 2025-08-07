@@ -92,9 +92,9 @@ public class AssignTaskToAssistantHandler : IRequestHandler<AssignTaskToAssistan
                         UserId: assistantUserId.Value,
                         Title: "Bạn có nhiệm vụ mới",
                         Message: $"Tiến trình: {request.ProgressName}",
-                        Type: "task_assigned",
+                        Type: "Create",
                         RelatedObjectId: null,
-                        ""
+                         $"/assistant/assigned-tasks"
                     );
 
                     await _mediator.Send(notification, cancellationToken);

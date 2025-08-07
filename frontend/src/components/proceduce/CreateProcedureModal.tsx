@@ -37,7 +37,6 @@ export function CreateProcedureModal({
   // State for formatted currency display
   const [formattedPrices, setFormattedPrices] = useState({
     originalPrice: "",
-    price: "",
     consumableCost: ""
   })
 
@@ -45,10 +44,9 @@ export function CreateProcedureModal({
   useEffect(() => {
     setFormattedPrices({
       originalPrice: form.originalPrice > 0 ? formatCurrency(form.originalPrice) : "",
-      price: form.price > 0 ? formatCurrency(form.price) : "",
       consumableCost: form.consumableCost > 0 ? formatCurrency(form.consumableCost) : ""
     })
-  }, [form.originalPrice, form.price, form.consumableCost])
+  }, [form.originalPrice, form.consumableCost])
 
   const updateForm = (field: keyof ProcedureCreateForm, value: string | number | Supply[]) => {
     onFormChange({ ...form, [field]: value })
@@ -63,15 +61,6 @@ export function CreateProcedureModal({
     })
   }
 
-  // Handle currency input for price
-  const handlePriceChange = (value: string) => {
-    handleCurrencyInput(value, (formatted) => {
-      setFormattedPrices(prev => ({ ...prev, price: formatted }))
-      const numericValue = parseCurrency(formatted)
-      updateForm("price", numericValue)
-    })
-  }
-
   // Handle currency input for consumable cost
   const handleConsumableCostChange = (value: string) => {
     handleCurrencyInput(value, (formatted) => {
@@ -81,13 +70,11 @@ export function CreateProcedureModal({
     })
   }
 
+  // Auto-calculate price based on original price and discount
   useEffect(() => {
     if (form.originalPrice > 0 && form.discount >= 0) {
       const calculatedPrice = form.originalPrice * (1 - form.discount / 100)
-      if (calculatedPrice !== form.price) {
-        updateForm("price", Math.round(calculatedPrice))
-        setFormattedPrices(prev => ({ ...prev, price: formatCurrency(Math.round(calculatedPrice)) }))
-      }
+      updateForm("price", Math.round(calculatedPrice))
     }
   }, [form.originalPrice, form.discount])
 
@@ -129,8 +116,8 @@ export function CreateProcedureModal({
       alert("Vui lòng nhập mô tả thủ thuật")
       return
     }
-    if (form.originalPrice <= 0 || form.price <= 0) {
-      alert("Giá gốc và giá bán phải lớn hơn 0")
+    if (form.originalPrice <= 0) {
+      alert("Giá gốc phải lớn hơn 0")
       return
     }
     if (form.discount < 0 || form.discount > 100) {
@@ -207,7 +194,7 @@ export function CreateProcedureModal({
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 Thông Tin Giá Cả
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="originalPrice">Giá Gốc (VNĐ) *</Label>
                   <Input
@@ -231,18 +218,6 @@ export function CreateProcedureModal({
                     value={form.discount || ''}
                     onChange={(e) => updateForm("discount", Number.parseFloat(e.target.value) || 0)}
                     placeholder="0"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="price">Giá Bán (VNĐ) *</Label>
-                  <Input
-                    id="price"
-                    type="text"
-                    value={formattedPrices.price}
-                    onChange={(e) => handlePriceChange(e.target.value)}
-                    placeholder="0"
-                    required
                   />
                 </div>
               </div>

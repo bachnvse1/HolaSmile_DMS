@@ -32,6 +32,18 @@ export const taskService = {
     const res = await axiosInstance.put(`/task/tasks/${taskId}/status`, isCompleted,)
     return res.data
   },
+
+  async updateTask(data: {
+    taskId: number
+    progressName: string
+    description: string
+    status: boolean
+    startTime: string
+    endTime: string
+  }): Promise<{ message: string }> {
+    const res = await axiosInstance.put("/task/tasks", data)
+    return res.data
+  },
 }
 
 export const getAllTasks = async (): Promise<BasicTask[]> => {

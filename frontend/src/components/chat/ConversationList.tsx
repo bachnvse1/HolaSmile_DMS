@@ -277,11 +277,6 @@ export const ConversationList: React.FC<ConversationListProps> = ({
               )}
             </div>
           </div>
-          {totalUnreadMessages > 0 && (
-            <div className="px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full animate-pulse">
-              {totalUnreadMessages > 99 ? '99+' : totalUnreadMessages}
-            </div>
-          )}
         </div>
 
         {/* Search */}
