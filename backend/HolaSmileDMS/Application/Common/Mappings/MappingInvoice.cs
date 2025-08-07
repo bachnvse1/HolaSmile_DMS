@@ -11,6 +11,8 @@ public class MappingInvoice : Profile
             .ForMember(dest => dest.TreatmentRecordId,
                 opt => opt.MapFrom(src => src.TreatmentRecord_Id))
             .ForMember(dest => dest.PatientName,
-                opt => opt.MapFrom(src => src.Patient.User.Fullname));
+                opt => opt.MapFrom(src => src.Patient.User.Fullname))
+            .ForMember(dest => dest.PatientAddress,
+            opt => opt.MapFrom(src => src.Patient.User.Address));
     }
 }

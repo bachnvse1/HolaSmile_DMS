@@ -1,7 +1,6 @@
-import bg1 from '@/assets/bg1.png'
-import bg2 from '@/assets/bg2.jpg'
-import bg3 from '@/assets/bg3.jpg'
-import bg4 from '@/assets/bg4.jpg'
+import bg1 from '@/assets/bg1-new.jpg'
+import bg2 from '@/assets/bg2-new.jpg'
+import bg3 from '@/assets/bg3-new.jpg'
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { useState, useEffect } from 'react';
 import { Phone } from 'lucide-react';
@@ -25,13 +24,8 @@ const heroImages = [
     title: "Không Gian Thân Thiện",
     subtitle: "Môi trường thoải mái, an toàn"
   },
-  {
-    src: bg4,
-    alt: "Happy patient",
-    title: "Bệnh Nhân Hài Lòng",
-    subtitle: "Chăm sóc tận tâm, chuyên nghiệp"
-  }
 ];
+
 
 export const HeroSection = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -80,10 +74,44 @@ export const HeroSection = () => {
 
   return (
     <section id="home" className="relative overflow-hidden">
+
+    {/* Promotion Banner - Fixed below header */}
+    <div className="fixed top-14 sm:top-16 left-0 right-0 z-40 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-500 text-white py-2 sm:py-3 overflow-hidden">
+      <div className="absolute inset-0 bg-blue-600/20 backdrop-blur-sm"></div>
+      <div className="relative z-10">
+        <div className="flex animate-marquee whitespace-nowrap">
+          <span className="text-sm sm:text-base font-semibold mx-8">
+            🎉 KHUYẾN MÃI ĐẶC BIỆT - GIẢM 30% TẤT CẢ DỊCH VỤ NHA KHOA
+          </span>
+          <span className="text-sm sm:text-base font-semibold mx-8">
+            ⭐ TẶNG NGAY PHIẾU THĂM KHÁM MIỄN PHÍ CHO KHÁCH HÀNG MỚI
+          </span>
+          <span className="text-sm sm:text-base font-semibold mx-8">
+            💎 NIỀNG RĂNG INVISALIGN - ƯU ĐÃI LÊN ĐẾN 50%
+          </span>
+          <span className="text-sm sm:text-base font-semibold mx-8">
+            🔥 TRỒNG RĂNG IMPLANT - GIẢM GIÁ SỐC TRONG THÁNG NÀY
+          </span>
+          <span className="text-sm sm:text-base font-semibold mx-8">
+            🎉 KHUYẾN MÃI ĐẶC BIỆT - GIẢM 30% TẤT CẢ DỊCH VỤ NHA KHOA
+          </span>
+          <span className="text-sm sm:text-base font-semibold mx-8">
+            ⭐ TẶNG NGAY PHIẾU THĂM KHÁM MIỄN PHÍ CHO KHÁCH HÀNG MỚI
+          </span>
+          <span className="text-sm sm:text-base font-semibold mx-8">
+            💎 NIỀNG RĂNG INVISALIGN - ƯU ĐÃI LÊN ĐẾN 50%
+          </span>
+          <span className="text-sm sm:text-base font-semibold mx-8">
+            🔥 TRỒNG RĂNG IMPLANT - GIẢM GIÁ SỐC TRONG THÁNG NÀY
+          </span>
+        </div>
+      </div>
+    </div>
+
       <div className="w-full">
         {/* Full Width Carousel */}
         <div 
-          className="relative"
+          className="relative mt-8 sm:mt-12 md:mt-16 lg:mt-20"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
@@ -95,12 +123,26 @@ export const HeroSection = () => {
             <CarouselContent>
               {heroImages.map((image, index) => (
                 <CarouselItem key={index}>
-                  <div className="relative">
-                    <img
-                      src={image.src}
-                      alt={image.alt}
-                      className="w-full h-[50vh] sm:h-[60vh] md:h-[70vh] lg:h-[80vh] object-cover"
-                    />
+                  <div className="relative mx-4 sm:mx-6 md:mx-8 lg:mx-12">
+                    <div className="relative overflow-hidden rounded-2xl shadow-2xl">
+                      <img
+                        src={image.src}
+                        alt={image.alt}
+                        className="w-full h-[40vh] sm:h-[40vh] md:h-[50vh] lg:h-[50vh] object-cover transition-transform duration-500 hover:scale-105"
+                      />
+                      {/* Gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
+                      
+                      {/* Content overlay */}
+                      <div className="absolute bottom-8 left-8 text-white z-10">
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 drop-shadow-lg">
+                          {image.title}
+                        </h2>
+                        <p className="text-sm sm:text-base md:text-lg opacity-90 drop-shadow-md">
+                          {image.subtitle}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </CarouselItem>
               ))}
@@ -141,12 +183,12 @@ export const HeroSection = () => {
         </div>
       </div>
 
-      {/* Phone Button */}
-      <div className="fixed left-2 sm:left-4 bottom-4 sm:bottom-6 z-50">
+      {/* Phone & Zalo Buttons */}
+      <div className="fixed left-2 sm:left-4 bottom-4 sm:bottom-6 z-50 flex flex-col space-y-2">
+        {/* Phone Button */}
         <div className="relative">
-          {/* Main button */}
           <a 
-            href="tel:0941120015"
+            href="tel:0333538991"
             className="relative flex items-center bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 group"
           >
             <div className="relative p-2 sm:p-3">
@@ -156,7 +198,30 @@ export const HeroSection = () => {
               <Phone className="h-4 w-4 sm:h-5 sm:w-5 relative z-10 animate-shake" />
             </div>
             <div className="pr-3 sm:pr-4 pl-1 py-2 sm:py-3 font-semibold text-xs sm:text-sm">
-              0941.12.00.15
+              0333538991
+            </div>
+          </a>
+        </div>
+
+        {/* Zalo Button */}
+        <div className="relative">
+          <a 
+            href="https://zalo.me/0333538991"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative flex items-center bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 group"
+          >
+            <div className="relative p-2 sm:p-3">
+              {/* Ping effect */}
+              <div className="absolute inset-0 bg-blue-400 rounded-full animate-ping scale-110"></div>
+              <div className="absolute inset-0 bg-blue-400 rounded-full animate-ping animation-delay-1000 scale-110"></div>
+              {/* Zalo icon (Z letter) */}
+              <div className="h-4 w-4 sm:h-5 sm:w-5 relative z-10 flex items-center justify-center bg-white text-blue-500 rounded text-xs sm:text-sm font-bold animate-pulse">
+                Z
+              </div>
+            </div>
+            <div className="pr-3 sm:pr-4 pl-1 py-2 sm:py-3 font-semibold text-xs sm:text-sm">
+              Chat Zalo
             </div>
           </a>
         </div>
@@ -168,8 +233,25 @@ export const HeroSection = () => {
       <div className="absolute bottom-20 sm:bottom-32 left-8 sm:left-20 w-2 h-2 sm:w-3 sm:h-3 bg-white/50 rounded-full animate-bounce"></div>
       
       <style>{`
+        .animation-delay-800 {
+          animation-delay: 0.8s;
+        }
+        
+        .animation-delay-1000 {
+          animation-delay: 1.0s;
+        }
+        
         .animation-delay-2000 {
           animation-delay: 2.0s;
+        }
+        
+        @keyframes marquee {
+          0% { transform: translateX(0%); }
+          100% { transform: translateX(-50%); }
+        }
+        
+        .animate-marquee {
+          animation: marquee 25s linear infinite;
         }
         
         @keyframes shake {

@@ -122,11 +122,11 @@ public sealed class ViewDentalExamSheetHandler :
         sheet.Instructions      = instructionSet.ToList();
 
         // 7. Follow-up (lấy gần nhất > TreatmentDate MAX)
-        var follow = await _followupRepo.GetAppointmentByIdAsync(appt.AppointmentId);
+        var follow = await _followupRepo.GetAppointmentByRescheduledFromAppointmentIdAsync(appt.AppointmentId);
         if (follow != null)
         {
             sheet.NextAppointmentTime =
-                $"{follow.AppointmentTime.ToString(@"hh\:mm")} {follow.AppointmentDate:dd/MM/yyyy}";
+                $"{follow.AppointmentTime.ToString(@"hh\:mm")} {follow.AppointmentDate}";
             sheet.NextAppointmentNote = follow.Content;
         }
 

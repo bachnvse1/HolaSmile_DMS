@@ -1,3 +1,4 @@
+using Application.Interfaces;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,10 +10,11 @@ namespace HDMS_API.Controllers;
 public class ChatController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
-
-    public ChatController(ApplicationDbContext context)
+    private readonly ICloudinaryService _cloudService;
+    public ChatController(ApplicationDbContext context, ICloudinaryService cloudService)
     {
         _context = context;
+        _cloudService = cloudService;
     }
 
     /// <summary>
@@ -93,6 +95,17 @@ public class ChatController : ControllerBase
         {
             return StatusCode(500, "An error occurred while marking messages as read.");
         }
+    }
+    
+    [HttpPost("upload-media")]
+    public async Task<IActionResult> UploadMedia([FromForm] IFormFile file)
+    {
+        var allowedTypes = new[] { "image/", "video/" };
+        if (file == null || !allowedTypes.Any(t => file.ContentType.StartsWith(t)))
+            return BadRequest("File phải là ảnh hoặc video!");
+
+        var url = await _cloudService.UploadImageAsync(file); // UploadImageAsync cũng dùng cho video (rename lại nếu muốn)
+        return Ok(new { url });
     }
 
     public class MarkAsReadDto

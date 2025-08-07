@@ -9,6 +9,7 @@ import { toast } from "react-toastify"
 import { AuthGuard } from '../../components/AuthGuard';
 import { StaffLayout } from '../../layouts/staff/StaffLayout';
 import { useAuth } from "@/hooks/useAuth"
+import { ConfirmModal } from "@/components/ui/ConfirmModal"
 
 export default function UserManagement() {
     const [users, setUsers] = useState<User[]>([])
@@ -25,48 +26,71 @@ export default function UserManagement() {
         role: "",
     })
 
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+    const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
+    const [isConfirmLoading, setIsConfirmLoading] = useState(false)
+    const [confirmMessage, setConfirmMessage] = useState("")
+    const [confirmTitle, setConfirmTitle] = useState("")
+
     const fetchUsers = async () => {
         setIsLoading(true)
         try {
             const data = await userService.getAll()
             setUsers(data)
         } catch (err) {
-            console.error("Error fetching users", err)
-            toast.error("Không thể tải danh sách người dùng")
+            console.error("Failed to fetch users:", err)
         } finally {
             setIsLoading(false)
         }
     }
 
-    const handleToggleUserStatus = async (userId: number) => {
+    const handleOpenConfirm = (userId: number, currentStatus: boolean) => {
+        setSelectedUserId(Number(userId))
+        setConfirmTitle(currentStatus ? "Xác nhận chặn người dùng" : "Xác nhận bỏ chặn người dùng")
+        setConfirmMessage(
+            currentStatus
+                ? "Bạn có chắc chắn muốn chặn người dùng này không?"
+                : "Bạn có chắc chắn muốn bỏ chặn người dùng này không?"
+        )
+        setIsConfirmOpen(true)
+    }
+
+    const handleConfirmToggle = async () => {
+        if (!selectedUserId) return
+        setIsConfirmLoading(true)
         try {
-            await userService.toggleStatus(userId)
+            await userService.toggleStatus(selectedUserId)
             toast.success("Cập nhật trạng thái người dùng thành công")
             await fetchUsers()
         } catch (error: any) {
             const message = error?.response?.data?.message || "Không thể cập nhật trạng thái người dùng"
             toast.error(message)
+        } finally {
+            setIsConfirmLoading(false)
+            setIsConfirmOpen(false)
         }
     }
 
+    const { fullName, userId, role } = useAuth()
+    const userInfo = {
+        id: userId ,
+        name: fullName || 'Người dùng',
+        email: '',
+        role: role || '',
+        avatar: undefined
+    }
+
     useEffect(() => {
-        fetchUsers()
-    }, [])
+        if (role === 'Administrator') {
+            fetchUsers()
+        }
+    }, [role])
 
     const totalPages = Math.ceil(filteredUsers.length / itemsPerPage)
     const paginatedFilteredUsers = filteredUsers.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     )
-
-    const { fullName, userId, role } = useAuth()
-    const userInfo = {
-        id: userId || '',
-        name: fullName || 'Người dùng',
-        email: '',
-        role: role || '',
-        avatar: undefined
-    }
 
     return (
         <AuthGuard requiredRoles={['Administrator']}>
@@ -92,7 +116,10 @@ export default function UserManagement() {
                     <UserTable
                         users={paginatedFilteredUsers}
                         isLoading={isLoading}
-                        onToggleStatus={handleToggleUserStatus}
+                        onToggleStatus={(userId) => {
+                            const user = users.find(u => Number(u.userId) === userId)
+                            if (user) handleOpenConfirm(userId, user.status)
+                        }}
                         onClearFilters={fetchUsers}
                     />
 
@@ -108,6 +135,17 @@ export default function UserManagement() {
                         }}
                     />
                 </div>
+
+                <ConfirmModal
+                    isOpen={isConfirmOpen}
+                    onClose={() => setIsConfirmOpen(false)}
+                    onConfirm={handleConfirmToggle}
+                    title={confirmTitle}
+                    message={confirmMessage}
+                    confirmText="Xác nhận"
+                    confirmVariant="destructive"
+                    isLoading={isConfirmLoading}
+                />
             </StaffLayout>
         </AuthGuard>
     )

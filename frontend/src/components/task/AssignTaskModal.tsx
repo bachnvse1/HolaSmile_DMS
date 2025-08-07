@@ -160,7 +160,7 @@ export function AssignTaskModal({
       setOpen(false)
       setConfirmOpen(false)
     } catch (err: any) {
-      toast.error(err?.message || "Đã xảy ra lỗi khi phân công nhiệm vụ")
+      toast.error(err?.response?.data?.message || "Đã xảy ra lỗi khi phân công nhiệm vụ")
     } finally {
       setIsSubmitting(false)
     }

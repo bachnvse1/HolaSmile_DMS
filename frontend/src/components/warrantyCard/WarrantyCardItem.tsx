@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button2"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { FileText, User, Calendar, Clock, Edit, MoreHorizontal, AlertCircle, CheckCircle2 } from "lucide-react"
+import { FileText, User, Calendar, Clock, Edit, MoreHorizontal, AlertCircle } from "lucide-react"
 import type { WarrantyCard } from "@/types/warranty"
 import { formatDateShort, getDaysRemaining } from "@/utils"
 
@@ -99,26 +99,17 @@ export function WarrantyCardItem({ card, onEdit, onToggleStatus }: WarrantyCardI
 
         <div className="flex items-center justify-between pt-2 border-t">
           <span className="text-sm text-gray-500">Trạng thái</span>
-          <Button
-            variant={card.status ? "destructive" : "default"}
-            size="sm"
-            onClick={() => onToggleStatus(card.warrantyCardId)}
-            className={
-              card.status ? "bg-red-500 hover:bg-red-600 text-white" : "bg-green-500 hover:bg-green-600 text-white"
-            }
-          >
-            {card.status ? (
-              <>
-                <AlertCircle className="w-4 h-4 mr-1" />
-                Vô hiệu hóa
-              </>
-            ) : (
-              <>
-                <CheckCircle2 className="w-4 h-4 mr-1" />
-                Kích hoạt
-              </>
-            )}
-          </Button>
+          {card.status && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => onToggleStatus(card.warrantyCardId)}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              <AlertCircle className="w-4 h-4 mr-1" />
+              Vô hiệu hóa
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
