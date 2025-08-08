@@ -7,6 +7,7 @@ import axiosInstance from "@/lib/axios"
 import { toast } from "react-toastify"
 import { TokenUtils } from "@/utils/tokenUtils"
 import { Skeleton } from "@/components/ui/skeleton"
+import { ConfirmModal } from "@/components/ui/ConfirmModal"
 import "react-toastify/dist/ReactToastify.css"
 import { Input } from "@/components/ui/input"
 import type { UseFormSetValue } from "react-hook-form"
@@ -34,6 +35,12 @@ interface ApiResponse {
   address: string
   dob: string
   gender: boolean
+}
+
+interface OTPModalState {
+  isOpen: boolean
+  email: string
+  formData: FormValues | null
 }
 
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
@@ -118,6 +125,7 @@ const updateUserProfile = async (
 
   // Thêm các field thông tin cơ bản
   formDataToSend.append('fullname', formData.fullname.trim());
+  formDataToSend.append('email', formData.email.trim());
   formDataToSend.append('gender', formData.gender === "Nam" ? "true" : "false");
   formDataToSend.append('address', formData.address.trim());
   formDataToSend.append('dob', formData.dob);
@@ -136,6 +144,29 @@ const updateUserProfile = async (
     },
   });
 };
+
+const requestEmailOTP = async (email: string): Promise<void> => {
+  await axiosInstance.post("/user/OTP/Request", { email }, {
+    headers: {
+      "ngrok-skip-browser-warning": "true",
+      "Content-Type": "application/json"
+    }
+  })
+}
+
+const verifyEmailOTP = async (email: string, otp: string): Promise<void> => {
+  const expiryTime = new Date().toISOString()
+  await axiosInstance.post("/user/OTP/Verify", { 
+    email, 
+    otp: otp.trim(),
+    expiryTime
+  }, {
+    headers: {
+      "ngrok-skip-browser-warning": "true",
+      "Content-Type": "application/json"
+    }
+  })
+}
 
 const useTokenValidation = () => {
   const [isValidToken, setIsValidToken] = useState(true)
@@ -215,6 +246,130 @@ const useImageUpload = (setValue: UseFormSetValue<FormValues>) => {
     previewUrl,
     clearSelectedFile 
   }
+}
+
+// OTP Modal Component
+const OTPModal = ({ 
+  isOpen, 
+  email, 
+  onClose, 
+  onVerify 
+}: { 
+  isOpen: boolean
+  email: string
+  onClose: () => void
+  onVerify: (otp: string) => void
+}) => {
+  const [otp, setOtp] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [countdown, setCountdown] = useState(0)
+
+  // Countdown timer for resend OTP
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [countdown])
+
+  const handleResendOTP = async () => {
+    if (countdown > 0) return
+    
+    setIsLoading(true)
+    try {
+      await requestEmailOTP(email)
+      toast.success('Mã OTP đã được gửi lại!')
+      setCountdown(60) // 60 seconds countdown
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Không thể gửi lại OTP')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (otp.length === 6) {
+      onVerify(otp)
+    }
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="fixed inset-0 bg-black/50" onClick={onClose} />
+      
+      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+        <div className="p-6">
+          <div className="text-center mb-6">
+            <div className="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 mb-4">
+              <Mail className="w-6 h-6 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Xác thực email mới
+            </h3>
+            <p className="text-sm text-gray-600">
+              Mã OTP đã được gửi đến email:
+              <br />
+              <span className="font-medium text-gray-900">{email}</span>
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nhập mã OTP (6 chữ số)
+              </label>
+              <input
+                type="text"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-lg font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="000000"
+                maxLength={6}
+                autoComplete="off"
+              />
+            </div>
+
+            <div className="flex justify-center mb-6">
+              {countdown > 0 ? (
+                <span className="text-sm text-gray-500">
+                  Gửi lại OTP sau {countdown}s
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleResendOTP}
+                  disabled={isLoading}
+                  className="text-sm text-blue-600 hover:text-blue-800 underline disabled:text-gray-400"
+                >
+                  {isLoading ? 'Đang gửi...' : 'Gửi lại OTP'}
+                </button>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={otp.length !== 6 || isLoading}
+                className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isLoading ? 'Đang xác thực...' : 'Xác nhận'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 const LoadingState = () => (
@@ -362,6 +517,16 @@ export default function ViewProfile() {
   const [isEditing, setIsEditing] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPasswordForm, setShowPasswordForm] = useState(false)
+  
+  // Email change confirmation states
+  const [showEmailConfirm, setShowEmailConfirm] = useState(false)
+  const [otpModal, setOtpModal] = useState<OTPModalState>({
+    isOpen: false,
+    email: '',
+    formData: null
+  })
+  const [isOtpLoading, setIsOtpLoading] = useState(false)
+  const [originalEmail, setOriginalEmail] = useState('')
 
   const { isValidToken, token } = useTokenValidation()
 
@@ -386,6 +551,7 @@ export default function ViewProfile() {
   })
 
   const rawAvatar = watch("avatar")
+  const currentEmail = watch("email")
 
   const displayAvatar = useMemo(() => {
     if (!rawAvatar || rawAvatar.trim() === "") return DEFAULT_AVATAR;
@@ -411,36 +577,98 @@ export default function ViewProfile() {
   useEffect(() => {
     if (data) {
       reset(data)
+      setOriginalEmail(data.email)
     }
   }, [data, reset])
 
+  const handleEmailChange = async (formData: FormValues) => {
+    try {
+      setIsOtpLoading(true)
+      await requestEmailOTP(formData.email)
+      
+      setOtpModal({
+        isOpen: true,
+        email: formData.email,
+        formData: formData
+      })
+      
+      toast.success('Mã OTP đã được gửi đến email mới!')
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Không thể gửi OTP')
+    } finally {
+      setIsOtpLoading(false)
+    }
+  }
+
+  const handleOtpVerify = async (otp: string) => {
+    if (!otpModal.formData) return
+
+    try {
+      setIsOtpLoading(true)
+      
+      // Verify OTP first
+      await verifyEmailOTP(otpModal.email, otp)
+      
+      // If OTP is valid, proceed with profile update
+      await updateUserProfile(otpModal.formData, token, selectedFile)
+
+      // Update cache with new data
+      queryClient.setQueryData(["user-profile"], otpModal.formData)
+
+      toast.success("Email đã được thay đổi và cập nhật thành công!")
+      setOtpModal({ isOpen: false, email: '', formData: null })
+      setIsEditing(false)
+      clearSelectedFile()
+      setOriginalEmail(otpModal.formData.email)
+      
+    } catch (error: any) {
+      const message = error.response?.data?.message || error.message || "Mã OTP không chính xác"
+      toast.error(message)
+    } finally {
+      setIsOtpLoading(false)
+    }
+  }
+
   const onSubmit = async (formData: FormValues) => {
     const avatarChanged = selectedFile !== null;
+    const emailChanged = formData.email !== originalEmail;
     
     if (!isDirty && !avatarChanged) {
       toast.info("Không có thay đổi nào để lưu");
       return;
     }
 
+    // If email changed, show confirmation modal
+    if (emailChanged) {
+      setShowEmailConfirm(true)
+      // Store form data for later use
+      setOtpModal(prev => ({ ...prev, formData }))
+      return
+    }
+
+    // Normal update without email change
     try {
       setIsSubmitting(true)
       
-      // Gửi request với file ảnh (nếu có)
       await updateUserProfile(formData, token, selectedFile)
 
-      // Cập nhật cache với dữ liệu mới
       queryClient.setQueryData(["user-profile"], formData)
 
       toast.success("Cập nhật thành công!")
       setIsEditing(false)
-      
-      // Clear selected file sau khi upload thành công
       clearSelectedFile()
     } catch (err: any) {
       const message = err.response?.data?.message || err.message || "Lỗi không xác định."
       toast.error(`${message}`)
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleEmailConfirm = async () => {
+    setShowEmailConfirm(false)
+    if (otpModal.formData) {
+      await handleEmailChange(otpModal.formData)
     }
   }
 
@@ -479,7 +707,7 @@ export default function ViewProfile() {
     if (data) {
       reset(data)
     }
-    clearSelectedFile() // Clear selected file khi cancel
+    clearSelectedFile()
     setIsEditing(false)
   }, [data, reset, clearSelectedFile])
 
@@ -801,6 +1029,25 @@ export default function ViewProfile() {
             </div>
           )}
         </div>
+
+        {/* Email Change Confirmation Modal */}
+        <ConfirmModal
+          isOpen={showEmailConfirm}
+          onClose={() => setShowEmailConfirm(false)}
+          onConfirm={handleEmailConfirm}
+          title="Xác nhận thay đổi email"
+          message={`Bạn có muốn thay đổi email từ "${originalEmail}" thành "${currentEmail}" không? Chúng tôi sẽ gửi mã OTP đến email mới để xác thực.`}
+          confirmText="Gửi OTP"
+          isLoading={isOtpLoading}
+        />
+
+        {/* OTP Verification Modal */}
+        <OTPModal
+          isOpen={otpModal.isOpen}
+          email={otpModal.email}
+          onClose={() => setOtpModal({ isOpen: false, email: '', formData: null })}
+          onVerify={handleOtpVerify}
+        />
       </div>
     </div>
   )
