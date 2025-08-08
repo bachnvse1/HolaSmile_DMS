@@ -35,10 +35,18 @@ namespace HDMS_API.Application.Usecases.UserCommon.EditProfile
             if (!string.IsNullOrWhiteSpace(request.DOB) && FormatHelper.TryParseDob(request.DOB) == null)
                 throw new Exception(MessageConstants.MSG.MSG34);
 
+            if (!string.IsNullOrWhiteSpace(request.Email) && request.Email != currentUser.Email)
+            {
+                var existingUser = await _repository.GetUserByEmailAsync(request.Email);
+                if (existingUser != null)
+                    throw new Exception("Email này đã tồn tại");
+            }
+
             currentUser.Fullname = request.Fullname ?? currentUser.Fullname;
             currentUser.Gender = request.Gender ?? currentUser.Gender;
             currentUser.Address = request.Address ?? currentUser.Address;
             currentUser.DOB = FormatHelper.TryParseDob(request.DOB) ?? currentUser.DOB;
+            currentUser.Email = request.Email ?? currentUser.Email;
             if (request.Avatar != null && request.Avatar.Length > 0)
             {
                 var avatarUrl = await _cloudinaryService.UploadImageAsync(request.Avatar, "avatars");
