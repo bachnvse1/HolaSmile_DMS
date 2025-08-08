@@ -16,15 +16,15 @@ namespace HDMS_API.Controllers
         }
 
         [HttpPost("BookAppointment")]
-        public async Task<IActionResult> BookAppointment([FromBody] BookAppointmentCommand request)
+        public async Task<IActionResult> BookAppointment([FromBody] BookAppointmentCommand command)
         {
-            if (request == null)
+            if (command == null)
             {
                 return BadRequest("Dữ liệu đầu vào không hợp lệ.");
             }
             try
             {
-                var result = await _mediator.Send(request);
+                var result = await _mediator.Send(command);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -39,15 +39,15 @@ namespace HDMS_API.Controllers
         }
 
         [HttpPost("ValidateBookAppointment")]
-        public async Task<IActionResult> ValidateBookAppointment([FromBody] ValidateBookAppointmentCommand request)
+        public async Task<IActionResult> ValidateBookAppointment([FromBody] ValidateBookAppointmentCommand command)
         {
-            if (request == null)
+            if (command == null)
             {
                 return BadRequest("Dữ liệu đầu vào không hợp lệ.");
             }
             try
             {
-                var result = await _mediator.Send(request);
+                var result = await _mediator.Send(command);
                 return Ok(result);
             }
             catch (Exception ex)
