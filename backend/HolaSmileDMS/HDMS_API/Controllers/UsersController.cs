@@ -12,7 +12,6 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Authorization;
 using HDMS_API.Application.Usecases.UserCommon.ForgotPassword;
 using Application.Usecases.UserCommon.ForgotPasswordBySMS;
 
@@ -75,7 +74,7 @@ namespace HDMS_API.Controllers
 
 
         [HttpPost("OTP/Request")]
-        public async Task<IActionResult> RequestOtp([FromBody] RequestOtpCommand request)
+        public async Task<IActionResult> RequestOtpEmail([FromBody] RequestOtpCommand request)
         {
             try
             {

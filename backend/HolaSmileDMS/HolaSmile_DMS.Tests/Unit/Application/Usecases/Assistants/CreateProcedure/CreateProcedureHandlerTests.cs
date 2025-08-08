@@ -53,7 +53,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             {
                 ProcedureName = "Nhổ răng",
                 OriginalPrice = 1000000,
-                Price = 1200000
             };
 
             var act = async () => await _handler.Handle(command, default);
@@ -71,7 +70,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             {
                 ProcedureName = "",
                 OriginalPrice = 1000000,
-                Price = 1200000
             };
 
             var act = async () => await _handler.Handle(command, default);
@@ -89,7 +87,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             {
                 ProcedureName = "Nhổ răng",
                 OriginalPrice = 0,
-                Price = -1
             };
 
             var act = async () => await _handler.Handle(command, default);
@@ -107,7 +104,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             {
                 ProcedureName = "Nhổ răng",
                 OriginalPrice = 1000000,
-                Price = 1200000,
                 ReferralCommissionRate = -1,
                 DoctorCommissionRate = 101,
                 AssistantCommissionRate = -5,
@@ -132,7 +128,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             {
                 ProcedureName = "Nhổ răng",
                 OriginalPrice = 1000000,
-                Price = 1200000,
                 SuppliesUsed = new List<SupplyUsedDTO> { new SupplyUsedDTO { SupplyId = 999, Quantity = 1 } }
             };
 
@@ -157,7 +152,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             var command = new CreateProcedureCommand
             {
                 ProcedureName = "Nhổ răng",
-                Price = 1000000,
                 OriginalPrice = 1000000,
                 ConsumableCost = 200000,
 
@@ -197,7 +191,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             {
                 ProcedureName = "Nhổ răng",
                 OriginalPrice = 1000000,
-                Price = 1200000
             };
 
             var result = await _handler.Handle(command, default);
@@ -219,7 +212,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             {
                 ProcedureName = "Nhổ răng",
                 OriginalPrice = 1000000,
-                Price = 1200000
             };
 
             var result = await _handler.Handle(command, default);

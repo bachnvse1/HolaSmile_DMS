@@ -35,15 +35,22 @@ export const useAuth = () => {
   };
 
   useEffect(() => {
-    refreshUserData();    // Listen for storage changes (in case user logs out from another tab)
+    refreshUserData();
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'token' || e.key === 'authToken') {
         refreshUserData();
       }
     };
+    const handleAuthChange = () => {
+      refreshUserData();
+    };
 
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('authChange', handleAuthChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('authChange', handleAuthChange);
+    };
   }, []);
 
   const logout = () => {
