@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, User, RotateCcw } from 'lucide-react';
 import { chatbotService } from '@/services/chatbotService';
 import { useAuth } from '@/hooks/useAuth';
+
 interface Message {
   id: string;
   content: string;
@@ -13,12 +14,14 @@ interface ChatbotFloatingProps {
   onOpenStateChange?: (isOpen: boolean) => void;
   forceClose?: boolean;
   hideButton?: boolean; 
+  adjustPosition?: boolean;
 }
 
 export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({ 
   onOpenStateChange,
   forceClose = false,
-  hideButton = false
+  hideButton = false,
+  adjustPosition = false
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -27,12 +30,6 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { isAuthenticated } = useAuth();
-  useEffect(() => {
-    if (isAuthenticated && isOpen) {
-      setIsOpen(false);
-      onOpenStateChange?.(false);
-    }
-  }, [isAuthenticated, isOpen, onOpenStateChange]);
 
   useEffect(() => {
     if (forceClose && isOpen) {
@@ -52,8 +49,6 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
   };
 
   useEffect(() => {
-    if (isAuthenticated) return; 
-    
     const savedMessages = sessionStorage.getItem('chatbot-messages');
     if (savedMessages) {
       try {
@@ -69,15 +64,13 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
     } else {
       setDefaultMessage();
     }
-  }, [isAuthenticated]);
+  }, []);
 
   useEffect(() => {
-    if (isAuthenticated) return;
-    
     if (messages.length > 0) {
       sessionStorage.setItem('chatbot-messages', JSON.stringify(messages));
     }
-  }, [messages, isAuthenticated]);
+  }, [messages]);
 
   const setDefaultMessage = () => {
     const welcomeMessage: Message = {
@@ -99,13 +92,8 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
   };
 
   useEffect(() => {
-    if (isAuthenticated) return;
     scrollToBottom();
-  }, [messages, isAuthenticated]);
-
-  if (isAuthenticated) {
-    return null;
-  }
+  }, [messages]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
@@ -162,29 +150,37 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
 
   return (
     <>
-      {!isOpen && !hideButton && !isAuthenticated && (
-        <div className="fixed right-6 bottom-24 z-50">
+      {!isOpen && !hideButton && (
+        <div className={`fixed z-40 ${
+          adjustPosition 
+            ? 'right-6 bottom-24' // Vị trí cao hơn khi consultant chat mở
+            : 'right-6 bottom-6'   // Vị trí thường
+        }`}>
           <button
             onClick={handleOpen}
             className="group relative flex items-center gap-3 px-4 py-3 sm:px-6 sm:py-4 rounded-full shadow-lg
-              transition-all duration-300 hover:scale-105 hover:shadow-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold text-sm"
+              transition-all duration-300 hover:scale-105 hover:shadow-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold text-sm"
             title="Chat với AI"
           >
-            <MessageCircle className="h-5 w-5" />
-            <span className="hidden sm:block">Trò chuyện với trợ lý ảo</span>
+            <Bot className="h-5 w-5" />
+            <span className="hidden sm:block">Trợ lý AI</span>
           </button>
         </div>
       )}
 
       {isOpen && (
-        <div className="fixed right-4 bottom-24 z-[60] w-80 sm:w-96">
+        <div className={`fixed z-40 w-80 sm:w-96 ${
+          adjustPosition 
+            ? 'right-4 bottom-24' // Vị trí cao hơn khi consultant chat mở
+            : 'right-4 bottom-6'  // Vị trí thường
+        }`}>
           <div className="bg-white rounded-lg shadow-2xl border border-gray-200">
-            <div className="bg-blue-600 text-white p-4 rounded-t-lg flex items-center justify-between">
+            <div className="bg-purple-600 text-white p-4 rounded-t-lg flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Bot className="h-5 w-5" />
                 <div>
                   <h3 className="font-semibold">AI HolaSmile</h3>
-                  <p className="text-xs text-blue-100">Trợ lý nha khoa</p>
+                  <p className="text-xs text-purple-100">Trợ lý nha khoa</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
@@ -214,7 +210,7 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
                   <div className={`flex max-w-xs lg:max-w-md ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                     <div className={`flex-shrink-0 ${message.sender === 'user' ? 'ml-2' : 'mr-2'}`}>
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        message.sender === 'user' ? 'bg-blue-600' : 'bg-gray-200'
+                        message.sender === 'user' ? 'bg-purple-600' : 'bg-gray-200'
                       }`}>
                         {message.sender === 'user' ? (
                           <User className="h-4 w-4 text-white" />
@@ -226,7 +222,7 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
                     <div>
                       <div className={`px-4 py-2 rounded-lg ${
                         message.sender === 'user'
-                          ? 'bg-blue-600 text-white'
+                          ? 'bg-purple-600 text-white'
                           : 'bg-gray-100 text-gray-900'
                       }`}>
                         <p className="text-sm whitespace-pre-wrap">{message.content}</p>
@@ -268,13 +264,13 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Nhập câu hỏi của bạn..."
-                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   disabled={isLoading}
                 />
                 <button
                   onClick={handleSendMessage}
                   disabled={!inputMessage.trim() || isLoading}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-lg px-4 py-2 transition-colors"
+                  className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white rounded-lg px-4 py-2 transition-colors"
                   title="Gửi tin nhắn"
                 >
                   <Send className="h-4 w-4" />

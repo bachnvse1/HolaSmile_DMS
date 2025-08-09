@@ -33,6 +33,8 @@ public class ViewTreatmentRecordDto
     // Reschedule Info
     public DateTime? AppointmentRescheduleDate { get; set; }
     
+    public decimal? RemainingAmount { get; set; }
+    
     // Audit
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }

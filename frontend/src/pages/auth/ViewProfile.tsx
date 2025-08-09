@@ -7,6 +7,7 @@ import axiosInstance from "@/lib/axios"
 import { toast } from "react-toastify"
 import { TokenUtils } from "@/utils/tokenUtils"
 import { Skeleton } from "@/components/ui/skeleton"
+import { ConfirmModal } from "@/components/ui/ConfirmModal"
 import "react-toastify/dist/ReactToastify.css"
 import { Input } from "@/components/ui/input"
 import type { UseFormSetValue } from "react-hook-form"
@@ -36,11 +37,16 @@ interface ApiResponse {
   gender: boolean
 }
 
+interface OTPModalState {
+  isOpen: boolean
+  email: string
+  formData: FormValues | null
+}
+
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 const MAX_FILE_SIZE = 5 * 1024 * 1024
 const DEFAULT_AVATAR = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxjaXJjbGUgY3g9IjUwIiBjeT0iMzgiIHI9IjE4IiBmaWxsPSIjOUNBM0FGIi8+CjxwYXRoIGQ9Ik0yMCA4MEM0MCA3MCA2MCA3MCA4MCA4MFY5MEgyMFY4MFoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+"
 
-// Password validation rules
 const PASSWORD_REQUIREMENTS = [
   { id: 'length', label: 'Ít nhất 8 ký tự', test: (password: string) => password.length >= 8 },
   { id: 'uppercase', label: 'Ít nhất 1 chữ hoa (A-Z)', test: (password: string) => /[A-Z]/.test(password) },
@@ -51,12 +57,12 @@ const PASSWORD_REQUIREMENTS = [
 
 const validatePassword = (password: string): string | boolean => {
   if (!password) return "Vui lòng nhập mật khẩu mới"
-  
+
   const failedRules = PASSWORD_REQUIREMENTS.filter(rule => !rule.test(password))
   if (failedRules.length > 0) {
     return "Mật khẩu không đáp ứng yêu cầu bảo mật"
   }
-  
+
   return true
 }
 
@@ -111,27 +117,56 @@ const getUserProfile = async (): Promise<FormValues> => {
 const updateUserProfile = async (
   formData: FormValues,
   token: string,
-  originalAvatar: string
+  avatarFile: File | null = null,
+  changeEmailToken?: string
 ): Promise<void> => {
-  const payload: any = {
-    fullname: formData.fullname.trim(),
-    gender: formData.gender === "Nam",
-    address: formData.address.trim(),
-    dob: formData.dob,
-  };
+  const formDataToSend = new FormData();
 
-  if (
-    formData.avatar &&
-    formData.avatar !== DEFAULT_AVATAR &&
-    formData.avatar !== originalAvatar
-  ) {
-    payload.avatar = formData.avatar;
+  formDataToSend.append('fullname', formData.fullname.trim());
+  formDataToSend.append('email', formData.email.trim());
+  formDataToSend.append('gender', formData.gender === "Nam" ? "true" : "false");
+  formDataToSend.append('address', formData.address.trim());
+  formDataToSend.append('dob', formData.dob);
+
+  if (avatarFile) {
+    formDataToSend.append('avatar', avatarFile);
   }
 
-  await axiosInstance.put("/user/profile", payload, {
-    headers: { "ngrok-skip-browser-warning": "true", Authorization: `Bearer ${token}` },
+  // QUAN TRỌNG: gửi token xác nhận đổi email sau khi verify OTP
+  if (changeEmailToken) {
+    formDataToSend.append('changeEmailToken', changeEmailToken);
+  }
+
+  await axiosInstance.put("/user/profile", formDataToSend, {
+    headers: {
+      "ngrok-skip-browser-warning": "true",
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'multipart/form-data'
+    },
   });
 };
+
+const requestEmailOTP = async (newEmail: string): Promise<void> => {
+  await axiosInstance.post("/user/email-otp/request", { newEmail }, {
+    headers: {
+      "ngrok-skip-browser-warning": "true",
+      "Content-Type": "application/json"
+    }
+  })
+}
+
+const verifyEmailOTP = async (newEmail: string, otp: string): Promise<string> => {
+  const res = await axiosInstance.post("/user/email-otp/verify", {
+    newEmail,
+    otp: otp.trim(),
+  }, {
+    headers: {
+      "ngrok-skip-browser-warning": "true",
+      "Content-Type": "application/json"
+    }
+  })
+  return res.data?.changeEmailToken as string
+}
 
 const useTokenValidation = () => {
   const [isValidToken, setIsValidToken] = useState(true)
@@ -158,6 +193,8 @@ const useTokenValidation = () => {
 
 const useImageUpload = (setValue: UseFormSetValue<FormValues>) => {
   const [imageError, setImageError] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
   const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -172,16 +209,183 @@ const useImageUpload = (setValue: UseFormSetValue<FormValues>) => {
       return
     }
 
+    setSelectedFile(file)
     const url = URL.createObjectURL(file)
+    setPreviewUrl(url)
 
     setValue("avatar", url, { shouldDirty: true })
-
-    e.target.value = ""
 
     return () => URL.revokeObjectURL(url)
   }, [setValue])
 
-  return { handleImageUpload, imageError }
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl)
+      }
+    }
+  }, [previewUrl])
+
+  const clearSelectedFile = useCallback(() => {
+    setSelectedFile(null)
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl)
+      setPreviewUrl(null)
+    }
+    setImageError(null)
+  }, [previewUrl])
+
+  return {
+    handleImageUpload,
+    imageError,
+    selectedFile,
+    previewUrl,
+    clearSelectedFile
+  }
+}
+
+const OTPModal = ({
+  isOpen,
+  email,
+  onClose,
+  onVerify
+}: {
+  isOpen: boolean
+  email: string
+  onClose: () => void
+  onVerify: (otp: string) => void
+}) => {
+  const [otp, setOtp] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [countdown, setCountdown] = useState(0)
+
+  useEffect(() => {
+    if (isOpen) {
+      setOtp('')
+      setIsLoading(false)
+    }
+  }, [isOpen])
+
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [countdown])
+
+  const handleResendOTP = async () => {
+    if (countdown > 0) return
+
+    setIsLoading(true)
+    try {
+      await requestEmailOTP(email)
+      toast.success('Mã OTP đã được gửi lại!')
+      setCountdown(60)
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Không thể gửi lại OTP')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (otp.length === 6 && !isLoading) {
+      setIsLoading(true)
+      try {
+        await onVerify(otp)
+      } catch (error) {
+      } finally {
+        setIsLoading(false)
+      }
+    }
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="fixed inset-0 bg-black/50" onClick={onClose} />
+
+      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+        <div className="p-6">
+          <div className="text-center mb-6">
+            <div className="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 mb-4">
+              <Mail className="w-6 h-6 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Xác thực email mới
+            </h3>
+            <p className="text-sm text-gray-600">
+              Mã OTP đã được gửi đến email:
+              <br />
+              <span className="font-medium text-gray-900">{email}</span>
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nhập mã OTP (6 chữ số)
+              </label>
+              <input
+                type="text"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-lg font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="000000"
+                maxLength={6}
+                autoComplete="off"
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="flex justify-center mb-6">
+              {countdown > 0 ? (
+                <span className="text-sm text-gray-500">
+                  Gửi lại OTP sau {countdown}s
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleResendOTP}
+                  disabled={isLoading}
+                  className="text-sm text-blue-600 hover:text-blue-800 underline disabled:text-gray-400"
+                >
+                  {isLoading ? 'Đang gửi...' : 'Gửi lại OTP'}
+                </button>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isLoading}
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={otp.length !== 6 || isLoading}
+                className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Đang xác thực...
+                  </>
+                ) : (
+                  'Xác nhận'
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 const LoadingState = () => (
@@ -227,7 +431,6 @@ const TokenInvalidState = () => (
   </div>
 )
 
-// Password Requirements Component
 const PasswordRequirements = ({ password }: { password: string }) => {
   return (
     <div className="mt-3 p-4 bg-gray-50 rounded-lg border">
@@ -256,13 +459,12 @@ const PasswordRequirements = ({ password }: { password: string }) => {
   )
 }
 
-// Password Input Component
-const PasswordInput = ({ 
-  label, 
-  name, 
-  register, 
-  errors, 
-  showRequirements = false, 
+const PasswordInput = ({
+  label,
+  name,
+  register,
+  errors,
+  showRequirements = false,
   watchPassword = "",
   placeholder = ""
 }: {
@@ -294,11 +496,10 @@ const PasswordInput = ({
                 value === formValues.newPassword || "Mật khẩu xác nhận không khớp"
             })
           })}
-          className={`w-full pl-10 pr-12 py-3 rounded-lg border transition-all duration-200 ${
-            errors[name] 
-              ? "border-red-400 focus:ring-2 focus:ring-red-500 focus:border-red-500" 
+          className={`w-full pl-10 pr-12 py-3 rounded-lg border transition-all duration-200 ${errors[name]
+              ? "border-red-400 focus:ring-2 focus:ring-red-500 focus:border-red-500"
               : "border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          } focus:outline-none`}
+            } focus:outline-none`}
         />
         <button
           type="button"
@@ -308,14 +509,14 @@ const PasswordInput = ({
           {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
       </div>
-      
+
       {errors[name] && (
         <div className="flex items-center gap-2 text-red-500 text-sm">
           <AlertCircle size={14} />
           <span>{errors[name].message}</span>
         </div>
       )}
-      
+
       {showRequirements && (
         <PasswordRequirements password={watchPassword} />
       )}
@@ -329,6 +530,14 @@ export default function ViewProfile() {
   const [isEditing, setIsEditing] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPasswordForm, setShowPasswordForm] = useState(false)
+
+  const [showEmailConfirm, setShowEmailConfirm] = useState(false)
+  const [otpModal, setOtpModal] = useState<OTPModalState>({
+    isOpen: false,
+    email: '',
+    formData: null
+  })
+  const [originalEmail, setOriginalEmail] = useState('')
 
   const { isValidToken, token } = useTokenValidation()
 
@@ -353,13 +562,19 @@ export default function ViewProfile() {
   })
 
   const rawAvatar = watch("avatar")
+  const currentEmail = watch("email")
 
   const displayAvatar = useMemo(() => {
     if (!rawAvatar || rawAvatar.trim() === "") return DEFAULT_AVATAR;
     return rawAvatar;
   }, [rawAvatar]);
 
-  const { handleImageUpload, imageError } = useImageUpload(setValue)
+  const {
+    handleImageUpload,
+    imageError,
+    selectedFile,
+    clearSelectedFile
+  } = useImageUpload(setValue)
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["user-profile"],
@@ -373,24 +588,78 @@ export default function ViewProfile() {
   useEffect(() => {
     if (data) {
       reset(data)
+      setOriginalEmail(data.email)
     }
   }, [data, reset])
 
+  const handleEmailChangeRequest = async (formData: FormValues) => {
+    try {
+      await requestEmailOTP(formData.email)
+
+      setOtpModal({
+        isOpen: true,
+        email: formData.email,
+        formData: formData
+      })
+
+      toast.success('Mã OTP đã được gửi đến email mới!')
+      setShowEmailConfirm(false)
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Không thể gửi OTP')
+    }
+  }
+
+  const handleOtpVerify = async (otp: string) => {
+    if (!otpModal.formData) return
+
+    try {
+      // Lấy token xác nhận từ BE
+      const changeEmailToken = await verifyEmailOTP(otpModal.email, otp)
+
+      // Gọi update và gửi kèm token
+      await updateUserProfile(otpModal.formData, token, selectedFile, changeEmailToken)
+
+      queryClient.setQueryData(["user-profile"], otpModal.formData)
+
+      toast.success("Email đã được xác thực và thông tin cá nhân đã được cập nhật thành công!")
+
+      setOtpModal({ isOpen: false, email: '', formData: null })
+      setIsEditing(false)
+      clearSelectedFile()
+      setOriginalEmail(otpModal.formData.email)
+
+    } catch (error: any) {
+      const message = error.response?.data?.message || error.message || "Mã OTP không chính xác hoặc đã hết hạn"
+      toast.error(message)
+      throw error
+    }
+  }
+
   const onSubmit = async (formData: FormValues) => {
-    const avatarChanged = formData.avatar !== data?.avatar;
+    const avatarChanged = selectedFile !== null;
+    const emailChanged = formData.email !== originalEmail;
+
     if (!isDirty && !avatarChanged) {
       toast.info("Không có thay đổi nào để lưu");
       return;
     }
 
+    if (emailChanged) {
+      setShowEmailConfirm(true)
+      setOtpModal(prev => ({ ...prev, formData }))
+      return
+    }
+
     try {
       setIsSubmitting(true)
-      await updateUserProfile(formData, token, data?.avatar || "")
+
+      await updateUserProfile(formData, token, selectedFile)
 
       queryClient.setQueryData(["user-profile"], formData)
 
       toast.success("Cập nhật thành công!")
       setIsEditing(false)
+      clearSelectedFile()
     } catch (err: any) {
       const message = err.response?.data?.message || err.message || "Lỗi không xác định."
       toast.error(`${message}`)
@@ -426,7 +695,7 @@ export default function ViewProfile() {
       resetPasswordForm()
       setShowPasswordForm(false)
     } catch (error: any) {
-      toast.error(error.message || "Lỗi đổi mật khẩu")
+      toast.error(error?.response?.data?.message || error.message || "Lỗi đổi mật khẩu")
     }
   }
 
@@ -434,8 +703,11 @@ export default function ViewProfile() {
     if (data) {
       reset(data)
     }
+    clearSelectedFile()
     setIsEditing(false)
-  }, [data, reset])
+    setShowEmailConfirm(false)
+    setOtpModal({ isOpen: false, email: '', formData: null })
+  }, [data, reset, clearSelectedFile])
 
   const handleEdit = useCallback(() => {
     setIsEditing(true)
@@ -602,7 +874,7 @@ export default function ViewProfile() {
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting || !isDirty}
+                  disabled={isSubmitting || (!isDirty && !selectedFile)}
                   className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <Save size={16} />
@@ -651,6 +923,11 @@ export default function ViewProfile() {
                 <p className="text-xs">
                   Hỗ trợ: JPEG, PNG, WebP (tối đa 5MB)
                 </p>
+                {selectedFile && (
+                  <div className="text-xs text-green-600 bg-green-50 p-2 rounded">
+                    ✓ Đã chọn: {selectedFile.name}
+                  </div>
+                )}
               </div>
             )}
 
@@ -662,7 +939,6 @@ export default function ViewProfile() {
           </div>
         </form>
 
-        {/* Password Change Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 mt-8 overflow-hidden">
           <div className="p-6 border-b border-gray-100">
             <div className="flex items-center justify-between">
@@ -750,6 +1026,32 @@ export default function ViewProfile() {
             </div>
           )}
         </div>
+
+        <ConfirmModal
+          isOpen={showEmailConfirm}
+          onClose={() => {
+            setShowEmailConfirm(false)
+            setOtpModal({ isOpen: false, email: '', formData: null })
+          }}
+          onConfirm={() => {
+            if (otpModal.formData) {
+              handleEmailChangeRequest(otpModal.formData)
+            }
+          }}
+          title="Xác nhận thay đổi email"
+          message={`Bạn có muốn thay đổi email từ "${originalEmail}" thành "${currentEmail}" không? 
+
+Chúng tôi sẽ gửi mã OTP đến email mới để xác thực trước khi cập nhật thông tin.`}
+          confirmText="Gửi OTP"
+          isLoading={false}
+        />
+
+        <OTPModal
+          isOpen={otpModal.isOpen}
+          email={otpModal.email}
+          onClose={() => setOtpModal({ isOpen: false, email: '', formData: null })}
+          onVerify={handleOtpVerify}
+        />
       </div>
     </div>
   )
