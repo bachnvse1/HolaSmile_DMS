@@ -10,17 +10,20 @@ public sealed class ViewPatientTreatmentRecordHandler
     : IRequestHandler<ViewTreatmentRecordCommand, List<ViewTreatmentRecordDto>>
 {
     private readonly ITreatmentRecordRepository _treatmentRecordRepo;
+    private readonly IInvoiceRepository _invoiceRepository;
     private readonly IPatientRepository _patientRepo;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     public ViewPatientTreatmentRecordHandler(
         ITreatmentRecordRepository treatmentRecordRepo,
         IPatientRepository patientRepo,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        IInvoiceRepository invoiceRepository)
     {
         _treatmentRecordRepo = treatmentRecordRepo;
         _patientRepo = patientRepo;
         _httpContextAccessor = httpContextAccessor;
+        _invoiceRepository = invoiceRepository;
     }
 
     public async Task<List<ViewTreatmentRecordDto>> Handle(
@@ -56,10 +59,25 @@ public sealed class ViewPatientTreatmentRecordHandler
         // 3. Lấy dữ liệu hồ sơ điều trị
         var records = await _treatmentRecordRepo
             .GetPatientTreatmentRecordsAsync(request.PatientId, cancellationToken);
-
+        try
+        {
+            foreach (var record in records) 
+            {
+                // Lấy tất cả hoá đơn liên quan đến hồ sơ điều trị
+                var invoices = await _invoiceRepository.GetByTreatmentRecordIdAsync(record.TreatmentRecordID);
+                var latestInvoice = invoices?.OrderByDescending(i => i.CreatedAt).FirstOrDefault();
+                if (latestInvoice != null)
+                {
+                    record.RemainingAmount = latestInvoice.RemainingAmount;
+                }
+            }
+        }
+        catch (Exception e)
+        {
+        }
+       
         if (records == null || records.Count == 0)
             throw new KeyNotFoundException(MessageConstants.MSG.MSG16);
-
         return records;
     }
 }
