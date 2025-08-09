@@ -21,7 +21,7 @@ interface FormValues {
   email: string
   avatar: string
   phone: string
-  address: string 
+  address: string
   dob: string
   gender: Gender
 }
@@ -47,7 +47,6 @@ const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/web
 const MAX_FILE_SIZE = 5 * 1024 * 1024
 const DEFAULT_AVATAR = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxjaXJjbGUgY3g9IjUwIiBjeT0iMzgiIHI9IjE4IiBmaWxsPSIjOUNBM0FGIi8+CjxwYXRoIGQ9Ik0yMCA4MEM0MCA3MCA2MCA3MCA4MCA4MFY5MEgyMFY4MFoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+"
 
-// Password validation rules
 const PASSWORD_REQUIREMENTS = [
   { id: 'length', label: 'Ít nhất 8 ký tự', test: (password: string) => password.length >= 8 },
   { id: 'uppercase', label: 'Ít nhất 1 chữ hoa (A-Z)', test: (password: string) => /[A-Z]/.test(password) },
@@ -58,12 +57,12 @@ const PASSWORD_REQUIREMENTS = [
 
 const validatePassword = (password: string): string | boolean => {
   if (!password) return "Vui lòng nhập mật khẩu mới"
-  
+
   const failedRules = PASSWORD_REQUIREMENTS.filter(rule => !rule.test(password))
   if (failedRules.length > 0) {
     return "Mật khẩu không đáp ứng yêu cầu bảo mật"
   }
-  
+
   return true
 }
 
@@ -118,35 +117,37 @@ const getUserProfile = async (): Promise<FormValues> => {
 const updateUserProfile = async (
   formData: FormValues,
   token: string,
-  avatarFile: File | null = null
+  avatarFile: File | null = null,
+  changeEmailToken?: string
 ): Promise<void> => {
-  // Tạo FormData object
   const formDataToSend = new FormData();
 
-  // Thêm các field thông tin cơ bản
   formDataToSend.append('fullname', formData.fullname.trim());
   formDataToSend.append('email', formData.email.trim());
   formDataToSend.append('gender', formData.gender === "Nam" ? "true" : "false");
   formDataToSend.append('address', formData.address.trim());
   formDataToSend.append('dob', formData.dob);
 
-  // Thêm file ảnh nếu có
   if (avatarFile) {
     formDataToSend.append('avatar', avatarFile);
   }
 
-  // Gửi request với Content-Type multipart/form-data
+  // QUAN TRỌNG: gửi token xác nhận đổi email sau khi verify OTP
+  if (changeEmailToken) {
+    formDataToSend.append('changeEmailToken', changeEmailToken);
+  }
+
   await axiosInstance.put("/user/profile", formDataToSend, {
-    headers: { 
-      "ngrok-skip-browser-warning": "true", 
+    headers: {
+      "ngrok-skip-browser-warning": "true",
       Authorization: `Bearer ${token}`,
       'Content-Type': 'multipart/form-data'
     },
   });
 };
 
-const requestEmailOTP = async (email: string): Promise<void> => {
-  await axiosInstance.post("/user/OTP/Request", { email }, {
+const requestEmailOTP = async (newEmail: string): Promise<void> => {
+  await axiosInstance.post("/user/email-otp/request", { newEmail }, {
     headers: {
       "ngrok-skip-browser-warning": "true",
       "Content-Type": "application/json"
@@ -154,18 +155,17 @@ const requestEmailOTP = async (email: string): Promise<void> => {
   })
 }
 
-const verifyEmailOTP = async (email: string, otp: string): Promise<void> => {
-  const expiryTime = new Date().toISOString()
-  await axiosInstance.post("/user/OTP/Verify", { 
-    email, 
+const verifyEmailOTP = async (newEmail: string, otp: string): Promise<string> => {
+  const res = await axiosInstance.post("/user/email-otp/verify", {
+    newEmail,
     otp: otp.trim(),
-    expiryTime
   }, {
     headers: {
       "ngrok-skip-browser-warning": "true",
       "Content-Type": "application/json"
     }
   })
+  return res.data?.changeEmailToken as string
 }
 
 const useTokenValidation = () => {
@@ -209,19 +209,15 @@ const useImageUpload = (setValue: UseFormSetValue<FormValues>) => {
       return
     }
 
-    // Lưu file và tạo preview URL
     setSelectedFile(file)
     const url = URL.createObjectURL(file)
     setPreviewUrl(url)
 
-    // Cập nhật form với preview URL để hiển thị
     setValue("avatar", url, { shouldDirty: true })
 
-    // Cleanup function để revoke URL
     return () => URL.revokeObjectURL(url)
   }, [setValue])
 
-  // Cleanup preview URL khi component unmount hoặc file thay đổi
   useEffect(() => {
     return () => {
       if (previewUrl) {
@@ -239,22 +235,21 @@ const useImageUpload = (setValue: UseFormSetValue<FormValues>) => {
     setImageError(null)
   }, [previewUrl])
 
-  return { 
-    handleImageUpload, 
-    imageError, 
-    selectedFile, 
+  return {
+    handleImageUpload,
+    imageError,
+    selectedFile,
     previewUrl,
-    clearSelectedFile 
+    clearSelectedFile
   }
 }
 
-// OTP Modal Component
-const OTPModal = ({ 
-  isOpen, 
-  email, 
-  onClose, 
-  onVerify 
-}: { 
+const OTPModal = ({
+  isOpen,
+  email,
+  onClose,
+  onVerify
+}: {
   isOpen: boolean
   email: string
   onClose: () => void
@@ -264,7 +259,13 @@ const OTPModal = ({
   const [isLoading, setIsLoading] = useState(false)
   const [countdown, setCountdown] = useState(0)
 
-  // Countdown timer for resend OTP
+  useEffect(() => {
+    if (isOpen) {
+      setOtp('')
+      setIsLoading(false)
+    }
+  }, [isOpen])
+
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
@@ -274,12 +275,12 @@ const OTPModal = ({
 
   const handleResendOTP = async () => {
     if (countdown > 0) return
-    
+
     setIsLoading(true)
     try {
       await requestEmailOTP(email)
       toast.success('Mã OTP đã được gửi lại!')
-      setCountdown(60) // 60 seconds countdown
+      setCountdown(60)
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Không thể gửi lại OTP')
     } finally {
@@ -287,10 +288,16 @@ const OTPModal = ({
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (otp.length === 6) {
-      onVerify(otp)
+    if (otp.length === 6 && !isLoading) {
+      setIsLoading(true)
+      try {
+        await onVerify(otp)
+      } catch (error) {
+      } finally {
+        setIsLoading(false)
+      }
     }
   }
 
@@ -299,7 +306,7 @@ const OTPModal = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="fixed inset-0 bg-black/50" onClick={onClose} />
-      
+
       <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
         <div className="p-6">
           <div className="text-center mb-6">
@@ -329,6 +336,7 @@ const OTPModal = ({
                 placeholder="000000"
                 maxLength={6}
                 autoComplete="off"
+                disabled={isLoading}
               />
             </div>
 
@@ -353,16 +361,24 @@ const OTPModal = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                disabled={isLoading}
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
               >
                 Hủy
               </button>
               <button
                 type="submit"
                 disabled={otp.length !== 6 || isLoading}
-                className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
               >
-                {isLoading ? 'Đang xác thực...' : 'Xác nhận'}
+                {isLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Đang xác thực...
+                  </>
+                ) : (
+                  'Xác nhận'
+                )}
               </button>
             </div>
           </form>
@@ -415,7 +431,6 @@ const TokenInvalidState = () => (
   </div>
 )
 
-// Password Requirements Component
 const PasswordRequirements = ({ password }: { password: string }) => {
   return (
     <div className="mt-3 p-4 bg-gray-50 rounded-lg border">
@@ -444,13 +459,12 @@ const PasswordRequirements = ({ password }: { password: string }) => {
   )
 }
 
-// Password Input Component
-const PasswordInput = ({ 
-  label, 
-  name, 
-  register, 
-  errors, 
-  showRequirements = false, 
+const PasswordInput = ({
+  label,
+  name,
+  register,
+  errors,
+  showRequirements = false,
   watchPassword = "",
   placeholder = ""
 }: {
@@ -482,11 +496,10 @@ const PasswordInput = ({
                 value === formValues.newPassword || "Mật khẩu xác nhận không khớp"
             })
           })}
-          className={`w-full pl-10 pr-12 py-3 rounded-lg border transition-all duration-200 ${
-            errors[name] 
-              ? "border-red-400 focus:ring-2 focus:ring-red-500 focus:border-red-500" 
+          className={`w-full pl-10 pr-12 py-3 rounded-lg border transition-all duration-200 ${errors[name]
+              ? "border-red-400 focus:ring-2 focus:ring-red-500 focus:border-red-500"
               : "border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          } focus:outline-none`}
+            } focus:outline-none`}
         />
         <button
           type="button"
@@ -496,14 +509,14 @@ const PasswordInput = ({
           {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
       </div>
-      
+
       {errors[name] && (
         <div className="flex items-center gap-2 text-red-500 text-sm">
           <AlertCircle size={14} />
           <span>{errors[name].message}</span>
         </div>
       )}
-      
+
       {showRequirements && (
         <PasswordRequirements password={watchPassword} />
       )}
@@ -517,15 +530,13 @@ export default function ViewProfile() {
   const [isEditing, setIsEditing] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPasswordForm, setShowPasswordForm] = useState(false)
-  
-  // Email change confirmation states
+
   const [showEmailConfirm, setShowEmailConfirm] = useState(false)
   const [otpModal, setOtpModal] = useState<OTPModalState>({
     isOpen: false,
     email: '',
     formData: null
   })
-  const [isOtpLoading, setIsOtpLoading] = useState(false)
   const [originalEmail, setOriginalEmail] = useState('')
 
   const { isValidToken, token } = useTokenValidation()
@@ -558,11 +569,11 @@ export default function ViewProfile() {
     return rawAvatar;
   }, [rawAvatar]);
 
-  const { 
-    handleImageUpload, 
-    imageError, 
-    selectedFile, 
-    clearSelectedFile 
+  const {
+    handleImageUpload,
+    imageError,
+    selectedFile,
+    clearSelectedFile
   } = useImageUpload(setValue)
 
   const { data, isLoading, error } = useQuery({
@@ -581,22 +592,20 @@ export default function ViewProfile() {
     }
   }, [data, reset])
 
-  const handleEmailChange = async (formData: FormValues) => {
+  const handleEmailChangeRequest = async (formData: FormValues) => {
     try {
-      setIsOtpLoading(true)
       await requestEmailOTP(formData.email)
-      
+
       setOtpModal({
         isOpen: true,
         email: formData.email,
         formData: formData
       })
-      
+
       toast.success('Mã OTP đã được gửi đến email mới!')
+      setShowEmailConfirm(false)
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Không thể gửi OTP')
-    } finally {
-      setIsOtpLoading(false)
     }
   }
 
@@ -604,52 +613,46 @@ export default function ViewProfile() {
     if (!otpModal.formData) return
 
     try {
-      setIsOtpLoading(true)
-      
-      // Verify OTP first
-      await verifyEmailOTP(otpModal.email, otp)
-      
-      // If OTP is valid, proceed with profile update
-      await updateUserProfile(otpModal.formData, token, selectedFile)
+      // Lấy token xác nhận từ BE
+      const changeEmailToken = await verifyEmailOTP(otpModal.email, otp)
 
-      // Update cache with new data
+      // Gọi update và gửi kèm token
+      await updateUserProfile(otpModal.formData, token, selectedFile, changeEmailToken)
+
       queryClient.setQueryData(["user-profile"], otpModal.formData)
 
-      toast.success("Email đã được thay đổi và cập nhật thành công!")
+      toast.success("Email đã được xác thực và thông tin cá nhân đã được cập nhật thành công!")
+
       setOtpModal({ isOpen: false, email: '', formData: null })
       setIsEditing(false)
       clearSelectedFile()
       setOriginalEmail(otpModal.formData.email)
-      
+
     } catch (error: any) {
-      const message = error.response?.data?.message || error.message || "Mã OTP không chính xác"
+      const message = error.response?.data?.message || error.message || "Mã OTP không chính xác hoặc đã hết hạn"
       toast.error(message)
-    } finally {
-      setIsOtpLoading(false)
+      throw error
     }
   }
 
   const onSubmit = async (formData: FormValues) => {
     const avatarChanged = selectedFile !== null;
     const emailChanged = formData.email !== originalEmail;
-    
+
     if (!isDirty && !avatarChanged) {
       toast.info("Không có thay đổi nào để lưu");
       return;
     }
 
-    // If email changed, show confirmation modal
     if (emailChanged) {
       setShowEmailConfirm(true)
-      // Store form data for later use
       setOtpModal(prev => ({ ...prev, formData }))
       return
     }
 
-    // Normal update without email change
     try {
       setIsSubmitting(true)
-      
+
       await updateUserProfile(formData, token, selectedFile)
 
       queryClient.setQueryData(["user-profile"], formData)
@@ -662,13 +665,6 @@ export default function ViewProfile() {
       toast.error(`${message}`)
     } finally {
       setIsSubmitting(false)
-    }
-  }
-
-  const handleEmailConfirm = async () => {
-    setShowEmailConfirm(false)
-    if (otpModal.formData) {
-      await handleEmailChange(otpModal.formData)
     }
   }
 
@@ -709,6 +705,8 @@ export default function ViewProfile() {
     }
     clearSelectedFile()
     setIsEditing(false)
+    setShowEmailConfirm(false)
+    setOtpModal({ isOpen: false, email: '', formData: null })
   }, [data, reset, clearSelectedFile])
 
   const handleEdit = useCallback(() => {
@@ -941,7 +939,6 @@ export default function ViewProfile() {
           </div>
         </form>
 
-        {/* Password Change Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 mt-8 overflow-hidden">
           <div className="p-6 border-b border-gray-100">
             <div className="flex items-center justify-between">
@@ -1030,18 +1027,25 @@ export default function ViewProfile() {
           )}
         </div>
 
-        {/* Email Change Confirmation Modal */}
         <ConfirmModal
           isOpen={showEmailConfirm}
-          onClose={() => setShowEmailConfirm(false)}
-          onConfirm={handleEmailConfirm}
+          onClose={() => {
+            setShowEmailConfirm(false)
+            setOtpModal({ isOpen: false, email: '', formData: null })
+          }}
+          onConfirm={() => {
+            if (otpModal.formData) {
+              handleEmailChangeRequest(otpModal.formData)
+            }
+          }}
           title="Xác nhận thay đổi email"
-          message={`Bạn có muốn thay đổi email từ "${originalEmail}" thành "${currentEmail}" không? Chúng tôi sẽ gửi mã OTP đến email mới để xác thực.`}
+          message={`Bạn có muốn thay đổi email từ "${originalEmail}" thành "${currentEmail}" không? 
+
+Chúng tôi sẽ gửi mã OTP đến email mới để xác thực trước khi cập nhật thông tin.`}
           confirmText="Gửi OTP"
-          isLoading={isOtpLoading}
+          isLoading={false}
         />
 
-        {/* OTP Verification Modal */}
         <OTPModal
           isOpen={otpModal.isOpen}
           email={otpModal.email}
