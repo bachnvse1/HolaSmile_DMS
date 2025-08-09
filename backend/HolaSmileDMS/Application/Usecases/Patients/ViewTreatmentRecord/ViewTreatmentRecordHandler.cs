@@ -69,6 +69,9 @@ public sealed class ViewPatientTreatmentRecordHandler
                 if (latestInvoice != null)
                 {
                     record.RemainingAmount = latestInvoice.RemainingAmount;
+                } else
+                {
+                    record.RemainingAmount = record.TotalAmount;
                 }
             }
         }
