@@ -161,7 +161,8 @@ export const UpdateInvoiceModal: React.FC<UpdateInvoiceModalProps> = ({
 
   if (!invoice) return null;
 
-  const remainingAmount = invoice.totalAmount - formData.paidAmount;
+  const remainingFromDb: number =
+    invoice.remainingAmount ?? Math.max(0, invoice.totalAmount - (invoice.paidAmount ?? 0));
   const canEdit = invoice.status !== 'paid';
 
   return (
@@ -289,12 +290,13 @@ export const UpdateInvoiceModal: React.FC<UpdateInvoiceModalProps> = ({
                   <p className="text-gray-600">
                     Số tiền thanh toán: <span className="font-semibold">{formatCurrency(formData.paidAmount)}</span>
                   </p>
-                  {remainingAmount > 0 && (
+                  {remainingFromDb > 0 && (
                     <p className="text-orange-600">
-                      Số tiền còn lại: <span className="font-semibold">{formatCurrency(remainingAmount)}</span>
+                      Số tiền còn lại: <span className="font-semibold">{formatCurrency(remainingFromDb)}</span>
                     </p>
                   )}
-                  {remainingAmount === 0 && (
+
+                  {remainingFromDb === 0 && (
                     <p className="text-green-600 font-semibold">✓ Đã thanh toán đủ</p>
                   )}
                 </div>

@@ -19,7 +19,6 @@ import {
 import { formatCurrency, handleCurrencyInput, parseCurrency } from "@/utils/currencyUtils";
 import { toast } from "react-toastify";
 
-// Improved type definitions
 interface TreatmentRecord {
   symptoms: string;
   totalAmount: number;
@@ -66,13 +65,13 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
   handleCreateInvoice,
   isCreating = false,
 }) => {
-  const [formattedAmount, setFormattedAmount] = React.useState<string>('');
+  const [formattedAmount, setFormattedAmount] = React.useState<string>("");
 
   React.useEffect(() => {
     if (newInvoice.paidAmount > 0) {
       setFormattedAmount(formatCurrency(newInvoice.paidAmount));
     } else {
-      setFormattedAmount('');
+      setFormattedAmount("");
     }
   }, [newInvoice.paidAmount]);
 
@@ -86,7 +85,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
   };
 
   const handleFieldChange = (field: keyof InvoiceFormData, value: string | number) => {
-    setNewInvoice(prev => ({
+    setNewInvoice((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -97,35 +96,34 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
       setFormattedAmount(formattedValue);
       const numericValue = parseCurrency(formattedValue);
       if (numericValue >= 0 && numericValue <= treatmentRecord.totalAmount) {
-        handleFieldChange('paidAmount', numericValue);
+        handleFieldChange("paidAmount", numericValue);
       }
     });
   };
 
   const handleTransactionTypeChange = (value: string) => {
-    handleFieldChange('transactionType', value);
-    if (value === 'full') {
-      handleFieldChange('paidAmount', treatmentRecord.totalAmount);
+    handleFieldChange("transactionType", value);
+    if (value === "full") {
+      handleFieldChange("paidAmount", treatmentRecord.totalAmount);
       setFormattedAmount(formatCurrency(treatmentRecord.totalAmount));
-    } else if (value === 'partial' && newInvoice.paidAmount === treatmentRecord.totalAmount) {
-      handleFieldChange('paidAmount', 0);
-      setFormattedAmount('');
+    } else if (value === "partial" && newInvoice.paidAmount === treatmentRecord.totalAmount) {
+      handleFieldChange("paidAmount", 0);
+      setFormattedAmount("");
     }
   };
 
- const handleCreateInvoiceWithNavigation = async () => {
+  const handleCreateInvoiceWithNavigation = async () => {
     try {
       await handleCreateInvoice();
       setTimeout(() => {
-        window.location.href = '/invoices';
+        window.location.href = "/invoices";
       }, 1000);
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Lỗi khi tạo hóa đơn';
+      const errorMessage = error?.response?.data?.message || error?.message || "Lỗi khi tạo hóa đơn";
       toast.error(errorMessage);
     }
   };
 
-  // Calculate remaining amount
   const remainingAmount = treatmentRecord.totalAmount - newInvoice.paidAmount;
 
   return (
@@ -136,7 +134,6 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Treatment Summary */}
           <div className="border p-4 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
             <h3 className="font-semibold text-gray-900 mb-3">Thông tin điều trị</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
@@ -161,7 +158,6 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
             </div>
           </div>
 
-          {/* Payment Form */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="paymentMethod" className="text-sm font-medium">
@@ -169,13 +165,13 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
               </Label>
               <Select
                 value={newInvoice.paymentMethod}
-                onValueChange={(value) => handleFieldChange('paymentMethod', value)}
+                onValueChange={(value) => handleFieldChange("paymentMethod", value)}
               >
                 <SelectTrigger id="paymentMethod">
                   <SelectValue placeholder="Chọn phương thức thanh toán" />
                 </SelectTrigger>
                 <SelectContent>
-                  {PAYMENT_METHODS.map(method => (
+                  {PAYMENT_METHODS.map((method) => (
                     <SelectItem key={method.value} value={method.value}>
                       {method.label}
                     </SelectItem>
@@ -188,15 +184,12 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
               <Label htmlFor="transactionType" className="text-sm font-medium">
                 Loại giao dịch *
               </Label>
-              <Select
-                value={newInvoice.transactionType}
-                onValueChange={handleTransactionTypeChange}
-              >
+              <Select value={newInvoice.transactionType} onValueChange={handleTransactionTypeChange}>
                 <SelectTrigger id="transactionType">
                   <SelectValue placeholder="Chọn loại thanh toán" />
                 </SelectTrigger>
                 <SelectContent>
-                  {TRANSACTION_TYPES.map(type => (
+                  {TRANSACTION_TYPES.map((type) => (
                     <SelectItem key={type.value} value={type.value}>
                       {type.label}
                     </SelectItem>
@@ -206,7 +199,6 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
             </div>
           </div>
 
-          {/* Payment Amount */}
           <div>
             <Label htmlFor="paidAmount" className="text-sm font-medium">
               Số tiền thanh toán *
@@ -219,9 +211,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                 onChange={(e) => handleAmountChange(e.target.value)}
                 placeholder="Nhập số tiền thanh toán"
                 className={`pr-12 ${
-                  newInvoice.paidAmount > treatmentRecord.totalAmount 
-                    ? 'border-red-500 focus:border-red-500' 
-                    : ''
+                  newInvoice.paidAmount > treatmentRecord.totalAmount ? "border-red-500 focus:border-red-500" : ""
                 }`}
               />
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -238,9 +228,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                     Số tiền còn lại: <span className="font-semibold">{formatCurrency(remainingAmount)}</span>
                   </p>
                 )}
-                {remainingAmount === 0 && (
-                  <p className="text-green-600 font-semibold">✓ Đã thanh toán đủ</p>
-                )}
+                {remainingAmount === 0 && <p className="text-green-600 font-semibold">✓ Đã thanh toán đủ</p>}
               </div>
             )}
             {newInvoice.paidAmount > treatmentRecord.totalAmount && (
@@ -250,7 +238,6 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
             )}
           </div>
 
-          {/* Description */}
           <div>
             <Label htmlFor="description" className="text-sm font-medium">
               Ghi chú
@@ -258,20 +245,15 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
             <Textarea
               id="description"
               value={newInvoice.description}
-              onChange={(e) => handleFieldChange('description', e.target.value)}
+              onChange={(e) => handleFieldChange("description", e.target.value)}
               placeholder="Nhập ghi chú cho hóa đơn (không bắt buộc)"
               rows={3}
               className="mt-1"
             />
           </div>
 
-          {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button
-              variant="outline"
-              onClick={() => setCreateOpen(false)}
-              disabled={isCreating}
-            >
+            <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={isCreating}>
               Hủy
             </Button>
             <Button
@@ -281,11 +263,10 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
             >
               {isCreating ? (
                 <>
-                  <span className="animate-spin mr-2">⏳</span>
                   Đang tạo...
                 </>
               ) : (
-                'Tạo hóa đơn'
+                "Tạo hóa đơn"
               )}
             </Button>
           </div>
