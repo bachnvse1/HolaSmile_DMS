@@ -1,10 +1,13 @@
 using Application.Constants;
 using Application.Usecases.Guests.ViewAllGuestCommand;
 using Application.Usecases.UserCommon.ChangePassword;
+using Application.Usecases.UserCommon.ForgotPasswordBySMS;
 using Application.Usecases.UserCommon.RefreshToken;
 using Application.Usecases.UserCommon.ViewAllUserChat;
 using Application.Usecases.UserCommon.ViewProfile;
+using HDMS_API.Application.Usecases.UserCommon.ChangeEmailOtp;
 using HDMS_API.Application.Usecases.UserCommon.EditProfile;
+using HDMS_API.Application.Usecases.UserCommon.ForgotPassword;
 using HDMS_API.Application.Usecases.UserCommon.Login;
 using HDMS_API.Application.Usecases.UserCommon.Otp;
 using HDMS_API.Infrastructure.Persistence;
@@ -12,9 +15,6 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Authorization;
-using HDMS_API.Application.Usecases.UserCommon.ForgotPassword;
-using Application.Usecases.UserCommon.ForgotPasswordBySMS;
 
 namespace HDMS_API.Controllers
 {
@@ -58,24 +58,24 @@ namespace HDMS_API.Controllers
         [HttpPut("profile")]
         [Consumes("multipart/form-data")] // quan trọng để Swagger render file upload
         public async Task<IActionResult> EditProfile([FromForm] EditProfileCommand command,
-    CancellationToken cancellationToken)
-        {
-            try
+        CancellationToken cancellationToken)
             {
-                var result = await _mediator.Send(command, cancellationToken);
-                return result
-                    ? Ok(new { message = "Cập nhật hồ sơ thành công." })
-                    : BadRequest(new { message = "Cập nhật hồ sơ thất bại." });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { ex.Message });
-            }
+                try
+                {
+                    var result = await _mediator.Send(command, cancellationToken);
+                    return result
+                        ? Ok(new { message = "Cập nhật hồ sơ thành công." })
+                        : BadRequest(new { message = "Cập nhật hồ sơ thất bại." });
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(new { ex.Message });
+                }
         }
 
 
         [HttpPost("OTP/Request")]
-        public async Task<IActionResult> RequestOtp([FromBody] RequestOtpCommand request)
+        public async Task<IActionResult> RequestOtpEmail([FromBody] RequestOtpCommand request)
         {
             try
             {
@@ -204,7 +204,7 @@ namespace HDMS_API.Controllers
                 return Unauthorized(new { message = ex.Message });
             }
         }
-        
+
         [HttpGet("allUsersChat")]
         [Authorize]
         public async Task<IActionResult> GetAllUsers()
@@ -238,12 +238,48 @@ namespace HDMS_API.Controllers
                 return StatusCode(500, new { message = "Có lỗi xảy ra, vui lòng thử lại sau." });
             }
         }
-        
+
         [HttpGet("allGuestsChat")]
         public async Task<IActionResult> AllGuestsChat()
         {
             var result = await _mediator.Send(new ViewAllGuestsChatCommand());
             return Ok(result);
+        }
+
+        [Authorize]
+        [HttpPost("email-otp/request")]
+        public async Task<IActionResult> RequestEmailOtp([FromBody] RequestChangeEmailOtpCommand cmd)
+        {
+            try
+            {
+                return (await _mediator.Send(cmd)) ? Ok(new { message = "Đã gửi OTP tới email mới." })
+                                                     : BadRequest(new { message = "Gửi OTP thất bại." });
+            }
+            catch (Exception ex) { return BadRequest(new { message = ex.Message }); }
+        }
+
+        [Authorize]
+        [HttpPost("email-otp/resend")]
+        public async Task<IActionResult> ResendEmailOtp([FromBody] ResendChangeEmailOtpCommand cmd)
+        {
+            try
+            {
+                return (await _mediator.Send(cmd)) ? Ok(new { message = "Đã gửi lại OTP." })
+                                                     : BadRequest(new { message = "Gửi lại OTP thất bại." });
+            }
+            catch (Exception ex) { return BadRequest(new { message = ex.Message }); }
+        }
+
+        [Authorize]
+        [HttpPost("email-otp/verify")]
+        public async Task<IActionResult> VerifyEmailOtp([FromBody] VerifyChangeEmailOtpCommand cmd)
+        {
+            try
+            {
+                var token = await _mediator.Send(cmd);
+                return Ok(new { changeEmailToken = token, message = "Xác thực OTP thành công." });
+            }
+            catch (Exception ex) { return BadRequest(new { message = ex.Message }); }
         }
     }
 }

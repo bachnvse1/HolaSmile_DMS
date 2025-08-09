@@ -11,6 +11,7 @@ namespace HDMS_API.Application.Usecases.UserCommon.EditProfile
         public string? DOB { get; set; }
         public IFormFile? Avatar { get; set; }
         public string? Email { get; set; }
+        public string? ChangeEmailToken { get; set; }
     }
 
 }

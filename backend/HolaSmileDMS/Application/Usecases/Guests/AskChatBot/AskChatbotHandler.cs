@@ -91,7 +91,7 @@ namespace Application.Usecases.Guests.AskChatBot
             var inputWords = input.ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var dbWords = question.ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
             int match = inputWords.Count(w => dbWords.Contains(w));
-            return dbWords.Length > 0 && ((double)match / dbWords.Length >= 0.5);
+            return dbWords.Length > 0 && ((double)match / dbWords.Length >= 0.7);
         }
     }
 }
