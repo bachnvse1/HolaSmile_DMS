@@ -128,7 +128,7 @@ namespace Application.Usecases.Dentist.CreateTreatmentRecord
                 PatientId = appointment?.PatientId,
                 DentistId = request.DentistId,
                 Status = "confirmed",
-                Content = $"Lịch hẹn điều trị vào ngày {request.TreatmentDate} dựa vào lịch hẹn gốc #{appointment?.AppointmentDate.Date} {appointment?.AppointmentTime} được tạo bởi nha sĩ {fullName}",
+                Content = $"Lịch hẹn điều trị vào ngày {request.TreatmentDate} dựa vào lịch hẹn gốc #{appointment?.AppointmentDate.ToString("dd/MM/yyyy")} {appointment?.AppointmentTime} được tạo bởi nha sĩ {fullName}",
                 IsNewPatient = false,
                 AppointmentType = "treatment",
                 AppointmentDate = request.TreatmentDate.Date,
