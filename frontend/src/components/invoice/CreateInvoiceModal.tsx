@@ -1,28 +1,17 @@
 import React from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button2";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { formatCurrency, handleCurrencyInput, parseCurrency } from "@/utils/currencyUtils";
-import { toast } from "react-toastify";
 
 interface TreatmentRecord {
   symptoms: string;
   totalAmount: number;
   treatmentDate: string;
+  remainingAmount: number | null | undefined;
 }
 
 interface InvoiceFormData {
@@ -41,8 +30,8 @@ interface CreateInvoiceModalProps {
   setNewInvoice: React.Dispatch<React.SetStateAction<InvoiceFormData>>;
   patientName: string;
   treatmentRecord: TreatmentRecord;
-  handleCreateInvoice: () => void;
-  isCreating?: boolean; 
+  handleCreateInvoice: () => Promise<void>;
+  isCreating?: boolean;
 }
 
 const PAYMENT_METHODS = [
@@ -67,142 +56,83 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
 }) => {
   const [formattedAmount, setFormattedAmount] = React.useState<string>("");
 
+  const remainingCap = treatmentRecord.remainingAmount ?? 0;
+  const isAmountExceeded = newInvoice.paidAmount > remainingCap;
+
   React.useEffect(() => {
-    if (newInvoice.paidAmount > 0) {
-      setFormattedAmount(formatCurrency(newInvoice.paidAmount));
-    } else {
-      setFormattedAmount("");
-    }
+    if (newInvoice.paidAmount > 0) setFormattedAmount(formatCurrency(newInvoice.paidAmount));
+    else setFormattedAmount("");
   }, [newInvoice.paidAmount]);
 
-  const isFormValid = () => {
-    return (
-      newInvoice.paymentMethod &&
-      newInvoice.transactionType &&
-      newInvoice.paidAmount > 0 &&
-      newInvoice.paidAmount <= treatmentRecord.totalAmount
-    );
-  };
-
   const handleFieldChange = (field: keyof InvoiceFormData, value: string | number) => {
-    setNewInvoice((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setNewInvoice(prev => ({ ...prev, [field]: value }));
   };
 
   const handleAmountChange = (value: string) => {
     handleCurrencyInput(value, (formattedValue) => {
       setFormattedAmount(formattedValue);
-      const numericValue = parseCurrency(formattedValue);
-      if (numericValue >= 0 && numericValue <= treatmentRecord.totalAmount) {
-        handleFieldChange("paidAmount", numericValue);
-      }
+      const n = parseCurrency(formattedValue);
+      if (n >= 0) handleFieldChange("paidAmount", n); // luôn cập nhật, kể cả khi vượt mức
     });
   };
 
   const handleTransactionTypeChange = (value: string) => {
     handleFieldChange("transactionType", value);
     if (value === "full") {
-      handleFieldChange("paidAmount", treatmentRecord.totalAmount);
-      setFormattedAmount(formatCurrency(treatmentRecord.totalAmount));
-    } else if (value === "partial" && newInvoice.paidAmount === treatmentRecord.totalAmount) {
+      handleFieldChange("paidAmount", remainingCap);
+      setFormattedAmount(formatCurrency(remainingCap));
+    } else if (value === "partial" && newInvoice.paidAmount === remainingCap) {
       handleFieldChange("paidAmount", 0);
       setFormattedAmount("");
     }
   };
 
-  const handleCreateInvoiceWithNavigation = async () => {
-    try {
-      await handleCreateInvoice();
-      setTimeout(() => {
-        window.location.href = "/invoices";
-      }, 1000);
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || error?.message || "Lỗi khi tạo hóa đơn";
-      toast.error(errorMessage);
-    }
+  const handleCreateInvoiceClick = async () => {
+    await handleCreateInvoice();
   };
 
-  const remainingAmount = treatmentRecord.totalAmount - newInvoice.paidAmount;
+  const remainingDisplay = Math.max(remainingCap - newInvoice.paidAmount, 0);
+
+  const isFormValid = () =>
+    newInvoice.paymentMethod &&
+    newInvoice.transactionType &&
+    newInvoice.paidAmount > 0 &&
+    !isAmountExceeded;
 
   return (
-    <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+    <Dialog open={createOpen} onOpenChange={(open) => { if (!isCreating) setCreateOpen(open); }}>
       <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Tạo hóa đơn cho {patientName}</DialogTitle>
-        </DialogHeader>
+        <DialogHeader><DialogTitle>Tạo hóa đơn cho {patientName}</DialogTitle></DialogHeader>
 
         <div className="space-y-6">
           <div className="border p-4 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
             <h3 className="font-semibold text-gray-900 mb-3">Thông tin điều trị</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-              <div className="flex items-start gap-2">
-                <div>
-                  <p className="font-medium text-gray-700">Triệu chứng:</p>
-                  <p className="text-gray-600">{treatmentRecord.symptoms}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <div>
-                  <p className="font-medium text-gray-700">Tổng tiền:</p>
-                  <p className="text-gray-900 font-semibold">{formatCurrency(treatmentRecord.totalAmount)}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <div>
-                  <p className="font-medium text-gray-700">Ngày điều trị:</p>
-                  <p className="text-gray-600">{treatmentRecord.treatmentDate}</p>
-                </div>
-              </div>
+              <div><p className="font-medium text-gray-700">Triệu chứng:</p><p className="text-gray-600">{treatmentRecord.symptoms}</p></div>
+              <div><p className="font-medium text-gray-700">Tổng tiền:</p><p className="text-gray-900 font-semibold">{formatCurrency(treatmentRecord.totalAmount)}</p></div>
+              <div><p className="font-medium text-gray-700">Ngày điều trị:</p><p className="text-gray-600">{treatmentRecord.treatmentDate}</p></div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="paymentMethod" className="text-sm font-medium">
-                Phương thức thanh toán *
-              </Label>
-              <Select
-                value={newInvoice.paymentMethod}
-                onValueChange={(value) => handleFieldChange("paymentMethod", value)}
-              >
-                <SelectTrigger id="paymentMethod">
-                  <SelectValue placeholder="Chọn phương thức thanh toán" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PAYMENT_METHODS.map((method) => (
-                    <SelectItem key={method.value} value={method.value}>
-                      {method.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
+              <Label htmlFor="paymentMethod">Phương thức thanh toán *</Label>
+              <Select value={newInvoice.paymentMethod} onValueChange={(v) => handleFieldChange("paymentMethod", v)} disabled={isCreating}>
+                <SelectTrigger id="paymentMethod"><SelectValue placeholder="Chọn phương thức thanh toán" /></SelectTrigger>
+                <SelectContent>{PAYMENT_METHODS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-
             <div>
-              <Label htmlFor="transactionType" className="text-sm font-medium">
-                Loại giao dịch *
-              </Label>
-              <Select value={newInvoice.transactionType} onValueChange={handleTransactionTypeChange}>
-                <SelectTrigger id="transactionType">
-                  <SelectValue placeholder="Chọn loại thanh toán" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TRANSACTION_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
+              <Label htmlFor="transactionType">Loại giao dịch *</Label>
+              <Select value={newInvoice.transactionType} onValueChange={handleTransactionTypeChange} disabled={isCreating}>
+                <SelectTrigger id="transactionType"><SelectValue placeholder="Chọn loại thanh toán" /></SelectTrigger>
+                <SelectContent>{TRANSACTION_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
           </div>
 
           <div>
-            <Label htmlFor="paidAmount" className="text-sm font-medium">
-              Số tiền thanh toán *
-            </Label>
+            <Label htmlFor="paidAmount">Số tiền thanh toán *</Label>
             <div className="mt-1 relative">
               <Input
                 id="paidAmount"
@@ -210,64 +140,37 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                 value={formattedAmount}
                 onChange={(e) => handleAmountChange(e.target.value)}
                 placeholder="Nhập số tiền thanh toán"
-                className={`pr-12 ${
-                  newInvoice.paidAmount > treatmentRecord.totalAmount ? "border-red-500 focus:border-red-500" : ""
-                }`}
+                disabled={isCreating}
+                className={`pr-12 ${isAmountExceeded ? "border-red-500 focus:border-red-500" : ""}`}
               />
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <span className="text-gray-500 text-sm">đ</span>
-              </div>
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"><span className="text-gray-500 text-sm">đ</span></div>
             </div>
-            {newInvoice.paidAmount > 0 && (
+
+            {newInvoice.paidAmount > 0 && !isAmountExceeded && (
               <div className="mt-2 text-sm space-y-1">
-                <p className="text-gray-600">
-                  Số tiền thanh toán: <span className="font-semibold">{formatCurrency(newInvoice.paidAmount)}</span>
-                </p>
-                {remainingAmount > 0 && (
-                  <p className="text-orange-600">
-                    Số tiền còn lại: <span className="font-semibold">{formatCurrency(remainingAmount)}</span>
-                  </p>
-                )}
-                {remainingAmount === 0 && <p className="text-green-600 font-semibold">✓ Đã thanh toán đủ</p>}
+                <p className="text-gray-600">Số tiền thanh toán: <span className="font-semibold">{formatCurrency(newInvoice.paidAmount)}</span></p>
+                {remainingDisplay > 0 && <p className="text-orange-600">Số tiền còn lại: <span className="font-semibold">{formatCurrency(remainingDisplay)}</span></p>}
+                {remainingDisplay === 0 && <p className="text-green-600 font-semibold">✓ Đã thanh toán đủ</p>}
               </div>
             )}
-            {newInvoice.paidAmount > treatmentRecord.totalAmount && (
-              <p className="text-red-600 text-sm mt-1">
-                Số tiền thanh toán không được vượt quá tổng tiền điều trị
-              </p>
+
+            {isAmountExceeded && (
+              <div className="mt-2 text-sm space-y-1">
+                <p className="text-red-600 font-semibold">⚠️ Số tiền thanh toán không được vượt quá số tiền chưa thanh toán</p>
+                <p className="text-gray-600">Số tiền tối đa: <span className="font-semibold text-orange-600">{formatCurrency(remainingCap)}</span></p>
+              </div>
             )}
           </div>
 
           <div>
-            <Label htmlFor="description" className="text-sm font-medium">
-              Ghi chú
-            </Label>
-            <Textarea
-              id="description"
-              value={newInvoice.description}
-              onChange={(e) => handleFieldChange("description", e.target.value)}
-              placeholder="Nhập ghi chú cho hóa đơn (không bắt buộc)"
-              rows={3}
-              className="mt-1"
-            />
+            <Label htmlFor="description">Ghi chú</Label>
+            <Textarea id="description" value={newInvoice.description} onChange={(e) => handleFieldChange("description", e.target.value)} placeholder="Nhập ghi chú cho hóa đơn (không bắt buộc)" rows={3} disabled={isCreating} className="mt-1" />
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={isCreating}>
-              Hủy
-            </Button>
-            <Button
-              onClick={handleCreateInvoiceWithNavigation}
-              disabled={!isFormValid() || isCreating}
-              className="min-w-[100px]"
-            >
-              {isCreating ? (
-                <>
-                  Đang tạo...
-                </>
-              ) : (
-                "Tạo hóa đơn"
-              )}
+            <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={isCreating}>Hủy</Button>
+            <Button onClick={handleCreateInvoiceClick} disabled={!isFormValid() || isCreating} className="min-w-[100px]">
+              {isCreating ? "Đang tạo..." : "Tạo hóa đơn"}
             </Button>
           </div>
         </div>
