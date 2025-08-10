@@ -124,10 +124,7 @@ export default function MaintenancePage() {
     setPageState(prev => ({ 
       ...prev, 
       refreshTable: prev.refreshTable + 1 
-    }))
-    
-    toast.success("Phiếu bảo trì đã được tạo thành công!")
-    
+    }))   
     loadStats()
   }, [])
 

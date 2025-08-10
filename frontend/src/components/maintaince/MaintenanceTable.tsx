@@ -103,7 +103,6 @@ const mapApiRecord = (api: any): MaintenanceRecord | null => {
       updatedAt: api.updatedAt ?? api.UpdatedAt
     }
   } catch (error) {
-    console.error("Error mapping API record:", error, api)
     return null
   }
 }
@@ -539,13 +538,13 @@ export function MaintenanceTable({ refreshTrigger }: MaintenanceTableProps) {
                                 </DropdownMenuItem>
                               )}
                               
-                              {record.status !== "Approved" && (
+                              {record.status !== "Approved" && record.price === 0 && (
                                 <DropdownMenuItem 
                                   onClick={() => openConfirmStatus(record.maintenanceId, record.status)}
                                   className="cursor-pointer"
                                 >
                                   <RefreshCw className="mr-2 h-4 w-4" />
-                                  Đổi trạng thái
+                                  Phê duyệt
                                 </DropdownMenuItem>
                               )}
                               
