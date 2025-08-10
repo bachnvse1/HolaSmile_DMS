@@ -7,7 +7,7 @@ import {
   Settings,
   UserCheck,
   Stethoscope,
-  CreditCard, 
+  CreditCard,
   Package,
   ChevronDown,
   ChevronRight,
@@ -20,7 +20,8 @@ import {
   Users2,
   UserCircle,
   Phone,
-  Bot
+  Bot,
+  WrenchIcon
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 import { useAuth } from '@/hooks/useAuth';
@@ -76,7 +77,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
     }
 
     let internal = 0;
-    let patientConsultation = 0; 
+    let patientConsultation = 0;
     let guestConsultation = 0;
 
     unreadCounts.forEach(unread => {
@@ -116,39 +117,39 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
   // 🔥 Force refresh unread counts khi có tin nhắn mới trong ChatHub
   useEffect(() => {
     if (!userId || messages.length === 0) return;
-    
+
     const lastMessage = messages[messages.length - 1];
-    
+
     // Chỉ refresh nếu tin nhắn đến cho user hiện tại (không phải từ user hiện tại)
     if (lastMessage.receiverId === userId && lastMessage.senderId !== userId) {
       const timer = setTimeout(() => {
         refreshUnreadCounts();
       }, 1000); // Tăng delay lên 1 giây
-      
+
       return () => clearTimeout(timer);
     }
   }, [messages, userId, refreshUnreadCounts]);
-  
+
   // 🔥 Periodic refresh mỗi 30 giây để đảm bảo sync
   useEffect(() => {
     if (!userId) return;
-    
+
     const interval = setInterval(() => {
       refreshUnreadCounts();
     }, 30000); // 30 giây
-    
+
     return () => clearInterval(interval);
   }, [userId, refreshUnreadCounts]);
-  
+
   // 🔥 Refresh khi user thay đổi hoặc component mount
   useEffect(() => {
     if (userId) {
       refreshUnreadCounts();
     }
   }, [userId, refreshUnreadCounts]);
-  
+
   const totalUnreadCount = getTotalUnreadCount();
-  
+
 
   const menuItems: MenuItem[] = [
     {
@@ -267,7 +268,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       label: 'Mẫu Chỉ Dẫn',
       icon: <FileText className="h-5 w-5" />,
       path: '/instruction-templates',
-      roles: [ 'Assistant', 'Dentist']
+      roles: ['Assistant', 'Dentist']
     },
     {
       id: "procedures",
@@ -303,6 +304,13 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       icon: <Bot className="h-5 w-5" />,
       path: '/chatbot/knowledge',
       roles: ['Administrator', 'Owner']
+    },
+    {
+      id: 'maintenance',
+      label: "Quản lý bảo trì",
+      path: "/maintenance",
+      icon: <WrenchIcon className="h-5 w-5" />,
+      roles: ['Receptionist']
     },
     {
       id: 'settings',
@@ -377,11 +385,11 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
               {/* 🔥 MAIN MESSAGES BADGE */}
               {isMessagesItem && getTotalUnreadCount() > 0 && (
                 <div className="absolute -top-2 -right-2">
-                  <div 
+                  <div
                     className="absolute inset-0 w-5 h-5 rounded-full bg-red-500"
                     style={{ animation: 'ripple 1.5s ease-out infinite' }}
                   />
-                  <div 
+                  <div
                     className="relative w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white"
                     title={`${getTotalUnreadCount()} tin nhắn chưa đọc`}
                     style={{ animation: 'pulse 2s ease-in-out infinite' }}
@@ -392,11 +400,11 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
                   </div>
                 </div>
               )}
-              
+
               {/* 🔥 SUB-MESSAGES BADGES */}
               {!isMessagesItem && hasUnreadMessages && level > 0 && (
                 <div className="absolute -top-2 -right-2">
-                  <div 
+                  <div
                     className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white"
                     title={`${item.unreadCount} tin nhắn chưa đọc`}
                   >
@@ -518,16 +526,16 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           </div>
         </nav>
         <div className="p-4 border-t border-gray-200">
-        {!isCollapsed && (
-          <div className="text-xs text-gray-500 text-center">
-            <div>Version 1.0.0</div>
-            {/* 🔥 DEBUG INFO - SỬ DỤNG useUnreadMessages */}
-            <div className="mt-1">
-              Messages: {totalUnreadCount} | 🟢 "Online"
+          {!isCollapsed && (
+            <div className="text-xs text-gray-500 text-center">
+              <div>Version 1.0.0</div>
+              {/* 🔥 DEBUG INFO - SỬ DỤNG useUnreadMessages */}
+              <div className="mt-1">
+                Messages: {totalUnreadCount} | 🟢 "Online"
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
       </div >
     </>
   );
