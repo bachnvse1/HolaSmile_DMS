@@ -10,7 +10,7 @@ namespace Application.Usecases.Guests.AskChatBot
 {
     public class AskChatbotHandler : IRequestHandler<AskChatbotCommand, string>
     {
-        private readonly IChatBotKnowledgeRepository _chatbotrepo;
+        private readonly IChatBotKnowledgeRepository _chatbotRepo;
         private readonly IProcedureRepository _procedureRepository;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly string _apiKey;
@@ -21,7 +21,7 @@ namespace Application.Usecases.Guests.AskChatBot
             IHttpClientFactory httpClientFactory,
             IConfiguration configuration)
         {
-            _chatbotrepo = chatBotRepo;
+            _chatbotRepo = chatBotRepo;
             _procedureRepository = procedureRepository;
             _httpClientFactory = httpClientFactory;
             _apiKey = configuration["Gemini:ApiKey"];
@@ -30,19 +30,36 @@ namespace Application.Usecases.Guests.AskChatBot
 
         public async Task<string> Handle(AskChatbotCommand request, CancellationToken cancellationToken)
         {
-            var faqs = await _chatbotrepo.GetAllAsync();
+            var faqs = await _chatbotRepo.GetAllAsync();
             foreach (var faq in faqs)
             {
                 if (IsSimilar(request.UserQuestion, faq.Question) && !faq.Answer.IsNullOrEmpty())
                     return faq.Answer;
             }
+            // lấy dữ liệu phòng khám từ repo
+            var clinicData = await _chatbotRepo.GetClinicDataAsync(cancellationToken);
 
-            var context = "Luôn xưng “em” và gọi khách hàng là “anh/chị” (hoặc “quý khách” khi cần trang trọng).\r\n\r\nTrả lời trong không quá 200 từ, ưu tiên thông tin trọng tâm.\r\n\r\nChỉ cung cấp thông tin liên quan đến:\r\n\r\nĐịa chỉ và giờ làm việc của phòng khám\r\n\r\nCác dịch vụ điều trị và chăm sóc răng hàm mặt\r\n\r\nQuy trình đặt lịch hẹn và tiếp nhận bệnh nhân\r\n\r\nThông tin khuyến mãi và bảng giá cơ bản\r\n\r\nHướng dẫn chuẩn bị trước khi khám và chăm sóc sau điều trị\r\n\r\nThông tin liên hệ và hỗ trợ khẩn cấp\r\n\r\nNếu câu hỏi nằm ngoài phạm vi trên, lịch sự từ chối và hướng khách liên hệ trực tiếp số điện thoại/zalo của phòng khám.\r\n\r\nKhông đưa ra chẩn đoán y khoa, chỉ gợi ý khám trực tiếp.\r\n\r\nPhong cách giao tiếp:\r\n\r\nThân thiện, ấm áp, dễ hiểu.\r\n\r\nLời văn rõ ràng, tránh dùng thuật ngữ y khoa phức tạp.\r\n\r\nVí dụ câu trả lời:\r\n\r\n“Dạ, phòng khám của em ở 123 Trần Phú, Hà Đông, Hà Nội, mở cửa từ 8h–20h tất cả các ngày trong tuần ạ.”\r\n\r\n“Dạ, để đặt lịch khám, anh/chị cho em xin họ tên, số điện thoại và thời gian mong muốn, em sẽ đặt lịch ngay ạ.”\r\n\r\n“Dạ, sau khi tẩy trắng răng, anh/chị nên tránh ăn uống đồ có màu đậm trong 24h và súc miệng bằng nước ấm ạ.”\r\n";
+            var clinicDataJson = JsonSerializer.Serialize(clinicData, new JsonSerializerOptions
+            {
+                WriteIndented = false,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            var context = $@"
+                          Bạn là lễ tân của một phòng khám nha khoa tư nhân tên HolaSmile Dental.
+                         Nhiệm vụ của bạn:
+                         - Trả lời các câu hỏi của khách hàng về phòng khám, dịch vụ, lịch làm việc, bác sĩ, khuyến mãi.
+                         - Luôn trả lời đầy đủ chi tiết (>= 100 và <=500 ký tự), thân thiện, chuyên nghiệp, xưng 'em' và gọi khách 'anh/chị'.
+                         - Chỉ sử dụng thông tin từ dữ liệu sau để trả lời:
+                          {clinicDataJson}
+                          Nếu câu hỏi không liên quan, hãy lịch sự từ chối.
+                         có thể thêm vào cuối câu: 'Để hiểu rõ hơn anh/chị có thể liên hệ lễ tân qua số 0111111111.' nếu cảm thấy cần thiết";
+
             var body = new
             {
                 contents = new[]
                 {
-                    new { parts = new[] { new { text = context + "\n" + request.UserQuestion } } }
+                    new { parts = new[] { new { text = context + "\n\n" + request.UserQuestion } } }
                 }
             };
             var json = JsonSerializer.Serialize(body);
@@ -68,7 +85,7 @@ namespace Application.Usecases.Guests.AskChatBot
                     Answer = textProp.GetString() ?? string.Empty,
                     Category = "new"
                 };
-                var isCreated = await _chatbotrepo.CreateNewKnownledgeAsync(newKnowledge);
+                var isCreated = await _chatbotRepo.CreateNewKnownledgeAsync(newKnowledge);
                 if (!isCreated) throw new Exception("hệ thống có lỗi xảy ra");
                 return textProp.GetString();
             }

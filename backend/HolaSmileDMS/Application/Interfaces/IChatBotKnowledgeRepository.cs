@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Application.Usecases.Guests.AskChatBot;
 using Domain.Entities;
 
 namespace Application.Interfaces
@@ -9,5 +10,6 @@ namespace Application.Interfaces
         Task<bool> CreateNewKnownledgeAsync(ChatBotKnowledge knowledge);
         Task<ChatBotKnowledge?> GetByIdAsync(int id);
         Task<bool> UpdateResponseAsync(ChatBotKnowledge chatBotKnowledge);
+        Task<ClinicDataDto?> GetClinicDataAsync(CancellationToken ct);
     }
 }
