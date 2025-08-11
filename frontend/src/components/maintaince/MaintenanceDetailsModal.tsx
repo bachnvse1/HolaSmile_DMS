@@ -23,6 +23,7 @@ import {
 } from "lucide-react"
 import { getMaintenanceDetails } from "@/services/maintenanceService"
 import { toast } from "react-toastify"
+import { formatCurrency as formatCurrencyUtils } from "@/utils/currencyUtils"
 
 type MaintenanceStatus = "Pending" | "Approved"
 
@@ -132,7 +133,6 @@ const mapSupplies = (apiSupplies: any[]): Supply[] => {
                 name: String(s.name ?? s.Name ?? ""),
                 unit: String(s.unit ?? s.Unit ?? ""),
                 price: Number(s.price ?? s.Price ?? 0),
-                // optional: có thể là string hoặc null hoặc undefined
                 expiryDate: s.expiryDate ?? s.ExpiryDate ?? null,
             }
             result.push(item)
@@ -143,13 +143,9 @@ const mapSupplies = (apiSupplies: any[]): Supply[] => {
     return result
 }
 
-const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    }).format(amount)
+const formatCurrency = (value: number | string) => {
+    const out = formatCurrencyUtils(value as any)
+    return `${out === "" ? "0" : out} VND`
 }
 
 const formatDate = (dateString: string): string => {

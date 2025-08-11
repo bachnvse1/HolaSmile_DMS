@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label"
 import { toast } from "react-toastify"
 import { Loader2 } from "lucide-react"
 import { createMaintenanceTransaction } from "@/services/maintenanceService"
+import { formatCurrency as formatCurrencyUtils } from "@/utils/currencyUtils"
 
 interface CreateTransactionModalProps {
   maintenanceId: number | null
@@ -84,13 +85,9 @@ const validatePrice = (price: string | number): string[] => {
   return errors
 }
 
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount)
+const formatCurrency = (value: number | string) => {
+  const out = formatCurrencyUtils(value as any)
+  return `${out === "" ? "0" : out} VND`
 }
 
 export function CreateTransactionModal({

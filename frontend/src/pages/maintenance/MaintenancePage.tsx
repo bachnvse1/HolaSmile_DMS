@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import { getMaintenanceList } from "@/services/maintenanceService"
 import { toast } from "react-toastify"
+import { formatCurrency as formatCurrencyUtils } from "@/utils/currencyUtils"
 
 interface MaintenanceStats {
   total: number
@@ -44,17 +45,9 @@ const handleApiError = (error: unknown, defaultMessage: string): void => {
   toast.error(message)
 }
 
-const formatCurrency = (amount: number): string => {
-  try {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount)
-  } catch (error) {
-    return `${amount.toLocaleString("vi-VN")} VND`
-  }
+const formatCurrency = (value: number | string) => {
+  const out = formatCurrencyUtils(value as any)
+  return `${out === "" ? "0" : out} VND`
 }
 
 const isCurrentMonth = (dateString: string): boolean => {

@@ -14,6 +14,7 @@ import { DeleteConfirmationModal } from "./DeleteConfirmationModal"
 import { CreateTransactionModal } from "./CreateTransactionModal"
 import { ConfirmModal } from "@/components/ui/ConfirmModal"
 import { getMaintenanceList, updateMaintenanceStatus } from "@/services/maintenanceService"
+import { formatCurrency as formatCurrencyUtils } from "@/utils/currencyUtils"
 
 type MaintenanceStatus = "Pending" | "Approved"
 
@@ -125,17 +126,9 @@ const formatDate = (dateString: string): string => {
   }
 }
 
-const formatCurrency = (amount: number): string => {
-  try {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount)
-  } catch (error) {
-    return `${amount.toLocaleString("vi-VN")} VND`
-  }
+const formatCurrency = (value: number | string) => {
+  const out = formatCurrencyUtils(value as any)
+  return `${out === "" ? "0" : out} VND`
 }
 
 export function MaintenanceTable({ refreshTrigger }: MaintenanceTableProps) {
