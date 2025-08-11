@@ -53,21 +53,12 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
 
   const treatmentFormMethods = useForm<TreatmentFormData>({});
   const [treatmentToday, setTreatmentToday] = useState<boolean | null>(null);
-
-  // Fetch appointment details
   const { data: appointment, isLoading: isAppointmentLoading } = useAppointmentDetail(appointmentId);
-
-  // Fetch dentist data for edit dialog
   const { dentists } = useDentistSchedule();
   const patientId = appointment?.patientId;
-
-  // Check if prescription exists for this appointment
   const { data: prescription, isLoading: isPrescriptionLoading } = usePrescriptionByAppointment(appointmentId);
-
-  // Change appointment status mutation
   const { mutate: changeStatus, isPending: isChangingStatus } = useChangeAppointmentStatus();
 
-  // Helper function to refresh appointment data
   const refreshAppointmentData = async () => {
     await Promise.all([
       queryClient.invalidateQueries({
@@ -207,11 +198,11 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
           </Button>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Chi Tiết Lịch Hẹn</h1>
-            <p className="text-gray-600 mt-1 text-sm sm:text-base">Thông tin chi tiết về lịch hẹn</p>
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">Thông tin chi tiết về lịch hẹn #{appointment.appointmentId}</p>
           </div>
         </div>
 
-        {/* Action Buttons - Chỉ hiện phần instruction và treatment */}
+        {/* Action Buttons*/}
         <div className="flex items-center gap-2 sm:gap-3">
           {role === 'Dentist' && appointment.status !== "canceled" && (
             <Button
@@ -250,12 +241,10 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
         </div>
       </div>
 
-      {/* Two Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Column - Appointment Details */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           {/* Appointment Content */}
-          <div className="p-6 space-y-6">
+          <div className="p-6 space-y-6 overflow-hidden">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-600">Trạng thái:</span>
               <Badge
@@ -347,10 +336,22 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
             {appointment.content && (
               <div className="flex items-start">
                 <FileText className="h-5 w-5 text-gray-600 mr-3 mt-0.5" />
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-600 mb-2">Nội dung khám</p>
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <p className="text-gray-900 whitespace-pre-wrap">{appointment.content}</p>
+                    <p className="text-gray-900 whitespace-pre-wrap break-words word-wrap overflow-wrap-anywhere">{appointment.content}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {appointment.status === 'canceled' && appointment.cancelReason && (
+              <div className="flex items-start">
+                <XCircle className="h-5 w-5 text-red-600 mr-3 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-600 mb-2">Lý do hủy lịch khám</p>
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p className="text-gray-900 whitespace-pre-wrap break-words word-wrap overflow-wrap-anywhere">{appointment.cancelReason}</p>
                   </div>
                 </div>
               </div>
@@ -476,7 +477,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
             ) : prescription ? (
               <div className="space-y-3">
                 <div className="bg-gray-50 rounded-lg p-3 max-h-48 overflow-y-auto">
-                  <p className="text-gray-900 whitespace-pre-wrap text-sm leading-relaxed">{prescription.content}</p>
+                  <p className="text-gray-900 whitespace-pre-wrap text-sm leading-relaxed break-words word-wrap overflow-wrap-anywhere">{prescription.content}</p>
                 </div>
                 <div className="flex justify-between text-xs text-gray-600">
                   <span>Tạo bởi: {prescription.createdBy}</span>
@@ -509,7 +510,6 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
         </div>
       </div>
 
-      {/* Warning for non-cancellable appointments */}
       {role === 'Patient' && appointment.status === 'confirmed' && !canCancelAppointment && (
         <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
           <div className="flex items-center">

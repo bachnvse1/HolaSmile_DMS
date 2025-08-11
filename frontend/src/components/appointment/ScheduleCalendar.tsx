@@ -33,7 +33,6 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
   const weekRange = getWeekDateRange(weekDates);
   const weekLabel = currentWeek === 0 ? 'Tuần 1' : 'Tuần 2';
 
-  // Tạo time slots với icon
   const timeSlotsWithIcons: TimeSlot[] = TIME_SLOTS.map(slot => ({
     ...slot,
     icon: <Clock className="h-4 w-4" />
@@ -41,13 +40,7 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
 
   // Kiểm tra xem một time slot có khả dụng hay không
   const checkTimeSlotAvailability = (dateString: string, period: 'morning' | 'afternoon' | 'evening'): boolean => {
-    // Sử dụng dữ liệu mẫu nếu không có dữ liệu từ backend
-
-    
-    // Kiểm tra ca làm việc
     const isAvailableInFrontend = isTimeSlotAvailable(dentist.schedule, dateString, period);
-    
-    // Ưu tiên sử dụng kết quả từ backend
     return isAvailableInFrontend;
   };
 

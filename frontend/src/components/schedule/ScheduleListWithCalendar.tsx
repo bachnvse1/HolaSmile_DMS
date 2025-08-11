@@ -1,5 +1,5 @@
 import { useAuth } from '@/hooks/useAuth';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAllDentistSchedules, useDentistSchedule } from '../../hooks/useSchedule';
 import { ScheduleStatus, ShiftType } from '../../types/schedule';
 import type { Schedule } from '../../types/schedule';
@@ -23,6 +23,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { ScheduleCalendarEnhanced } from './ScheduleCalendarEnhanced';
+import { Pagination } from '@/components/ui/Pagination';
 
 interface ScheduleListProps {
   dentistId?: number;
@@ -30,7 +31,7 @@ interface ScheduleListProps {
 
 export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistId }) => {
   // States
-  const { role } = useAuth?.() || {}; // hoặc const role = TokenUtils.getUserData().role;
+  const { role } = useAuth?.() || {}; 
   const isDentist = role === 'Dentist';
   const [activeView, setActiveView] = useState<'list' | 'calendar'>('calendar');
   const [searchTerm, setSearchTerm] = useState('');
@@ -38,6 +39,10 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [shiftFilter, setShiftFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('upcoming'); // 'all', 'upcoming', 'past'
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Queries
   const { data: dentistData, isLoading: isDentistLoading } = useDentistSchedule(dentistId);
@@ -45,26 +50,48 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
 
   const isLoading = dentistId ? isDentistLoading : isAllDentistsLoading;
 
-  // Use appropriate data based on the dentistId
-  const schedules = dentistId
-    ? (dentistData?.data || [])
-    : (allDentistsData?.data || []);
-
-  // Filters
-  const filteredSchedules = schedules.filter((schedule: Schedule) => {
-    // Status filter
+  // Filters and sorting
+  const filteredAndSortedSchedules = useMemo(() => {
+    const schedules = dentistId
+      ? (dentistData?.data || [])
+      : (allDentistsData?.data || []);
+      
+    const filtered = schedules.filter((schedule: Schedule) => {
+      // Status filter
     if (schedule.status !== ScheduleStatus.Approved && schedule.status) return false;
 
-    // Shift filter
-    if (shiftFilter !== 'all' && schedule.shift !== shiftFilter) return false;
+      // Shift filter
+      if (shiftFilter !== 'all' && schedule.shift !== shiftFilter) return false;
 
-    // Search term - search by dentist name
-    if (searchTerm.trim() && schedule.dentistName) {
-      return schedule.dentistName.toLowerCase().includes(searchTerm.toLowerCase());
-    }
+      // Search term - search by dentist name
+      if (searchTerm.trim() && schedule.dentistName) {
+        return schedule.dentistName.toLowerCase().includes(searchTerm.toLowerCase());
+      }
 
-    return true;
-  });
+      return true;
+    });
+
+    // Sort by createdAt (newest first)
+    filtered.sort((a: Schedule, b: Schedule) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return dateB - dateA; 
+    });
+
+    return filtered;
+  }, [dentistData?.data, allDentistsData?.data, dentistId, statusFilter, shiftFilter, searchTerm]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredAndSortedSchedules.length / itemsPerPage);
+  const paginatedSchedules = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredAndSortedSchedules.slice(startIndex, endIndex);
+  }, [filteredAndSortedSchedules, currentPage, itemsPerPage]);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, shiftFilter, dateFilter]);
 
 
   // Handle filter reset
@@ -91,7 +118,7 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
 
   // Render the list view
   const renderScheduleList = () => {
-    if (filteredSchedules.length === 0) {
+    if (filteredAndSortedSchedules.length === 0) {
       return (
         <div className="text-center py-10 bg-gray-50 rounded-lg border border-gray-200">
           <p className="text-gray-600">Không có lịch làm việc nào phù hợp với bộ lọc.</p>
@@ -108,53 +135,67 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
     }
 
     return (
-      <div className="overflow-x-auto rounded-md border">
-        <table className="w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              {!dentistId && (
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Bác sĩ
-                </th>
-              )}
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Ngày
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Ca làm việc
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Trạng thái
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Ghi chú
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredSchedules.map((schedule: Schedule) => (
-              <tr key={schedule.id} className="hover:bg-gray-50">
+      <div className="space-y-4">
+        <div className="overflow-x-auto rounded-md border border-gray-300">
+          <table className="w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
                 {!dentistId && (
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{schedule.dentistName || 'Không rõ'}</div>
-                  </td>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Bác sĩ
+                  </th>
                 )}
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{formatDateWithDay(schedule.date)}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{shiftTypeToText(schedule.shift as ShiftType)}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {renderStatusBadge(schedule.status as ScheduleStatus)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{schedule.note || '—'}</div>
-                </td>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ngày
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ca làm việc
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Trạng thái
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ghi chú
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {paginatedSchedules.map((schedule: Schedule) => (
+                <tr key={schedule.id} className="hover:bg-gray-50">
+                  {!dentistId && (
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{schedule.dentistName || 'Không rõ'}</div>
+                    </td>
+                  )}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{formatDateWithDay(schedule.date)}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{shiftTypeToText(schedule.shift as ShiftType)}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {renderStatusBadge(schedule.status as ScheduleStatus)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-500">{schedule.note || '—'}</div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={filteredAndSortedSchedules.length}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={setItemsPerPage}
+          />
+        )}
       </div>
     );
   };
@@ -290,7 +331,7 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
         <div>
           {activeView === 'calendar' ? (
             <ScheduleCalendarEnhanced
-              schedules={filteredSchedules}
+              schedules={filteredAndSortedSchedules}
               showDentistInfo={!dentistId}
               disablePastDates={false}
 
@@ -301,7 +342,7 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
 
           {/* Show result count */}
           <div className="mt-4 text-sm text-gray-500">
-            Hiển thị {filteredSchedules.length} lịch làm việc
+            Hiển thị {filteredAndSortedSchedules.length} lịch làm việc
           </div>
         </div>
       )}

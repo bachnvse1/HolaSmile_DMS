@@ -18,5 +18,5 @@ export const formatPercent = (number: number): string => {
 };
 
 export const getErrorMessage = (error: any): string => {
-  return error?.response?.data?.message || 'Đã xảy ra lỗi';
+  return error?.response?.data?.message || error?.response?.data?.error || 'Đã xảy ra lỗi';
 };

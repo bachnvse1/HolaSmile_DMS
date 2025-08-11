@@ -10,17 +10,15 @@ interface CancelAppointmentPayload {
 export const useCancelAppointment = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({    mutationFn: async (payload: CancelAppointmentPayload) => {
+  return useMutation({
+    mutationFn: async (payload: CancelAppointmentPayload) => {
       console.log('[useCancelAppointment] Cancelling appointment:', payload);
       
-      // Use PUT method to update appointment status to 'cancel'
-      const response = await AuthService.makeAuthenticatedRequest(`/appointment/cancelAppointment/${payload.appointmentId}`, {
+      const response = await AuthService.makeAuthenticatedRequest(`/appointment/cancelAppointment`, {
         method: 'PUT',
         data: {
           appointmentId: payload.appointmentId,
-          status: 'cancel',
-          cancelReason: payload.reason || 'Bệnh nhân hủy lịch',
-          updatedAt: new Date().toISOString()
+          reason: payload.reason || 'Bệnh nhân hủy lịch'
         }
       });
       

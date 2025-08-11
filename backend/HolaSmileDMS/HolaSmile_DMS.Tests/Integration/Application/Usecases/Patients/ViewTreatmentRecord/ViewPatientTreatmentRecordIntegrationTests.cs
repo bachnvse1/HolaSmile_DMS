@@ -18,6 +18,7 @@ public class ViewPatientTreatmentRecordIntegrationTests
     private readonly ViewPatientTreatmentRecordHandler _handler;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IPatientRepository _patientRepository;
+    private readonly IInvoiceRepository _invoiceRepository;
     private readonly IMapper _mapper;
 
     public ViewPatientTreatmentRecordIntegrationTests()
@@ -29,6 +30,7 @@ public class ViewPatientTreatmentRecordIntegrationTests
 
         services.AddHttpContextAccessor();
         services.AddScoped<IPatientRepository, PatientRepository>();
+        services.AddScoped<IInvoiceRepository, InvoiceRepository>();
 
         // Add AutoMapper using Application layer assembly (adjust if needed)
         services.AddAutoMapper(typeof(ViewPatientTreatmentRecordHandler).Assembly);
@@ -39,12 +41,13 @@ public class ViewPatientTreatmentRecordIntegrationTests
         _httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
         _mapper = provider.GetRequiredService<IMapper>();
         _patientRepository = provider.GetRequiredService<IPatientRepository>();
+        _invoiceRepository = provider.GetRequiredService<IInvoiceRepository>();
 
         var repo = new TreatmentRecordRepository(_context, _mapper);
 
         SeedData();
 
-        _handler = new ViewPatientTreatmentRecordHandler(repo, _patientRepository, _httpContextAccessor);
+        _handler = new ViewPatientTreatmentRecordHandler(repo ,_patientRepository, _httpContextAccessor, _invoiceRepository);
     }
 
     private void SeedData()

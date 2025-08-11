@@ -101,6 +101,7 @@ export interface AppointmentDTO {
   isExistInstruction: boolean;
   prescriptionId: number | null;
   instructionId: number | null;
+  cancelReason: string | null;
 }
 
 export interface AppointmentViewProps {

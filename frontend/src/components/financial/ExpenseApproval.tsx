@@ -254,7 +254,7 @@ export const ExpenseApproval: React.FC<ExpenseApprovalProps> = ({
                           </td>
                           <td className="px-6 py-4">
                             <div
-                              className="text-sm text-gray-900 max-w-xs truncate"
+                              className="text-sm text-gray-900 max-w-xs truncate break-words word-wrap overflow-wrap-anywhere"
                               title={transaction.description}
                             >
                               {transaction.description}
@@ -355,7 +355,7 @@ export const ExpenseApproval: React.FC<ExpenseApprovalProps> = ({
 
                       {/* Description */}
                       <div>
-                        <p className="text-sm font-medium text-gray-900 mb-1">
+                        <p className="text-sm font-medium text-gray-900 mb-1 break-words word-wrap overflow-wrap-anywhere">
                           {transaction.description}
                         </p>
                         <p className="text-xs text-gray-600">{transaction.category}</p>
@@ -496,7 +496,7 @@ export const ExpenseApproval: React.FC<ExpenseApprovalProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-gray-600">Mô tả</label>
-                    <p className="text-sm text-gray-900 mt-1 rounded">
+                    <p className="text-sm text-gray-900 mt-1 rounded break-words word-wrap overflow-wrap-anywhere">
                       {viewTransaction.description}
                     </p>
                   </div>

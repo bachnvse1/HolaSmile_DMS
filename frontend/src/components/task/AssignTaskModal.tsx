@@ -160,7 +160,26 @@ export function AssignTaskModal({
       setOpen(false)
       setConfirmOpen(false)
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Đã xảy ra lỗi khi phân công nhiệm vụ")
+      console.error("Error assigning task:", err) // Debug log
+      
+      // Improved error handling to catch different error structures
+      let errorMessage = "Đã xảy ra lỗi khi phân công nhiệm vụ"
+      
+      if (err?.response?.data?.message) {
+        // Axios error with response data
+        errorMessage = err.response.data.message
+      } else if (err?.message) {
+        // Standard Error object
+        errorMessage = err.message
+      } else if (typeof err === 'string') {
+        // String error
+        errorMessage = err
+      } else if (err?.data?.message) {
+        // Alternative error structure
+        errorMessage = err.data.message
+      }
+      
+      toast.error(errorMessage)
     } finally {
       setIsSubmitting(false)
     }

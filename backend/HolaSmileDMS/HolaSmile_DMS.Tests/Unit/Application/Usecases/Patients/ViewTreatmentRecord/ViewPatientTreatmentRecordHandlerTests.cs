@@ -12,6 +12,7 @@ public class ViewPatientTreatmentRecordHandlerTests
     private readonly Mock<ITreatmentRecordRepository> _repositoryMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
     private readonly Mock<IPatientRepository> _repositoryPatientMock;
+    private readonly Mock<IInvoiceRepository> _invoiceRepositoryMock;
     private readonly ViewPatientTreatmentRecordHandler _handler;
 
     public ViewPatientTreatmentRecordHandlerTests()
@@ -19,7 +20,8 @@ public class ViewPatientTreatmentRecordHandlerTests
         _repositoryMock = new Mock<ITreatmentRecordRepository>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
         _repositoryPatientMock = new Mock<IPatientRepository>();
-        _handler = new ViewPatientTreatmentRecordHandler(_repositoryMock.Object,_repositoryPatientMock.Object, _httpContextAccessorMock.Object);
+        _invoiceRepositoryMock = new Mock<IInvoiceRepository>();
+        _handler = new ViewPatientTreatmentRecordHandler(_repositoryMock.Object,_repositoryPatientMock.Object, _httpContextAccessorMock.Object, _invoiceRepositoryMock.Object);
     }
 
     private void SetupHttpContext(string role, int userId)

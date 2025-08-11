@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import ConsultantChatBox from '@/components/chat/ConsultantChatBox';
 import { ChatbotFloating } from '@/components/chatbot/ChatbotFloating';
+import { useAuth } from '@/hooks/useAuth';
 
 export const ChatWrapper: React.FC = () => {
   const [isConsultantChatOpen, setIsConsultantChatOpen] = useState(false);
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   const handleConsultantChatChange = (isOpen: boolean) => {
     setIsConsultantChatOpen(isOpen);
@@ -22,14 +24,20 @@ export const ChatWrapper: React.FC = () => {
 
   return (
     <>
-      <ConsultantChatBox 
-        onOpenStateChange={handleConsultantChatChange}
-        forceClose={!isConsultantChatOpen && isChatbotOpen}
-      />
+      {/* Chỉ hiển thị ConsultantChatBox khi chưa đăng nhập */}
+      {!isAuthenticated && (
+        <ConsultantChatBox 
+          onOpenStateChange={handleConsultantChatChange}
+          forceClose={!isConsultantChatOpen && isChatbotOpen}
+        />
+      )}
+      
+      {/* Chatbot luôn hiển thị - điều chỉnh vị trí khi consultant chat mở */}
       <ChatbotFloating 
         onOpenStateChange={handleChatbotChange}
-        forceClose={!isChatbotOpen && isConsultantChatOpen}
-        hideButton={isConsultantChatOpen}
+        forceClose={!isChatbotOpen && isConsultantChatOpen && !isAuthenticated}
+        hideButton={isConsultantChatOpen && !isAuthenticated}
+        adjustPosition={isConsultantChatOpen && !isAuthenticated}
       />
     </>
   );

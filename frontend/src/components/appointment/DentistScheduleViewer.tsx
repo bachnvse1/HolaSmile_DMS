@@ -42,15 +42,11 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
   const bookAppointmentMutation = useBookAppointment();
   const bookFUAppointmentMutation = useBookFUAppointment();
 
-  // Kiểm tra quyền đặt lịch
   const canBookAppointment = mode === 'book' && (!isAuthenticated || role === 'Patient' || role === 'Receptionist');
 
   const handleDateSelect = (date: string, timeSlot: string) => {
     setSelectedDate(date);
     setSelectedTimeSlot(timeSlot);
-
-    // Chỉ set selected, không hiện modal ngay
-    // Modal sẽ hiện khi user bấm "Xác nhận đặt lịch"
   };
 
   const handleConfirmInfo = () => {
@@ -60,7 +56,6 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
   const handleBookAppointment = async () => {
     if (!selectedDentist || !selectedDate || !selectedTimeSlot) return;
 
-    // Tạo appointmentDate với đúng format
     const appointmentDate = new Date(selectedDate);
     let timeString = '08:00:00';
 
@@ -76,7 +71,6 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
     }
 
     if (role === "Receptionist" && patientId) {
-      // Gọi API tạo lịch tái khám
       const payload = {
         patientId,
         dentistId: selectedDentist.dentistID,
@@ -124,7 +118,6 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
         },
         onError: (error) => {
           console.error('Error booking appointment:', error);
-          // Error toast đã được handle trong hook, không cần toast thêm ở đây
         }
       });
     };
@@ -148,7 +141,6 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
 
   return (
     <div className="space-y-8">
-      {/* Header - conditional based on mode */}
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-900 mb-2">
           {mode === 'book' ? '' : 'Lịch Làm Việc Bác Sĩ'}
@@ -187,7 +179,8 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
           mode={mode}
           canBookAppointment={canBookAppointment}
         />
-      )}      {/* Booking Confirmation Section - Using SelectedAppointmentInfo component */}
+      )}      
+      {/* Booking Confirmation Section - Using SelectedAppointmentInfo component */}
       {selectedDentist && selectedDate && selectedTimeSlot && canBookAppointment && (
         <>
           <SelectedAppointmentInfo
@@ -224,10 +217,10 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
             </div>
           </div>
         </>
-      )}      {/* Booking Form Modal - Overlay style */}
+      )}      
+      {/* Booking Form Modal*/}
       {showBookingForm && canBookAppointment && (
         <div className="fixed inset-0 z-50">
-          {/* Backdrop overlay */}
           <div
             className="fixed inset-0 bg-black/20 bg-opacity-50"
             onClick={() => setShowBookingForm(false)}

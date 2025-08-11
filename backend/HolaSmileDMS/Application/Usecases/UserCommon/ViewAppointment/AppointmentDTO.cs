@@ -26,7 +26,6 @@ namespace Application.Usecases.UserCommon.ViewAppointment
         public bool IsExistInstruction { get; set; }
         public int? PrescriptionId { get; set; }
         public int? InstructionId { get; set; }
-
-
+        public string? CancelReason { get; set; }
     }
 }

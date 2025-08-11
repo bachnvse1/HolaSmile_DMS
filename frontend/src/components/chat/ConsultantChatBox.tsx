@@ -312,7 +312,7 @@ export default function ConsultantChatBox({ onOpenStateChange, forceClose = fals
 
       {/* Floating Chat Button */}
       {!isOpen && (
-        <div className="fixed bottom-6 right-6 z-40">
+        <div className="fixed bottom-20 right-6 z-40">
           <button
             onClick={handleOpenChat}
             className={`
