@@ -153,7 +153,7 @@ export const ViewTransactionPage: React.FC = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium text-gray-600 block mb-1">Mô tả</label>
-                    <p className="text-gray-900 font-medium">{transaction.description}</p>
+                    <p className="text-gray-900 font-medium break-words word-wrap overflow-wrap-anywhere">{transaction.description}</p>
                   </div>
 
                   <div>

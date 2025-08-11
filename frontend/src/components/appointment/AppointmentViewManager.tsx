@@ -17,20 +17,14 @@ export const AppointmentViewManager = () => {
   const queryClient = useQueryClient();
   const { data: appointments, isLoading, error, refetch } = useAppointments();
 
-  // Clear cache when user changes (not on first mount)
   useEffect(() => {
     if (userId) {
       if (lastUserId && lastUserId !== userId) {
-        // User has changed, clear cache
-        console.log('User changed, clearing cache:', lastUserId, '->', userId);
-        queryClient.clear(); // Clear all cache
-        
-        // Force refetch after clearing cache
+        queryClient.clear(); 
         setTimeout(() => {
           refetch();
         }, 50);
       }
-      // Update last user ID
       setLastUserId(userId);
     }
   }, [userId, queryClient, refetch, lastUserId]);
@@ -48,7 +42,6 @@ export const AppointmentViewManager = () => {
     );
   }
   if (error) {
-    // Kiểm tra xem có phải lỗi 400 (không có dữ liệu) không
     const errorWithResponse = error as { response?: { status?: number } };
     const isNoDataError = errorWithResponse?.response?.status === 400 || 
                           error?.message?.includes('400') ||
@@ -95,7 +88,6 @@ export const AppointmentViewManager = () => {
     );
   }
 
-  // Kiểm tra nếu danh sách appointments rỗng
   if (appointments && appointments.length === 0) {
     return (
       <div className="text-center py-12">

@@ -38,7 +38,6 @@ export const CancelAppointmentDialog: React.FC<CancelAppointmentDialogProps> = (
       onSuccess?.();
       onClose();
     } catch (error) {
-      // Error handling is done in the mutation
       console.error('Cancel appointment error:', error);
     }
   };
@@ -54,7 +53,6 @@ export const CancelAppointmentDialog: React.FC<CancelAppointmentDialogProps> = (
       {/* Modal */}
       <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
         <Card className="w-full max-w-md mx-4">
-          {/* Header */}
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <CardTitle className="text-lg font-bold text-red-600 flex items-center">
               <AlertTriangle className="h-5 w-5 mr-2" />

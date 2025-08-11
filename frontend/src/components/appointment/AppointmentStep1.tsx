@@ -15,9 +15,7 @@ export const AppointmentStep1: React.FC<AppointmentStep1Props> = ({ form, onSubm
   const handleValidateAndSubmit = async (data: AppointmentFormData) => {
     setServerErrors({});
     try {
-      // Gọi API validate
       await axiosInstance.post('/Guest/ValidateBookAppointment', data);
-      // Nếu không lỗi, gọi onSubmit tiếp tục
       onSubmit(data);
     } catch (err: unknown) {
       if (err && typeof err === 'object' && 'response' in err) {
@@ -33,7 +31,6 @@ export const AppointmentStep1: React.FC<AppointmentStep1Props> = ({ form, onSubm
           } else if (msg.toLowerCase().includes('họ tên')) {
             setServerErrors({ fullName: msg });
           } else {
-            // fallback: gán vào một trường chung hoặc hiển thị toast
             setServerErrors({ general: msg });
           }
         }
@@ -61,7 +58,7 @@ export const AppointmentStep1: React.FC<AppointmentStep1Props> = ({ form, onSubm
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-3">
               <User className="inline h-4 w-4 mr-2" />
-              Họ và Tên *
+              Họ và Tên <span className='text-red-400'>*</span>
             </label>
             <input
               {...register('fullName')}
@@ -82,7 +79,7 @@ export const AppointmentStep1: React.FC<AppointmentStep1Props> = ({ form, onSubm
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-3">
               <Mail className="inline h-4 w-4 mr-2" />
-              Email *
+              Email <span className='text-red-400'>*</span>
             </label>
             <input
               {...register('email')}
@@ -103,7 +100,7 @@ export const AppointmentStep1: React.FC<AppointmentStep1Props> = ({ form, onSubm
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-3">
               <Phone className="inline h-4 w-4 mr-2" />
-              Số Điện Thoại *
+              Số Điện Thoại <span className='text-red-400'>*</span>
             </label>
             <input
               {...register('phoneNumber')}
@@ -137,7 +134,7 @@ export const AppointmentStep1: React.FC<AppointmentStep1Props> = ({ form, onSubm
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-3">
               <FileText className="inline h-4 w-4 mr-2" />
-              Vấn Đề Bạn Gặp Phải *
+              Vấn Đề Bạn Gặp Phải <span className='text-red-400'>*</span>
             </label>
             <textarea
               {...register('medicalIssue')}
