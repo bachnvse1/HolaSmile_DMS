@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { createMaintenance } from "@/services/maintenanceService"
 import { supplyApi } from "@/services/supplyApi"
+import { format } from 'date-fns'
 
 interface ApiSupply {
   SupplyID: number
@@ -147,7 +148,7 @@ export function CreateMaintenanceModal({ onMaintenanceCreated }: CreateMaintenan
 
     const supplyIds = selectedSupplies.map(s => s.supplyId)
     const requestData: CreateMaintenanceRequest = {
-      maintenanceDate: new Date().toISOString(),
+      maintenanceDate: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss"),
       description: formData.description,
       status: "Pending",
       supplyIds,

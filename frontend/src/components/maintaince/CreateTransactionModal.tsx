@@ -8,6 +8,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "react-toastify"
@@ -95,6 +105,7 @@ export function CreateTransactionModal({
   })
   const [isLoading, setIsLoading] = useState(false)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
+  const [showConfirmClose, setShowConfirmClose] = useState(false)
 
   const resetForm = useCallback(() => {
     setFormData({
@@ -163,10 +174,8 @@ export function CreateTransactionModal({
 
   const handleModalClose = useCallback((open: boolean) => {
     if (!open && formData.rawInput && !isLoading) {
-      const confirmClose = window.confirm(
-        "Bạn có chắc muốn đóng? Dữ liệu đã nhập sẽ bị mất."
-      )
-      if (!confirmClose) return
+      setShowConfirmClose(true)
+      return
     }
     
     if (!open) {
@@ -174,6 +183,16 @@ export function CreateTransactionModal({
     }
     onOpenChange(open)
   }, [formData.rawInput, isLoading, resetForm, onOpenChange])
+
+  const handleConfirmClose = () => {
+    resetForm()
+    setShowConfirmClose(false)
+    onOpenChange(false)
+  }
+
+  const handleCancelClose = () => {
+    setShowConfirmClose(false)
+  }
 
   const previewAmount = React.useMemo(() => {
     const price = typeof formData.price === 'string' 
@@ -186,91 +205,113 @@ export function CreateTransactionModal({
   }, [formData.price])
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleModalClose}>
-      <DialogContent 
-        className="sm:max-w-[425px]"
-        aria-labelledby="create-transaction-title"
-        aria-describedby="create-transaction-description"
-      >
-        <DialogHeader>
-          <DialogTitle id="create-transaction-title">Tạo phiếu chi</DialogTitle>
-          <DialogDescription id="create-transaction-description">
-            Nhập số tiền chi cho phiếu bảo trì.
-          </DialogDescription>
-        </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-start gap-4">
-            <Label htmlFor="price" className="text-right pt-2">
-              Giá chi *
-            </Label>
-            <div className="col-span-3 space-y-2">
-              <div className="relative">
-                <Input
-                  id="price"
-                  type="number"
-                  value={formData.rawInput}
-                  onChange={handlePriceChange}
-                  placeholder="Nhập số tiền..."
-                  min="0"
-                  step="1000"
-                  required
-                  aria-describedby="price-help price-error"
-                  className={validationErrors.length > 0 ? "border-red-500" : ""}
-                />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
-                  VND
+    <>
+      <Dialog open={isOpen} onOpenChange={handleModalClose}>
+        <DialogContent 
+          className="sm:max-w-[425px]"
+          aria-labelledby="create-transaction-title"
+          aria-describedby="create-transaction-description"
+        >
+          <DialogHeader>
+            <DialogTitle id="create-transaction-title">Tạo phiếu chi</DialogTitle>
+            <DialogDescription id="create-transaction-description">
+              Nhập số tiền chi cho phiếu bảo trì.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label htmlFor="price" className="text-right pt-2">
+                Giá chi *
+              </Label>
+              <div className="col-span-3 space-y-2">
+                <div className="relative">
+                  <Input
+                    id="price"
+                    type="number"
+                    value={formData.rawInput}
+                    onChange={handlePriceChange}
+                    placeholder="Nhập số tiền..."
+                    min="0"
+                    step="1000"
+                    required
+                    aria-describedby="price-help price-error"
+                    className={validationErrors.length > 0 ? "border-red-500" : ""}
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                    VND
+                  </div>
                 </div>
-              </div>
-              
-              {previewAmount && (
-                <div className="text-sm text-muted-foreground" id="price-help">
-                  Số tiền: <span className="font-medium text-foreground">{previewAmount}</span>
+                
+                {previewAmount && (
+                  <div className="text-sm text-muted-foreground" id="price-help">
+                    Số tiền: <span className="font-medium text-foreground">{previewAmount}</span>
+                  </div>
+                )}
+                
+                {validationErrors.length > 0 && (
+                  <div className="space-y-1" id="price-error" role="alert">
+                    {validationErrors.map((error, index) => (
+                      <p key={index} className="text-sm text-red-600">
+                        {error}
+                      </p>
+                    ))}
+                  </div>
+                )}
+                
+                <div className="text-xs text-muted-foreground">
+                  Nhập số tiền bằng VND
                 </div>
-              )}
-              
-              {validationErrors.length > 0 && (
-                <div className="space-y-1" id="price-error" role="alert">
-                  {validationErrors.map((error, index) => (
-                    <p key={index} className="text-sm text-red-600">
-                      {error}
-                    </p>
-                  ))}
-                </div>
-              )}
-              
-              <div className="text-xs text-muted-foreground">
-                Nhập số tiền bằng VND
               </div>
             </div>
-          </div>
 
-          <DialogFooter className="gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => handleModalClose(false)}
-              disabled={isLoading}
-            >
-              Hủy
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={isLoading || !formData.rawInput}
-              aria-label={isLoading ? "Đang tạo phiếu chi" : "Tạo phiếu chi"}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Đang tạo...
-                </>
-              ) : (
-                "Tạo phiếu chi"
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            <DialogFooter className="gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => handleModalClose(false)}
+                disabled={isLoading}
+              >
+                Hủy
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={isLoading || !formData.rawInput}
+                aria-label={isLoading ? "Đang tạo phiếu chi" : "Tạo phiếu chi"}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Đang tạo...
+                  </>
+                ) : (
+                  "Tạo phiếu chi"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation Modal */}
+      <AlertDialog open={showConfirmClose} onOpenChange={setShowConfirmClose}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận đóng</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc muốn đóng? Dữ liệu đã nhập sẽ bị mất.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelClose}>
+              Tiếp tục chỉnh sửa
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmClose} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Đóng và mất dữ liệu
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }
