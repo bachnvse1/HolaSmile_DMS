@@ -24,6 +24,13 @@ namespace Application.Usecases.Assistants.CreatePrescriptionTemplate
             if (user == null || role != "Assistant" && role != "Dentist")
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
 
+            // Check for existing template with same name
+            var existingTemplates = await _repository.GetAllAsync(cancellationToken);
+            if (existingTemplates.Any(t => t.PreTemplateName == request.PreTemplateName && !t.IsDeleted))
+            {
+                throw new InvalidOperationException("Mẫu đơn thuốc với tên này đã tồn tại");
+            }
+
             var newTemplate = new PrescriptionTemplate
             {
                 PreTemplateName = request.PreTemplateName,
