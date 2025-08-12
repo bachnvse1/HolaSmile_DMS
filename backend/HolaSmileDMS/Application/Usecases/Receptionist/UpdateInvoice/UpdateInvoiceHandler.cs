@@ -100,6 +100,23 @@ public class UpdateInvoiceHandler : IRequestHandler<UpdateInvoiceCommand, string
                 {
                     Console.WriteLine(ex.Message);
                 }
+                
+                try
+                {
+                    var message =
+                        $"Hoá đơn thanh toán {invoice.OrderCode} đã được update lúc {invoice.UpdatedAt}";
+                    await _mediator.Send(new SendNotificationCommand(
+                        userId,
+                        "Thanh toán",
+                        message,
+                        "invoice",
+                        userId, "invoices"
+                    ), cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
             }
         }
         return MessageConstants.MSG.MSG32; // "Cập nhật hoá đơn thành công"

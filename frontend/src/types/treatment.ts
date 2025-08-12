@@ -29,6 +29,7 @@ export interface TreatmentRecord {
   createdBy: number | null
   updatedBy: number | null
   isDeleted: boolean
+  remainingAmount: number
 }
 
 export interface TreatmentFormData {
