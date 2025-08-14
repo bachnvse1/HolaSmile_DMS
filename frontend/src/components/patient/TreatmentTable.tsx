@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button2";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { TreatmentRecord } from "@/types/treatment";
 import RecordRow from "./RecordRow";
-import TreatmentRecordDetail from "./TreatmentRecordDetail"; // New import
+import TreatmentRecordDetail from "./TreatmentRecordDetail";
 import { formatDateOnly } from "@/utils/date";
 import { CreateInvoiceModal } from "../invoice/CreateInvoiceModal";
 import { invoiceService } from "@/services/invoiceService";
@@ -54,11 +54,9 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const [printingGroups, setPrintingGroups] = useState<Record<string, boolean>>({});
 
-  // New states for detail modal
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedDetailRecord, setSelectedDetailRecord] = useState<TreatmentRecord | null>(null);
 
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -71,7 +69,6 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
     paidAmount: 0,
   });
 
-  // Group records by appointment date
   const groupedRecords = useMemo(() => {
     const groups: Record<string, GroupedRecord> = {};
 
@@ -89,25 +86,21 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
       groups[date].totalAmount += record.totalAmount;
     });
 
-    // Sort by date (newest first)
     return Object.values(groups).sort((a, b) =>
       new Date(b.date).getTime() - new Date(a.date).getTime()
     );
   }, [records]);
 
-  // Pagination calculations
   const totalPages = Math.ceil(groupedRecords.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedGroups = groupedRecords.slice(startIndex, endIndex);
 
-  // Reset to first page when itemsPerPage changes
   const handleItemsPerPageChange = (newItemsPerPage: string) => {
     setItemsPerPage(parseInt(newItemsPerPage));
     setCurrentPage(1);
   };
 
-  // Reset to first page when records change
   React.useEffect(() => {
     setCurrentPage(1);
   }, [records]);
@@ -119,7 +112,6 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
     }));
   };
 
-  // New function to handle view detail
   const handleViewDetail = (record: TreatmentRecord) => {
     setSelectedDetailRecord(record);
     setDetailModalOpen(true);
@@ -134,35 +126,25 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
     setPrintingGroups(prev => ({ ...prev, [date]: true }));
 
     try {
-      // Gọi API để lấy PDF blob
       const pdfBlob = await printDentalRecord(appointmentId);
-
-      // Tạo URL từ blob
       const pdfUrl = URL.createObjectURL(pdfBlob);
-
-      // Tạo cửa sổ mới để hiển thị PDF
       const printWindow = window.open(pdfUrl, '_blank', 'width=800,height=600');
 
       if (printWindow) {
-        // Đợi PDF load xong rồi tự động in
         printWindow.addEventListener('load', () => {
           printWindow.print();
-          
-          // Cleanup URL sau khi in
           printWindow.addEventListener('afterprint', () => {
             URL.revokeObjectURL(pdfUrl);
             printWindow.close();
           });
         });
 
-        // Fallback nếu load event không fire
         setTimeout(() => {
           if (!printWindow.closed) {
             printWindow.print();
           }
         }, 1000);
       } else {
-        // Nếu không thể mở popup, tự động tải xuống
         const link = document.createElement('a');
         link.href = pdfUrl;
         link.download = `Ho_so_dieu_tri_${appointmentId}_${date}.pdf`;
@@ -170,7 +152,6 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(pdfUrl);
-        
         toast.info("Không thể mở cửa sổ in. File PDF đã được tải xuống.");
       }
 
@@ -202,7 +183,7 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
     setInvoiceModalOpen(true);
   };
 
-  const handleCreateInvoice = async () => {
+  const handleCreateInvoice = async (): Promise<void> => {
     if (!newInvoice.paymentMethod || !newInvoice.transactionType) {
       toast.warn("Vui lòng điền đầy đủ thông tin bắt buộc");
       return;
@@ -213,18 +194,20 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
       return;
     }
 
-    if (selectedRecord && newInvoice.paidAmount > selectedRecord.totalAmount) {
-      toast.warn("Số tiền thanh toán không được vượt quá tổng tiền điều trị");
+    const remaining = selectedRecord?.remainingAmount ?? 0;
+    if (newInvoice.paidAmount > remaining) {
+      toast.warn("Số tiền thanh toán không được vượt quá số tiền còn lại");
       return;
     }
 
     setIsCreatingInvoice(true);
     try {
-      const response = await invoiceService.createInvoice(newInvoice);
-      toast.success(response.message || "Tạo hóa đơn thành công!");
+      await invoiceService.createInvoice(newInvoice);
+
+      toast.success("Tạo hóa đơn thành công!");
+
       setInvoiceModalOpen(false);
       setSelectedRecord(null);
-      // Reset form
       setNewInvoice({
         patientId,
         treatmentRecordId: 0,
@@ -233,15 +216,16 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
         description: "",
         paidAmount: 0,
       });
+
+      window.location.href = "/invoices";
     } catch (error) {
       let errorMessage = "Đã xảy ra lỗi không xác định";
-
       if (axios.isAxiosError(error)) {
         errorMessage = error.response?.data?.message || "Lỗi khi tạo hóa đơn";
+      } else if (error instanceof Error) {
+        errorMessage = error.message || errorMessage;
       }
-
       toast.error(errorMessage);
-      console.error("Error creating invoice:", error);
     } finally {
       setIsCreatingInvoice(false);
     }
@@ -269,17 +253,13 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
   const renderPaginationButtons = () => {
     const buttons = [];
     const maxVisibleButtons = 5;
-
-    // Calculate start and end page numbers
     let startPage = Math.max(1, currentPage - Math.floor(maxVisibleButtons / 2));
     let endPage = Math.min(totalPages, startPage + maxVisibleButtons - 1);
 
-    // Adjust start page if we're near the end
     if (endPage - startPage + 1 < maxVisibleButtons) {
       startPage = Math.max(1, endPage - maxVisibleButtons + 1);
     }
 
-    // Previous button
     buttons.push(
       <Button
         key="prev"
@@ -293,7 +273,6 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
       </Button>
     );
 
-    // First page button (if not in range)
     if (startPage > 1) {
       buttons.push(
         <Button
@@ -314,7 +293,6 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
       }
     }
 
-    // Page number buttons
     for (let i = startPage; i <= endPage; i++) {
       buttons.push(
         <Button
@@ -329,7 +307,6 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
       );
     }
 
-    // Last page button (if not in range)
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
         buttons.push(
@@ -350,7 +327,6 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
       );
     }
 
-    // Next button
     buttons.push(
       <Button
         key="next"
@@ -367,36 +343,10 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
     return buttons;
   };
 
-  // Tính số thứ tự cho mỗi record
-  const calculateRecordOrder = (groupIndex: number, recordIndex: number) => {
-    let orderNumber = 0;
-    
-    // Tính tổng số records từ các groups trước đó
-    for (let i = 0; i < groupIndex; i++) {
-      orderNumber += paginatedGroups[i].records.length;
-    }
-    
-    // Cộng thêm index của record hiện tại trong group + 1
-    orderNumber += recordIndex + 1;
-    
-    // Cộng thêm offset từ pagination (số records từ các trang trước)
-    const pageOffset = (currentPage - 1) * itemsPerPage;
-    let totalRecordsFromPreviousPages = 0;
-    
-    for (let i = 0; i < pageOffset; i++) {
-      if (groupedRecords[i]) {
-        totalRecordsFromPreviousPages += groupedRecords[i].records.length;
-      }
-    }
-    
-    return totalRecordsFromPreviousPages + orderNumber;
-  };
-
   return (
     <div className="space-y-4">
       {records.length > 0 && (
         <div className="border border-gray-200 rounded-lg overflow-hidden">
-          {/* Table Header with Summary and Pagination Controls */}
           <div className="bg-gray-50 px-6 py-4 border-b">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -427,7 +377,6 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
             </div>
           </div>
 
-          {/* Table Container with Sticky Actions Column */}
           <div className="relative">
             <div className="overflow-x-auto">
               <table className="w-full relative">
@@ -473,7 +422,6 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
 
                     return (
                       <React.Fragment key={group.date}>
-                        {/* Date Group Header Row */}
                         <tr className="bg-blue-50 border-t-2 border-blue-200">
                           <td colSpan={readonly ? 9 : 9} className="px-6 py-4">
                             <div className="flex items-center justify-between">
@@ -500,7 +448,6 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
                                 <div className="text-sm text-blue-700">
                                   {group.records.length} điều trị
                                 </div>
-                                {/* Nút in hồ sơ điều trị */}
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -514,36 +461,31 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
                               </div>
                             </div>
                           </td>
-                          {/* Sticky Actions Column for Group Header */}
                           {!readonly && (
                             <td className="sticky right-0 px-6 py-4 bg-blue-50 border-l border-gray-200 shadow-[-4px_0_8px_rgba(0,0,0,0.1)] z-10">
-                              {/* Empty cell for alignment */}
                             </td>
                           )}
                         </tr>
 
-                        {/* Records for this date - Only show if expanded */}
-                        {isExpanded && group.records.map((record, recordIndex) => (
+                        {isExpanded && group.records.map((record) => (
                           <RecordRow
                             key={record.treatmentRecordID}
                             record={record}
                             onEdit={onEdit}
                             onToggleDelete={onToggleDelete}
                             onOpenInvoiceModal={handleOpenInvoiceModal}
-                            onViewDetail={handleViewDetail} // New prop
+                            onViewDetail={handleViewDetail}
                             patientId={patientId}
                             readonly={readonly}
                             orderNumber={record.treatmentRecordID}
                           />
                         ))}
 
-                        {/* Add spacing between groups (except last group) */}
                         {groupIndex < paginatedGroups.length - 1 && (
                           <tr className="bg-gray-50">
                             <td colSpan={readonly ? 9 : 9} className="px-6 py-1"></td>
                             {!readonly && (
                               <td className="sticky right-0 px-6 py-1 bg-gray-50 border-l border-gray-200 shadow-[-4px_0_8px_rgba(0,0,0,0.1)] z-10">
-                                {/* Empty cell for alignment */}
                               </td>
                             )}
                           </tr>
@@ -556,7 +498,6 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
             </div>
           </div>
 
-          {/* Pagination Controls */}
           {totalPages > 1 && (
             <div className="bg-gray-50 px-6 py-4 border-t">
               <div className="flex items-center justify-between">
@@ -583,14 +524,12 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
         </div>
       )}
 
-      {/* Treatment Record Detail Modal */}
       <TreatmentRecordDetail
         isOpen={detailModalOpen}
         onClose={handleCloseDetailModal}
         record={selectedDetailRecord}
       />
 
-      {/* Invoice Creation Modal */}
       {selectedRecord && (
         <CreateInvoiceModal
           createOpen={invoiceModalOpen}
@@ -602,6 +541,7 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
             symptoms: selectedRecord.symptoms,
             totalAmount: selectedRecord.totalAmount,
             treatmentDate: formatDateOnly(selectedRecord.treatmentDate),
+            remainingAmount: selectedRecord.remainingAmount,
           }}
           handleCreateInvoice={handleCreateInvoice}
           isCreating={isCreatingInvoice}

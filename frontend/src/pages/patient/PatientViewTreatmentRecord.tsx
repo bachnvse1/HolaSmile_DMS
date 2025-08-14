@@ -66,7 +66,6 @@ const PatientTreatmentRecords: React.FC = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [pendingSubmitEvent, setPendingSubmitEvent] = useState<React.FormEvent | null>(null)
 
-  // Add detail modal states
   const [detailModalOpen, setDetailModalOpen] = useState(false)
   const [selectedDetailRecord, setSelectedDetailRecord] = useState<TreatmentRecord | null>(null)
 
