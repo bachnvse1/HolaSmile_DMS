@@ -73,7 +73,7 @@ export const UpdateInvoiceModal: React.FC<UpdateInvoiceModalProps> = ({
     paidAmount: 0,
   });
 
-  const [formattedAmount, setFormattedAmount] = React.useState<string>('');
+  const [formattedAmount, setFormattedAmount] = React.useState<string>("");
   const [showConfirm, setShowConfirm] = React.useState(false);
 
   React.useEffect(() => {
@@ -87,9 +87,8 @@ export const UpdateInvoiceModal: React.FC<UpdateInvoiceModalProps> = ({
         description: invoice.description || "",
         paidAmount: invoice.paidAmount || 0,
       };
-
       setFormData(initialData);
-      setFormattedAmount(invoice.paidAmount ? formatCurrency(invoice.paidAmount) : '');
+      setFormattedAmount(invoice.paidAmount ? formatCurrency(invoice.paidAmount) : "");
     }
   }, [invoice, updateOpen]);
 
@@ -104,23 +103,13 @@ export const UpdateInvoiceModal: React.FC<UpdateInvoiceModalProps> = ({
         description: "",
         paidAmount: 0,
       });
-      setFormattedAmount('');
+      setFormattedAmount("");
       setShowConfirm(false);
     }
   }, [updateOpen]);
 
-  const isFormValid = () => {
-    return (
-      formData.paymentMethod &&
-      formData.transactionType &&
-      formData.status &&
-      formData.paidAmount >= 0 &&
-      (invoice ? formData.paidAmount <= invoice.totalAmount : true)
-    );
-  };
-
   const handleFieldChange = (field: keyof UpdateInvoiceFormData, value: string | number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -130,39 +119,52 @@ export const UpdateInvoiceModal: React.FC<UpdateInvoiceModalProps> = ({
     handleCurrencyInput(value, (formattedValue) => {
       setFormattedAmount(formattedValue);
       const numericValue = parseCurrency(formattedValue);
-      if (numericValue >= 0 && invoice && numericValue <= invoice.totalAmount) {
-        handleFieldChange('paidAmount', numericValue);
+      if (numericValue >= 0) {
+        handleFieldChange("paidAmount", numericValue);
       }
     });
-  };
-
-  const handleTransactionTypeChange = (value: string) => {
-    handleFieldChange('transactionType', value);
-    if (value === 'full' && invoice) {
-      handleFieldChange('paidAmount', invoice.totalAmount);
-      setFormattedAmount(formatCurrency(invoice.totalAmount));
-    } else if (value === 'partial' && formData.paidAmount === invoice?.totalAmount) {
-      handleFieldChange('paidAmount', 0);
-      setFormattedAmount('');
-    }
   };
 
   const proceedUpdateInvoice = async () => {
     try {
       await onUpdateInvoice(formData);
       setUpdateOpen(false);
-      // Removed duplicate toast - success message is handled by parent component
     } catch (error: any) {
-      // Only show error toast here since parent component doesn't handle errors in UI
-      const errorMessage = error?.response?.data?.message || error?.message || 'Lỗi khi cập nhật hóa đơn';
+      const errorMessage = error?.response?.data?.message || error?.message || "Lỗi khi cập nhật hóa đơn";
       toast.error(errorMessage);
     }
   };
 
   if (!invoice) return null;
 
-  const remainingAmount = invoice.totalAmount - formData.paidAmount;
-  const canEdit = invoice.status !== 'paid';
+  const remainingFromDb: number =
+    invoice.remainingAmount ?? Math.max(0, invoice.totalAmount - (invoice.paidAmount ?? 0));
+  const previouslyPaid = invoice.paidAmount ?? 0;
+  const maxAllowed = previouslyPaid + remainingFromDb;
+  const canEdit = invoice.status !== "paid";
+
+  const handleTransactionTypeChange = (value: string) => {
+    handleFieldChange("transactionType", value);
+    if (value === "full") {
+      handleFieldChange("paidAmount", maxAllowed);
+      setFormattedAmount(formatCurrency(maxAllowed));
+    } else if (value === "partial" && formData.paidAmount === maxAllowed) {
+      handleFieldChange("paidAmount", 0);
+      setFormattedAmount("");
+    }
+  };
+
+  const isAmountExceeded = formData.paidAmount > maxAllowed;
+
+  const isFormValid = () => {
+    return (
+      formData.paymentMethod &&
+      formData.transactionType &&
+      formData.status &&
+      formData.paidAmount >= 0 &&
+      !isAmountExceeded
+    );
+  };
 
   return (
     <Dialog open={updateOpen} onOpenChange={setUpdateOpen}>
@@ -170,7 +172,6 @@ export const UpdateInvoiceModal: React.FC<UpdateInvoiceModalProps> = ({
         <DialogHeader>
           <DialogTitle>Cập nhật hóa đơn - {invoice.patientName}</DialogTitle>
         </DialogHeader>
-
         <div className="space-y-6">
           <div className="border p-4 rounded-lg bg-gradient-to-r from-orange-50 to-yellow-50 border-orange-200">
             <h3 className="font-semibold text-gray-900 mb-3">Thông tin hóa đơn</h3>
@@ -181,7 +182,7 @@ export const UpdateInvoiceModal: React.FC<UpdateInvoiceModalProps> = ({
               </div>
               <div>
                 <p className="font-medium text-gray-700">Mã đơn hàng:</p>
-                <p className="text-gray-600">{invoice.orderCode || 'N/A'}</p>
+                <p className="text-gray-600">{invoice.orderCode || "N/A"}</p>
               </div>
               <div>
                 <p className="font-medium text-gray-700">Tổng tiền:</p>
@@ -195,30 +196,25 @@ export const UpdateInvoiceModal: React.FC<UpdateInvoiceModalProps> = ({
               </div>
             </div>
           </div>
-
           {!canEdit && (
             <div className="border p-4 rounded-lg bg-red-50 border-red-200">
-              <p className="text-red-700 font-medium">
-                ⚠️ Hóa đơn đã được thanh toán không thể chỉnh sửa
-              </p>
+              <p className="text-red-700 font-medium">⚠️ Hóa đơn đã được thanh toán không thể chỉnh sửa</p>
             </div>
           )}
-
-          {/* Form Inputs */}
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="paymentMethod">Phương thức thanh toán *</Label>
                 <Select
                   value={formData.paymentMethod}
-                  onValueChange={(value) => handleFieldChange('paymentMethod', value)}
+                  onValueChange={(value) => handleFieldChange("paymentMethod", value)}
                   disabled={!canEdit || isUpdating}
                 >
                   <SelectTrigger id="paymentMethod">
                     <SelectValue placeholder="Chọn phương thức thanh toán" />
                   </SelectTrigger>
                   <SelectContent>
-                    {PAYMENT_METHODS.map(method => (
+                    {PAYMENT_METHODS.map((method) => (
                       <SelectItem key={method.value} value={method.value}>
                         {method.label}
                       </SelectItem>
@@ -237,7 +233,7 @@ export const UpdateInvoiceModal: React.FC<UpdateInvoiceModalProps> = ({
                     <SelectValue placeholder="Chọn loại thanh toán" />
                   </SelectTrigger>
                   <SelectContent>
-                    {TRANSACTION_TYPES.map(type => (
+                    {TRANSACTION_TYPES.map((type) => (
                       <SelectItem key={type.value} value={type.value}>
                         {type.label}
                       </SelectItem>
@@ -246,19 +242,18 @@ export const UpdateInvoiceModal: React.FC<UpdateInvoiceModalProps> = ({
                 </Select>
               </div>
             </div>
-
             <div>
               <Label htmlFor="status">Trạng thái *</Label>
               <Select
                 value={formData.status}
-                onValueChange={(value) => handleFieldChange('status', value)}
+                onValueChange={(value) => handleFieldChange("status", value)}
                 disabled={!canEdit || isUpdating}
               >
                 <SelectTrigger id="status">
                   <SelectValue placeholder="Chọn trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
-                  {INVOICE_STATUSES.map(status => (
+                  {INVOICE_STATUSES.map((status) => (
                     <SelectItem key={status.value} value={status.value}>
                       {status.label}
                     </SelectItem>
@@ -266,7 +261,6 @@ export const UpdateInvoiceModal: React.FC<UpdateInvoiceModalProps> = ({
                 </SelectContent>
               </Select>
             </div>
-
             <div>
               <Label htmlFor="paidAmount">Số tiền thanh toán *</Label>
               <div className="mt-1 relative">
@@ -277,62 +271,50 @@ export const UpdateInvoiceModal: React.FC<UpdateInvoiceModalProps> = ({
                   onChange={(e) => handleAmountChange(e.target.value)}
                   placeholder="Nhập số tiền thanh toán"
                   disabled={!canEdit || isUpdating}
-                  className={`pr-12 ${formData.paidAmount > invoice.totalAmount ? 'border-red-500' : ''
-                    }`}
+                  className={`pr-12 ${isAmountExceeded ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                   <span className="text-gray-500 text-sm">đ</span>
                 </div>
               </div>
-              {formData.paidAmount > 0 && (
+              {formData.paidAmount > 0 && !isAmountExceeded && (
                 <div className="mt-2 text-sm space-y-1">
-                  <p className="text-gray-600">
-                    Số tiền thanh toán: <span className="font-semibold">{formatCurrency(formData.paidAmount)}</span>
-                  </p>
-                  {remainingAmount > 0 && (
-                    <p className="text-orange-600">
-                      Số tiền còn lại: <span className="font-semibold">{formatCurrency(remainingAmount)}</span>
-                    </p>
+                  <p className="text-gray-600">Số tiền thanh toán: <span className="font-semibold">{formatCurrency(formData.paidAmount)}</span></p>
+                  {remainingFromDb > 0 && (
+                    <p className="text-orange-600">Số tiền còn lại: <span className="font-semibold">{formatCurrency(remainingFromDb)}</span></p>
                   )}
-                  {remainingAmount === 0 && (
-                    <p className="text-green-600 font-semibold">✓ Đã thanh toán đủ</p>
-                  )}
+                  {remainingFromDb === 0 && <p className="text-green-600 font-semibold">✓ Đã thanh toán đủ</p>}
                 </div>
               )}
-              {formData.paidAmount > invoice.totalAmount && (
-                <p className="text-red-600 text-sm mt-1">
-                  Số tiền thanh toán không được vượt quá tổng tiền điều trị
-                </p>
+              {isAmountExceeded && (
+                <div className="mt-2 text-sm space-y-1">
+                  <p className="text-gray-600">Số tiền tối đa: <span className="font-semibold text-orange-600">{formatCurrency(maxAllowed)}</span></p>
+                </div>
               )}
             </div>
-
             <div>
               <Label htmlFor="description">Ghi chú</Label>
               <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => handleFieldChange('description', e.target.value)}
+                onChange={(e) => handleFieldChange("description", e.target.value)}
                 placeholder="Nhập ghi chú cho hóa đơn (không bắt buộc)"
                 rows={3}
                 disabled={!canEdit || isUpdating}
               />
             </div>
           </div>
-
           <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button variant="outline" onClick={() => setUpdateOpen(false)} disabled={isUpdating}>
-              Hủy
-            </Button>
+            <Button variant="outline" onClick={() => setUpdateOpen(false)} disabled={isUpdating}>Hủy</Button>
             <Button
               onClick={() => setShowConfirm(true)}
               disabled={!canEdit || !isFormValid() || isUpdating}
               className="min-w-[100px]"
             >
-              {isUpdating ? 'Đang cập nhật...' : 'Cập nhật'}
+              {isUpdating ? "Đang cập nhật..." : "Cập nhật"}
             </Button>
           </div>
         </div>
-
         <ConfirmModal
           isOpen={showConfirm}
           onClose={() => setShowConfirm(false)}

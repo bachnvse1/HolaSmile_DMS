@@ -350,7 +350,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-600 mb-2">Nội dung khám</p>
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <p className="text-gray-900 whitespace-pre-wrap">{appointment.content}</p>
+                    <p className="text-red-600 whitespace-pre-wrap font-bold">{appointment.content}</p>
                   </div>
                 </div>
               </div>

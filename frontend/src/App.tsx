@@ -68,6 +68,7 @@ import PatientConsultationPage from "./pages/messages/patient-consultation-new";
 import InternalMessagesPage from "./pages/messages/internal-new";
 import ChatbotKnowledgeManagement from "./pages/chatbot/ChatbotKnowledgeManagement";
 import { ChatWrapper } from './components/chat/ChatWrapper';
+import MaintenancePage from "./pages/maintenance/MaintenancePage";
 
 function App() {
   return (
@@ -154,6 +155,7 @@ function App() {
                   <Route path="/messages/patient-consultation" element={<PatientConsultationPage />} />
                   <Route path="/messages/internal" element={<InternalMessagesPage />} />
                   <Route path="/chatbot/knowledge" element={<ChatbotKnowledgeManagement />} />
+                  <Route path="/maintenance" element={<MaintenancePage />} />
                 </Routes>
               </>
             </ChatHubProvider>
