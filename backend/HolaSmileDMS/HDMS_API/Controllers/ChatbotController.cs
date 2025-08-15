@@ -1,4 +1,6 @@
-﻿using Application.Constants;
+﻿using System.Text.Json;
+using Application.Constants;
+using Application.Interfaces;
 using Application.Usecases.Administrators.ChatbotData;
 using Application.Usecases.Administrators.UpdateChatbotData;
 using Application.Usecases.Guests.AskChatBot;
@@ -13,10 +15,12 @@ namespace HDMS_API.Controllers
     {
 
         private readonly IMediator _mediator;
+        private readonly IChatBotKnowledgeRepository _repo;
 
-        public ChatbotController(IMediator mediator)
+        public ChatbotController(IMediator mediator, IChatBotKnowledgeRepository chatBotKnowledgeRepository)
         {
             _mediator = mediator;
+            _repo = chatBotKnowledgeRepository;
         }
 
         [HttpGet]
@@ -96,6 +100,23 @@ namespace HDMS_API.Controllers
                     message = ex.Message
                 });
             }
+        }
+
+        [HttpGet("getdata")]
+        [ProducesResponseType(typeof(ClinicDataDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Get(CancellationToken ct)
+        {
+            var data = await _repo.GetClinicDataAsync(ct);
+            if (data is null) return NotFound();
+
+            // Trả về camelCase + format đẹp cho dễ xem
+            var opts = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = true
+            };
+            return new JsonResult(data, opts);
         }
 
 
