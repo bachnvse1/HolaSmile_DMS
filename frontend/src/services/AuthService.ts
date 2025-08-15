@@ -18,7 +18,7 @@ export interface LoginResponse {
   token: string;
   refreshToken?: string;
   role: string;
-  patientId?: string; // Only for Patient role
+  patientId?: string;
 }
 
 export interface RoleRedirectMap {
