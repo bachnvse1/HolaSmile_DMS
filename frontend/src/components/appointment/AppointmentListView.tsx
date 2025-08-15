@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import { Checkbox } from '../ui/checkbox';
 import { Pagination } from '../ui/Pagination';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { useAuth } from '../../hooks/useAuth';
@@ -28,7 +29,8 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   appointments
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'confirmed' | 'canceled'>('all');
+  const [statusFilter, setStatusFilter] = useState<string[]>(['all']);
+  const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5); // Make it configurable
   const [lastUserId, setLastUserId] = useState<string | null>(null);
@@ -52,11 +54,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   const treatmentFormMethods = useForm<TreatmentFormData>();
   const [treatmentToday, setTreatmentToday] = useState<boolean | null>(null);
   const navigate = useNavigate();
-
-  // Change appointment status mutation
   const { mutate: changeStatus, isPending: isChangingStatus } = useChangeAppointmentStatus();
-
-  // Clear cache when user changes
   useEffect(() => {
     if (userId) {
       if (lastUserId && lastUserId !== userId) {
@@ -91,11 +89,9 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
       appointment.dentistName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       appointment.appointmentType.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = statusFilter === 'all' || appointment.status === statusFilter;
-
+    const matchesStatus = statusFilter.includes('all') || statusFilter.includes(appointment.status);
     return matchesSearch && matchesStatus;
   });
-  // Sort appointments by date and time - nearest to current time first
   const sortedAppointments = [...filteredAppointments].sort((a, b) => {
     try {
       const dateOnlyA = a.appointmentDate.split('T')[0];
@@ -133,7 +129,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedAppointments = sortedAppointments.slice(startIndex, endIndex);
-  // Reset to first page when filters change
+ 
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, itemsPerPage]);
@@ -144,18 +140,33 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
     }
   }, [showTreatmentModal, selectedAppointmentId, treatmentFormMethods]);
 
-  // Handle page change
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
-  // Handle items per page change
   const handleItemsPerPageChange = (value: number) => {
     setItemsPerPage(value);
     setCurrentPage(1);
   };
 
-  // Handle status change for receptionist
+
+  const handleStatusFilterChange = (value: string) => {
+    if (value === 'all') {
+      setStatusFilter(['all']);
+    } else {
+      setStatusFilter(prev => {
+        const newFilter = prev.filter(item => item !== 'all');
+        if (newFilter.includes(value)) {
+          const updated = newFilter.filter(item => item !== value);
+          return updated.length === 0 ? ['all'] : updated;
+        } else {
+          return [...newFilter, value];
+        }
+      });
+    }
+  };
+
   const handleStatusChangeRequest = (appointmentId: number, newStatus: 'attended' | 'absented', patientName: string) => {
     setConfirmModal({
       isOpen: true,
@@ -185,7 +196,6 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   };
 
 
-  // Group appointments by status for summary
   const confirmedCount = filteredAppointments.filter(a => a.status === 'confirmed').length;
   const cancelledCount = filteredAppointments.filter(a => a.status === 'canceled').length;
   const attendedCount = filteredAppointments.filter(a => a.status === 'attended').length;
@@ -275,33 +285,90 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
           </div>
 
           {/* Search & Filter */}
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="Tìm kiếm theo tên bệnh nhân, bác sĩ hoặc loại hẹn..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Tìm kiếm theo tên bệnh nhân, bác sĩ hoặc loại hẹn..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+                className={`flex items-center gap-2 ${showFilters ? "bg-blue-50 text-blue-700" : ""}`}
+              >
+                <Filter className="h-4 w-4" />
+                Bộ lọc
+              </Button>
             </div>
 
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <Filter className="h-4 w-4 text-gray-400 flex-shrink-0" />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'confirmed' | 'canceled')}
-                className="flex-1 sm:flex-none border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                title="Lọc theo trạng thái"
-              >
-                <option value="all">Tất cả trạng thái</option>
-                <option value="confirmed">Đã xác nhận</option>
-                <option value="canceled">Đã hủy</option>
-                <option value="attended">Đã đến</option>
-                <option value="absented">Vắng</option>
-              </select>
-            </div>
+            {/* Expandable Filter Panel */}
+            {showFilters && (
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="space-y-3">
+                  <label className="text-sm font-medium">Trạng thái</label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="status-all"
+                        checked={statusFilter.includes('all')}
+                        onCheckedChange={() => handleStatusFilterChange('all')}
+                      />
+                      <label htmlFor="status-all" className="text-sm font-medium">
+                        Tất cả
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="status-confirmed"
+                        checked={statusFilter.includes('confirmed')}
+                        onCheckedChange={() => handleStatusFilterChange('confirmed')}
+                      />
+                      <label htmlFor="status-confirmed" className="text-sm">
+                        Đã xác nhận
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="status-canceled"
+                        checked={statusFilter.includes('canceled')}
+                        onCheckedChange={() => handleStatusFilterChange('canceled')}
+                      />
+                      <label htmlFor="status-canceled" className="text-sm">
+                        Đã hủy
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="status-attended"
+                        checked={statusFilter.includes('attended')}
+                        onCheckedChange={() => handleStatusFilterChange('attended')}
+                      />
+                      <label htmlFor="status-attended" className="text-sm">
+                        Đã đến
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="status-absented"
+                        checked={statusFilter.includes('absented')}
+                        onCheckedChange={() => handleStatusFilterChange('absented')}
+                      />
+                      <label htmlFor="status-absented" className="text-sm">
+                        Vắng
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -352,7 +419,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                       )}
                   </div>
                   
-                  {/* Action buttons with improved responsive design */}
+                  {/* Action buttons*/}
                   <div className="flex flex-wrap gap-2 w-auto">
                     <Button
                       variant="outline"

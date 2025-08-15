@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Bot, User, RotateCcw } from 'lucide-react';
+import { X, Send, Bot, User, RotateCcw } from 'lucide-react';
 import { chatbotService } from '@/services/chatbotService';
-import { useAuth } from '@/hooks/useAuth';
 
 interface Message {
   id: string;
@@ -28,8 +27,23 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const { isAuthenticated } = useAuth();
+  const adjustTextareaHeight = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      const scrollHeight = textarea.scrollHeight;
+      const lineHeight = 24; 
+      const maxHeight = lineHeight * 3; 
+      textarea.style.height = Math.min(scrollHeight, maxHeight) + 'px';
+    }
+  };
+
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [inputMessage]);
+
 
   useEffect(() => {
     if (forceClose && isOpen) {
@@ -153,8 +167,8 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
       {!isOpen && !hideButton && (
         <div className={`fixed z-40 ${
           adjustPosition 
-            ? 'right-6 bottom-24' // Vị trí cao hơn khi consultant chat mở
-            : 'right-6 bottom-6'   // Vị trí thường
+            ? 'right-6 bottom-24' 
+            : 'right-6 bottom-6'  
         }`}>
           <button
             onClick={handleOpen}
@@ -171,8 +185,8 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
       {isOpen && (
         <div className={`fixed z-40 w-80 sm:w-96 ${
           adjustPosition 
-            ? 'right-4 bottom-24' // Vị trí cao hơn khi consultant chat mở
-            : 'right-4 bottom-6'  // Vị trí thường
+            ? 'right-4 bottom-24' 
+            : 'right-4 bottom-6'  
         }`}>
           <div className="bg-white rounded-lg shadow-2xl border border-gray-200">
             <div className="bg-purple-600 text-white p-4 rounded-t-lg flex items-center justify-between">
@@ -207,7 +221,7 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
                   key={message.id}
                   className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className={`flex max-w-xs lg:max-w-md ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                  <div className={`flex w-full ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                     <div className={`flex-shrink-0 ${message.sender === 'user' ? 'ml-2' : 'mr-2'}`}>
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                         message.sender === 'user' ? 'bg-purple-600' : 'bg-gray-200'
@@ -219,13 +233,13 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
                         )}
                       </div>
                     </div>
-                    <div>
+                    <div className="max-w-[75%]">
                       <div className={`px-4 py-2 rounded-lg ${
                         message.sender === 'user'
                           ? 'bg-purple-600 text-white'
                           : 'bg-gray-100 text-gray-900'
                       }`}>
-                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                        <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">{message.content}</p>
                       </div>
                       <p className={`text-xs text-gray-500 mt-1 ${
                         message.sender === 'user' ? 'text-right' : 'text-left'
@@ -257,27 +271,29 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
             </div>
 
             <div className="p-4 border-t border-gray-200">
-              <div className="flex space-x-2">
-                <input
-                  type="text"
+              <div className="flex items-end space-x-2">
+                <textarea
+                  ref={textareaRef}
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Nhập câu hỏi của bạn..."
-                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none leading-6 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                  style={{ minHeight: '40px', maxHeight: '72px' }}
                   disabled={isLoading}
+                  rows={1}
                 />
                 <button
                   onClick={handleSendMessage}
                   disabled={!inputMessage.trim() || isLoading}
-                  className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white rounded-lg px-4 py-2 transition-colors"
+                  className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white rounded-lg px-4 py-2 transition-colors flex-shrink-0"
                   title="Gửi tin nhắn"
                 >
-                  <Send className="h-4 w-4" />
+                  <Send className="h-7 w-4" />
                 </button>
               </div>
               <p className="text-xs text-gray-500 mt-2 text-center">
-                Nhấn Enter để gửi tin nhắn
+                Enter để gửi tin nhắn, Shift + Enter để xuống dòng
               </p>
             </div>
           </div>

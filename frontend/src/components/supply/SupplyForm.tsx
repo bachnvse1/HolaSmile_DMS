@@ -196,7 +196,7 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
-                  Tên Vật Tư *
+                  Tên Vật Tư <span className='text-red-400'>*</span>
                 </label>
                 <Input
                   placeholder="VD: Khẩu trang y tế 3 lớp"
@@ -212,7 +212,7 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
-                  Đơn Vị *
+                  Đơn Vị <span className='text-red-400'>*</span>
                 </label>
                 <Select
                   key={form.watch('unit')}
@@ -242,7 +242,7 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
-                  Số Lượng Trong Kho {mode === 'create' ? '*' : ''}
+                  Số Lượng Trong Kho {mode === 'create' ? <span className='text-red-400'>*</span> : ''}
                 </label>
                 <Input
                   type="number"
@@ -270,7 +270,7 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
-                  Hạn Sử Dụng *
+                  Hạn Sử Dụng <span className='text-red-400'>*</span>
                 </label>
                 <Input
                   type="date"
@@ -287,7 +287,7 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">
-                Giá (VNĐ) *
+                Giá (VNĐ) <span className='text-red-400'>*</span>
               </label>
               <Input
                 placeholder="0"

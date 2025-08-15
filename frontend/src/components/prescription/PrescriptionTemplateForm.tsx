@@ -75,7 +75,7 @@ export const PrescriptionTemplateForm: React.FC = () => {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">
-                Tên Mẫu Đơn Thuốc *
+                Tên Mẫu Đơn Thuốc <span className='text-red-400'>*</span>
               </label>
               <Input
                 placeholder="VD: Điều trị viêm lợi cấp tính"
@@ -98,7 +98,7 @@ export const PrescriptionTemplateForm: React.FC = () => {
           <CardContent>
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">
-                Nội Dung Chi Tiết *
+                Nội Dung Chi Tiết <span className='text-red-400'>*</span>
               </label>
               <Textarea
                 rows={12}

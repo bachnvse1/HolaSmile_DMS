@@ -148,14 +148,14 @@ export const HeroSection = () => {
               ))}
             </CarouselContent>
             <CarouselPrevious 
-              className={`left-1 sm:left-2 md:left-4 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 transition-all duration-300 ${
+              className={`left-1 sm:left-12 md:left-14 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 transition-all duration-300 ${
                 isHovered 
                   ? 'opacity-100 bg-white/20 border-white/30 text-white hover:bg-blue-500 hover:border-blue-400 hover:text-white' 
                   : 'opacity-0'
               }`} 
             />
             <CarouselNext 
-              className={`right-1 sm:right-2 md:right-4 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 transition-all duration-300 ${
+              className={`right-1 sm:right-12 md:right-14 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 transition-all duration-300 ${
                 isHovered 
                   ? 'opacity-100 bg-white/20 border-white/30 text-white hover:bg-blue-500 hover:border-blue-400 hover:text-white' 
                   : 'opacity-0'
@@ -194,7 +194,7 @@ export const HeroSection = () => {
             <div className="relative p-2 sm:p-3">
               {/* Ping effect only on icon */}
               <div className="absolute inset-0 bg-red-400 rounded-full animate-ping scale-110"></div>
-              <div className="absolute inset-0 bg-red-400 rounded-full animate-ping animation-delay-800 scale-110"></div>
+              <div className="absolute inset-0 bg-red-400 rounded-full animate-ping animation-delay-1000 scale-110"></div>
               <Phone className="h-4 w-4 sm:h-5 sm:w-5 relative z-10 animate-shake" />
             </div>
             <div className="pr-3 sm:pr-4 pl-1 py-2 sm:py-3 font-semibold text-xs sm:text-sm">

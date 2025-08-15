@@ -36,7 +36,7 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
       setLastUserId(userId);
     }
   }, [userId, queryClient, lastUserId]);
-  // Generate week dates starting from today
+
   const getWeekDates = (weekOffset: number) => {
     const today = new Date();
     const startOfWeek = new Date(today);
@@ -46,7 +46,6 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
 
     const weekDates = [];
     for (let i = 0; i < 7; i++) {
-      // Luôn tạo ngày mới dựa trên startOfWeek gốc
       const date = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + i);
       weekDates.push(date);
     }
@@ -103,7 +102,7 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
         id: appointment.appointmentId,
         title: `${appointment.patientName} - ${appointment.dentistName}`,
         date: dateKey,
-        time: appointment.appointmentTime.substring(0, 5), // HH:MM
+        time: appointment.appointmentTime.substring(0, 5), 
         status: appointment.status,
         type: appointment.appointmentType,
         isNewPatient: appointment.isNewPatient,
@@ -232,7 +231,6 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
 
       {/* Calendar Grid */}
       <CardContent className="p-3 sm:p-6">
-        {/* Week/Month Headers */}
         <div className={`grid gap-2 mb-4 ${viewMode === 'month' ? 'grid-cols-7' : 'grid-cols-7'}`}>
           {currentDates.slice(0, viewMode === 'week' ? 7 : Math.min(currentDates.length, 7)).map((date, index) => (
             <div
@@ -259,7 +257,6 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
                 className={`border border-gray-200 p-2 ${viewMode === 'month' ? 'min-h-[100px]' : 'min-h-[120px]'} ${isToday(date) ? 'bg-blue-50 border-blue-300' : 'bg-gray-50'
                   }`}
               >
-                {/* Date number for month view */}
                 {viewMode === 'month' && (
                   <div className="text-xs font-medium text-gray-600 mb-1">
                     {date.getDate()}
@@ -319,7 +316,6 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
                   ))}
                 </div>
 
-                {/* Empty state for days with no appointments */}
                 {dayAppointments.length === 0 && (
                   <div className="flex items-center justify-center h-full text-gray-400">
                     <span className="text-xs">Không có lịch hẹn</span>
@@ -344,7 +340,6 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
                     className={`border border-gray-200 p-2 min-w-[90px] ${viewMode === 'month' ? 'min-h-[100px]' : 'min-h-[120px]'} ${isToday(date) ? 'bg-blue-50 border-blue-300' : 'bg-gray-50'
                       }`}
                   >
-                    {/* Date number for month view */}
                     {viewMode === 'month' && (
                       <div className="text-xs font-medium text-gray-600 mb-1">
                         {date.getDate()}
@@ -383,7 +378,6 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
                       ))}
                     </div>
 
-                    {/* Empty state for days with no appointments */}
                     {dayAppointments.length === 0 && (
                       <div className="flex items-center justify-center h-full text-gray-400">
                         <span className="text-xs">Không có</span>

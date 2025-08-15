@@ -200,7 +200,7 @@ export const SupplyDetail: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
                 <label className="text-sm font-medium text-gray-600">Tên Vật Tư</label>
-                <p className="text-base sm:text-lg font-semibold text-gray-900 mt-1 break-words">
+                <p className="text-base sm:text-lg font-semibold text-gray-900 mt-1 break-words word-wrap overflow-wrap-anywhere">
                   {supply.Name}
                 </p>
               </div>
@@ -227,7 +227,7 @@ export const SupplyDetail: React.FC = () => {
 
               <div>
                 <label className="text-sm font-medium text-gray-600">Giá Đơn Vị</label>
-                <p className="text-base sm:text-lg font-semibold text-gray-900 mt-1 break-all">
+                <p className="text-base sm:text-lg font-semibold text-gray-900 mt-1 break-words word-wrap overflow-wrap-anywhere">
                   {formatCurrency(supply.Price)}
                 </p>
               </div>
@@ -278,13 +278,13 @@ export const SupplyDetail: React.FC = () => {
             <CardContent>
               <div className="space-y-3">
                 <div>
-                  <p className="text-base sm:text-lg font-semibold text-green-600 break-all">
+                  <p className="text-base sm:text-lg font-semibold text-green-600 break-words word-wrap overflow-wrap-anywhere">
                     {formatCurrency(totalValue)}
                   </p>
                 </div>
 
                 <div className="text-sm text-gray-600 space-y-1">
-                  <div className="break-all">Giá đơn vị: {formatCurrency(supply.Price)}</div>
+                  <div className="break-words word-wrap overflow-wrap-anywhere">Giá đơn vị: {formatCurrency(supply.Price)}</div>
                   <div>Số lượng: {supply.QuantityInStock} {supply.Unit}</div>
                 </div>
               </div>
@@ -302,21 +302,21 @@ export const SupplyDetail: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex items-center text-sm text-gray-600">
                   <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
-                  <span className="break-all">Tạo lúc: {formatDate(supply.CreatedAt)}</span>
+                  <span className="break-words word-wrap overflow-wrap-anywhere">Tạo lúc: {formatDate(supply.CreatedAt)}</span>
                 </div>
                 <div className="flex items-center text-sm text-gray-600">
                   <span className="w-6 flex-shrink-0"></span>
-                  <span className="break-all">Tạo bởi: {supply.CreatedBy && supply.CreatedBy !== 0 && supply.CreatedBy !== null && supply.CreatedBy !== undefined ? supply.CreatedBy : 'Chưa có'}</span>
+                  <span className="break-words word-wrap overflow-wrap-anywhere">Tạo bởi: {supply.CreatedBy && supply.CreatedBy !== 0 && supply.CreatedBy !== null && supply.CreatedBy !== undefined ? supply.CreatedBy : 'Chưa có'}</span>
                 </div>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center text-sm text-gray-600">
                   <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
-                  <span className="break-all">Cập nhật: {formatDate(supply.UpdatedAt) || 'Chưa có cập nhật'}</span>
+                  <span className="break-words word-wrap overflow-wrap-anywhere">Cập nhật: {formatDate(supply.UpdatedAt) || 'Chưa có cập nhật'}</span>
                 </div>
                 <div className="flex items-center text-sm text-gray-600">
                   <span className="w-6 flex-shrink-0"></span>
-                  <span className="break-all">Cập nhật bởi: {supply.UpdatedBy && supply.UpdatedBy !== 0 && supply.UpdatedBy !== null && supply.UpdatedBy !== undefined && String(supply.UpdatedBy).toLowerCase() !== 'unknown' ? supply.UpdatedBy : 'Chưa có'}</span>
+                  <span className="break-words word-wrap overflow-wrap-anywhere">Cập nhật bởi: {supply.UpdatedBy && supply.UpdatedBy !== 0 && supply.UpdatedBy !== null && supply.UpdatedBy !== undefined && String(supply.UpdatedBy).toLowerCase() !== 'unknown' ? supply.UpdatedBy : 'Chưa có'}</span>
                 </div>
               </div>
             </div>

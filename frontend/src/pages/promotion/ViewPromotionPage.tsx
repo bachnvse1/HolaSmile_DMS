@@ -135,7 +135,7 @@ export const ViewPromotionPage: React.FC = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium text-gray-600 block mb-1">Tên chương trình</label>
-                    <p className="text-gray-900 font-medium text-lg">{program.programName}</p>
+                    <p className="text-gray-900 font-medium text-lg break-words word-wrap overflow-wrap-anywhere">{program.programName}</p>
                   </div>
                   
                   <div>
@@ -198,11 +198,11 @@ export const ViewPromotionPage: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {program.listProcedure.map((procedure, index) => (
                     <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-300">
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900 mb-1">{procedure.procedureName}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 mb-1 break-words word-wrap overflow-wrap-anywhere">{procedure.procedureName}</p>
                         <p className="text-sm text-gray-600">ID: {procedure.procedureId}</p>
                       </div>
-                      <div className="text-right ml-4">
+                      <div className="text-right ml-4 flex-shrink-0">
                         <p className="font-bold text-2xl text-blue-600">
                           {procedure.discountAmount}%
                         </p>

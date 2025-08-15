@@ -251,7 +251,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Transaction Type */}
               <div className="space-y-2">
-                <Label htmlFor="transactionType">Loại giao dịch *</Label>
+                <Label htmlFor="transactionType">Loại giao dịch<span className='text-red-400'>*</span></Label>
                 <Select 
                   value={form.watch('transactionType') || ''}
                   onValueChange={(value: 'thu' | 'chi') => form.setValue('transactionType', value)}
@@ -279,7 +279,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
 
               {/* Category */}
               <div className="space-y-2">
-                <Label htmlFor="category">Danh mục *</Label>
+                <Label htmlFor="category">Danh mục<span className='text-red-400'>*</span></Label>
                 <Input
                   id="category"
                   placeholder="Nhập danh mục..."
@@ -293,7 +293,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
 
             {/* Description - Full Width (2 columns) */}
             <div className="space-y-2">
-              <Label htmlFor="description">Mô tả *</Label>
+              <Label htmlFor="description">Mô tả<span className='text-red-400'>*</span></Label>
               <Textarea
                 id="description"
                 placeholder="Nhập mô tả cho giao dịch..."
@@ -313,7 +313,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
 
               {/* Amount */}
               <div className="space-y-2">
-                <Label htmlFor="amount">Số tiền *</Label>
+                <Label htmlFor="amount">Số tiền<span className='text-red-400'>*</span></Label>
                 <div className="relative">
                   <Input
                     id="amount"
@@ -331,7 +331,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
 
               {/* Payment Method */}
               <div className="space-y-2">
-                <Label htmlFor="paymentMethod">Phương thức thanh toán *</Label>
+                <Label htmlFor="paymentMethod">Phương thức thanh toán<span className='text-red-400'>*</span></Label>
                 <Select 
                   value={form.watch('paymentMethod') || ''}
                   onValueChange={(value: 'cash' | 'transfer') => form.setValue('paymentMethod', value)}
@@ -349,7 +349,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
 
               {/* Transaction Date */}
               <div className="space-y-2">
-                <Label htmlFor="transactionDate">Ngày giao dịch *</Label>
+                <Label htmlFor="transactionDate">Ngày giao dịch<span className='text-red-400'>*</span></Label>
                 <Input
                   id="transactionDate"
                   type="date"
@@ -362,7 +362,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
 
               {/* Transaction Time */}
               <div className="space-y-2">
-                <Label htmlFor="transactionTime">Giờ giao dịch *</Label>
+                <Label htmlFor="transactionTime">Giờ giao dịch<span className='text-red-400'>*</span></Label>
                 <Input
                   id="transactionTime"
                   type="time"

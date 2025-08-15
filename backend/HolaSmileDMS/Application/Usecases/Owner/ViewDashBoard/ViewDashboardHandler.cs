@@ -52,6 +52,7 @@ namespace Application.Usecases.Owner.ViewDashboard
                 NewPatient = newPatients
             };
 
+
             return dashboardData;
         }
 
