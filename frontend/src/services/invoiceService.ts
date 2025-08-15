@@ -18,8 +18,34 @@ export const invoiceService = {
   },
 
   async createInvoice(data: NewInvoice): Promise<any> {
-    const response = await axiosInstance.post("/invoice/create", data)
-    return response.data
+    try {
+      const res = await axiosInstance.post("/invoice/create", data);
+      const payload = res.data;
+
+      if (res.status < 200 || res.status >= 300) {
+        throw new Error(`HTTP ${res.status}: ${payload?.message || "Lỗi khi tạo hóa đơn"}`);
+      }
+
+      if (payload?.success === false) {
+        const err: any = new Error(payload?.message || "Lỗi khi tạo hóa đơn");
+        err.response = { data: payload, status: res.status };
+        throw err;
+      }
+
+      if (payload?.error) {
+        throw new Error(payload.error);
+      }
+      return payload;
+
+    } catch (err: any) {
+      if (err.response) {
+        const errorData = err.response.data;
+        const errorMessage = errorData?.message || errorData?.error || err.message || "Lỗi khi tạo hóa đơn";
+        throw new Error(errorMessage);
+      }
+      const msg = err?.message || "Lỗi khi tạo hóa đơn";
+      throw new Error(msg);
+    }
   },
 
   async updateOrderCode(orderCode: string): Promise<any> {

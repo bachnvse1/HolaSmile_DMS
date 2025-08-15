@@ -79,6 +79,10 @@ namespace HDMS_API.Controllers
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new { message = MessageConstants.MSG.MSG26 });
             }
+            catch (InvalidOperationException)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = "Mẫu đơn thuốc với tên này đã tồn tại" });
+            }
             catch (Exception)
             {
                 return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });

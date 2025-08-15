@@ -50,42 +50,59 @@ namespace Application.Usecases.Receptionist.ConfigNotifyMaintenance
             if (maintenance == null)
                 throw new Exception("Không tìm thấy thông tin bảo trì.");
 
+            // Check if maintenance already has a price
+            if (maintenance.Price > 0)
+                throw new Exception($"Đã tồn tại giao dịch chi phí bảo trì cho ngày {maintenance.MaintenanceDate:dd/MM/yyyy}");
+
             if (!string.Equals(maintenance.Status, "Approved", StringComparison.OrdinalIgnoreCase))
                 throw new Exception("Chỉ những bảo trì đã được phê duyệt mới có thể tạo phiếu chi.");
 
+  
+            // Update maintenance price
+            maintenance.Price = (int)request.Price;
+            maintenance.UpdatedAt = DateTime.Now;
+            maintenance.UpdatedBy = currentUserId;
+
+            var updateSuccess = await _maintenanceRepository.UpdateMaintenanceAsync(maintenance);
+            if (!updateSuccess)
+                throw new Exception("Cập nhật giá bảo trì thất bại.");
+
             var transaction = new FinancialTransaction
             {
-                TransactionDate = DateTime.Now,
+                TransactionDate = maintenance.MaintenanceDate,
                 Description = $"Chi phí bảo trì thiết bị ngày {maintenance.MaintenanceDate:dd/MM/yyyy}",
-                TransactionType = false, // False = Chi
+                TransactionType = false,
                 Category = "Chi phí bảo trì",
-                PaymentMethod = true, // Tiền mặt
+                PaymentMethod = true,
                 Amount = Math.Round(request.Price, 2),
-                status = "Approved",
+                status = "pending",
                 CreatedAt = DateTime.Now,
                 CreatedBy = currentUserId,
                 IsDelete = false
             };
 
+            var transactionCreated = await _transactionRepository.CreateTransactionAsync(transaction);
+            if (!transactionCreated)
+                throw new Exception("Tạo phiếu chi thất bại");
+
             try
             {
                 var owners = await _ownerRepository.GetAllOwnersAsync();
-                var assistant = await _userCommonRepository.GetByIdAsync(currentUserId, cancellationToken);
 
                 var notifyOwners = owners.Select(async o =>
                 await _mediator.Send(new SendNotificationCommand(
                       o.User.UserID,
                       "Chi phí bảo trì",
                       $"Chi phí bảo trì thiết bị ngày {maintenance.MaintenanceDate:dd/MM/yyyy}",
-                      "Create", 
-                      0, 
-                      ""),
+                      "Create",
+                      transaction.TransactionID,
+                      $"/financial-transactions/{transaction.TransactionID}"),
                 cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);
             }
             catch { }
 
-            return await _transactionRepository.CreateTransactionAsync(transaction);
+            return true;
         }
     }
 }
