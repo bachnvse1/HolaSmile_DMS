@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Pagination } from '@/components/ui/Pagination';
+import { PrescriptionTemplateFormModal } from './PrescriptionTemplateFormModal';
 import { usePrescriptionTemplates, useDeactivatePrescriptionTemplate } from '@/hooks/usePrescriptionTemplates';
 import { formatDate } from '@/utils/dateUtils';
 import { useUserInfo } from '@/hooks/useUserInfo';
@@ -25,6 +26,14 @@ export const PrescriptionTemplateList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(6);
+  const [templateFormModal, setTemplateFormModal] = useState<{
+    isOpen: boolean;
+    mode: 'create' | 'edit';
+    templateId?: number;
+  }>({
+    isOpen: false,
+    mode: 'create'
+  });
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     template: PrescriptionTemplate | null;
@@ -77,7 +86,11 @@ export const PrescriptionTemplateList: React.FC = () => {
   };
 
   const handleEdit = (template: PrescriptionTemplate) => {
-    navigate(`/prescription-templates/${template.PreTemplateID}/edit`);
+    setTemplateFormModal({
+      isOpen: true,
+      mode: 'edit',
+      templateId: template.PreTemplateID
+    });
   };
 
   const handleDeactivate = (template: PrescriptionTemplate) => {
@@ -163,7 +176,7 @@ export const PrescriptionTemplateList: React.FC = () => {
         </div>
         {canEdit && (
           <Button
-            onClick={() => navigate('/prescription-templates/create')}
+            onClick={() => setTemplateFormModal({ isOpen: true, mode: 'create' })}
             className="w-full sm:w-auto"
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -202,7 +215,7 @@ export const PrescriptionTemplateList: React.FC = () => {
               }
             </p>
             {!searchQuery && canEdit && (
-              <Button onClick={() => navigate('/prescription-templates/create')}>
+              <Button onClick={() => setTemplateFormModal({ isOpen: true, mode: 'create' })}>
                 <Plus className="h-4 w-4 mr-2" />
                 Tạo Mẫu Đơn Thuốc Mới
               </Button>
@@ -306,6 +319,14 @@ export const PrescriptionTemplateList: React.FC = () => {
         confirmText="Xóa"
         confirmVariant="destructive"
         isLoading={isDeactivating}
+      />
+      
+      {/* Template Form Modal */}
+      <PrescriptionTemplateFormModal
+        isOpen={templateFormModal.isOpen}
+        onClose={() => setTemplateFormModal({ isOpen: false, mode: 'create' })}
+        mode={templateFormModal.mode}
+        templateId={templateFormModal.templateId}
       />
     </div>
   );

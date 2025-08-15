@@ -69,22 +69,14 @@ export class AuthService {
   }
   static async fetchUserProfile(): Promise<EnhancedUserInfo> {
     try {
-      console.log("[AuthService] Fetching user profile...");
       const response = await axiosInstance.get(`/user/profile`);
-      console.log("[AuthService] Profile response:", response.data);
       return response.data;
     } catch (error) {
-      console.error("[AuthService] Profile fetch error:", error);
       if (axios.isAxiosError(error)) {
         const errorMessage =
           error.response?.data?.message ||
           error.message ||
           "Không thể lấy thông tin người dùng";
-        console.error("[AuthService] Axios error details:", {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          data: error.response?.data,
-        });
         throw new Error(errorMessage);
       }
       throw new Error("Lỗi không xác định khi lấy thông tin người dùng");
@@ -203,7 +195,6 @@ axiosInstance.interceptors.request.use(
     const token =
       localStorage.getItem("token") || localStorage.getItem("authToken");
 
-    // 👇 Đảm bảo headers có thể dùng .set()
     if (config.headers && typeof config.headers.set === "function") {
       config.headers.set("ngrok-skip-browser-warning", "true");
 

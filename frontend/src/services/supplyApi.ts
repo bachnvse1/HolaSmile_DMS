@@ -68,7 +68,7 @@ export const supplyApi = {
     await axiosInstance.put(`/supplies/DeleteandUndeleteSupply/${supplyId}`);
   },
 
-  // Export Excel - POST method
+  // Export Excel 
   exportExcel: async (): Promise<Blob> => {
     const response = await axiosInstance.post(
       "/supplies/export-excel",

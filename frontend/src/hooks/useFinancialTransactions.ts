@@ -29,16 +29,16 @@ export const useFinancialTransactions = () => {
   });
 };
 
-// Get expense transactions (Chi only - for backward compatibility)
+// Get expense transactions 
 export const useExpenseTransactions = () => {
   return useQuery({
     queryKey: FINANCIAL_TRANSACTION_KEYS.expense(),
     queryFn: getExpenseTransactions,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 };
 
-// Get all pending transactions (both Thu and Chi) for approval
+// Get all pending transactions for approval
 export const usePendingTransactions = () => {
   return useQuery({
     queryKey: [...FINANCIAL_TRANSACTION_KEYS.all, 'pending'],
@@ -46,7 +46,7 @@ export const usePendingTransactions = () => {
       const allTransactions = await getFinancialTransactions();
       return allTransactions.filter(t => t.status === 'pending');
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 };
 
@@ -133,25 +133,20 @@ export const useExportFinancialTransactions = () => {
     mutationFn: exportFinancialTransactions,
     onSuccess: (blob) => {
       try {
-        // Kiểm tra nếu blob có dữ liệu
         if (!blob || blob.size === 0) {
           throw new Error('File xuất không có dữ liệu');
         }
 
-        // Create download link
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
         
-        // Tạo tên file với timestamp
         const timestamp = new Date().toISOString().split('T')[0];
         link.download = `danh sách thu chi_${timestamp}.xlsx`;
         
-        // Trigger download
         document.body.appendChild(link);
         link.click();
         
-        // Cleanup
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
       } catch (error) {

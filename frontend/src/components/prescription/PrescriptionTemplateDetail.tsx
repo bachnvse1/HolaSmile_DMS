@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { PrescriptionTemplateFormModal } from './PrescriptionTemplateFormModal';
 import { usePrescriptionTemplate, useDeactivatePrescriptionTemplate } from '@/hooks/usePrescriptionTemplates';
 import { formatDate } from '@/utils/dateUtils';
 import { useUserInfo } from '@/hooks/useUserInfo';
@@ -17,6 +18,8 @@ export const PrescriptionTemplateDetail: React.FC = () => {
     isOpen: false
   });
 
+  const [editModal, setEditModal] = useState(false);
+
    const userInfo = useUserInfo();
    const userRole = userInfo?.role || '';
    const canEdit = userRole === 'Assistant' || userRole === 'Dentist';
@@ -26,7 +29,7 @@ export const PrescriptionTemplateDetail: React.FC = () => {
   const { mutate: deactivateTemplate, isPending: isDeactivating } = useDeactivatePrescriptionTemplate();
 
   const handleEdit = () => {
-    navigate(`/prescription-templates/${templateId}/edit`);
+    setEditModal(true);
   };
 
   const handleDeactivate = () => {
@@ -201,6 +204,14 @@ export const PrescriptionTemplateDetail: React.FC = () => {
         confirmText="Xóa"
         confirmVariant="destructive"
         isLoading={isDeactivating}
+      />
+
+      {/* Template Form Modal */}
+      <PrescriptionTemplateFormModal
+        isOpen={editModal}
+        onClose={() => setEditModal(false)}
+        mode="edit"
+        templateId={templateId}
       />
     </div>
   );

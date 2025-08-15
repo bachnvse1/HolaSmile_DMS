@@ -20,6 +20,9 @@ interface ScheduleCalendarProps {
   onNextWeek?: () => void;
   canAddSchedule?: boolean;
   disablePastDates?: boolean;
+  isMultiSelectMode?: boolean;
+  showDentistInfo?: boolean;
+  viewMode?: boolean; 
 }
 
 export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
@@ -33,49 +36,42 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
   onPreviousWeek,
   onNextWeek,
   canAddSchedule = false,
+  disablePastDates = true,
+  isMultiSelectMode = false,
+  showDentistInfo = false,
+  viewMode = false
 }) => {
-  // State để theo dõi tuần hiện tại
   const [weekOffset, setWeekOffset] = useState(currentWeek);
   
-  // Lấy ngày đầu tuần
   const getStartOfWeek = (offset = 0) => {
     const now = new Date();
-    // Lấy ngày đầu tuần (Thứ Hai)
     const startDay = startOfWeek(now, { weekStartsOn: 1 });
-    // Thêm offset tuần
     return addWeeks(startDay, offset);
   };
   
-  // Tạo mảng các ngày trong tuần
   const getDaysOfWeek = (startDay: Date) => {
     return Array.from({ length: 7 }, (_, i) => addDays(startDay, i));
   };
   
-  // Ngày đầu tuần hiện tại
   const startDay = getStartOfWeek(weekOffset);
   
-  // Các ngày trong tuần
   const daysOfWeek = getDaysOfWeek(startDay);
   
-  // Xử lý khi chuyển tuần trước
   const handlePreviousWeek = () => {
     const newOffset = weekOffset - 1;
     setWeekOffset(newOffset);
     if (onPreviousWeek) onPreviousWeek();
   };
   
-  // Xử lý khi chuyển tuần sau
   const handleNextWeek = () => {
     const newOffset = weekOffset + 1;
     setWeekOffset(newOffset);
     if (onNextWeek) onNextWeek();
   };
-    // Format ngày thành chuỗi YYYY-MM-DD cho việc so sánh
   const formatDateForCompare = (date: Date) => {
     return format(date, 'yyyy-MM-dd');
   };
   
-  // Kiểm tra xem ca làm việc có được đặt trước không
   const isShiftScheduled = (date: Date, shift: ShiftType) => {
     const formattedDate = formatDateForCompare(date);
     return schedules.some(
@@ -85,7 +81,6 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
     );
   };
   
-  // Lấy trạng thái của ca làm việc
   const getShiftStatus = (date: Date, shift: ShiftType): ScheduleStatus | null => {
     const formattedDate = formatDateForCompare(date);
     const schedule = schedules.find(
@@ -94,35 +89,105 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
     return schedule ? schedule.status as ScheduleStatus : null;
   };
   
-  // Kiểm tra xem ngày và ca làm việc có được chọn không
   const isSelected = (date: Date, shift: ShiftType) => {
     const formattedDate = formatDateForCompare(date);
     return formattedDate === selectedDate && shift === selectedShift;
   };
-    // Kiểm tra xem ca này có trong danh sách đã chọn không
   const isInSelectedSlots = (date: Date, shift: ShiftType) => {
     const formattedDate = formatDateForCompare(date);
     return selectedSlots.some(slot => slot.date === formattedDate && slot.shift === shift);
   };
+  
+  const getDentistInfo = (date: Date, shift: ShiftType) => {
+    const formattedDate = formatDateForCompare(date);
+    const schedule = schedules.find(
+      (s) => s.date === formattedDate && s.shift === shift
+    );
+    return schedule ? schedule.dentistName : null;
+  };
 
-    // Render giao diện ca làm việc
   const renderShift = (date: Date, shift: ShiftType) => {
     const formattedDate = formatDateForCompare(date);
     const scheduled = isShiftScheduled(date, shift);
     const status = getShiftStatus(date, shift);
     const selected = isSelected(date, shift);
     const inSelectedSlots = isInSelectedSlots(date, shift);
-    const isPast = isPastDate(date);
+    const isPast = disablePastDates && isPastDate(date);
+    const dentistName = showDentistInfo ? getDentistInfo(date, shift) : null;
     
-    // Tìm schedule để kiểm tra isActive
+    const shiftNames = {
+      [ShiftType.Morning]: "Sáng",
+      [ShiftType.Afternoon]: "Chiều",
+      [ShiftType.Evening]: "Tối",
+    };
+
+    const shiftTimes = {
+      [ShiftType.Morning]: "8:00 - 11:00",
+      [ShiftType.Afternoon]: "14:00 - 17:00",
+      [ShiftType.Evening]: "17:00 - 20:00",
+    };
+
+    if (viewMode) {
+      let className = "flex flex-col items-center justify-center min-h-[70px] rounded-md text-sm font-medium transition-colors cursor-pointer ";
+
+      if (scheduled) {
+        if (status === ScheduleStatus.Approved) {
+          className += "bg-green-100 text-green-800 ";
+        } else if (status === ScheduleStatus.Rejected) {
+          className += "bg-red-100 text-red-800 ";  
+        } else {
+          className += "bg-yellow-100 text-yellow-800 ";
+        }
+      } else if (isPast) {
+        className += "bg-gray-100 text-gray-400 opacity-50 cursor-not-allowed ";
+      } else if (canAddSchedule) {
+        className += "bg-gray-50 text-gray-700 hover:bg-blue-50 hover:text-blue-700 ";
+      } else {
+        className += "bg-gray-50 text-gray-400 cursor-default ";
+      }
+      
+      if (selected) {
+        className += "ring-2 ring-blue-500 ";
+      }
+      
+      if (inSelectedSlots) {
+        className += "ring-2 ring-purple-500 bg-purple-50 text-purple-800 ";
+      }
+
+      return (
+        <div
+          className={className}
+          onClick={() => {
+            if (isPast && !scheduled) return;
+            
+            if (isMultiSelectMode && onSlotSelect && (canAddSchedule || scheduled)) {
+              onSlotSelect(formattedDate, shift);
+            } else if ((canAddSchedule && !scheduled) || scheduled) {
+              if (onDateSelect) {
+                onDateSelect(formattedDate, shift);
+              }
+            }
+          }}
+        >
+          <div className="text-center">
+            <div className="font-medium">{shiftNames[shift]}</div>
+            <div className="text-xs mt-0.5">{shiftTimes[shift]}</div>
+            {showDentistInfo && dentistName && (
+              <div className="text-xs mt-1 max-w-[90px] truncate" title={dentistName}>
+                {dentistName}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     const schedule = schedules.find(
       (s) => s.date === formattedDate && s.shift === shift
     );
     
-    // Chỉ hiển thị màu nếu schedule tồn tại và isActive = true
     const shouldShowStatus = scheduled && schedule;
 
-    // Xác định màu nền dựa trên trạng thái
     let bgColor = '';
     let textColor = 'text-gray-600';
     let borderColor = 'border-gray-200';
@@ -147,31 +212,16 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
       }
     }
 
-    // Nếu được chọn trong multi-select mode
     if (inSelectedSlots) {
       bgColor = 'bg-purple-100';
       textColor = 'text-purple-800';
       borderColor = 'border-purple-300';
     }
 
-    // Nếu được chọn (single select)
     if (selected) {
       borderColor = 'border-blue-500';
     }
 
-    // Tên ca làm việc
-    const shiftNames = {
-      morning: 'Sáng',
-      afternoon: 'Chiều', 
-      evening: 'Tối'
-    };
-
-    // Thời gian ca làm việc
-    const shiftTimes = {
-      morning: '8:00 - 11:00',
-      afternoon: '14:00 - 17:00',
-      evening: '17:00 - 20:00'
-    };
 
     return (
       <div
@@ -187,7 +237,9 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
         onClick={() => {
           if (isPast && !shouldShowStatus) return;
           
-          if (canAddSchedule) {
+          if (isMultiSelectMode && onSlotSelect && (canAddSchedule || scheduled)) {
+            onSlotSelect(formattedDate, shift);
+          } else if (canAddSchedule || scheduled) {
             if (onSlotSelect) {
               onSlotSelect(formattedDate, shift);
             } else if (onDateSelect) {
@@ -203,8 +255,12 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
           <div className="text-xs mt-1">
             {shiftTimes[shift]}
           </div>
+          {showDentistInfo && dentistName && (
+            <div className="text-xs mt-1 max-w-[90px] truncate" title={dentistName}>
+              {dentistName}
+            </div>
+          )}
         </div>
-
       </div>
     );
   };
@@ -217,7 +273,7 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
           variant="outline" 
           size="icon" 
           onClick={handlePreviousWeek}
-          disabled={weekOffset <= -2} // Giới hạn về quá khứ
+          disabled={disablePastDates ? weekOffset <= 0 : weekOffset <= -2}
           className="h-8 w-8"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -350,6 +406,12 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
             <div className="flex items-center">
               <span className="inline-block w-3 h-3 bg-gray-100 rounded-full mr-1"></span>
               <span>Có thể đăng ký</span>
+            </div>
+          )}
+          {isMultiSelectMode && (
+            <div className="flex items-center">
+              <span className="inline-block w-3 h-3 bg-purple-50 rounded-full mr-1 ring-1 ring-purple-500"></span>
+              <span>Đã chọn</span>
             </div>
           )}
         </div>
