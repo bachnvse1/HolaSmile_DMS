@@ -130,12 +130,12 @@ export const PrescriptionTemplateDetail: React.FC = () => {
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-gray-600">Tên Mẫu Đơn</label>
-                <p className="text-lg font-semibold text-gray-900 mt-1">
+                <p className="text-lg font-semibold text-gray-900 mt-1 break-words word-wrap overflow-wrap-anywhere">
                   {template.PreTemplateName}
                 </p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-300">
                 <div className="flex items-center text-sm text-gray-600">
                   <Calendar className="h-4 w-4 mr-2" />
                   <span>Tạo lúc: {formatDate(new Date(template.CreatedAt), 'dd/MM/yyyy HH:mm:ss')}</span>
@@ -156,7 +156,7 @@ export const PrescriptionTemplateDetail: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="bg-gray-50 rounded-lg p-6">
-              <pre className="whitespace-pre-wrap text-sm text-gray-800 font-mono leading-relaxed">
+              <pre className="whitespace-pre-wrap text-sm text-gray-800 font-mono leading-relaxed break-words word-wrap overflow-wrap-anywhere">
                 {template.PreTemplateContext}
               </pre>
             </div>

@@ -10,7 +10,7 @@ namespace Application.Usecases.Guests.AskChatBot
 {
     public class AskChatbotHandler : IRequestHandler<AskChatbotCommand, string>
     {
-        private readonly IChatBotKnowledgeRepository _chatbotrepo;
+        private readonly IChatBotKnowledgeRepository _chatbotRepo;
         private readonly IProcedureRepository _procedureRepository;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly string _apiKey;
@@ -21,7 +21,7 @@ namespace Application.Usecases.Guests.AskChatBot
             IHttpClientFactory httpClientFactory,
             IConfiguration configuration)
         {
-            _chatbotrepo = chatBotRepo;
+            _chatbotRepo = chatBotRepo;
             _procedureRepository = procedureRepository;
             _httpClientFactory = httpClientFactory;
             _apiKey = configuration["Gemini:ApiKey"];
@@ -30,21 +30,36 @@ namespace Application.Usecases.Guests.AskChatBot
 
         public async Task<string> Handle(AskChatbotCommand request, CancellationToken cancellationToken)
         {
-            var faqs = await _chatbotrepo.GetAllAsync();
+            var faqs = await _chatbotRepo.GetAllAsync();
             foreach (var faq in faqs)
             {
                 if (IsSimilar(request.UserQuestion, faq.Question) && !faq.Answer.IsNullOrEmpty())
                     return faq.Answer;
             }
+            // lấy dữ liệu phòng khám từ repo
+            var clinicData = await _chatbotRepo.GetClinicDataAsync(cancellationToken);
 
-            // --- B3: Nếu không có trong DB, gọi Gemini API ---
-            var context = "Bạn là chatbot tư vấn hệ thống phòng khám răng hàm mặt.Với vai trò là 1 lễ tân hãy trả lời ngắn gọn 2 đến 3 câu liên quan đến sản phẩm/dịch vụ của phòng khám răng hàm mặt." +
-                         "hãy đặt cho tôi câu \"Để hiểu rõ hơn bạn có thể liên hệ trực tiếp với lễ tân của bọn tôi qua chatbox hoặc số điện thoại 0111111111\" vào cuối câu";
+            var clinicDataJson = JsonSerializer.Serialize(clinicData, new JsonSerializerOptions
+            {
+                WriteIndented = false,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            var context = $@"
+                          Bạn là lễ tân của một phòng khám nha khoa tư nhân tên HolaSmile Dental.
+                         Nhiệm vụ của bạn:
+                         - Trả lời các câu hỏi của khách hàng về phòng khám, dịch vụ, lịch làm việc, bác sĩ, khuyến mãi.
+                         - Luôn trả lời đầy đủ chi tiết (>= 100 và <=500 ký tự), thân thiện, chuyên nghiệp, xưng 'em' và gọi khách 'anh/chị'.
+                         - Chỉ sử dụng thông tin từ dữ liệu sau để trả lời:
+                          {clinicDataJson}
+                          Nếu câu hỏi không liên quan, hãy lịch sự từ chối.
+                         có thể thêm vào cuối câu: 'Để hiểu rõ hơn anh/chị có thể liên hệ lễ tân qua số 0111111111.' nếu cảm thấy cần thiết";
+
             var body = new
             {
                 contents = new[]
                 {
-                    new { parts = new[] { new { text = context + "\n" + request.UserQuestion } } }
+                    new { parts = new[] { new { text = context + "\n\n" + request.UserQuestion } } }
                 }
             };
             var json = JsonSerializer.Serialize(body);
@@ -70,7 +85,7 @@ namespace Application.Usecases.Guests.AskChatBot
                     Answer = textProp.GetString() ?? string.Empty,
                     Category = "new"
                 };
-                var isCreated = await _chatbotrepo.CreateNewKnownledgeAsync(newKnowledge);
+                var isCreated = await _chatbotRepo.CreateNewKnownledgeAsync(newKnowledge);
                 if (!isCreated) throw new Exception("hệ thống có lỗi xảy ra");
                 return textProp.GetString();
             }

@@ -165,7 +165,7 @@ export const CreatePromotionModal: React.FC<CreatePromotionModalProps> = ({
         <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-6">
           {/* Program Name */}
           <div className="space-y-2">
-            <Label htmlFor="programName">Tên chương trình *</Label>
+            <Label htmlFor="programName">Tên chương trình<span className='text-red-400'>*</span></Label>
             <Input
               id="programName"
               placeholder="Nhập tên chương trình khuyến mãi..."
@@ -182,7 +182,7 @@ export const CreatePromotionModal: React.FC<CreatePromotionModalProps> = ({
           {/* Dates */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="createDate">Ngày bắt đầu *</Label>
+              <Label htmlFor="createDate">Ngày bắt đầu<span className='text-red-400'>*</span></Label>
               <div className="relative">
                 <Input
                   id="createDate"
@@ -198,7 +198,7 @@ export const CreatePromotionModal: React.FC<CreatePromotionModalProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="endDate">Ngày kết thúc *</Label>
+              <Label htmlFor="endDate">Ngày kết thúc<span className='text-red-400'>*</span></Label>
               <div className="relative">
                 <Input
                   id="endDate"
@@ -217,7 +217,7 @@ export const CreatePromotionModal: React.FC<CreatePromotionModalProps> = ({
           {/* Procedures */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label>Thủ thuật áp dụng *</Label>
+              <Label>Thủ thuật áp dụng <span className='text-red-400'>*</span></Label>
               <Button
                 type="button"
                 onClick={addProcedure}
@@ -295,30 +295,36 @@ export const CreatePromotionModal: React.FC<CreatePromotionModalProps> = ({
             <Card className="bg-blue-50 border-blue-200">
               <CardContent className="p-4">
                 <h4 className="font-medium text-blue-900 mb-3">Xem trước chương trình</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Tên chương trình:</span>
-                    <span className="font-medium">{form.watch('programName') || 'Chưa nhập'}</span>
+                <div className="space-y-3 text-sm">
+                  <div className="space-y-1">
+                    <span className="text-gray-700">Tên chương trình:</span>
+                    <div className="font-medium break-words word-wrap overflow-wrap-anywhere bg-white p-2 rounded-md border border-gray-300">
+                      {form.watch('programName') || 'Chưa nhập'}
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Thời gian:</span>
-                    <span className="font-medium">
+                  <div className="space-y-1">
+                    <span className="text-gray-700">Thời gian:</span>
+                    <div className="font-medium break-words word-wrap overflow-wrap-anywhere bg-white p-2 rounded-md border border-gray-300">
                       {form.watch('createDate')} đến {form.watch('endDate')}
-                    </span>
+                    </div>
                   </div>
-                  <div>
-                    <span>Thủ thuật áp dụng:</span>
-                    <div className="mt-1 space-y-1">
+                  <div className="space-y-2">
+                    <span className="text-gray-700">Thủ thuật áp dụng:</span>
+                    <div className="space-y-2">
                       {form.watch('procedures')
                         .filter(p => p.procedureId > 0 && p.discountAmount)
                         .map((proc, index) => {
                           const procedure = procedures.find((p: Procedure) => p.procedureId === proc.procedureId);
                           return (
-                            <div key={index} className="flex justify-between bg-white p-2 rounded">
-                              <span>{procedure?.procedureName}</span>
-                              <span className="font-medium text-blue-600">
-                                Giảm {proc.discountAmount}%
-                              </span>
+                            <div key={index} className="bg-white p-3 rounded-md border border-gray-300">
+                              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                                <span className="break-words word-wrap overflow-wrap-anywhere text-gray-900">
+                                  {procedure?.procedureName}
+                                </span>
+                                <span className="font-medium text-blue-600 flex-shrink-0 text-right">
+                                  Giảm {proc.discountAmount}%
+                                </span>
+                              </div>
                             </div>
                           );
                         })}

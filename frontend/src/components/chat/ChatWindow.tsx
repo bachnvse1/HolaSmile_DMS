@@ -18,6 +18,19 @@ const isMobile = () => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 };
 
+const getRoleInVietnamese = (role: string): string => {
+  const roleMap: { [key: string]: string } = {
+    'Dentist': 'Nha sĩ',
+    'Owner': 'Chủ sở hữu',
+    'Administrator': 'Quản trị viên',
+    'Assistant': 'Trợ lý',
+    'Receptionist': 'Lễ tân',
+    'Patient': 'Bệnh nhân'
+  };
+  
+  return roleMap[role] || role;
+};
+
 // 🔥 SỬA LẠI HÀM UPLOAD MEDIA
 const uploadMedia = async (file: File): Promise<string> => {
   const formData = new FormData();
@@ -505,7 +518,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             <div>
               <h2 className="font-semibold text-gray-900">{conversation.fullName}</h2>
               <div className="flex items-center gap-2 text-sm text-gray-500">
-                <span className="capitalize">{conversation.role}</span>
+                <span className="capitalize">{getRoleInVietnamese(conversation.role)}</span>
                 {conversation.phone && (
                   <>
                     <span>•</span>

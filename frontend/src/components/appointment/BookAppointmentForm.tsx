@@ -28,17 +28,14 @@ export const BookAppointmentForm = () => {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string>('');
 
-  // React Hook Form
   const form = useForm<AppointmentFormData>({
     resolver: zodResolver(appointmentFormSchema),
     mode: 'onChange'
   });
 
-  // React Query hooks
   const { dentists, isLoading: dentistsLoading, error: dentistsError } = useDentistSchedule();
   const bookAppointmentMutation = useGuestBookAppointment();
 
-  // Tạo time slots với icon cho hiển thị
   const timeSlotsWithIcons: TimeSlot[] = TIME_SLOTS.map(slot => ({
     ...slot,
     icon: <Clock className="h-4 w-4" />
@@ -86,14 +83,13 @@ export const BookAppointmentForm = () => {
   };
 
   const handleScheduleConfirm = () => {
-    setCurrentStep(3); // Go to captcha step
+    setCurrentStep(3); 
   };
 
   const onFinalSubmit = async (captchaInput: string, captchaValue: string) => {
     if (!step1Data || !selectedDentist || !selectedDate || !selectedTimeSlot) return;
     setError(null);
 
-    // Tạo appointmentDate với đúng format
     const appointmentDate = new Date(selectedDate);
 
     // Set time based on shift
@@ -105,7 +101,7 @@ export const BookAppointmentForm = () => {
       appointmentDate.setHours(17, 0, 0, 0);
     }
 
-    // Payload theo format backend - PascalCase field names với captcha
+    // Payload 
     const payload = {
       FullName: step1Data.fullName.trim(),
       Email: step1Data.email.trim(),

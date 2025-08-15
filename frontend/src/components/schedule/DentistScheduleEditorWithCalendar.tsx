@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useCreateSchedule, useEditSchedule, useDentistSchedule, useDeleteSchedule } from '../../hooks/useSchedule';
 import type { Schedule } from '../../types/schedule';
 import { ScheduleStatus, ShiftType } from '../../types/schedule';
@@ -18,6 +18,7 @@ import { toast } from 'react-toastify';
 import { Badge } from '@/components/ui/badge';
 import { ScheduleCalendar } from './ScheduleCalendar';
 import { getErrorMessage } from '@/utils/formatUtils';
+import { Pagination } from '@/components/ui/Pagination';
 
 interface DentistScheduleEditorWithCalendarProps {
   dentistId?: number;
@@ -36,14 +37,35 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
   const [activeView, setActiveView] = useState<'list' | 'calendar'>('calendar');
   const [selectedSlots, setSelectedSlots] = useState<Array<{ date: string, shift: ShiftType }>>([]);
   const [isBulkCreateDialogOpen, setIsBulkCreateDialogOpen] = useState(false);
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   // Queries and mutations
   const { data, isLoading, error, refetch } = useDentistSchedule(dentistId);
   const createScheduleMutation = useCreateSchedule();
   const editScheduleMutation = useEditSchedule();
   const deleteMutation = useDeleteSchedule();
 
-  // Schedules data
-  const schedules = data?.data || [];
+  // Sort schedules by createdAt (newest first) and pagination
+  const sortedSchedules = useMemo(() => {
+    const schedules = data?.data || [];
+    return [...schedules].sort((a: Schedule, b: Schedule) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return dateB - dateA; 
+    });
+  }, [data?.data]);
+
+  // Pagination
+  const totalPages = Math.ceil(sortedSchedules.length / itemsPerPage);
+  const paginatedSchedules = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return sortedSchedules.slice(startIndex, endIndex);
+  }, [sortedSchedules, currentPage, itemsPerPage]);
+
+  const schedules = sortedSchedules;
 
   // Handlers
   // const handleAddSchedule = () => {
@@ -63,7 +85,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
     setIsDialogOpen(true);
   };
 
-  // Xử lý xóa mềm lịch (set isActive = 0)
+
   const handleSoftDeleteSchedule = (schedule: Schedule) => {
     if (!schedule.scheduleId) return;
     setScheduleToDelete(schedule);
@@ -71,15 +93,12 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
   };
 
   const handleCalendarDateSelect = (date: string, shift: ShiftType) => {
-    // Kiểm tra xem có phải lịch hiện tại không
     const schedule: Schedule | undefined = schedules.find((s: Schedule) => s.date === date && s.shift === shift);
 
     if (schedule) {
-      // Nếu lịch có status pending và isActive = true, thực hiện xóa mềm
       if (schedule.status === ScheduleStatus.Pending && schedule.isActive) {
         handleSoftDeleteSchedule(schedule);
       }
-      // Nếu là lịch rejected, xử lý như chưa có lịch (cho phép tạo mới) 
       else if (schedule.status === ScheduleStatus.Rejected) {
         setIsEditMode(false);
         setSelectedDate(date);
@@ -87,11 +106,9 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
         setNote('');
         setIsDialogOpen(true);
       } else {
-        // Nếu là lịch khác (approved/rejected hoặc đã bị xóa mềm), mở dialog chỉnh sửa
         handleEditSchedule(schedule);
       }
     } else {
-      // Nếu chưa có lịch, mở dialog thêm mới
       setIsEditMode(false);
       setSelectedDate(date);
       setSelectedShift(shift);
@@ -102,15 +119,13 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
 
   // Xử lý khi chọn nhiều ca làm việc
   const handleCalendarSlotSelect = (date: string, shift: ShiftType) => {
-    // Kiểm tra xem có phải lịch hiện tại không
     const existingSchedule = schedules.find(s => s.date === date && s.shift === shift);
 
     if (existingSchedule) {
-      // Nếu lịch có status pending và isActive = true, thực hiện xóa mềm
+
       if (existingSchedule.status === ScheduleStatus.Pending && existingSchedule.isActive) {
         handleSoftDeleteSchedule(existingSchedule);
       } else if (existingSchedule.status === ScheduleStatus.Rejected) {
-        // Cho phép chọn/bỏ chọn slot như chưa có lịch
         const isAlreadySelected = selectedSlots.some(
           slot => slot.date === date && slot.shift === shift
         );
@@ -123,18 +138,15 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
         }
       }
     } else {
-      // Nếu chưa có lịch, thêm vào danh sách đã chọn
       const isAlreadySelected = selectedSlots.some(
         slot => slot.date === date && slot.shift === shift
       );
 
       if (isAlreadySelected) {
-        // Nếu đã chọn, bỏ chọn
         setSelectedSlots(selectedSlots.filter(
           slot => !(slot.date === date && slot.shift === shift)
         ));
       } else {
-        // Nếu chưa chọn, thêm vào danh sách
         setSelectedSlots([...selectedSlots, { date, shift }]);
       }
     }
@@ -189,7 +201,6 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
         toast.success('Thêm lịch làm việc thành công!');
       }
 
-      // Đóng dialog
       setIsDialogOpen(false);
 
       // Cập nhật lại dữ liệu
@@ -205,7 +216,6 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
       return;
     }
 
-    // Prevent multiple submissions
     if (createScheduleMutation.isPending) {
       return;
     }
@@ -225,12 +235,10 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
 
       toast.success(`Đã tạo ${selectedSlots.length} lịch làm việc thành công!`);
 
-      // Reset trạng thái
       setSelectedSlots([]);
       setIsBulkCreateDialogOpen(false);
       setNote('');
 
-      // Cập nhật lại dữ liệu
       await refetch();
     } catch (error) {
       toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi tạo lịch!');
@@ -296,67 +304,81 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
     };
 
     return (
-      <div className="overflow-x-auto rounded-md border">
-        <table className="w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Ngày
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Ca làm việc
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Trạng thái
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Ghi chú
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Thao tác
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {schedules.map((schedule: Schedule) => (
-              <tr key={schedule.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{formatDateWithDay(schedule.date)}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{shiftTypeToText(schedule.shift as ShiftType)}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {renderStatusBadge(schedule.status as ScheduleStatus)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{schedule.note || '—'}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex space-x-2">
-                    {schedule.status !== ScheduleStatus.Approved && (
-                      <>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleSoftDeleteSchedule(schedule)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <Trash className="h-4 w-4 mr-1" />
-                          Hủy
-                        </Button>
-                      </>
-                    )}
-
-                    {schedule.status === ScheduleStatus.Approved && (
-                      <span className="text-xs text-gray-500 italic">Đã được duyệt</span>
-                    )}
-                  </div>
-                </td>
+      <div className="space-y-4">
+        <div className="overflow-x-auto rounded-md border border-gray-300">
+          <table className="w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ngày
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ca làm việc
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Trạng thái
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ghi chú
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Thao tác
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {paginatedSchedules.map((schedule: Schedule) => (
+                <tr key={schedule.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{formatDateWithDay(schedule.date)}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{shiftTypeToText(schedule.shift as ShiftType)}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {renderStatusBadge(schedule.status as ScheduleStatus)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-500">{schedule.note || '—'}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex space-x-2">
+                      {schedule.status !== ScheduleStatus.Approved && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleSoftDeleteSchedule(schedule)}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            <Trash className="h-4 w-4 mr-1" />
+                            Hủy
+                          </Button>
+                        </>
+                      )}
+
+                      {schedule.status === ScheduleStatus.Approved && (
+                        <span className="text-xs text-gray-500 italic">Đã được duyệt</span>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={sortedSchedules.length}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={setItemsPerPage}
+          />
+        )}
       </div>
     );
   };

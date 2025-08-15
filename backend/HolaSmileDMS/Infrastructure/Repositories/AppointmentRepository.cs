@@ -58,7 +58,8 @@ namespace HDMS_API.Infrastructure.Repositories
                 IsExistPrescription = prescription != null,
                 IsExistInstruction = instruction != null,
                 PrescriptionId = prescription?.PrescriptionId,
-                InstructionId = instruction?.InstructionID
+                InstructionId = instruction?.InstructionID,
+                CancelReason = appointment.CancelReason
             };
             return result;
         }

@@ -51,8 +51,8 @@ namespace Application.Usecases.Receptionist.ViewFinancialTransactions
             {
                 worksheet.Cells[row, 1].Value = s.TransactionType ? "thu" : "chi";
                 worksheet.Cells[row, 2].Value = s.Category;
-                worksheet.Cells[row, 3].Value = s.Description;
-                worksheet.Cells[row, 4].Value = s.Amount;
+                worksheet.Cells[row, 3].Value = s.Amount;
+                worksheet.Cells[row, 4].Value = s.Description;
                 worksheet.Cells[row, 5].Value = s.PaymentMethod ? "chuyển khoản" : "tiền mặt";
                 worksheet.Cells[row, 6].Value = s.TransactionDate?.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
                 row++;

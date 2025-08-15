@@ -55,7 +55,6 @@ export const PrescriptionModal: React.FC<PrescriptionModalProps> = ({
   const selectedTemplateId = watch('templateId');
   const isEditing = !!existingPrescription;
 
-  // Set initial values when prescription data loads
   useEffect(() => {
     if (existingPrescription) {
       reset({
@@ -65,7 +64,6 @@ export const PrescriptionModal: React.FC<PrescriptionModalProps> = ({
     }
   }, [existingPrescription, reset]);
 
-  // Handle template selection
   const handleTemplateSelect = (templateId: string) => {
     setValue('templateId', templateId);
     const selectedTemplate = templates.find(t => t.PreTemplateID.toString() === templateId);
@@ -74,7 +72,6 @@ export const PrescriptionModal: React.FC<PrescriptionModalProps> = ({
     }
   };
 
-  // Handle form submission
   const onSubmit = async (data: PrescriptionFormData) => {
     try {
       let success = false;
@@ -96,11 +93,10 @@ export const PrescriptionModal: React.FC<PrescriptionModalProps> = ({
       }
       
       if (success) {
-        // Small delay to allow toast to be visible before refreshing data
         setTimeout(() => {
           onSuccess?.();
           onClose();
-        }, 500); // 800ms delay for better user experience
+        }, 500); 
       }
       
     } catch (error) {
@@ -115,7 +111,6 @@ export const PrescriptionModal: React.FC<PrescriptionModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50">
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-opacity-75"
         onClick={onClose}
