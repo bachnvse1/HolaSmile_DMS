@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { SupplyFormModal } from './SupplyFormModal';
 import { useSupply, useDeactivateSupply } from '@/hooks/useSupplies';
 import { useUserInfo } from '@/hooks/useUserInfo';
 import { formatCurrency } from '@/utils/currencyUtils';
@@ -30,8 +31,10 @@ export const SupplyDetail: React.FC = () => {
     action: 'delete'
   });
 
+  const [editModal, setEditModal] = useState(false);
+
   const handleEdit = () => {
-    navigate(`/inventory/${supplyId}/edit`);
+    setEditModal(true);
   };
 
   const handleDeactivate = async () => {
@@ -370,6 +373,14 @@ export const SupplyDetail: React.FC = () => {
         confirmText={confirmModal.action === 'delete' ? 'Xóa' : 'Khôi phục'}
         confirmVariant={confirmModal.action === 'delete' ? 'destructive' : 'default'}
         isLoading={isDeactivating}
+      />
+
+      {/* Supply Form Modal */}
+      <SupplyFormModal
+        isOpen={editModal}
+        onClose={() => setEditModal(false)}
+        mode="edit"
+        supplyId={Number(supplyId)}
       />
     </div>
   );

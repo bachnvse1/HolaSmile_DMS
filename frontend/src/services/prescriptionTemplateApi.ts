@@ -22,7 +22,7 @@ export const prescriptionTemplateApi = {
       PreTemplateName: item.preTemplateName,
       PreTemplateContext: item.preTemplateContext,
       CreatedAt: item.createdAt,
-      UpdatedAt: item.updatedAt, // Use createdAt as UpdatedAt for now
+      UpdatedAt: item.updatedAt, 
       IsDeleted: false,
     }));
   },

@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { ScheduleCalendarEnhanced } from './ScheduleCalendarEnhanced';
+import { ScheduleCalendar } from './ScheduleCalendar';
 import { Pagination } from '@/components/ui/Pagination';
 
 interface ScheduleListProps {
@@ -330,11 +330,11 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
         // Content - Calendar or List view
         <div>
           {activeView === 'calendar' ? (
-            <ScheduleCalendarEnhanced
+            <ScheduleCalendar
               schedules={filteredAndSortedSchedules}
               showDentistInfo={!dentistId}
               disablePastDates={false}
-
+              viewMode={true}
             />
           ) : (
             renderScheduleList()

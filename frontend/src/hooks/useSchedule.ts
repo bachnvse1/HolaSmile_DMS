@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "../lib/axios";
-
-// Define types for the hooks
+import { useAuth } from "@/hooks/useAuth";
 type ScheduleInput = {
   date: string;
   shift: string;
@@ -14,7 +13,6 @@ type ApiScheduleInput = {
   regisSchedules: Array<{ workDate: string; shift: string }>;
 };
 
-// Types for API response
 type ApiScheduleItem = {
   scheduleId: number;
   dentistName?: string;
@@ -24,7 +22,7 @@ type ApiScheduleItem = {
   createdAt: string;
   updatedAt: string;
   note?: string;
-  isActive?: boolean; // Thêm field isActive từ API
+  isActive?: boolean;
 };
 
 type ApiDentistData = {
@@ -42,12 +40,12 @@ const shiftHourMap: Record<string, string> = {
 
 // Hook để lấy lịch làm việc của tất cả bác sĩ
 export const useAllDentistSchedules = () => {
+  const user = useAuth()
   return useQuery({
-    queryKey: ["schedules", "all"],
+    queryKey: ["schedules", "all", user],
     queryFn: async () => {
       const response = await axiosInstance.get("/schedule/dentist/list");
 
-      // Transform dữ liệu từ API format sang component format
       if (
         response.data &&
         response.data.data &&
@@ -61,14 +59,14 @@ export const useAllDentistSchedules = () => {
               scheduleId: schedule.scheduleId,
               dentistId: dentist.dentistID,
               dentistName: dentist.dentistName,
-              date: schedule.workDate.split("T")[0], // Chuyển từ ISO string sang YYYY-MM-DD
+              date: schedule.workDate.split("T")[0], 
               workDate: schedule.workDate,
               shift: schedule.shift,
               status: schedule.status,
               note: schedule.note || "",
               createdAt: schedule.createdAt,
               updatedAt: schedule.updatedAt,
-              isActive: true, // Luôn hiển thị để user thấy trạng thái
+              isActive: true, 
             }))
           ),
         };
@@ -77,10 +75,11 @@ export const useAllDentistSchedules = () => {
 
       return response.data;
     },
-    staleTime: 5 * 60 * 1000, // 5 phút
-    gcTime: 10 * 60 * 1000, // 10 phút
-    refetchOnWindowFocus: false, // Không refetch khi focus window
-    refetchOnMount: false, // Không refetch khi mount lại nếu data vẫn fresh
+    enabled: !!user, 
+    staleTime: 5 * 60 * 1000,      
+    gcTime: 10 * 60 * 1000,  
+    refetchOnWindowFocus: true, 
+    refetchOnMount: false, 
   });
 };
 
@@ -94,7 +93,6 @@ export const useDentistSchedule = (dentistId?: number) => {
         `/schedule/dentist/${dentistId}`
       );
 
-      // Transform dữ liệu từ API format sang component format
       if (response.data && Array.isArray(response.data)) {
         const transformedData = {
           data: response.data.flatMap((dentist: any) =>
@@ -103,14 +101,14 @@ export const useDentistSchedule = (dentistId?: number) => {
               scheduleId: schedule.scheduleId,
               dentistId: dentist.dentistID,
               dentistName: dentist.dentistName,
-              date: schedule.workDate.split("T")[0], // Chuyển từ ISO string sang YYYY-MM-DD
+              date: schedule.workDate.split("T")[0], 
               workDate: schedule.workDate,
               shift: schedule.shift,
               status: schedule.status,
               note: schedule.note || "",
               createdAt: schedule.createdAt,
               updatedAt: schedule.updatedAt,
-              isActive: true, // Luôn hiển thị để user thấy trạng thái
+              isActive: true, 
             }))
           ),
         };
@@ -119,9 +117,9 @@ export const useDentistSchedule = (dentistId?: number) => {
 
       return { data: [] };
     },
-    enabled: !!dentistId, // Chỉ gọi API khi có dentistId
-    staleTime: 0, // Luôn fetch dữ liệu mới
-    gcTime: 0, // Không cache dữ liệu
+    enabled: !!dentistId, 
+    staleTime: 0, 
+    gcTime: 0,
   });
 };
 
@@ -133,10 +131,8 @@ export const useCreateSchedule = () => {
     mutationFn: async (
       scheduleData: ScheduleInput | ScheduleInput[] | ApiScheduleInput
     ) => {
-      // Transform data to match API format
       let apiData;
       if (Array.isArray(scheduleData)) {
-        // If array of schedules
         apiData = {
           regisSchedules: scheduleData.map((schedule) => ({
             workDate: `${schedule.date}T${
@@ -146,10 +142,8 @@ export const useCreateSchedule = () => {
           })),
         };
       } else if ("regisSchedules" in scheduleData) {
-        // If already in correct format
         apiData = scheduleData;
       } else {
-        // If single schedule object
         apiData = {
           regisSchedules: [
             {
@@ -168,15 +162,11 @@ export const useCreateSchedule = () => {
       );
       return response.data;
     },
-    onSuccess: (data) => {
-      console.log("Tạo lịch thành công:", data);
-
-      // Invalidate và refetch các queries liên quan khi thành công
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["schedules"] });
       queryClient.refetchQueries({ queryKey: ["schedules"] });
     },
     onError: (error: unknown) => {
-      console.error("Lỗi khi tạo lịch:", error);
       console.error(
         "Chi tiết lỗi:",
         (error as { response?: { data?: unknown } }).response?.data
@@ -195,7 +185,6 @@ export const useEditSchedule = () => {
       workDate: string;
       shift: string;
     }) => {
-      // Format data theo yêu cầu API
       const apiData = {
         scheduleId: scheduleData.scheduleId,
         workDate: new Date(scheduleData.workDate).toISOString(),
@@ -208,13 +197,11 @@ export const useEditSchedule = () => {
       );
       return response.data;
     },
-    onSuccess: (data) => {
-      console.log("Cập nhật lịch thành công:", data);
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["schedules"] });
       queryClient.refetchQueries({ queryKey: ["schedules"] });
     },
     onError: (error: unknown) => {
-      console.error("Lỗi khi cập nhật lịch:", error);
       console.error(
         "Chi tiết lỗi:",
         (error as { response?: { data?: unknown } }).response?.data
@@ -238,14 +225,11 @@ export const useApproveSchedules = () => {
       );
       return response.data;
     },
-    retry: false, // Không retry để tránh gọi nhiều lần
-    onSuccess: (data) => {
-      console.log("Phê duyệt lịch thành công:", data);
-      // Chỉ invalidate một lần thôi, không cần refetch thêm
+    retry: false, 
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["schedules"] });
     },
     onError: (error: unknown) => {
-      console.error("Lỗi khi phê duyệt lịch:", error);
       console.error(
         "Chi tiết lỗi:",
         (error as { response?: { data?: unknown } }).response?.data
@@ -262,13 +246,10 @@ export const useBulkCreateSchedules = () => {
     mutationFn: async (
       schedulesData: ScheduleInput | ScheduleInput[] | ApiScheduleInput
     ) => {
-      // Transform data to match API format
       let apiData;
       if ("regisSchedules" in schedulesData) {
-        // If already in correct format
         apiData = schedulesData;
       } else if (Array.isArray(schedulesData)) {
-        // If array of schedules
         apiData = {
           regisSchedules: schedulesData.map((schedule) => ({
             workDate: `${schedule.date}T${
@@ -278,7 +259,6 @@ export const useBulkCreateSchedules = () => {
           })),
         };
       } else {
-        // Single schedule
         apiData = {
           regisSchedules: [
             {
@@ -297,14 +277,11 @@ export const useBulkCreateSchedules = () => {
       );
       return response.data;
     },
-    onSuccess: (data) => {
-      console.log("Tạo nhiều lịch thành công:", data);
-      // Invalidate và refetch các queries liên quan khi thành công
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["schedules"] });
       queryClient.refetchQueries({ queryKey: ["schedules"] });
     },
     onError: (error: unknown) => {
-      console.error("Lỗi khi tạo nhiều lịch:", error);
       console.error(
         "Chi tiết lỗi:",
         (error as { response?: { data?: unknown } }).response?.data
@@ -324,13 +301,11 @@ export const useDeleteSchedule = () => {
       });
       return response.data;
     },
-    onSuccess: (data) => {
-      console.log("Xóa lịch thành công:", data);
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["schedules"] });
       queryClient.refetchQueries({ queryKey: ["schedules"] });
     },
     onError: (error: unknown) => {
-      console.error("Lỗi khi xóa lịch:", error);
       console.error(
         "Chi tiết lỗi:",
         (error as { response?: { data?: unknown } }).response?.data

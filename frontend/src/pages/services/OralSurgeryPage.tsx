@@ -104,7 +104,7 @@ export const OralSurgeryPage = () => {
         </div>
       </section>
 
-      {/* Các thủ thuật */}
+      {/* Procedures section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -141,7 +141,7 @@ export const OralSurgeryPage = () => {
         </div>
       </section>
 
-      {/* Biện pháp thoải mái */}
+      {/* Comfortable measures section */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -171,7 +171,7 @@ export const OralSurgeryPage = () => {
         </div>
       </section>
 
-      {/* Hướng dẫn hồi phục & cảnh báo */}
+      {/* Caution section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -217,7 +217,7 @@ export const OralSurgeryPage = () => {
                   Nếu gặp bất kỳ triệu chứng nào đáng lo ngại, hãy liên hệ với chúng tôi ngay lập tức.
                 </p>
                 <button className="bg-red-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors">
-                  (555) 123-4567
+                  +84 (09) 41-120-015
                 </button>
               </div>
             </div>
@@ -225,7 +225,7 @@ export const OralSurgeryPage = () => {
         </div>
       </section>
 
-      {/* Công nghệ hiện đại */}
+      {/* Technologies section */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -266,7 +266,7 @@ export const OralSurgeryPage = () => {
         </div>
       </section>
 
-      {/* Kêu gọi hành động */}
+      {/* Action section */}
       <section className="py-20 bg-blue-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">

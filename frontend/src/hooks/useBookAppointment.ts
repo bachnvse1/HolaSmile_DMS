@@ -8,8 +8,8 @@ export interface CreateAppointmentRequest {
   FullName: string;
   Email: string;
   PhoneNumber: string;
-  AppointmentDate: string; // Date string format: "2025-06-20"
-  AppointmentTime: string; // TimeSpan format: "08:00:00"
+  AppointmentDate: string; 
+  AppointmentTime: string; 
   MedicalIssue: string;
   DentistId: number;
   CaptchaValue: string;
@@ -21,8 +21,8 @@ export interface GuestBookAppointmentRequest {
   FullName: string;
   Email: string;
   PhoneNumber: string;
-  AppointmentDate: string; // ISO string
-  AppointmentTime: string; // HH:mm:ss format
+  AppointmentDate: string; 
+  AppointmentTime: string; 
   MedicalIssue: string;
   DentistId: number;
   CaptchaValue: string;
@@ -36,7 +36,7 @@ export interface BookAppointmentResponse {
   patientId?: number;
 }
 
-// Original hook for authenticated users
+// Hook for authenticated users
 export const useBookAppointment = () => {
   return useMutation<BookAppointmentResponse, Error, CreateAppointmentRequest>({
     mutationFn: async (data: CreateAppointmentRequest) => {
@@ -53,7 +53,7 @@ export const useBookAppointment = () => {
   });
 };
 
-// New hook for Guest booking with captcha
+// Hook for Guest booking with captcha
 export const useGuestBookAppointment = () => {
   return useMutation<BookAppointmentResponse, Error, GuestBookAppointmentRequest>({
     mutationFn: async (requestData: GuestBookAppointmentRequest) => {

@@ -11,20 +11,16 @@ export const usePatientImages = (params: GetPatientImagesParams) => {
       try {
         const response = await patientImageService.getPatientImages(params);
         
-        // If response is already an array, return it directly
         if (Array.isArray(response)) {
           return response;
         }
         
-        // If response has data property, return that
         if (response && typeof response === 'object' && 'data' in response) {
           return response.data;
         }
         
-        // Fallback
         return response;
       } catch (error: unknown) {
-        // Return empty data for 404 instead of throwing
         const err = error as { response?: { status: number }; message?: string };
         if (err?.response?.status === 404 || err?.message?.includes('404')) {
           return [];
@@ -33,14 +29,6 @@ export const usePatientImages = (params: GetPatientImagesParams) => {
       }
     },
     enabled: !!(params.patientId || params.treatmentRecordId || params.orthodonticTreatmentPlanId),
-    retry: (failureCount, error: unknown) => {
-      // Don't retry on 404 errors
-      const err = error as { response?: { status: number }; message?: string };
-      if (err?.response?.status === 404 || err?.message?.includes('404') || err?.message?.includes('Not Found')) {
-        return false;
-      }
-      return failureCount < 2;
-    },
     refetchOnWindowFocus: false,
     staleTime: 1 * 60 * 1000, 
   });

@@ -3,10 +3,7 @@ import { useDentistSchedules } from './useDentistSchedules';
 import { mapBackendScheduleToFrontend } from '../utils/schedule';
 import type { Dentist } from '../types/appointment';
 
-/**
- * Hook tùy chỉnh để lấy và chuyển đổi dữ liệu lịch bác sĩ
- * Cung cấp dữ liệu đã được chuyển đổi phù hợp cho component lịch
- */
+
 export const useDentistSchedule = (): {
   dentists: Dentist[];
   isLoading: boolean;

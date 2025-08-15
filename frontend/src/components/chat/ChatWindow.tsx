@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useRef, useState, useMemo } from 'react';
-import { Send, MoreVertical, Phone, Video, Info, Paperclip, MessageCircle, Check, CheckCheck, Search, ArrowLeft, Image, Video as VideoIcon, Camera } from 'lucide-react';
+import { Send, MoreVertical, Phone, Video, Info, Paperclip, MessageCircle, Check, CheckCheck, Search, ArrowLeft, Image, Video as VideoIcon, Camera, ChevronUp, ChevronDown, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useChatHub } from '@/components/chat/ChatHubProvider';
 import { useUnreadMessages } from '@/hooks/chat/useUnreadMessages';
@@ -13,7 +13,6 @@ interface ChatWindowProps {
   onMarkAsRead?: (senderId: string, receiverId: string) => void;
 }
 
-// 🔥 THÊM HÀM DETECT MOBILE
 const isMobile = () => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 };
@@ -31,7 +30,6 @@ const getRoleInVietnamese = (role: string): string => {
   return roleMap[role] || role;
 };
 
-// 🔥 SỬA LẠI HÀM UPLOAD MEDIA
 const uploadMedia = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append('file', file);
@@ -56,12 +54,15 @@ const uploadMedia = async (file: File): Promise<string> => {
 const MessageItem = memo(({
   message,
   isMine,
-  conversationUser
+  messageIndex,
+  searchQuery
 }: {
   message: ChatMessage;
   isMine: boolean;
   showAvatar?: boolean;
   conversationUser?: ConversationUser | null;
+  messageIndex?: number;
+  searchQuery?: string;
 }) => {
   const formatTime = useCallback((timestamp?: string) => {
     if (!timestamp) return '';
@@ -72,7 +73,27 @@ const MessageItem = memo(({
     });
   }, []);
 
-  // 🔥 RENDER MESSAGE CONTENT WITH IMAGE/VIDEO SUPPORT
+  const highlightSearchText = useCallback((text: string, search: string) => {
+    if (!search || !text) return text;
+    
+    const regex = new RegExp(`(${search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.split(regex);
+    
+    return parts.map((part, index) => {
+      if (regex.test(part)) {
+        return (
+          <span 
+            key={index} 
+            className="bg-yellow-300 text-yellow-900 font-semibold rounded"
+          >
+            {part}
+          </span>
+        );
+      }
+      return part;
+    });
+  }, []);
+
   const renderMessageContent = useCallback(() => {
     // Kiểm tra nếu message là URL của ảnh/video
     const isImageUrl = /\.(jpg|jpeg|png|gif|webp|bmp)(\?|$)/i.test(message.message) || 
@@ -127,12 +148,18 @@ const MessageItem = memo(({
       );
     }
     
-    // Tin nhắn text thông thường
-    return <p className="whitespace-pre-wrap break-words">{message.message}</p>;
-  }, [message.message, isMine]);
+    const messageText = searchQuery && searchQuery.trim() 
+      ? highlightSearchText(message.message, searchQuery)
+      : message.message;
+      
+    return <p className="whitespace-pre-wrap break-words">{messageText}</p>;
+  }, [message.message, isMine, searchQuery, highlightSearchText]);
 
   return (
-    <div className={`flex gap-2 mb-3 ${isMine ? 'justify-end' : 'justify-start'}`}>
+    <div 
+      className={`flex gap-2 mb-3 ${isMine ? 'justify-end' : 'justify-start'}`}
+      data-message-index={messageIndex}
+    >
       <div className={`max-w-[70%] ${isMine ? 'order-last' : ''}`}>
         <div
           className={`
@@ -215,7 +242,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 }) => {
   const { userId } = useAuth();
   
-  // 🔥 SỬ DỤNG HOOKS CÓ SẴN
   const { markAsRead } = useUnreadMessages(userId);
   const {
     messages: realtimeMessages,
@@ -232,19 +258,29 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
   const [lastMessageCount, setLastMessageCount] = useState(0);
   
-  // 🔥 THÊM STATES CHO FILE UPLOAD
   const [isUploading, setIsUploading] = useState(false);
+  
+  const [showSearchBar, setShowSearchBar] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<number[]>([]);
+  const [currentSearchIndex, setCurrentSearchIndex] = useState(-1);
+  const [hasSearched, setHasSearched] = useState(false); // Track if user has actually searched
+  const [searchMode, setSearchMode] = useState(false); // Track if in search mode
+  const [searchAnchorIndex, setSearchAnchorIndex] = useState(-1); // Index of current search result in allMessages
+  const [searchDisplayRange, setSearchDisplayRange] = useState({ start: 0, end: 0 }); // Range to display in search mode
+  const [isLoadingContext, setIsLoadingContext] = useState(false); // Track if loading more context in search mode
+  const searchInputRef = useRef<HTMLInputElement>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isScrollingRef = useRef(false); 
   const MESSAGES_PER_PAGE = 15;
 
   // Mark messages as read when conversation is opened or changed
   useEffect(() => {
     if (conversation && userId) {
-      // 🔥 GỌI API MARK AS READ USING useUnreadMessages
       markAsRead(conversation.userId, userId);
       
       // Gọi callback nếu có
@@ -324,12 +360,16 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     );
   }, [history, realtimeMessages, conversation?.userId, userId]);
 
-  // Paginate messages - show only recent messages initially
+  // Paginate messages - show only recent messages initially OR search range
   const displayedMessages = useMemo(() => {
-    const messagesCount = allMessages.length;
-    const startIndex = Math.max(0, messagesCount - MESSAGES_PER_PAGE * (historyPage + 1));
-    return allMessages.slice(startIndex);
-  }, [allMessages, historyPage, MESSAGES_PER_PAGE]);
+    if (searchMode && searchDisplayRange.start >= 0 && searchDisplayRange.end >= 0) {
+      return allMessages.slice(searchDisplayRange.start, searchDisplayRange.end + 1);
+    } else {
+      const messagesCount = allMessages.length;
+      const startIndex = Math.max(0, messagesCount - MESSAGES_PER_PAGE * (historyPage + 1));
+      return allMessages.slice(startIndex);
+    }
+  }, [allMessages, historyPage, MESSAGES_PER_PAGE, searchMode, searchDisplayRange]);
 
   // Group displayed messages by date
   const groupedMessages = useMemo(() => {
@@ -370,6 +410,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
   // Auto scroll khi có tin nhắn mới hoặc khi cần thiết
   useEffect(() => {
+    if (searchMode) {
+      setShouldScrollToBottom(false);
+      return;
+    }
+    
     const currentMessageCount = displayedMessages.length;
     
     if (shouldScrollToBottom || (currentMessageCount > lastMessageCount && lastMessageCount > 0)) {
@@ -378,22 +423,47 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     }
     
     setLastMessageCount(currentMessageCount);
-  }, [displayedMessages.length, shouldScrollToBottom, lastMessageCount, scrollToBottom]);
+  }, [displayedMessages.length, shouldScrollToBottom, lastMessageCount, scrollToBottom, searchMode]);
 
   // Handle scroll - Load more messages khi scroll to top
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    const { scrollTop } = e.currentTarget;
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
     
-    if (scrollTop === 0 && !loadingMore && hasMoreHistory) {
-      setLoadingMore(true);
-      setTimeout(() => {
-        setHistoryPage(prev => prev + 1);
-        setLoadingMore(false);
-      }, 500);
+    if (searchMode) {
+      if (scrollTop === 0 && searchDisplayRange.start > 0 && !isLoadingContext) {
+        setIsLoadingContext(true);
+        const currentStart = searchDisplayRange.start;
+        const newStart = Math.max(0, currentStart - 5);
+        setTimeout(() => {
+          setSearchDisplayRange(prev => ({
+            ...prev,
+            start: newStart
+          }));
+          setIsLoadingContext(false);
+        }, 300);
+      } else if (scrollTop + clientHeight >= scrollHeight - 1 && searchDisplayRange.end < allMessages.length - 1 && !isLoadingContext) {
+        setIsLoadingContext(true);
+        const currentEnd = searchDisplayRange.end;
+        const newEnd = Math.min(allMessages.length - 1, currentEnd + 5); 
+        setTimeout(() => {
+          setSearchDisplayRange(prev => ({
+            ...prev,
+            end: newEnd
+          }));
+          setIsLoadingContext(false);
+        }, 300);
+      }
+    } else {
+      if (scrollTop === 0 && !loadingMore && hasMoreHistory) {
+        setLoadingMore(true);
+        setTimeout(() => {
+          setHistoryPage(prev => prev + 1);
+          setLoadingMore(false);
+        }, 500);
+      }
     }
-  }, [loadingMore, hasMoreHistory]);
+  }, [loadingMore, hasMoreHistory, searchMode, searchDisplayRange, allMessages.length, isLoadingContext]);
 
-  // 🔥 HANDLE KEY PRESS
   const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -401,7 +471,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   }, []);
 
-  // 🔥 HANDLE FILE UPLOAD - SỬ DỤNG API CÓ SẴN
   const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -427,12 +496,13 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     setIsUploading(true);
 
     try {
-      // 🔥 UPLOAD FILE LÊN SERVER TRƯỚC
       const fileUrl = await uploadMedia(file);
       
-      // 🔥 SAU ĐÓ GỬI URL QUA CHAT
       await sendMessage(conversation.userId, fileUrl);
-      setShouldScrollToBottom(true);
+      
+      if (!searchMode) {
+        setShouldScrollToBottom(true);
+      }
       
     } catch (error) {
       console.error('Error uploading file:', error);
@@ -444,9 +514,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         fileInputRef.current.value = '';
       }
     }
-  }, [conversation, sendMessage]);
+  }, [conversation, sendMessage, searchMode]);
 
-  // 🔥 HANDLE SEND MESSAGE - CHỈ GỬI TEXT
   const handleSend = useCallback(() => {
     const trimmedInput = input.trim();
     if (!trimmedInput || !conversation || !sendMessage) return;
@@ -454,19 +523,138 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     // Gửi tin nhắn text bình thường
     sendMessage(conversation.userId, trimmedInput);
     setInput('');
-    setShouldScrollToBottom(true);
+    
+    if (!searchMode) {
+      setShouldScrollToBottom(true);
+    }
 
     setTimeout(() => {
       inputRef.current?.focus();
     }, 100);
-  }, [input, conversation, sendMessage]);
+  }, [input, conversation, sendMessage, searchMode]);
 
-  // 🔥 HANDLE PAPERCLIP CLICK
   const handlePaperclipClick = useCallback(() => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   }, []);
+
+  const performSearch = useCallback((query: string) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      setCurrentSearchIndex(-1);
+      setHasSearched(false);
+      setSearchMode(false);
+      setSearchAnchorIndex(-1);
+      setSearchDisplayRange({ start: 0, end: 0 });
+      return;
+    }
+
+    const results: number[] = [];
+    allMessages.forEach((message, index) => {
+      if (message.message.toLowerCase().includes(query.toLowerCase())) {
+        results.push(index);
+      }
+    });
+
+    setHasSearched(true);
+    setSearchResults(results);
+    
+    if (results.length > 0) {
+      const lastResultIndex = results.length - 1;
+      const searchResultMessageIndex = results[lastResultIndex];
+      
+      setCurrentSearchIndex(lastResultIndex);
+      setSearchAnchorIndex(searchResultMessageIndex);
+      setSearchMode(true);
+      
+      const contextSize = 8; 
+      
+      const startIndex = searchResultMessageIndex;
+      const endIndex = Math.min(allMessages.length - 1, searchResultMessageIndex + contextSize - 1);
+      
+      setSearchDisplayRange({ start: startIndex, end: endIndex });
+      
+      setTimeout(() => {
+        if (messagesContainerRef.current) {
+          messagesContainerRef.current.scrollTop = 0;
+        }
+      }, 200); 
+    } else {
+      setCurrentSearchIndex(-1);
+      setSearchMode(false);
+      setSearchAnchorIndex(-1);
+      setSearchDisplayRange({ start: 0, end: 0 });
+    }
+  }, [allMessages]);
+
+  const handleSearchSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      performSearch(searchQuery);
+    }
+  }, [searchQuery, performSearch]);
+
+  const navigateSearchResults = useCallback((direction: 'up' | 'down') => {
+    if (searchResults.length === 0 || isScrollingRef.current) return;
+
+    let newIndex;
+    if (direction === 'up') {
+      newIndex = currentSearchIndex > 0 ? currentSearchIndex - 1 : searchResults.length - 1;
+    } else {
+      newIndex = currentSearchIndex < searchResults.length - 1 ? currentSearchIndex + 1 : 0;
+    }
+
+    setCurrentSearchIndex(newIndex);
+    
+    const newSearchResultMessageIndex = searchResults[newIndex];
+    setSearchAnchorIndex(newSearchResultMessageIndex);
+    
+    const contextSize = 8;
+    
+    const startIndex = newSearchResultMessageIndex;
+    const endIndex = Math.min(allMessages.length - 1, newSearchResultMessageIndex + contextSize - 1);
+    
+    setSearchDisplayRange({ start: startIndex, end: endIndex });
+    
+    setTimeout(() => {
+      if (messagesContainerRef.current) {
+        messagesContainerRef.current.scrollTop = 0;
+      }
+    }, 100);
+  }, [searchResults, currentSearchIndex, allMessages]);
+
+  const handleSearchToggle = useCallback(() => {
+    setShowSearchBar(!showSearchBar);
+    if (!showSearchBar) {
+      // Focus on search input when opening
+      setTimeout(() => searchInputRef.current?.focus(), 100);
+    } else {
+      // Clear search when closing và quay về tin nhắn mới nhất
+      setSearchQuery('');
+      setSearchResults([]);
+      setCurrentSearchIndex(-1);
+      setHasSearched(false);
+      setSearchMode(false);
+      setSearchAnchorIndex(-1);
+      setSearchDisplayRange({ start: 0, end: 0 });
+      
+      setTimeout(() => {
+        scrollToBottom(true);
+      }, 100);
+    }
+  }, [showSearchBar, scrollToBottom]);
+
+  useEffect(() => {
+    setSearchQuery('');
+    setSearchResults([]);
+    setCurrentSearchIndex(-1);
+    setShowSearchBar(false);
+    setHasSearched(false);
+    setSearchMode(false);
+    setSearchAnchorIndex(-1);
+    setSearchDisplayRange({ start: 0, end: 0 });
+  }, [conversation?.userId]);
 
   if (!conversation) {
     return (
@@ -486,6 +674,20 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
   return (
     <div className="h-full flex flex-col bg-white">
+      <style>{`
+        .search-highlight {
+          background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 50%, #fbbf24 100%) !important;
+          animation: searchPulse 0.6s ease-in-out;
+          border-radius: 8px;
+          box-shadow: 0 0 0 2px #f59e0b;
+        }
+        @keyframes searchPulse {
+          0% { transform: scale(1); box-shadow: 0 0 0 2px #f59e0b; }
+          50% { transform: scale(1.02); box-shadow: 0 0 0 4px #f59e0b; }
+          100% { transform: scale(1); box-shadow: 0 0 0 2px #f59e0b; }
+        }
+      `}</style>
+      
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
         <div className="flex items-center gap-3">
@@ -531,7 +733,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors" title="Tìm kiếm">
+          <button 
+            onClick={handleSearchToggle}
+            className={`p-2 hover:bg-gray-100 rounded-full transition-colors ${showSearchBar ? 'bg-blue-50 text-blue-600' : ''}`}
+            title="Tìm kiếm"
+          >
             <Search className="h-5 w-5 text-gray-600" />
           </button>
           <button className="p-2 hover:bg-gray-100 rounded-full transition-colors" title="Thông tin">
@@ -539,6 +745,77 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Search Bar */}
+      {showSearchBar && (
+        <div className="p-3 border-b border-gray-200 bg-gray-50">
+          <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Tìm kiếm tin nhắn... (nhấn Enter để tìm)"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            
+            {/* Search Button */}
+            <button
+              type="submit"
+              className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              disabled={!searchQuery.trim()}
+            >
+              Tìm
+            </button>
+            
+            {/* Search Results Info & Navigation */}
+            {searchResults.length > 0 && (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span className="whitespace-nowrap">
+                  {currentSearchIndex + 1}/{searchResults.length}
+                </span>
+                <div className="flex items-center">
+                  <button
+                    type="button"
+                    onClick={() => navigateSearchResults('up')}
+                    className="p-1 hover:bg-gray-200 rounded"
+                    title="Kết quả trước"
+                  >
+                    <ChevronUp className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigateSearchResults('down')}
+                    className="p-1 hover:bg-gray-200 rounded"
+                    title="Kết quả sau"
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {/* Close Search */}
+            <button
+              type="button"
+              onClick={handleSearchToggle}
+              className="p-1 hover:bg-gray-200 rounded"
+              title="Đóng tìm kiếm"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </form>
+          
+          {hasSearched && searchQuery && searchResults.length === 0 && (
+            <div className="text-sm text-gray-500 mt-2">
+              Không tìm thấy tin nhắn nào chứa "{searchQuery}"
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Messages Container */}
       <div 
@@ -561,7 +838,33 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           </div>
         ) : (
           <>
-            {loadingMore && (
+            {/* Loading indicator when loading more old messages in search mode */}
+            {searchMode && isLoadingContext && (
+              <div className="flex justify-center py-2">
+                <div className="inline-flex items-center gap-2 text-gray-500">
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                  <span className="text-xs">Đang tải thêm...</span>
+                </div>
+              </div>
+            )}
+
+            {/* Loading more context indicator for search mode */}
+            {searchMode && searchDisplayRange.start > 0 && !isLoadingContext && (
+              <div className="flex justify-center py-2">
+                <button
+                  onClick={() => {
+                    const currentStart = searchDisplayRange.start;
+                    const newStart = Math.max(0, currentStart - 10);
+                    setSearchDisplayRange(prev => ({ ...prev, start: newStart }));
+                  }}
+                  className="text-sm text-blue-600 hover:text-blue-800 px-3 py-1 rounded-lg hover:bg-blue-50 transition-colors"
+                >
+                  Tải thêm tin nhắn cũ hơn...
+                </button>
+              </div>
+            )}
+
+            {loadingMore && !searchMode && (
               <div className="flex justify-center py-2">
                 <div className="inline-flex items-center gap-2 text-gray-500">
                   <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
@@ -574,17 +877,53 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               <div key={groupIndex}>
                 <DateSeparator date={group.date} />
                 <div className="space-y-2">
-                  {group.messages.map((message, messageIndex) => (
-                    <MessageItem
-                      key={`${groupIndex}-${messageIndex}`}
-                      message={message}
-                      isMine={message.senderId === userId}
-                      conversationUser={conversation}
-                    />
-                  ))}
+                  {group.messages.map((message, messageIndexInGroup) => {
+                    let actualMessageIndex = 0;
+                    
+                    if (searchMode) {
+                      actualMessageIndex = allMessages.findIndex(m => 
+                        m.timestamp === message.timestamp && 
+                        m.message === message.message &&
+                        m.senderId === message.senderId
+                      );
+                    } else {
+                      for (let i = 0; i < groupIndex; i++) {
+                        actualMessageIndex += groupedMessages[i].messages.length;
+                      }
+                      actualMessageIndex += messageIndexInGroup;
+                    }
+
+                    const isCurrentSearchResult = searchMode && actualMessageIndex === searchAnchorIndex;
+                    
+                    return (
+                      <MessageItem
+                        key={`${groupIndex}-${messageIndexInGroup}`}
+                        message={message}
+                        isMine={message.senderId === userId}
+                        conversationUser={conversation}
+                        messageIndex={actualMessageIndex}
+                        searchQuery={hasSearched && isCurrentSearchResult ? searchQuery : ''}
+                      />
+                    );
+                  })}
                 </div>
               </div>
             ))}
+
+            {searchMode && searchDisplayRange.end < allMessages.length - 1 && (
+              <div className="flex justify-center py-2">
+                <button
+                  onClick={() => {
+                    const currentEnd = searchDisplayRange.end;
+                    const newEnd = Math.min(allMessages.length - 1, currentEnd + 10);
+                    setSearchDisplayRange(prev => ({ ...prev, end: newEnd }));
+                  }}
+                  className="text-sm text-blue-600 hover:text-blue-800 px-3 py-1 rounded-lg hover:bg-blue-50 transition-colors"
+                >
+                  Tải thêm tin nhắn mới hơn...
+                </button>
+              </div>
+            )}
           </>
         )}
         
@@ -594,7 +933,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
       {/* Input Area */}
       <div className="p-4 border-t border-gray-200 bg-white">
-        {/* 🔥 HIDDEN FILE INPUT */}
         <input
           ref={fileInputRef}
           type="file"
@@ -602,10 +940,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           onChange={handleFileUpload}
           style={{ display: 'none' }}
           multiple={false}
+          title ="Chọn file ảnh/video"
         />
 
         <div className="flex items-center gap-2">
-          {/* 🔥 PAPERCLIP BUTTON */}
           <button 
             onClick={handlePaperclipClick}
             disabled={isUploading}
@@ -646,7 +984,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           </button>
         </div>
 
-        {/* 🔥 UPLOADING INDICATOR */}
         {isUploading && (
           <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>

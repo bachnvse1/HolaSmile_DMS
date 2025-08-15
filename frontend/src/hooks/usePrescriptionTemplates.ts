@@ -21,26 +21,8 @@ export const usePrescriptionTemplates = (searchQuery?: string) => {
       try {
         const response = await prescriptionTemplateApi.getPrescriptionTemplates();
         
-        // Handle different response formats
-        let templates = response;
+        const templates = response;
         
-        // If response is not an array, check for data property or message
-        if (!Array.isArray(response)) {
-          // Check if response has message indicating no data
-          if (response?.message === "Không có dữ liệu phù hợp") {
-            return [];
-          }
-          
-          // Check if response has data property
-          if (response?.data && Array.isArray(response.data)) {
-            templates = response.data;
-          } else {
-            // If response format is unexpected but not empty data error, return empty array
-            console.warn('Unexpected response format:', response);
-            return [];
-          }
-        }
-
         // Filter by search query if provided
         if (searchQuery && Array.isArray(templates)) {
           return templates.filter(
@@ -56,34 +38,11 @@ export const usePrescriptionTemplates = (searchQuery?: string) => {
 
         return Array.isArray(templates) ? templates : [];
       } catch (error: unknown) {
-        // Handle API errors that indicate empty data
-        const apiError = error as { 
-          response?: { 
-            status?: number; 
-            data?: { message?: string } | string 
-          };
-          message?: string;
-        };
-        
-        // Handle status 200 with empty data message
-        if (apiError?.response?.status === 200) {
-          const responseData = apiError.response.data;
-          if (typeof responseData === 'object' && responseData?.message === "Không có dữ liệu phù hợp") {
-            return [];
-          }
-          if (typeof responseData === 'string' && responseData.includes("Không có dữ liệu phù hợp")) {
-            return [];
-          }
-        }
-        
-        // Handle other common empty data scenarios
-        if (apiError?.message?.includes('is not a function') || 
-            apiError?.message?.includes('Cannot read property') ||
-            apiError?.message?.includes('map is not a function')) {
-          console.warn('Data format error, treating as empty data:', apiError.message);
+        const apiError = error as { response?: { status?: number; data?: { message?: string } } };
+        if (apiError?.response?.status === 500 && 
+            apiError?.response?.data?.message === "Không có dữ liệu phù hợp") {
           return [];
         }
-        
         throw error;
       }
     },
@@ -91,7 +50,7 @@ export const usePrescriptionTemplates = (searchQuery?: string) => {
   });
 };
 
-// Hook for getting single prescription template (from list API)
+// Hook for getting single prescription template
 export const usePrescriptionTemplate = (id: number) => {
   const { data: allTemplates, isLoading, error } = usePrescriptionTemplates();
 
@@ -126,7 +85,6 @@ export const useUpdatePrescriptionTemplate = () => {
     mutationFn: (data: UpdatePrescriptionTemplateRequest) =>
       prescriptionTemplateApi.updatePrescriptionTemplate(data),
     onSuccess: () => {
-      // Just invalidate the list, detail will automatically update
       queryClient.invalidateQueries({
         queryKey: PRESCRIPTION_TEMPLATE_KEYS.lists(),
       });

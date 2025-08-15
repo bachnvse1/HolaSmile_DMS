@@ -28,19 +28,16 @@ export const prescriptionApi = {
     return response.data;
   },
 
-  // Get prescription by appointment ID using new appointment API structure
+  // Get prescription by appointment ID 
   getPrescriptionByAppointment: async (appointmentId: number): Promise<PrescriptionResponse | null> => {
     try {
-      // First get appointment details to check if prescription exists
       const appointmentResponse = await axiosInstance.get(`/appointment/${appointmentId}`);
       const appointment = appointmentResponse.data;
       
-      // Check if appointment has prescription
       if (!appointment.isExistPrescription || !appointment.prescriptionId) {
         return null;
       }
       
-      // Get the prescription using prescriptionId
       const prescriptionResponse = await axiosInstance.get(`/prescription/${appointment.prescriptionId}`);
       return prescriptionResponse.data;
     } catch (error) {
