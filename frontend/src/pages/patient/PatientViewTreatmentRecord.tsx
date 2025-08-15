@@ -8,7 +8,7 @@ import FilterBar from "@/components/patient/FilterBar"
 import SummaryStats from "@/components/patient/SummaryStats"
 import TreatmentTable from "@/components/patient/TreatmentTable"
 import TreatmentModal from "@/components/patient/TreatmentModal"
-import TreatmentRecordDetail from "@/components/patient/TreatmentRecordDetail" // Add this import
+import TreatmentRecordDetail from "@/components/patient/TreatmentRecordDetail"
 
 import type { FilterFormData, TreatmentFormData, TreatmentRecord } from "@/types/treatment"
 import type { PatientDetail } from "@/services/patientService"
@@ -119,7 +119,6 @@ const PatientTreatmentRecords: React.FC = () => {
     avatar: undefined
   }
 
-  // Add handler for view detail
   const handleViewDetail = (record: TreatmentRecord) => {
     setSelectedDetailRecord(record)
     setDetailModalOpen(true)
@@ -177,18 +176,15 @@ const PatientTreatmentRecords: React.FC = () => {
     return errors
   }
 
-  // Gọi khi người dùng ấn nút submit
   const handlePatientSubmitRequest = (e: React.FormEvent) => {
     e.preventDefault()
     setPendingSubmitEvent(e)
     setShowConfirmModal(true)
   }
 
-  // Gọi sau khi người dùng xác nhận từ modal
   const handlePatientUpdateConfirmed = async () => {
     if (!editingPatientData || !patientId || !pendingSubmitEvent) return
 
-    // Đóng modal
     setShowConfirmModal(false)
 
     const validationErrors = validatePatientData(editingPatientData)
@@ -412,6 +408,35 @@ const PatientTreatmentRecords: React.FC = () => {
     setPatientErrors({})
   }
 
+  const renderPatientAvatar = () => {
+    const avatarUrl = patient?.avatar
+    
+    if (avatarUrl) {
+      return (
+        <div className="relative">
+          <img
+            src={avatarUrl}
+            alt={`${patient?.fullname || 'Bệnh nhân'} avatar`}
+            className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none'
+              e.currentTarget.nextElementSibling?.classList.remove('hidden')
+            }}
+          />
+          <div className="w-24 h-24 rounded-full bg-gray-200 border-4 border-white shadow-lg flex items-center justify-center">
+            <User className="h-12 w-12 text-gray-400" />
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div className="w-24 h-24 rounded-full bg-gray-200 border-4 border-white shadow-lg flex items-center justify-center">
+        <User className="h-12 w-12 text-gray-400" />
+      </div>
+    )
+  }
+
   const renderPatientInfo = () => {
     if (patientLoading) {
       return (
@@ -419,13 +444,18 @@ const PatientTreatmentRecords: React.FC = () => {
           <CardContent className="p-6">
             <div className="space-y-4">
               <Skeleton className="h-6 w-48" />
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="space-y-2">
-                    <Skeleton className="h-4 w-20" />
-                    <Skeleton className="h-6 w-full" />
+              <div className="flex gap-6">
+                <Skeleton className="h-24 w-24 rounded-full" />
+                <div className="flex-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="space-y-2">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-6 w-full" />
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
             </div>
           </CardContent>
@@ -460,161 +490,165 @@ const PatientTreatmentRecords: React.FC = () => {
         <CardContent>
           {isEditingPatient ? (
             <form onSubmit={handlePatientSubmitRequest} className="space-y-6" noValidate>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fullname">
-                    Họ tên <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="fullname"
-                    value={editingPatientData?.fullname || ''}
-                    onChange={(e) => {
-                      setEditingPatientData(prev =>
-                        prev ? { ...prev, fullname: e.target.value } : null
-                      )
-                      // Clear error when user starts typing
-                      if (patientErrors.fullname) {
-                        setPatientErrors(prev => ({ ...prev, fullname: '' }))
-                      }
-                    }}
-                    className={patientErrors.fullname ? 'border-red-500 focus:border-red-500' : ''}
-                  />
-                  {patientErrors.fullname && (
-                    <p className="text-sm text-red-500">{patientErrors.fullname}</p>
-                  )}
+              <div className="flex items-start gap-6">
+                <div className="flex flex-col items-center space-y-2">
+                  {renderPatientAvatar()}
+                  <p className="text-xs text-gray-500 text-center max-w-24">
+                    Ảnh đại diện không thể chỉnh sửa
+                  </p>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="gender">
-                    Giới tính <span className="text-red-500">*</span>
-                  </Label>
-                  <Select
-                    value={editingPatientData?.gender === true ? 'male' : 'female'}
-                    onValueChange={(value) => setEditingPatientData(prev =>
-                      prev ? { ...prev, gender: value === 'male' } : null
+                
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="fullname">
+                      Họ tên <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="fullname"
+                      value={editingPatientData?.fullname || ''}
+                      onChange={(e) => {
+                        setEditingPatientData(prev =>
+                          prev ? { ...prev, fullname: e.target.value } : null
+                        )
+                        if (patientErrors.fullname) {
+                          setPatientErrors(prev => ({ ...prev, fullname: '' }))
+                        }
+                      }}
+                      className={patientErrors.fullname ? 'border-red-500 focus:border-red-500' : ''}
+                    />
+                    {patientErrors.fullname && (
+                      <p className="text-sm text-red-500">{patientErrors.fullname}</p>
                     )}
-                  >
-                    <SelectTrigger className={patientErrors.gender ? 'border-red-500' : ''}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Nam</SelectItem>
-                      <SelectItem value="female">Nữ</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {patientErrors.gender && (
-                    <p className="text-sm text-red-500">{patientErrors.gender}</p>
-                  )}
-                </div>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="phone">
-                    Số điện thoại <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={editingPatientData?.phone || ''}
-                    readOnly
-                    className="bg-gray-100 cursor-not-allowed"
-                    title="Số điện thoại không thể chỉnh sửa"
-                  />
-                  <p className="text-xs text-gray-500">Số điện thoại không thể chỉnh sửa</p>
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="gender">
+                      Giới tính <span className="text-red-500">*</span>
+                    </Label>
+                    <Select
+                      value={editingPatientData?.gender === true ? 'male' : 'female'}
+                      onValueChange={(value) => setEditingPatientData(prev =>
+                        prev ? { ...prev, gender: value === 'male' } : null
+                      )}
+                    >
+                      <SelectTrigger className={patientErrors.gender ? 'border-red-500' : ''}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">Nam</SelectItem>
+                        <SelectItem value="female">Nữ</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {patientErrors.gender && (
+                      <p className="text-sm text-red-500">{patientErrors.gender}</p>
+                    )}
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email">
-                    Email <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={editingPatientData?.email || ''}
-                    onChange={(e) => {
-                      setEditingPatientData(prev =>
-                        prev ? { ...prev, email: e.target.value } : null
-                      )
-                      // Clear error when user starts typing
-                      if (patientErrors.email) {
-                        setPatientErrors(prev => ({ ...prev, email: '' }))
-                      }
-                    }}
-                    className={patientErrors.email ? 'border-red-500 focus:border-red-500' : ''}
-                  />
-                  {patientErrors.email && (
-                    <p className="text-sm text-red-500">{patientErrors.email}</p>
-                  )}
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">
+                      Số điện thoại <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={editingPatientData?.phone || ''}
+                      readOnly
+                      className="bg-gray-100 cursor-not-allowed"
+                      title="Số điện thoại không thể chỉnh sửa"
+                    />
+                    <p className="text-xs text-gray-500">Số điện thoại không thể chỉnh sửa</p>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="dob">
-                    Ngày sinh <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="dob"
-                    type="date"
-                    value={editingPatientData?.dob ? formatDateForInput(editingPatientData.dob) : ''}
-                    onChange={(e) => {
-                      setEditingPatientData(prev =>
-                        prev ? { ...prev, dob: e.target.value } : null
-                      )
-                      // Clear error when user starts typing
-                      if (patientErrors.dob) {
-                        setPatientErrors(prev => ({ ...prev, dob: '' }))
-                      }
-                    }}
-                    className={patientErrors.dob ? 'border-red-500 focus:border-red-500' : ''}
-                  />
-                  {patientErrors.dob && (
-                    <p className="text-sm text-red-500">{patientErrors.dob}</p>
-                  )}
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">
+                      Email <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={editingPatientData?.email || ''}
+                      onChange={(e) => {
+                        setEditingPatientData(prev =>
+                          prev ? { ...prev, email: e.target.value } : null
+                        )
+                        if (patientErrors.email) {
+                          setPatientErrors(prev => ({ ...prev, email: '' }))
+                        }
+                      }}
+                      className={patientErrors.email ? 'border-red-500 focus:border-red-500' : ''}
+                    />
+                    {patientErrors.email && (
+                      <p className="text-sm text-red-500">{patientErrors.email}</p>
+                    )}
+                  </div>
 
-                <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor="address">
-                    Địa chỉ <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="address"
-                    value={editingPatientData?.address || ''}
-                    onChange={(e) => {
-                      setEditingPatientData(prev =>
-                        prev ? { ...prev, address: e.target.value } : null
-                      )
-                      // Clear error when user starts typing
-                      if (patientErrors.address) {
-                        setPatientErrors(prev => ({ ...prev, address: '' }))
-                      }
-                    }}
-                    className={patientErrors.address ? 'border-red-500 focus:border-red-500' : ''}
-                  />
-                  {patientErrors.address && (
-                    <p className="text-sm text-red-500">{patientErrors.address}</p>
-                  )}
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="dob">
+                      Ngày sinh <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="dob"
+                      type="date"
+                      value={editingPatientData?.dob ? formatDateForInput(editingPatientData.dob) : ''}
+                      onChange={(e) => {
+                        setEditingPatientData(prev =>
+                          prev ? { ...prev, dob: e.target.value } : null
+                        )
+                        if (patientErrors.dob) {
+                          setPatientErrors(prev => ({ ...prev, dob: '' }))
+                        }
+                      }}
+                      className={patientErrors.dob ? 'border-red-500 focus:border-red-500' : ''}
+                    />
+                    {patientErrors.dob && (
+                      <p className="text-sm text-red-500">{patientErrors.dob}</p>
+                    )}
+                  </div>
 
-                <div className="space-y-2 sm:col-span-3">
-                  <Label htmlFor="underlyingConditions">Tiền sử bệnh lý</Label>
-                  <Textarea
-                    id="underlyingConditions"
-                    value={editingPatientData?.underlyingConditions || ''}
-                    onChange={(e) => {
-                      setEditingPatientData(prev =>
-                        prev ? { ...prev, underlyingConditions: e.target.value } : null
-                      )
-                      // Clear error when user starts typing
-                      if (patientErrors.underlyingConditions) {
-                        setPatientErrors(prev => ({ ...prev, underlyingConditions: '' }))
-                      }
-                    }}
-                    rows={3}
-                    placeholder="Nhập tiền sử bệnh lý của bệnh nhân..."
-                    className={patientErrors.underlyingConditions ? 'border-red-500 focus:border-red-500' : ''}
-                  />
-                  {patientErrors.underlyingConditions && (
-                    <p className="text-sm text-red-500">{patientErrors.underlyingConditions}</p>
-                  )}
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="address">
+                      Địa chỉ <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="address"
+                      value={editingPatientData?.address || ''}
+                      onChange={(e) => {
+                        setEditingPatientData(prev =>
+                          prev ? { ...prev, address: e.target.value } : null
+                        )
+                        if (patientErrors.address) {
+                          setPatientErrors(prev => ({ ...prev, address: '' }))
+                        }
+                      }}
+                      className={patientErrors.address ? 'border-red-500 focus:border-red-500' : ''}
+                    />
+                    {patientErrors.address && (
+                      <p className="text-sm text-red-500">{patientErrors.address}</p>
+                    )}
+                  </div>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="underlyingConditions">Tiền sử bệnh lý</Label>
+                <Textarea
+                  id="underlyingConditions"
+                  value={editingPatientData?.underlyingConditions || ''}
+                  onChange={(e) => {
+                    setEditingPatientData(prev =>
+                      prev ? { ...prev, underlyingConditions: e.target.value } : null
+                    )
+                    if (patientErrors.underlyingConditions) {
+                      setPatientErrors(prev => ({ ...prev, underlyingConditions: '' }))
+                    }
+                  }}
+                  rows={3}
+                  placeholder="Nhập tiền sử bệnh lý của bệnh nhân..."
+                  className={patientErrors.underlyingConditions ? 'border-red-500 focus:border-red-500' : ''}
+                />
+                {patientErrors.underlyingConditions && (
+                  <p className="text-sm text-red-500">{patientErrors.underlyingConditions}</p>
+                )}
               </div>
 
               <div className="flex gap-2 pt-4">
@@ -638,43 +672,49 @@ const PatientTreatmentRecords: React.FC = () => {
               </div>
             </form>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-              <div>
-                <Label className="text-gray-700">Họ tên:</Label>
-                <div className="text-gray-900 font-medium">{patient.fullname || 'N/A'}</div>
+            <div className="flex items-start gap-6">
+              <div className="flex flex-col items-center">
+                {renderPatientAvatar()}
               </div>
 
-              <div>
-                <Label className="text-gray-700">Giới tính:</Label>
-                <div className="text-gray-900">{patient.gender ? 'Nam' : 'Nữ'}</div>
-              </div>
-
-              <div>
-                <Label className="text-gray-700">Số điện thoại:</Label>
-                <div className="text-gray-900">{patient.phone || 'N/A'}</div>
-              </div>
-
-              <div>
-                <Label className="text-gray-700">Email:</Label>
-                <div className="text-gray-900">{patient.email || 'N/A'}</div>
-              </div>
-
-              <div>
-                <Label className="text-gray-700">Ngày sinh:</Label>
-                <div className="text-gray-900">
-                  {formatDateForDisplay(patient.dob)}
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <Label className="text-gray-700">Họ tên:</Label>
+                  <div className="text-gray-900 font-medium">{patient.fullname || 'N/A'}</div>
                 </div>
-              </div>
 
-              <div className="sm:col-span-2">
-                <Label className="text-gray-700">Địa chỉ:</Label>
-                <div className="text-gray-900">{patient.address || 'N/A'}</div>
-              </div>
+                <div>
+                  <Label className="text-gray-700">Giới tính:</Label>
+                  <div className="text-gray-900">{patient.gender ? 'Nam' : 'Nữ'}</div>
+                </div>
 
-              <div className="sm:col-span-3">
-                <Label className="text-gray-700">Tiền sử bệnh lý:</Label>
-                <div className="text-gray-900 mt-1">
-                  {patient.underlyingConditions || 'N/A'}
+                <div>
+                  <Label className="text-gray-700">Số điện thoại:</Label>
+                  <div className="text-gray-900">{patient.phone || 'N/A'}</div>
+                </div>
+
+                <div>
+                  <Label className="text-gray-700">Email:</Label>
+                  <div className="text-gray-900">{patient.email || 'N/A'}</div>
+                </div>
+
+                <div>
+                  <Label className="text-gray-700">Ngày sinh:</Label>
+                  <div className="text-gray-900">
+                    {formatDateForDisplay(patient.dob)}
+                  </div>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <Label className="text-gray-700">Địa chỉ:</Label>
+                  <div className="text-gray-900">{patient.address || 'N/A'}</div>
+                </div>
+
+                <div className="sm:col-span-3">
+                  <Label className="text-gray-700">Tiền sử bệnh lý:</Label>
+                  <div className="text-gray-900 mt-1">
+                    {patient.underlyingConditions || 'N/A'}
+                  </div>
                 </div>
               </div>
             </div>
@@ -757,7 +797,6 @@ const PatientTreatmentRecords: React.FC = () => {
               onSubmit={handleFormSubmit}
             />
 
-            {/* Treatment Record Detail Modal */}
             <TreatmentRecordDetail
               isOpen={detailModalOpen}
               onClose={handleCloseDetailModal}
