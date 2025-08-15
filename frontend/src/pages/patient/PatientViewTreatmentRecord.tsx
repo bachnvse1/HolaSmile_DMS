@@ -408,34 +408,37 @@ const PatientTreatmentRecords: React.FC = () => {
     setPatientErrors({})
   }
 
-  const renderPatientAvatar = () => {
-    const avatarUrl = patient?.avatar
-    
-    if (avatarUrl) {
-      return (
-        <div className="relative">
-          <img
-            src={avatarUrl}
-            alt={`${patient?.fullname || 'Bệnh nhân'} avatar`}
-            className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none'
-              e.currentTarget.nextElementSibling?.classList.remove('hidden')
-            }}
-          />
-          <div className="w-24 h-24 rounded-full bg-gray-200 border-4 border-white shadow-lg flex items-center justify-center">
-            <User className="h-12 w-12 text-gray-400" />
-          </div>
-        </div>
-      )
-    }
-
+const renderPatientAvatar = () => {
+  const avatarUrl = patient?.avatar
+  
+  if (avatarUrl) {
     return (
-      <div className="w-24 h-24 rounded-full bg-gray-200 border-4 border-white shadow-lg flex items-center justify-center">
-        <User className="h-12 w-12 text-gray-400" />
+      <div className="relative">
+        <img
+          src={avatarUrl}
+          alt={`${patient?.fullname || 'Bệnh nhân'} avatar`}
+          className="w-24 h-32 rounded-lg object-cover border-4 border-white shadow-lg"
+          onError={(e) => {
+            e.currentTarget.classList.add('hidden')
+            const fallback = e.currentTarget.nextElementSibling as HTMLElement
+            if (fallback) {
+              fallback.classList.remove('hidden')
+            }
+          }}
+        />
+        <div className="w-24 h-32 rounded-lg bg-gray-200 border-4 border-white shadow-lg items-center justify-center hidden">
+          <User className="h-12 w-12 text-gray-400" />
+        </div>
       </div>
     )
   }
+
+  return (
+    <div className="w-24 h-32 rounded-lg bg-gray-200 border-4 border-white shadow-lg flex items-center justify-center">
+      <User className="h-12 w-12 text-gray-400" />
+    </div>
+  )
+}
 
   const renderPatientInfo = () => {
     if (patientLoading) {
