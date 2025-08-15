@@ -101,7 +101,7 @@ namespace Application.Usecases.Receptionist.CreateDiscountProgram
                 await _mediator.Send(new SendNotificationCommand(
                       o.User.UserID,
                       "Taọ chương trình khuyến mãi",
-                      $"Lễ tân {o.User.Fullname} đã tạo chương trình khuyến mãi {request.ProgramName} bắt đầu từ ngày {request.CreateDate.Date} vào lúc {DateTime.Now}",
+                      $"Lễ tân {o.User.Fullname} đã tạo chương trình khuyến mãi {request.ProgramName} bắt đầu từ ngày {request.CreateDate.ToString("dd/MM/yyyy")} vào lúc {DateTime.Now}",
                       "promotion", 0, $"promotions/{discountProgram.DiscountProgramID}"),
                 cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);

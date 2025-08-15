@@ -40,7 +40,6 @@ export default function InstructionsPage() {
         setError(null)
         try {
             const data = await getPatientInstructions(Number(appointmentId))
-            // Lấy instruction đầu tiên hoặc null nếu không có
             setInstruction(data.length > 0 ? data[0] : null)
         } catch (err) {
             toast.error("Không thể tải chỉ dẫn.")
@@ -73,7 +72,6 @@ export default function InstructionsPage() {
         }
 
         try {
-            // Nếu không chọn mẫu (newInstructionTemplateId là null hoặc ""), truyền null
             const templateId = newInstructionTemplateId ? Number(newInstructionTemplateId) : null
             await createInstruction(Number(appointmentId), newInstructionContent, templateId)
             toast.success("Tạo chỉ dẫn thành công.")
@@ -123,13 +121,16 @@ export default function InstructionsPage() {
     const openEditModal = () => {
         if (!instruction) return
         setEditInstructionContent(instruction.content)
-        setEditInstructionTemplateId(instruction.instruc_TemplateID)
+        setEditInstructionTemplateId(
+            instruction.instruc_TemplateID !== undefined && instruction.instruc_TemplateID !== null
+                ? instruction.instruc_TemplateID
+                : ""
+        )
         setIsEditModalOpen(true)
     }
 
     const onNewTemplateSelect = (value: string) => {
         if (value === "none") {
-            // Không chọn mẫu
             setNewInstructionTemplateId(null)
             setNewInstructionContent("")
         } else {

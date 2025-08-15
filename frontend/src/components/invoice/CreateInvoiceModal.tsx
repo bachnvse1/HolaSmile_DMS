@@ -111,6 +111,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
               <div><p className="font-medium text-gray-700">Triệu chứng:</p><p className="text-gray-600">{treatmentRecord.symptoms}</p></div>
               <div><p className="font-medium text-gray-700">Tổng tiền:</p><p className="text-gray-900 font-semibold">{formatCurrency(treatmentRecord.totalAmount)}</p></div>
               <div><p className="font-medium text-gray-700">Ngày điều trị:</p><p className="text-gray-600">{treatmentRecord.treatmentDate}</p></div>
+              <div><p className="font-medium text-gray-700">Số tiền còn lại:</p><p className="text-orange-600 font-semibold">{formatCurrency(remainingCap)}</p></div>
             </div>
           </div>
 

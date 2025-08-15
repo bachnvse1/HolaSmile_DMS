@@ -6,9 +6,9 @@ export interface InstructionDTO {
   content: string
   createdAt: string
   dentistName: string
-  instruc_TemplateID: number
-  instruc_TemplateName: string
-  instruc_TemplateContext: string
+  instruc_TemplateID?: number | null
+  instruc_TemplateName?: string | null
+  instruc_TemplateContext?: string | null
 }
 
 export interface InstructionTemplateDTO {
@@ -25,25 +25,35 @@ export const getPatientInstructions = async (appointmentId: number): Promise<Ins
 export const createInstruction = async (
   appointmentId: number,
   content: string,
-  templateId: number | null
+  templateId?: number | null
 ): Promise<void> => {
-  await axiosInstance.post("/instruction/create", {
+  const payload: any = {
     appointmentId,
-    content,
-    instruc_TemplateID: templateId,
-  })
+    content
+  }
+  
+  if (templateId) {
+    payload.instruc_TemplateID = templateId
+  }
+  
+  await axiosInstance.post("/instruction/create", payload)
 }
 
 export const editInstruction = async (
   instructionId: number,
   content: string,
-  templateId: number
+  templateId?: number | null
 ): Promise<void> => {
-  await axiosInstance.put("/instruction/update", {
+  const payload: any = {
     instructionId,
-    content,
-    instruc_TemplateID: templateId,
-  })
+    content
+  }
+  
+  if (templateId) {
+    payload.instruc_TemplateID = templateId
+  }
+  
+  await axiosInstance.put("/instruction/update", payload)
 }
 
 export const deactivateInstruction = async (instructionId: number): Promise<void> => {
@@ -51,3 +61,5 @@ export const deactivateInstruction = async (instructionId: number): Promise<void
     instructionId
   })
 }
+
+export { instructionTemplateService } from './instructionTemplateService'
