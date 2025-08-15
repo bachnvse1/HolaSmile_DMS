@@ -5,6 +5,7 @@ import { Badge } from '../ui/badge';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { CancelAppointmentDialog } from './CancelAppointmentDialog';
 import { PrescriptionModal } from './PrescriptionModal';
+import { InstructionCard } from '../instruction/InstructionCard'; 
 import { useAuth } from '../../hooks/useAuth';
 import { usePrescriptionByAppointment } from '../../hooks/usePrescription';
 import { useAppointmentDetail, useChangeAppointmentStatus } from '../../hooks/useAppointments';
@@ -18,7 +19,6 @@ import TreatmentModal from '../patient/TreatmentModal';
 import type { TreatmentFormData } from '@/types/treatment';
 import { useForm } from 'react-hook-form';
 import { useUserInfo } from '@/hooks/useUserInfo';
-import { getPatientInstructions } from '@/services/instructionService';
 import { toast } from 'react-toastify';
 import { getErrorMessage } from '@/utils/formatUtils';
 
@@ -33,7 +33,6 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [showTreatmentModal, setShowTreatmentModal] = useState(false);
-  const [hasInstruction, setHasInstruction] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     status: 'attended' | 'absented' | null;
@@ -89,21 +88,6 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
       navigate('/appointments');
     }
   };
-
-  useEffect(() => {
-    const checkInstructions = async () => {
-      try {
-        const list = await getPatientInstructions(appointmentId);
-        if (list.length > 0) setHasInstruction(true);
-      } catch (err) {
-        console.error("Lỗi khi kiểm tra chỉ dẫn:", err);
-      }
-    };
-
-    if (role === 'Patient') {
-      checkInstructions();
-    }
-  }, [appointmentId, role]);
 
   const handleTreatmentSubmit = () => {
     setShowTreatmentModal(false);
@@ -211,7 +195,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
           </div>
         </div>
 
-        {/* Action Buttons - Chỉ hiện phần instruction và treatment */}
+        {/* Action Buttons - Chỉ hiện phần treatment */}
         <div className="flex items-center gap-2 sm:gap-3">
           {role === 'Dentist' && appointment.status !== "canceled" && (
             <Button
@@ -226,25 +210,6 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
               <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">Tạo hồ sơ điều trị</span>
               <span className="sm:hidden">Hồ sơ</span>
-            </Button>
-          )}
-
-          {(role === 'Patient' ? hasInstruction : true) && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                navigate(
-                  role === 'Patient'
-                    ? `/patient/instructions/${appointmentId}`
-                    : `/instructions/${appointmentId}`
-                )
-              }
-              className="flex items-center gap-2 text-xs sm:text-sm"
-            >
-              <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Xem chỉ dẫn</span>
-              <span className="sm:hidden">Chỉ dẫn</span>
             </Button>
           )}
         </div>
@@ -433,79 +398,75 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
           </div>
         </div>
 
-        {/* Right Column - Prescription */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-fit">
-          <div className="flex items-center justify-between p-4 bg-gray-50 border-b border-gray-200">
-            <h3 className="font-semibold text-lg text-gray-900">Đơn thuốc</h3>
-            {role === 'Dentist' && (
-              <Button
-                variant={appointment.isExistPrescription ? "outline" : "default"}
-                size="sm"
-                onClick={() => setShowPrescriptionModal(true)}
-                className="flex items-center gap-2"
-                disabled={isPrescriptionLoading}
-              >
-                {isPrescriptionLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
-                    <span>Đang tải...</span>
-                  </>
-                ) : appointment.isExistPrescription ? (
-                  <>
-                    <EditIcon className="h-4 w-4" />
-                    <span>Chỉnh sửa</span>
-                  </>
-                ) : (
-                  <>
-                    <Plus className="h-4 w-4" />
-                    <span>Thêm đơn thuốc</span>
-                  </>
-                )}
-              </Button>
-            )}
+        {/* Right Column - Prescription and Instructions */}
+        <div className="space-y-6">
+          {/* Prescription Card */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-fit">
+            <div className="flex items-center justify-between p-4 bg-gray-50 border-b border-gray-200">
+              <h3 className="font-semibold text-lg text-gray-900">Đơn thuốc</h3>
+              {role === 'Dentist' && (
+                <Button
+                  variant={appointment.isExistPrescription ? "outline" : "default"}
+                  size="sm"
+                  onClick={() => setShowPrescriptionModal(true)}
+                  className="flex items-center gap-2"
+                  disabled={isPrescriptionLoading}
+                >
+                  {isPrescriptionLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                      <span>Đang tải...</span>
+                    </>
+                  ) : appointment.isExistPrescription ? (
+                    <>
+                      <EditIcon className="h-4 w-4" />
+                      <span>Chỉnh sửa</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="h-4 w-4" />
+                      <span>Thêm đơn thuốc</span>
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+
+            <div className="p-4">
+              {isPrescriptionLoading ? (
+                <div className="flex justify-center items-center h-48">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-2 text-gray-600 text-sm">Đang tải đơn thuốc...</p>
+                  </div>
+                </div>
+              ) : prescription ? (
+                <div className="space-y-3">
+                  <div className="bg-gray-50 rounded-lg p-3 max-h-48 overflow-y-auto">
+                    <p className="text-gray-900 whitespace-pre-wrap text-sm leading-relaxed">{prescription.content}</p>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-600">
+                    <span>Tạo bởi: {prescription.createdBy}</span>
+                    <span>Ngày tạo: {formatDateVN(prescription.createdAt)}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-48">
+                  <div className="text-center text-gray-500">
+                    <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-base font-medium">Chưa có đơn thuốc</p>
+                    <p className="text-sm">Chưa có đơn thuốc cho lịch hẹn này</p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="p-4">
-            {isPrescriptionLoading ? (
-              <div className="flex justify-center items-center h-48">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-                  <p className="mt-2 text-gray-600 text-sm">Đang tải đơn thuốc...</p>
-                </div>
-              </div>
-            ) : prescription ? (
-              <div className="space-y-3">
-                <div className="bg-gray-50 rounded-lg p-3 max-h-48 overflow-y-auto">
-                  <p className="text-gray-900 whitespace-pre-wrap text-sm leading-relaxed">{prescription.content}</p>
-                </div>
-                <div className="flex justify-between text-xs text-gray-600">
-                  <span>Tạo bởi: {prescription.createdBy}</span>
-                  <span>Ngày tạo: {formatDateVN(prescription.createdAt)}</span>
-                </div>
-                {/* {role !== 'Dentist' && (
-                  <div className="flex justify-center pt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowPrescriptionModal(true)}
-                      className="flex items-center gap-2"
-                    >
-                      <Eye className="h-4 w-4" />
-                      <span>Xem chi tiết</span>
-                    </Button>
-                  </div>
-                )} */}
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-48">
-                <div className="text-center text-gray-500">
-                  <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-base font-medium">Chưa có đơn thuốc</p>
-                  <p className="text-sm">Chưa có đơn thuốc cho lịch hẹn này</p>
-                </div>
-              </div>
-            )}
-          </div>
+          {/* Instruction Card */}
+          <InstructionCard 
+            appointmentId={appointmentId}
+            appointmentStatus={appointment.status}
+          />
         </div>
       </div>
 
@@ -520,19 +481,6 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
           </div>
         </div>
       )}
-
-      {/* Action Buttons */}
-      {/* <div className="flex justify-end gap-3 mt-6 p-6 border-t border-gray-200 bg-gray-50 rounded-b-lg">
-        {canCancelAppointment && (
-          <Button
-            variant="destructive"
-            onClick={() => setShowCancelDialog(true)}
-            className='text-white'
-          >
-            Hủy lịch hẹn
-          </Button>
-        )} */}
-      {/* </div> */}
 
       {/* Cancel Appointment Dialog */}
       {showCancelDialog && (
@@ -592,7 +540,6 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
         />
       )}
 
-      {/* Confirm Modal */}
       <ConfirmModal
         isOpen={confirmModal.isOpen}
         onClose={() => setConfirmModal({ isOpen: false, status: null, title: '', message: '' })}
