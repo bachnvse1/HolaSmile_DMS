@@ -120,31 +120,26 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
     });
   };
 
-  // Fixed timezone handling function
   const formatTreatmentDate = (dateString: string) => {
     if (!dateString) return "";
     try {
       let date: Date;
       
-      // Check if the date string contains timezone info
       if (dateString.includes('Z') || dateString.includes('+') || (dateString.includes('T') && dateString.lastIndexOf('-') > dateString.indexOf('T'))) {
-        // It's already in UTC or has timezone info, convert to local
         date = new Date(dateString);
       } else {
-        // It's a local datetime string, treat as local
         date = new Date(dateString);
       }
       
       if (isNaN(date.getTime())) return dateString;
       
-      // Always display in Vietnam timezone
       return date.toLocaleString('vi-VN', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-        timeZone: 'Asia/Ho_Chi_Minh' // Ensure Vietnam timezone
+        timeZone: 'Asia/Ho_Chi_Minh' 
       });
     } catch (error) {
       console.error("Date formatting error:", error);
@@ -152,22 +147,17 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
     }
   };
 
-  // Helper function to convert local datetime to proper format for backend
   const formatDateForBackend = (localDateString: string) => {
     if (!localDateString) return localDateString;
     
     try {
-      // If it's already a local datetime string (YYYY-MM-DDTHH:mm:ss), keep it as is
-      // The backend should handle timezone conversion
       if (localDateString.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/)) {
         return localDateString;
       }
       
-      // If it's in other formats, normalize it
       const date = new Date(localDateString);
       if (isNaN(date.getTime())) return localDateString;
       
-      // Return in local ISO format without timezone info
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
@@ -226,7 +216,6 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
     try {
       setIsSubmitting(true);
 
-      // Format the date properly for backend
       const formattedData = {
         ...data,
         treatmentDate: formatDateForBackend(data.treatmentDate)
@@ -637,10 +626,8 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
           onConfirm={(dentist, date, slot) => {
             try {
               const time = SHIFT_TIME_MAP[slot as keyof typeof SHIFT_TIME_MAP];
-              // Create local datetime string without timezone conversion
               const localDateTime = `${date}T${time}:00`;
               
-              // Validate the date format
               const testDate = new Date(localDateTime);
               if (isNaN(testDate.getTime())) {
                 toast.error("Thời gian không hợp lệ");
