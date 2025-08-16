@@ -1,15 +1,27 @@
+using System.Runtime.InteropServices;
 using HDMS_API.Container.DependencyInjection;
 using Infrastructure.Hubs;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseUrls("https://localhost:5001");
+// Chỉ dùng HTTPS
+builder.WebHost.UseUrls("https://+:5001");
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddAuthenticationServices(builder.Configuration); 
-var dllPath = Path.Combine(Directory.GetCurrentDirectory(), "wkhtmltopdf", "libwkhtmltox.dll");
+var loader = new CustomAssemblyLoadContext();
 
-var context = new CustomAssemblyLoadContext();
-context.LoadUnmanagedLibrary(dllPath);
+// Ưu tiên name-based để hệ thống tự tìm theo LD_LIBRARY_PATH / PATH
+try
+{
+    loader.LoadUnmanagedLibrary("wkhtmltox");
+}
+catch
+{
+    // Fallback: để loader tự thử các vị trí chuẩn theo OS
+    loader.LoadUnmanagedLibrary(""); // truyền rỗng -> nó sẽ dùng fallback
+}
+
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -54,6 +66,7 @@ if (app.Environment.IsDevelopment())
 app.UseCors("_myAllowSpecificOrigins");
 
 app.UseRouting();
+// Enable HTTPS redirect 
 app.UseHttpsRedirection();
 
 app.UseAuthentication();

@@ -6,6 +6,9 @@ import path from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  css: {
+    transformer: 'postcss', // ⬅ dùng PostCSS, không dùng lightningcss native
+  },
   resolve: {
     alias: {
       "@": path.resolve(process.cwd(), "./src"),
