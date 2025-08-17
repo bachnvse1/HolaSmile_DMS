@@ -15,6 +15,7 @@ import {
   Download,
   Upload,
 } from 'lucide-react';
+import { SupplyFormModal } from './SupplyFormModal';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,6 +43,14 @@ export const SupplyList: React.FC = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showImportModal, setShowImportModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [supplyFormModal, setSupplyFormModal] = useState<{
+    isOpen: boolean;
+    mode: 'create' | 'edit';
+    supplyId?: number;
+  }>({
+    isOpen: false,
+    mode: 'create'
+  });
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     supply: Supply | null;
@@ -193,7 +202,11 @@ export const SupplyList: React.FC = () => {
   };
 
   const handleEdit = (supply: Supply) => {
-    navigate(`/inventory/${supply.SupplyID}/edit`);
+    setSupplyFormModal({
+      isOpen: true,
+      mode: 'edit',
+      supplyId: supply.SupplyID
+    });
   };
 
   const handleDeactivate = async (supply: Supply) => {
@@ -328,7 +341,7 @@ export const SupplyList: React.FC = () => {
           {canModify && (
             <div className="grid grid-cols-1 gap-2 sm:hidden">
               <Button
-                onClick={() => navigate('/inventory/create')}
+                onClick={() => setSupplyFormModal({ isOpen: true, mode: 'create' })}
                 className="text-xs"
               >
                 <Plus className="h-3 w-3 mr-1" />
@@ -362,7 +375,7 @@ export const SupplyList: React.FC = () => {
                 </Button>
 
                 <Button
-                  onClick={() => navigate('/inventory/create')}
+                  onClick={() => setSupplyFormModal({ isOpen: true, mode: 'create' })}
                   className="text-sm"
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -495,7 +508,7 @@ export const SupplyList: React.FC = () => {
               }
             </p>
             {!searchQuery && canModify && (
-              <Button onClick={() => navigate('/inventory/create')}>
+              <Button onClick={() => setSupplyFormModal({ isOpen: true, mode: 'create' })}>
                 <Plus className="h-4 w-4 mr-2" />
                 Thêm Vật Tư Mới
               </Button>
@@ -907,6 +920,14 @@ export const SupplyList: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Supply Form Modal */}
+      <SupplyFormModal
+        isOpen={supplyFormModal.isOpen}
+        onClose={() => setSupplyFormModal({ isOpen: false, mode: 'create' })}
+        mode={supplyFormModal.mode}
+        supplyId={supplyFormModal.supplyId}
+      />
     </div>
   );
 };

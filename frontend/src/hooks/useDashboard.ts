@@ -41,7 +41,7 @@ export const useDashboardStats = (filter: string = 'week') => {
       return response.data;
     },
     enabled: true,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 };
 

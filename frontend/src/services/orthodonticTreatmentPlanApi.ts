@@ -18,7 +18,7 @@ export const orthodonticTreatmentPlanApi = {
     return response.data;
   },
 
-  // Create new orthodontic treatment plan (using existing endpoint)
+  // Create new orthodontic treatment plan 
   createOrthodonticTreatmentPlan: async (data: CreateOrthodonticTreatmentPlanRequest): Promise<OrthodonticTreatmentPlan> => {
     console.log('Creating orthodontic treatment plan with data:', data);
     

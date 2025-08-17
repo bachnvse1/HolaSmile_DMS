@@ -447,6 +447,8 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
               onSlotSelect={handleCalendarSlotSelect}
               selectedSlots={selectedSlots}
               canAddSchedule={true}
+              isMultiSelectMode={true}
+              viewMode={false}
             />
           </div>
         ) : (
