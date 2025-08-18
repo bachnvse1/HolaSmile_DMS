@@ -1,7 +1,5 @@
 import React, { memo, useCallback, useEffect, useRef } from 'react';
 import { Search, Filter, Users, MessageCircle, Clock } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { useUnreadMessages } from '@/hooks/chat/useUnreadMessages';
 import type { ConversationUser, ConversationFilters } from '@/hooks/chat/useChatConversations';
 
 interface ConversationListProps {
@@ -208,14 +206,9 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   hasMore,
   loading,
   totalCount,
-  totalUnreadCount = 0,
   showFilters = false
 }) => {
-  const { userId } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
-  
-  // 🔥 Use useUnreadMessages hook to get real-time unread counts
-  const { getTotalUnreadCount } = useUnreadMessages(userId);
 
   // Sort conversations: unread first, then by recent activity, then alphabetically
   const sortedConversations = React.useMemo(() => {
@@ -254,9 +247,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     }
   }, [handleScroll]);
 
-  // 🔥 Calculate stats using useUnreadMessages hook instead of conversations prop
   const unreadCount = conversations.filter(conv => conv.unreadCount > 0).length;
-  const totalUnreadMessages = getTotalUnreadCount(); // Use hook instead of reducing conversations
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-gray-50 to-gray-100">

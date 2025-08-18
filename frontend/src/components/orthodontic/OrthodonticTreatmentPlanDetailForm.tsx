@@ -33,29 +33,23 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
 }) => {
   const { patientId: paramPatientId, planId } = useParams<{ patientId: string; planId: string }>();
   const navigate = useNavigate();
-
   const userInfo = useUserInfo();
   const canEdit = userInfo?.role === 'Dentist' || userInfo?.role === 'Assistant';
   const canDelete = userInfo?.role === 'Dentist' || userInfo?.role === 'Assistant';
 
-  // Add loading state for user info
   const [isUserInfoLoaded, setIsUserInfoLoaded] = React.useState(false);
 
-  // Wait for user info to be loaded
   React.useEffect(() => {
-    if (userInfo ) {
+    if (userInfo) {
       setIsUserInfoLoaded(true);
     } else if (!userInfo) {
-      // If no userInfo yet, check if we have a token and try to get role
       const token = localStorage.getItem('token') || localStorage.getItem('authToken');
       if (token) {
         const role = TokenUtils.getRoleFromToken(token);
         if (role) {
-          console.log('Found role from token:', role);
-          // Set a small timeout to allow hook to load user info
           setTimeout(() => {
             if (!userInfo) {
-              setIsUserInfoLoaded(true); // Force loaded if we have token but no user info
+              setIsUserInfoLoaded(true); 
             }
           }, 300);
         }
@@ -68,47 +62,25 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
   const updateMutation = useUpdateOrthodonticTreatmentPlan();
   const deactivateMutation = useDeactivateOrthodonticTreatmentPlan();
   
-  // Determine patientId based on user role
   let patientId: string | undefined = paramPatientId;
   if (userInfo?.role === 'Patient') {
     const roleTableId = userInfo.roleTableId ?? TokenUtils.getRoleTableIdFromToken(localStorage.getItem('token') || '');
     patientId = roleTableId === null ? undefined : roleTableId;
   }
 
-  // For Patient role in view mode, ensure we have the correct patientId for API calls
   const apiPatientId = userInfo?.role === 'Patient' 
     ? (userInfo.roleTableId ?? TokenUtils.getRoleTableIdFromToken(localStorage.getItem('token') || '') ?? '0')
     : patientId ?? '0';
 
-  // Debug logging
-  React.useEffect(() => {
-    if (userInfo) {
-      console.log('Patient ID Debug:', {
-        mode,
-        userRole: userInfo.role,
-        paramPatientId,
-        patientId,
-        apiPatientId,
-        userRoleTableId: userInfo.roleTableId
-      });
-    }
-  }, [mode, userInfo, paramPatientId, patientId, apiPatientId]);
-
-
-  // Fetch existing plan data if editing or viewing
   const { data: treatmentPlan, isLoading: isPlanLoading, error: planError } = useOrthodonticTreatmentPlan(
     parseInt(planId || '0'),
     parseInt(apiPatientId || '0'),
     { enabled: (mode === 'edit' || mode === 'view') && !!planId }
   );
 
-  // Get basic data from sessionStorage
   const [basicData, setBasicData] = React.useState<BasicPlanData | null>(null);
-
-  // Get patient data from API
   const { data: patientData } = usePatient(parseInt(apiPatientId || '0'));
 
-  // Helper functions để parse data từ strings
   const parseMedicalHistory = (treatmentHistory: string) => {
     const defaultHistory = {
       benhtim: false,
@@ -209,7 +181,6 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
       cleanPaymentMethod: paymentMethod,
     };
 
-    // Extract cost details from payment method
     const costDetailsRegex = /chi tiết chi phí[:\s]*([^]+)/i;
     const match = paymentMethod.match(costDetailsRegex);
 
@@ -304,7 +275,6 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
     },
   });
 
-  // Watch cost items to calculate total
   const costItems = form.watch('costItems');
   const otherCost = form.watch('otherCost');
   const totalCost = mapCostItemsToTotalCost(costItems, otherCost);
@@ -317,14 +287,11 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
     }
   }, [mode, setBasicData]);
 
-  // Populate form với existing data khi edit hoặc view
   useEffect(() => {
     if ((mode === 'edit' || mode === 'view') && treatmentPlan) {
       try {
-        // Parse existing data từ API response
         const plan = treatmentPlan as Record<string, unknown>;
 
-        // Parse các trường complex từ string
         const medicalHistory = parseMedicalHistory((plan.treatmentHistory as string) || '');
         const examinationData = parseExaminationFindings((plan.examinationFindings as string) || '');
         const xrayData = parseXRayAnalysis((plan.xRayAnalysis as string) || '');
@@ -351,7 +318,6 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
     }
   }, [treatmentPlan, form, mode]);
 
-  // Handle currency input for cost fields
   const handleCostItemChange = (field: keyof DetailFormData['costItems'], value: string) => {
     handleCurrencyInput(value, (formattedValue) => {
       form.setValue(`costItems.${field}`, formattedValue, { shouldDirty: true });
@@ -363,7 +329,6 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
 
     try {
       if (mode === 'edit') {
-        // Update existing plan
         const requestData = {
           planId: parseInt(planId || '0'),
           patientId: basicData.patientId,
@@ -389,7 +354,6 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
 
         await updateMutation.mutateAsync(requestData);
       } else {
-        // Create new plan
         const requestData = {
           patientId: basicData.patientId,
           dentistId: basicData.dentistId,
@@ -410,11 +374,9 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
         await createMutation.mutateAsync(requestData);
       }
 
-      // Clear session storage
       const storageKey = mode === 'edit' ? 'editBasicPlanData' : 'basicPlanData';
       sessionStorage.removeItem(storageKey);
 
-      // Navigate based on user role with small delay to ensure state is updated
       setTimeout(() => {
         if (userInfo?.role === 'Patient') {
           navigate(`/patient/orthodontic-treatment-plans`);
@@ -433,15 +395,10 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
   };
 
   const handleGoBack = () => {
-    // Ensure user info is loaded before navigation
     if (!isUserInfoLoaded || !userInfo) {
-      console.warn('User info not loaded yet, delaying navigation');
-      
-      // Fallback: try to get role from token directly
       const token = localStorage.getItem('token') || localStorage.getItem('authToken');
       const roleFromToken = token ? TokenUtils.getRoleFromToken(token) : null;
-      
-      // Add a small delay and retry
+
       setTimeout(() => {
         if (userInfo?.role === 'Patient' || roleFromToken === 'Patient') {
           navigate(`/patient/orthodontic-treatment-plans`);
@@ -455,7 +412,6 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
     if (mode === 'edit') {
       navigate(`/patients/${patientId}/orthodontic-treatment-plans/${planId}/edit`);
     } else if (userInfo.role === 'Patient') {
-      // For Patient role, always go to patient-specific route
       navigate(`/patient/orthodontic-treatment-plans`);
     } else if (mode === 'view') {
       navigate(`/patients/${patientId}/orthodontic-treatment-plans`);
@@ -471,7 +427,6 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
     setIsDeleting(true);
     try {
       await deactivateMutation.mutateAsync(parseInt(planId || '0'));
-      // Navigate based on user role with small delay
       setTimeout(() => {
         if (userInfo?.role === 'Patient') {
           navigate(`/patient/orthodontic-treatment-plans`);
@@ -487,7 +442,6 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
     }
   };
 
-  // Show loading screen until user info is loaded
   if (!isUserInfoLoaded) {
     return (
       <div className="container mx-auto p-6 max-w-7xl">
@@ -555,7 +509,180 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
+    <>
+      <style>
+        {`
+          /* Ẩn hoàn toàn printable content trên màn hình */
+          .printable-content {
+            display: none !important;
+          }
+          
+          @media print {
+            * {
+              visibility: hidden !important;
+            }
+            
+            .printable-content,
+            .printable-content * {
+              visibility: visible !important;
+            }
+            
+            .printable-content {
+              display: block !important;
+              position: absolute !important;
+              top: 0 !important;
+              left: 0 !important;
+              width: 100% !important;
+              height: auto !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              background: white !important;
+            }
+            
+            @page {
+              margin: 15mm;
+              size: A4;
+            }
+            
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+              width: 100% !important;
+              height: auto !important;
+              font-family: Arial, sans-serif !important;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+              overflow: visible !important;
+            }
+            
+            .print-page {
+              width: 100% !important;
+              margin: 0 !important;
+              padding: 12mm !important;
+              box-sizing: border-box !important;
+              font-size: 13px !important;
+              line-height: 1.4 !important;
+            }
+            
+            h1 { 
+              font-size: 18px !important; 
+              margin: 0 0 10px 0 !important; 
+              text-align: center !important;
+              font-weight: bold !important;
+            }
+            
+            .print-card {
+              border: 1px solid #333 !important;
+              margin-bottom: 8px !important;
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+            }
+            
+            
+            .print-card-header {
+              background: #f0f0f0 !important;
+              padding: 6px 10px !important;
+              font-weight: bold !important;
+              border-bottom: 1px solid #333 !important;
+              font-size: 14px !important;
+              text-align: center !important;
+            }
+            
+            .print-card-content {
+              padding: 8px 10px !important;
+            }
+            
+            .print-grid-2 { 
+              display: grid !important; 
+              grid-template-columns: 1fr 1fr !important; 
+              gap: 8px !important; 
+            }
+
+            .print-grid-3 { 
+              display: grid !important; 
+              grid-template-columns: 1fr 1fr 1fr !important; 
+              gap: 6px !important;
+            }
+
+            .print-grid-4 { 
+              display: grid !important; 
+              grid-template-columns: 1fr 1fr 1fr 1fr !important; 
+              gap: 4px !important;
+            }
+            
+            .print-card-content .text-xs,
+            .print-card-content div,
+            .print-card-content p,
+            .print-card-content span { 
+              font-size: 12px !important; 
+              line-height: 1.3 !important;
+              margin: 2px 0 !important;
+            }
+            
+            .print-card-content strong { 
+              font-weight: bold !important; 
+            }
+            
+            .print-checkbox { 
+              display: inline-block !important; 
+              width: 12px !important; 
+              height: 12px !important; 
+              border: 1px solid #333 !important; 
+              margin-right: 8px !important; 
+              text-align: center !important; 
+              font-size: 10px !important;
+              vertical-align: top !important;
+              line-height: 10px !important;
+              flex-shrink: 0 !important;
+            }
+            .print-checkbox.checked::after { 
+              content: "✓" !important; 
+              font-weight: bold !important;
+            }
+            
+            .print-checkbox-item {
+              display: flex !important;
+              align-items: flex-start !important;
+              margin-bottom: 3px !important;
+              break-inside: avoid !important;
+            }
+            
+            .print-card-content p,
+            .print-card-content div,
+            .print-card-content span {
+              word-wrap: break-word !important;
+              word-break: break-word !important;
+              hyphens: auto !important;
+              overflow-wrap: break-word !important;
+            }
+            
+            .print-card-content {
+              overflow: hidden !important;
+            }
+            
+            .print-page {
+              page-break-after: auto !important;
+              overflow: visible !important;
+            }
+            
+            .print-page[style*="pageBreakBefore"] {
+              page-break-before: always !important;
+              break-before: page !important;
+            }
+            
+            .print-signature {
+              margin-top: 20px !important;
+              page-break-inside: avoid !important;
+            }
+            
+            .whitespace-pre-line {
+              white-space: pre-line !important;
+            }
+          }
+        `}
+      </style>
+
+      <div className="container mx-auto p-6 max-w-7xl">
       {/* Header */}
       <div className="flex items-center justify-between mb-6 print:hidden">
         <div className="flex items-center gap-4">
@@ -1015,7 +1142,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
                 </div>
               </div>
 
-              {/* Real-time total display */}
+              {/* Total Cost */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-blue-800">Tổng chi phí:</span>
@@ -1099,10 +1226,167 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
               <Printer className="h-4 w-4 mr-2" />
               In
             </Button>
-
           </div>
         )}
       </form>
+
+      {/* Content để in */}
+      <div className="printable-content">
+        <div className="print-page">
+          <div className="text-center mb-4">
+            <h1>KẾ HOẠCH ĐIỀU TRỊ CHỈNH NHA</h1>
+            <p className="text-sm">
+              {mode === 'view' && treatmentPlan && (treatmentPlan as { planTitle?: string }).planTitle ||
+                basicData?.planTitle ||
+                'Kế hoạch điều trị chỉnh nha'}
+            </p>
+          </div>
+
+          {/* Thông tin khách hàng */}
+          <div className="print-card">
+            <div className="print-card-header">THÔNG TIN KHÁCH HÀNG</div>
+            <div className="print-card-content">
+              <div className="print-grid-3 text-xs">
+                <div><strong>Họ và tên:</strong> {patientData?.fullname || basicData?.patientInfo?.fullname || 'Chưa cập nhật'}</div>
+                <div><strong>Năm sinh:</strong> {patientData?.dob || basicData?.patientInfo?.dob || 'Chưa cập nhật'}</div>
+                <div><strong>Giới tính:</strong> {patientData?.gender === true ? 'Nam' : 'Nữ'}</div>
+                <div><strong>Điện thoại:</strong> {patientData?.phone || basicData?.patientInfo?.phone || 'Chưa cập nhật'}</div>
+                <div><strong>Địa chỉ:</strong> {patientData?.address || 'Chưa cập nhật'}</div>
+                <div><strong>Bác sĩ:</strong> {
+                  mode === 'view' && treatmentPlan && (treatmentPlan as { dentistName?: string }).dentistName ||
+                  basicData?.dentistName ||
+                  'BS. N/A'
+                }</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tiểu sử y khoa */}
+          <div className="print-card">
+            <div className="print-card-header">TIỂU SỬ Y KHOA</div>
+            <div className="print-card-content">
+              <div className="print-grid-2 text-xs">
+                {[
+                  { key: 'benhtim', label: 'Bệnh tim' },
+                  { key: 'caohuyetap', label: 'Cao huyết áp' },
+                  { key: 'tieuduong', label: 'Tiểu đường' },
+                  { key: 'loangxuong', label: 'Loãng xương' },
+                  { key: 'thankinh', label: 'Thần kinh' },
+                  { key: 'benhngan', label: 'Bệnh gan, thận' },
+                  { key: 'benhtruyen', label: 'Bệnh truyền nhiễm' },
+                  { key: 'chaymausau', label: 'Chảy máu kéo dài' },
+                ].map(({ key, label }) => {
+                  const fieldName = `medicalHistory.${key}` as const;
+                  const checked = form.watch(fieldName);
+                  return (
+                    <div key={key} className="flex items-center gap-2">
+                      <span className={`print-checkbox ${checked ? 'checked' : ''}`}></span>
+                      <span style={{ wordWrap: 'break-word', wordBreak: 'break-word' }}>{label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Lý do đến khám */}
+          <div className="print-card">
+            <div className="print-card-header">LÝ DO ĐẾN KHÁM</div>
+            <div className="print-card-content">
+              <p className="text-xs">{form.watch('reasonForVisit') || 'Chưa có thông tin'}</p>
+            </div>
+          </div>
+
+          {/* Khám lâm sàng */}
+          <div className="print-card">
+            <div className="print-card-header">KHÁM LÂM SÀNG</div>
+            <div className="print-card-content">
+              <div className="print-grid-3 text-xs mb-2">
+                <div><strong>Dạng mặt:</strong> {form.watch('faceShape') || '_'}</div>
+                <div><strong>Mặt thẳng:</strong> {form.watch('frontView') || '_'}</div>
+                <div><strong>Mặt nghiêng:</strong> {form.watch('sideView') || '_'}</div>
+                <div><strong>Cắn hở:</strong> {form.watch('openBite') || '_'}</div>
+                <div><strong>Cắn chéo:</strong> {form.watch('crossBite') || '_'}</div>
+                <div><strong>Đẩy lưỡi:</strong> {form.watch('tongueThrunt') || '_'}</div>
+              </div>
+              <div>
+                <strong className="text-xs">Khám trong miệng:</strong>
+                <p className="text-xs">{form.watch('intraoralExam') || 'Chưa có thông tin'}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Phân tích */}
+          <div className="print-card">
+            <div className="print-card-header">PHÂN TÍCH & CHẨN ĐOÁN</div>
+            <div className="print-card-content">
+              <div className="print-grid-3 text-xs">
+                <div><strong>Cắn phủ:</strong> {form.watch('overjet') || '_'}</div>
+                <div><strong>Cắn chỉa:</strong> {form.watch('overbite') || '_'}</div>
+                <div><strong>Đường giữa:</strong> {form.watch('midlineAnalysis') || '_'}</div>
+                <div><strong>Cắn ngược:</strong> {form.watch('crossbite') || '_'}</div>
+                <div><strong>Cắn hở:</strong> {form.watch('openbite') || '_'}</div>
+                <div><strong>Tương quan:</strong> {form.watch('molarRelation') || '_'}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="print-page" style={{ pageBreakBefore: 'always' }}>
+          {/* Kế hoạch điều trị */}
+          <div className="print-card allow-break">
+            <div className="print-card-header">KẾ HOẠCH ĐIỀU TRỊ</div>
+            <div className="print-card-content">
+              <p className="text-xs whitespace-pre-line">{form.watch('treatmentPlanContent') || 'Chưa có kế hoạch điều trị'}</p>
+            </div>
+          </div>
+
+          {/* Chi phí - compact */}
+          <div className="print-card">
+            <div className="print-card-header">CHI PHÍ ĐIỀU TRỊ</div>
+            <div className="print-card-content">
+              <div className="print-grid-2 text-xs mb-2">
+                {form.watch('costItems.khophang') && <div>Khớp hàng: <strong>{formatCurrency(form.watch('costItems.khophang'))} ₫</strong></div>}
+                {form.watch('costItems.xquang') && <div>X-Quang: <strong>{formatCurrency(form.watch('costItems.xquang'))} ₫</strong></div>}
+                {form.watch('costItems.minivis') && <div>Minivis: <strong>{formatCurrency(form.watch('costItems.minivis'))} ₫</strong></div>}
+                {form.watch('costItems.maccai') && <div>Mắc cài: <strong>{formatCurrency(form.watch('costItems.maccai'))} ₫</strong></div>}
+                {form.watch('costItems.chupcam') && <div>Chụp cằm: <strong>{formatCurrency(form.watch('costItems.chupcam'))} ₫</strong></div>}
+                {form.watch('costItems.nongham') && <div>Nong hàm: <strong>{formatCurrency(form.watch('costItems.nongham'))} ₫</strong></div>}
+                {form.watch('otherCost') && <div>Chi phí khác: <strong>{formatCurrency(form.watch('otherCost'))} ₫</strong></div>}
+              </div>
+              <div className="border-t border-gray-300 pt-2">
+                <div className="text-sm font-bold">Tổng cộng: {formatCurrency(totalCost)} ₫</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Hình thức thanh toán */}
+          <div className="print-card allow-break">
+            <div className="print-card-header">HÌNH THỨC THANH TOÁN</div>
+            <div className="print-card-content">
+              <p className="text-xs whitespace-pre-line">{form.watch('paymentMethod')}</p>
+            </div>
+          </div>
+
+          {/* Chữ ký */}
+          <div className="print-signature">
+            <div className="print-grid-2 text-xs">
+              <div className="text-center">
+                <p><strong>Bệnh nhân</strong></p>
+                <p className="mt-8">_________________</p>
+                <p>{patientData?.fullname || basicData?.patientInfo?.fullname}</p>
+              </div>
+              <div className="text-center">
+                <p><strong>Bác sĩ điều trị</strong></p>
+                <p className="mt-8">_________________</p>
+                <p>{mode === 'view' && treatmentPlan && (treatmentPlan as { dentistName?: string }).dentistName ||
+                    basicData?.dentistName ||
+                    'BS. N/A'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Confirm Deletion Modal */}
       <ConfirmModal
@@ -1116,5 +1400,6 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
         isLoading={isDeleting}
       />
     </div>
+    </>
   );
 };

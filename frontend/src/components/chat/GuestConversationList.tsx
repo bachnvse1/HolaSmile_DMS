@@ -1,7 +1,5 @@
 import React, { memo, useCallback } from 'react';
 import { Search, Users, MessageCircle, RefreshCw } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { useUnreadMessages } from '@/hooks/chat/useUnreadMessages';
 import type { GuestConversation } from '@/hooks/chat/useGuestConversations';
 
 interface GuestConversationListProps {
@@ -126,12 +124,6 @@ export const GuestConversationList: React.FC<GuestConversationListProps> = ({
   totalCount,
   onRefresh
 }) => {
-  const { userId } = useAuth();
-  
-  // 🔥 Use useUnreadMessages hook to get real-time unread counts for guest conversations
-  const { getTotalUnreadCount } = useUnreadMessages(userId);
-
-  // 🔥 Calculate guest conversation stats
   const unreadGuestCount = conversations.filter(conv => conv.unreadCount > 0).length;
   const totalGuestUnreadMessages = conversations.reduce((sum, conv) => sum + conv.unreadCount, 0);
 
@@ -145,7 +137,6 @@ export const GuestConversationList: React.FC<GuestConversationListProps> = ({
           <span className="ml-auto bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">
             {totalCount}
           </span>
-          {/* 🔥 Show unread count for guest conversations */}
           {totalGuestUnreadMessages > 0 && (
             <div className="px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full animate-pulse">
               {totalGuestUnreadMessages > 99 ? '99+' : totalGuestUnreadMessages}
@@ -173,7 +164,6 @@ export const GuestConversationList: React.FC<GuestConversationListProps> = ({
           />
         </div>
 
-        {/* 🔥 Show stats for guest conversations */}
         <div className="text-xs text-gray-500 flex items-center gap-3">
           <span>Hiển thị tất cả khách tư vấn</span>
           {unreadGuestCount > 0 && (

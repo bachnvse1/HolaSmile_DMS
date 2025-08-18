@@ -38,7 +38,6 @@ export const PrescriptionTemplateEditForm: React.FC = () => {
     },
   });
 
-  // Load template data
   useEffect(() => {
     if (template) {
       form.reset({

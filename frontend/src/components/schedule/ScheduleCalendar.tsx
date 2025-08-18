@@ -267,7 +267,7 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
   
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-      {/* Header với điều hướng tuần */}
+      {/* Header */}
       <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200">
         <Button 
           variant="outline" 
@@ -287,7 +287,7 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
           variant="outline" 
           size="icon" 
           onClick={handleNextWeek}
-          disabled={weekOffset >= 8} // Giới hạn về tương lai (2 tháng)
+          disabled={weekOffset >= 8} 
           className="h-8 w-8"
         >
           <ChevronRight className="h-4 w-4" />
@@ -297,7 +297,7 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
       {/* Desktop Layout */}
       <div className="hidden sm:block">
         <div className="grid grid-cols-7 gap-1 p-4">
-          {/* Header các ngày trong tuần */}
+          {/* Header */}
           {daysOfWeek.map((day, i) => (
             <div key={`header-${i}`} className="text-center">
               <div className="font-medium text-sm text-gray-900">
@@ -342,7 +342,7 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
         <div className="overflow-x-auto">
           <div className="min-w-[700px] p-3">
             <div className="grid grid-cols-7 gap-2">
-              {/* Header các ngày trong tuần */}
+              {/* Header */}
               {daysOfWeek.map((day, i) => (
                 <div key={`header-${i}`} className="text-center min-w-[90px]">
                   <div className="font-medium text-xs text-gray-900">

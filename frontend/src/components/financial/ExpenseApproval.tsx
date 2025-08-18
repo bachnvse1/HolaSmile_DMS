@@ -23,11 +23,9 @@ export const ExpenseApproval: React.FC<ExpenseApprovalProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
 
-  // Use pending transactions hook for approval list, all transactions for approved list
   const { data: pendingTransactions = [], isLoading: isLoadingPending, error: pendingError, refetch: refetchPending } = usePendingTransactions();
   const { data: allTransactions = [], isLoading: isLoadingAll, error: allError, refetch: refetchAll } = useFinancialTransactions();
 
-  // Choose the right data source and loading state
   const rawTransactions = viewOnlyApproved ? allTransactions : pendingTransactions;
   const isLoading = viewOnlyApproved ? isLoadingAll : isLoadingPending;
   const error = viewOnlyApproved ? allError : pendingError;
@@ -39,8 +37,8 @@ export const ExpenseApproval: React.FC<ExpenseApprovalProps> = ({
   // Filter transactions based on view mode
   const filteredTransactions = React.useMemo(() => {
     let filtered = viewOnlyApproved
-      ? rawTransactions.filter(t => t.status === 'approved') // All approved transactions (both Thu and Chi)
-      : rawTransactions.filter(t => t.status === 'pending'); // All pending transactions (both Thu and Chi)
+      ? rawTransactions.filter(t => t.status === 'approved') 
+      : rawTransactions.filter(t => t.status === 'pending'); 
 
     // Sort by created date (newest first)
     filtered = filtered.sort((a, b) => {
@@ -424,7 +422,6 @@ export const ExpenseApproval: React.FC<ExpenseApprovalProps> = ({
             totalItems={totalItems}
             itemsPerPage={itemsPerPage}
             onPageChange={handlePageChange}
-            onItemsPerPageChange={() => { }} // No items per page change for approval
             className="justify-center"
           />
         </div>

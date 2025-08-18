@@ -13,7 +13,6 @@ export const OrthodonticTreatmentPlanImagesPage: React.FC = () => {
   const userInfo = useUserInfo();
   const isEditable = userInfo?.role === 'Assistant' || userInfo?.role === 'Dentist'
 
-  // Handle patient ID for different roles
   let patientId: string | undefined = paramPatientId;
   if (userInfo?.role === 'Patient') {
     const roleTableId = userInfo.roleTableId ?? TokenUtils.getRoleTableIdFromToken(localStorage.getItem('token') || '');

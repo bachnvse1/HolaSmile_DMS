@@ -30,7 +30,6 @@ interface ScheduleListProps {
 }
 
 export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistId }) => {
-  // States
   const { role } = useAuth?.() || {}; 
   const isDentist = role === 'Dentist';
   const [activeView, setActiveView] = useState<'list' | 'calendar'>('calendar');
@@ -40,11 +39,9 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
   const [shiftFilter, setShiftFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('upcoming'); // 'all', 'upcoming', 'past'
   
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Queries
   const { data: dentistData, isLoading: isDentistLoading } = useDentistSchedule(dentistId);
   const { data: allDentistsData, isLoading: isAllDentistsLoading } = useAllDentistSchedules();
 
@@ -94,7 +91,6 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
   }, [searchTerm, statusFilter, shiftFilter, dateFilter]);
 
 
-  // Handle filter reset
   const handleResetFilters = () => {
     setSearchTerm('');
     setStatusFilter('all');
@@ -116,7 +112,6 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
     }
   };
 
-  // Render the list view
   const renderScheduleList = () => {
     if (filteredAndSortedSchedules.length === 0) {
       return (
@@ -200,10 +195,9 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
     );
   };
 
-  // Render the component
   return (
     <div>
-      {/* Header with filters and view toggle */}
+      {/* Header */}
       <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
         <div className="flex flex-col sm:flex-row gap-2">
           {!isDentist && (
@@ -320,14 +314,12 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
         </div>
       )}
 
-      {/* Loading state */}
       {isLoading ? (
         <div className="flex justify-center items-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
           <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
         </div>
       ) : (
-        // Content - Calendar or List view
         <div>
           {activeView === 'calendar' ? (
             <ScheduleCalendar
@@ -340,7 +332,6 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
             renderScheduleList()
           )}
 
-          {/* Show result count */}
           <div className="mt-4 text-sm text-gray-500">
             Hiển thị {filteredAndSortedSchedules.length} lịch làm việc
           </div>

@@ -53,14 +53,11 @@ export const EditPromotionModal: React.FC<EditPromotionModalProps> = ({
     name: 'procedures'
   });
 
-  // Populate form when program detail is loaded
   useEffect(() => {
     if (programDetail) {
       const parseDate = (dateStr: string) => {
         if (!dateStr) return '';
-        // Nếu đã là yyyy-MM-dd hoặc ISO, trả về luôn
         if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) return dateStr.slice(0, 10);
-        // Nếu là dd/MM/yyyy thì chuyển sang yyyy-MM-dd
         if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
           const [d, m, y] = dateStr.split('/');
           return `${y}-${m}-${d}`;
@@ -85,7 +82,6 @@ export const EditPromotionModal: React.FC<EditPromotionModalProps> = ({
   }, [programDetail, form]);
 
   const handleDiscountPercentageChange = (index: number, value: string) => {
-    // Only allow numbers and ensure it's between 0-100
     const numericValue = value.replace(/[^\d]/g, '');
     const percentage = Math.min(100, Math.max(0, parseInt(numericValue) || 0));
     form.setValue(`procedures.${index}.discountAmount`, percentage.toString());
@@ -116,7 +112,7 @@ export const EditPromotionModal: React.FC<EditPromotionModalProps> = ({
         programName: data.programName.trim(),
         startDate: data.startDate,
         endDate: data.endDate,
-        discountPercentage: 0, // Backend expects this field
+        discountPercentage: 0, 
         listProcedure: validProcedures.map(p => ({
           procedureId: p.procedureId,
           discountAmount: parseInt(p.discountAmount) || 0
@@ -161,13 +157,11 @@ export const EditPromotionModal: React.FC<EditPromotionModalProps> = ({
       .filter(id => id > 0);
   };
 
-  // Get available procedures for a specific index
   const getAvailableProcedures = (currentIndex: number) => {
     const selectedIds = getSelectedProcedureIds();
     const currentProcedureId = form.watch(`procedures.${currentIndex}.procedureId`);
 
     return procedures.filter((procedure: Procedure) => {
-      // Include current selection or unselected procedures
       return procedure.procedureId === currentProcedureId ||
         !selectedIds.includes(procedure.procedureId);
     });
