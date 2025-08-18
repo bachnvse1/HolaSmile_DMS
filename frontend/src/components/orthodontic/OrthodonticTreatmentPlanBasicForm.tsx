@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ArrowLeft, Save, FileText, X } from 'lucide-react';
+import { ArrowLeft, FileText, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +22,6 @@ export const OrthodonticTreatmentPlanBasicForm: React.FC<OrthodonticTreatmentPla
   const { patientId, planId } = useParams<{ patientId: string; planId: string }>();
   const navigate = useNavigate();
 
-  // Dynamic schema based on mode
   const basicPlanSchema = React.useMemo(() => z.object({
     planTitle: z.string().min(1, 'Tên kế hoạch là bắt buộc'),
     templateName: z.string().min(1, 'Tên mẫu là bắt buộc'),
@@ -32,24 +31,16 @@ export const OrthodonticTreatmentPlanBasicForm: React.FC<OrthodonticTreatmentPla
 
   type BasicPlanFormData = z.infer<typeof basicPlanSchema>;
 
-  // Get dentists list
   const { data: dentists = [], isLoading: isDentistsLoading } = useDentists();
-
-  // Get patient data
   const { data: patientData} = usePatient(parseInt(patientId || '0'));
-
-  // Get existing plan data if editing
   const { data: treatmentPlan, isLoading: isPlanLoading } = useOrthodonticTreatmentPlan(
     parseInt(planId || '0'),
     parseInt(patientId || '0'),
     { enabled: mode === 'edit' && !!planId && !!patientId }
   );
 
-
-  // Track if form has been populated to avoid multiple resets
   const [isFormPopulated, setIsFormPopulated] = React.useState(false);
 
-  // Patient info from API or fallback
   const patientInfo = patientData ? {
     fullname: patientData.fullname,
     dob: patientData.dob || 'Chưa cập nhật',
@@ -72,15 +63,8 @@ export const OrthodonticTreatmentPlanBasicForm: React.FC<OrthodonticTreatmentPla
     },
   });
 
-  // Watch form values for debugging
-  const watchedValues = form.watch();
-  
-  useEffect(() => {
-    console.log('Form values changed:', watchedValues);
-  }, [watchedValues]);
   useEffect(() => {
     if (mode === 'edit' && treatmentPlan && !isDentistsLoading && dentists.length > 0 && !isFormPopulated) {
-      // Type assertion để access fields từ API response
       const plan = treatmentPlan as Record<string, unknown>;
       
       const formData = {
@@ -93,7 +77,6 @@ export const OrthodonticTreatmentPlanBasicForm: React.FC<OrthodonticTreatmentPla
       form.reset(formData);
       setIsFormPopulated(true);
       
-      // Force update selects after a short delay
       setTimeout(() => {
         form.setValue('templateName', formData.templateName);
         form.setValue('dentistId', formData.dentistId)
@@ -105,19 +88,15 @@ export const OrthodonticTreatmentPlanBasicForm: React.FC<OrthodonticTreatmentPla
     const selectedDentist = dentists.find(d => d.dentistId === data.dentistId);
     
     if (mode === 'edit') {
-      // Save edit data to sessionStorage (không truyền dentistId)
       sessionStorage.setItem('editBasicPlanData', JSON.stringify({
         ...data,
         planId: parseInt(planId || '0'),
         patientId: parseInt(patientId || '0'),
         dentistName: treatmentPlan && (treatmentPlan as { dentistName?: string }).dentistName,
         patientInfo
-      }));
-      
-      // Navigate to edit detail form
+      })); 
       navigate(`/patients/${patientId}/orthodontic-treatment-plans/${planId}/edit/detail`);
     } else {
-      // Save basic data to sessionStorage
       sessionStorage.setItem('basicPlanData', JSON.stringify({
         ...data,
         patientId: parseInt(patientId || '0'),
@@ -125,7 +104,6 @@ export const OrthodonticTreatmentPlanBasicForm: React.FC<OrthodonticTreatmentPla
         patientInfo
       }));
       
-      // Navigate to create detail form
       navigate(`/patients/${patientId}/orthodontic-treatment-plans/create/detail`);
     }
   };
@@ -327,7 +305,6 @@ export const OrthodonticTreatmentPlanBasicForm: React.FC<OrthodonticTreatmentPla
             type="button" 
             variant="secondary"
             onClick={() => {
-              // Save and go to detail
               form.handleSubmit((data) => {
                 const selectedDentist = dentists.find(d => d.dentistId === data.dentistId);
                 if (mode === 'edit') {

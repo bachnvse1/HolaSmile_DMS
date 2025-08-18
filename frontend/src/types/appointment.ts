@@ -3,8 +3,8 @@ export interface Dentist {
   name: string;
   avatar: string;
   schedule: DentistSchedule;
-  dentistID: number; // Thêm để mapping với backend
-  backendSchedules?: DentistScheduleData['schedules']; // Lưu lại để lấy scheduleId
+  dentistID: number; 
+  backendSchedules?: DentistScheduleData['schedules']; 
 }
 
 export interface DentistSchedule {
@@ -37,10 +37,9 @@ export interface AppointmentData extends AppointmentFormData {
   dentistName: string;
   appointmentDate: string;
   timeSlot: string;
-  backendDentistId: number; // Thêm để gửi lên backend
+  backendDentistId: number; 
 }
 
-// Backend types
 export interface DentistScheduleData {
   dentistID: number;
   dentistName: string;
@@ -48,7 +47,7 @@ export interface DentistScheduleData {
   schedules: {
     scheduleId: number;
     dentistName: string | null;
-    workDate: string;  // ISO date string
+    workDate: string;  
     shift: string;     // "morning" | "afternoon" | "evening"
     createdAt: string;
     updatedAt: string | null;
@@ -60,13 +59,12 @@ export interface CreateAppointmentRequest {
   FullName: string;
   Email: string;
   PhoneNumber: string;
-  AppointmentDate: string; // Date string format: "2025-06-20"
-  AppointmentTime: string; // TimeSpan format: "08:00:00"
+  AppointmentDate: string; 
+  AppointmentTime: string; 
   MedicalIssue: string;
   DentistId: number;
 }
 
-// Wrapper cho backend request
 export interface BookAppointmentRequestWrapper {
   request: CreateAppointmentRequest;
 }
@@ -78,25 +76,22 @@ export interface BookAppointmentResponse {
   patientId?: number;
 }
 
-// Updated AppointmentDTO to match backend logic
 export interface AppointmentDTO {
   appointmentId: number;
   patientName: string;
   dentistName: string;
-  appointmentDate: string; // ISO date string
-  appointmentTime: string; // HH:mm:ss format
+  appointmentDate: string; 
+  appointmentTime: string; 
   content: string;
   appointmentType: string;
   isNewPatient: boolean;
-  status: 'confirmed' | 'canceled' | 'attended' | 'absented'; // Only 2 statuses as per backend
+  status: 'confirmed' | 'canceled' | 'attended' | 'absented'; 
   createdAt: string;
   updatedAt?: string;
   createdBy?: number;
   updatedBy?: number;
-  // Additional fields for calendar view
   patientId?: number;
   dentistId?: number;
-  // New prescription fields
   isExistPrescription: boolean;
   isExistInstruction: boolean;
   prescriptionId: number | null;

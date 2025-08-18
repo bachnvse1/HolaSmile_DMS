@@ -518,7 +518,6 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
           onSuccess={() => {
             setShowPrescriptionModal(false);
             refreshAppointmentData();
-            // Reload page to ensure all data is fresh
             window.location.reload();
           }}
         />

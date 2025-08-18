@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useRef, useState, useMemo } from 'react';
-import { Send, MoreVertical, Phone, Video, Info, Paperclip, MessageCircle, Check, CheckCheck, Search, ArrowLeft, Image, Video as VideoIcon, Camera, ChevronUp, ChevronDown, X } from 'lucide-react';
+import { Send, MoreVertical, Paperclip, MessageCircle, Check, CheckCheck, Search, ArrowLeft, Image, Video as VideoIcon, ChevronUp, ChevronDown, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useChatHub } from '@/components/chat/ChatHubProvider';
 import { useUnreadMessages } from '@/hooks/chat/useUnreadMessages';
@@ -12,10 +12,6 @@ interface ChatWindowProps {
   onBack?: () => void;
   onMarkAsRead?: (senderId: string, receiverId: string) => void;
 }
-
-const isMobile = () => {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-};
 
 const getRoleInVietnamese = (role: string): string => {
   const roleMap: { [key: string]: string } = {
@@ -41,8 +37,6 @@ const uploadMedia = async (file: File): Promise<string> => {
       },
       withCredentials: true
     });
-
-    console.log('Upload successful:', response.data);
     return response.data.url;
   } catch (error) {
     console.error('Upload media error:', error);
@@ -264,11 +258,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<number[]>([]);
   const [currentSearchIndex, setCurrentSearchIndex] = useState(-1);
-  const [hasSearched, setHasSearched] = useState(false); // Track if user has actually searched
-  const [searchMode, setSearchMode] = useState(false); // Track if in search mode
-  const [searchAnchorIndex, setSearchAnchorIndex] = useState(-1); // Index of current search result in allMessages
-  const [searchDisplayRange, setSearchDisplayRange] = useState({ start: 0, end: 0 }); // Range to display in search mode
-  const [isLoadingContext, setIsLoadingContext] = useState(false); // Track if loading more context in search mode
+  const [hasSearched, setHasSearched] = useState(false); 
+  const [searchMode, setSearchMode] = useState(false); 
+  const [searchAnchorIndex, setSearchAnchorIndex] = useState(-1); 
+  const [searchDisplayRange, setSearchDisplayRange] = useState({ start: 0, end: 0 }); 
+  const [isLoadingContext, setIsLoadingContext] = useState(false); 
   const searchInputRef = useRef<HTMLInputElement>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -283,19 +277,13 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     if (conversation && userId) {
       markAsRead(conversation.userId, userId);
       
-      // Gọi callback nếu có
       if (onMarkAsRead) {
         onMarkAsRead(conversation.userId, userId);
       }
-
-      console.log('✅ Marked conversation as read:', {
-        conversationUserId: conversation.userId,
-        currentUserId: userId
-      });
     }
   }, [conversation?.userId, userId, markAsRead, onMarkAsRead]);
 
-  // Load conversation history - CHỈ 1 LẦN khi conversation thay đổi
+  // Load conversation history 
   useEffect(() => {
     if (!conversation || !userId) {
       setHistory([]);
@@ -485,7 +473,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     }
 
     // Kiểm tra kích thước file (50MB)
-    const maxSize = 50 * 1024 * 1024; // 50MB
+    const maxSize = 50 * 1024 * 1024; 
     if (file.size > maxSize) {
       alert('File không được vượt quá 50MB!');
       return;
@@ -627,10 +615,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const handleSearchToggle = useCallback(() => {
     setShowSearchBar(!showSearchBar);
     if (!showSearchBar) {
-      // Focus on search input when opening
       setTimeout(() => searchInputRef.current?.focus(), 100);
     } else {
-      // Clear search when closing và quay về tin nhắn mới nhất
       setSearchQuery('');
       setSearchResults([]);
       setCurrentSearchIndex(-1);
@@ -673,21 +659,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   }
 
   return (
-    <div className="h-full flex flex-col bg-white">
-      <style>{`
-        .search-highlight {
-          background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 50%, #fbbf24 100%) !important;
-          animation: searchPulse 0.6s ease-in-out;
-          border-radius: 8px;
-          box-shadow: 0 0 0 2px #f59e0b;
-        }
-        @keyframes searchPulse {
-          0% { transform: scale(1); box-shadow: 0 0 0 2px #f59e0b; }
-          50% { transform: scale(1.02); box-shadow: 0 0 0 4px #f59e0b; }
-          100% { transform: scale(1); box-shadow: 0 0 0 2px #f59e0b; }
-        }
-      `}</style>
-      
+    <div className="h-full flex flex-col bg-white">   
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
         <div className="flex items-center gap-3">
@@ -927,7 +899,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           </>
         )}
         
-        {/* Scroll anchor - để scroll xuống */}
         <div ref={messagesEndRef} />
       </div>
 

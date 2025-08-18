@@ -34,16 +34,14 @@ export const ScheduleApproval: React.FC<{ viewOnlyApproved?: boolean }> = ({ vie
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [shiftFilter, setShiftFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('all')
-  // Queries
+
   const {
     data,
     isLoading,
     error
   } = useAllDentistSchedules();
-  // Mutations
   const approveMutation = useApproveSchedules();
 
-  // Gộp tất cả schedules của các bác sĩ thành một mảng
   const allSchedules = React.useMemo(() => {
     if (!data) return [];
     const result = data.flatMap((dentist: any) =>
@@ -61,7 +59,6 @@ export const ScheduleApproval: React.FC<{ viewOnlyApproved?: boolean }> = ({ vie
 
   // Filters
   const filteredSchedules = allSchedules.filter((schedule: Schedule) => {
-    // Nếu chỉ xem các lịch đã approved
     if (viewOnlyApproved && schedule.status !== ScheduleStatus.Approved) return false;
     // Status filter
     if (!viewOnlyApproved && statusFilter !== "all" && schedule.status !== statusFilter) return false;
@@ -79,7 +76,6 @@ export const ScheduleApproval: React.FC<{ viewOnlyApproved?: boolean }> = ({ vie
   });
 
 
-  // Handle filter reset
   const handleResetFilters = () => {
     setSearchTerm('');
     setStatusFilter('all');
@@ -87,27 +83,24 @@ export const ScheduleApproval: React.FC<{ viewOnlyApproved?: boolean }> = ({ vie
     setDateFilter('all');
   };
 
-  // Lọc schedules theo trạng thái pending
   const pendingSchedules = React.useMemo(() => {
     return allSchedules
       .filter((schedule: any) => {
-        // Chỉ lấy lịch đang chờ duyệt
         return schedule.status === ScheduleStatus.Pending || schedule.status === 'pending';
       })
       .sort((a: any, b: any) => {
-        // Sắp xếp theo ngày, mới nhất lên đầu
         return new Date(a.workDate).getTime() - new Date(b.workDate).getTime();
       });
-  }, [allSchedules]); // Bỏ searchTerm dependency vì không sử dụng trong logic filter
+  }, [allSchedules]); 
 
   const handleSelectSchedule = (ids: number | number[]) => {
     if (Array.isArray(ids)) {
-      setSelectedSchedules(ids); // Chọn nhanh: set toàn bộ
+      setSelectedSchedules(ids); 
     } else {
       setSelectedSchedules(prev =>
         prev.includes(ids)
-          ? prev.filter(id => id !== ids) // Nếu đã chọn thì bỏ chọn
-          : [...prev, ids]                // Nếu chưa chọn thì thêm vào
+          ? prev.filter(id => id !== ids) 
+          : [...prev, ids]               
       );
     }
   };
@@ -133,7 +126,7 @@ export const ScheduleApproval: React.FC<{ viewOnlyApproved?: boolean }> = ({ vie
   };
 
   const handleConfirmAction = async () => {
-    if (!approvalAction || approveMutation.isPending) return; // Thêm check isPending
+    if (!approvalAction || approveMutation.isPending) return; 
 
     try {
       await approveMutation.mutateAsync({
@@ -154,7 +147,6 @@ export const ScheduleApproval: React.FC<{ viewOnlyApproved?: boolean }> = ({ vie
     }
   };
 
-  // Loading state
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
@@ -164,7 +156,6 @@ export const ScheduleApproval: React.FC<{ viewOnlyApproved?: boolean }> = ({ vie
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="bg-red-50 p-4 rounded-lg border border-red-100 text-red-800">
@@ -173,7 +164,6 @@ export const ScheduleApproval: React.FC<{ viewOnlyApproved?: boolean }> = ({ vie
     );
   }
 
-  // Không có lịch cần phê duyệt
   if (pendingSchedules.length === 0 && !viewOnlyApproved) {
     return (
       <div className="text-center py-10 bg-gray-50 rounded-lg border border-gray-200">
@@ -284,7 +274,7 @@ export const ScheduleApproval: React.FC<{ viewOnlyApproved?: boolean }> = ({ vie
 
   return (
     <div>
-      {/* Header with info */}
+      {/* Header */}
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
         <div className="flex items-start">
           <InfoIcon className="h-5 w-5 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
@@ -399,7 +389,6 @@ export const ScheduleApproval: React.FC<{ viewOnlyApproved?: boolean }> = ({ vie
           onScheduleSelect={handleSelectSchedule}
         />
       </div>
-      {/* Các nút phê duyệt/từ chối giữ nguyên */}
       <div className="flex gap-2 mt-4">
         <Button onClick={openApproveDialog} disabled={selectedSchedules.length === 0}>Phê duyệt</Button>
         <Button variant="destructive" className="text-white" onClick={openRejectDialog} disabled={selectedSchedules.length === 0}>Từ chối</Button>

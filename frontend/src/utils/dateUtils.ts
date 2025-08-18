@@ -19,7 +19,6 @@ export const formatDateWithDay = (input: string | Date): string => {
   if (!input) return "Không xác định";
 
   if (typeof input === "string") {
-    // Thử parse theo ISO trước, nếu fail thì parse dd/MM/yyyy
     date = parseISO(input);
     if (!isValid(date)) {
       date = parse(input, "dd/MM/yyyy", new Date());
@@ -35,12 +34,12 @@ export const formatDateWithDay = (input: string | Date): string => {
 
 // Lấy ngày đầu tiên của tuần
 export const getWeekStart = (date: Date = new Date()): Date => {
-  return startOfWeek(date, { weekStartsOn: 1 }); // Tuần bắt đầu từ thứ 2
+  return startOfWeek(date, { weekStartsOn: 1 }); 
 };
 
 // Lấy ngày cuối cùng của tuần
 export const getWeekEnd = (date: Date = new Date()): Date => {
-  return endOfWeek(date, { weekStartsOn: 1 }); // Tuần kết thúc vào chủ nhật
+  return endOfWeek(date, { weekStartsOn: 1 }); 
 };
 
 // Lấy mảng các ngày trong tuần
@@ -90,12 +89,10 @@ export const isFarFutureDate = (date: Date | string): boolean => {
   return isAfter(date, threeMonthsLater);
 };
 
-// Format date sang định dạng yyyy-MM-dd cho API
 export const formatDateForApi = (date: Date): string => {
   return format(date, 'yyyy-MM-dd');
 };
 
-// Hàm parse ngày theo local để tránh lệch múi giờ khi render lịch
 export function parseLocalDate(dateString: string) {
   const [datePart, timePart] = dateString.split('T');
   const [year, month, day] = datePart.split('-').map(Number);

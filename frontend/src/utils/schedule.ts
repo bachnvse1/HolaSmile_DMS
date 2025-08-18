@@ -1,6 +1,5 @@
 import type { DentistSchedule, DentistScheduleData } from '../types/appointment';
 
-// Kiểm tra xem một time slot có khả dụng hay không
 export const isTimeSlotAvailable = (
   schedule: DentistSchedule,
   date: string,
@@ -10,7 +9,6 @@ export const isTimeSlotAvailable = (
   return schedule[date][period];
 };
 
-// Chuyển đổi từ dữ liệu API sang định dạng frontend sử dụng
 export const mapBackendScheduleToFrontend = (backendData: DentistScheduleData[]): {
   id: string;
   name: string;
@@ -20,14 +18,10 @@ export const mapBackendScheduleToFrontend = (backendData: DentistScheduleData[])
   backendSchedules: DentistScheduleData['schedules'];
 }[] => {
   return backendData.map(dentist => {
-    // Khởi tạo lịch trống
     const schedule: DentistSchedule = {};
-      // Xử lý từng lịch làm việc của bác sĩ
     dentist.schedules.forEach(scheduleItem => {
-      // Lấy ngày từ chuỗi ISO (YYYY-MM-DD)
       const dateStr = scheduleItem.workDate.split('T')[0];
       
-      // Khởi tạo ngày nếu chưa có
       if (!schedule[dateStr]) {
         schedule[dateStr] = {
           morning: false,

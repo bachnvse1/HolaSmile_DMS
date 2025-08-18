@@ -39,18 +39,12 @@ export const HeroSection = () => {
     }
   };
 
-  // Listen for carousel API changes
   useEffect(() => {
     if (!api) return;
-
     const onSelect = () => {
       setCurrentSlide(api.selectedScrollSnap());
     };
-
-    // Set initial slide
     setCurrentSlide(api.selectedScrollSnap());
-    
-    // Listen for slide changes
     api.on("select", onSelect);
 
     return () => {
@@ -58,16 +52,14 @@ export const HeroSection = () => {
     };
   }, [api]);
 
-  // Auto-scroll carousel
   useEffect(() => {
     if (!api) return;
 
     const intervalId = setInterval(() => {
-      // Only auto-scroll if not hovered
       if (!isHovered) {
         api.scrollNext();
       }
-    }, 4000); // Auto-scroll every 4 seconds
+    }, 4000);
 
     return () => clearInterval(intervalId);
   }, [api, isHovered]);
@@ -75,7 +67,7 @@ export const HeroSection = () => {
   return (
     <section id="home" className="relative overflow-hidden">
 
-    {/* Promotion Banner - Fixed below header */}
+    {/* Promotion Banner */}
     <div className="fixed top-14 sm:top-16 left-0 right-0 z-40 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-500 text-white py-2 sm:py-3 overflow-hidden">
       <div className="absolute inset-0 bg-blue-600/20 backdrop-blur-sm"></div>
       <div className="relative z-10">
@@ -87,10 +79,10 @@ export const HeroSection = () => {
             ⭐ TẶNG NGAY PHIẾU THĂM KHÁM MIỄN PHÍ CHO KHÁCH HÀNG MỚI
           </span>
           <span className="text-sm sm:text-base font-semibold mx-8">
-            💎 NIỀNG RĂNG INVISALIGN - ƯU ĐÃI LÊN ĐẾN 50%
+            🎉 NIỀNG RĂNG INVISALIGN - ƯU ĐÃI LÊN ĐẾN 50%
           </span>
           <span className="text-sm sm:text-base font-semibold mx-8">
-            🔥 TRỒNG RĂNG IMPLANT - GIẢM GIÁ SỐC TRONG THÁNG NÀY
+            ⭐ TRỒNG RĂNG IMPLANT - GIẢM GIÁ SỐC TRONG THÁNG NÀY
           </span>
           <span className="text-sm sm:text-base font-semibold mx-8">
             🎉 KHUYẾN MÃI ĐẶC BIỆT - GIẢM 30% TẤT CẢ DỊCH VỤ NHA KHOA
@@ -99,10 +91,10 @@ export const HeroSection = () => {
             ⭐ TẶNG NGAY PHIẾU THĂM KHÁM MIỄN PHÍ CHO KHÁCH HÀNG MỚI
           </span>
           <span className="text-sm sm:text-base font-semibold mx-8">
-            💎 NIỀNG RĂNG INVISALIGN - ƯU ĐÃI LÊN ĐẾN 50%
+            🎉 NIỀNG RĂNG INVISALIGN - ƯU ĐÃI LÊN ĐẾN 50%
           </span>
           <span className="text-sm sm:text-base font-semibold mx-8">
-            🔥 TRỒNG RĂNG IMPLANT - GIẢM GIÁ SỐC TRONG THÁNG NÀY
+            ⭐ TRỒNG RĂNG IMPLANT - GIẢM GIÁ SỐC TRONG THÁNG NÀY
           </span>
         </div>
       </div>
@@ -192,7 +184,6 @@ export const HeroSection = () => {
             className="relative flex items-center bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 group"
           >
             <div className="relative p-2 sm:p-3">
-              {/* Ping effect only on icon */}
               <div className="absolute inset-0 bg-red-400 rounded-full animate-ping scale-110"></div>
               <div className="absolute inset-0 bg-red-400 rounded-full animate-ping animation-delay-1000 scale-110"></div>
               <Phone className="h-4 w-4 sm:h-5 sm:w-5 relative z-10 animate-shake" />
@@ -212,10 +203,8 @@ export const HeroSection = () => {
             className="relative flex items-center bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 group"
           >
             <div className="relative p-2 sm:p-3">
-              {/* Ping effect */}
               <div className="absolute inset-0 bg-blue-400 rounded-full animate-ping scale-110"></div>
               <div className="absolute inset-0 bg-blue-400 rounded-full animate-ping animation-delay-1000 scale-110"></div>
-              {/* Zalo icon (Z letter) */}
               <div className="h-4 w-4 sm:h-5 sm:w-5 relative z-10 flex items-center justify-center bg-white text-blue-500 rounded text-xs sm:text-sm font-bold animate-pulse">
                 Z
               </div>

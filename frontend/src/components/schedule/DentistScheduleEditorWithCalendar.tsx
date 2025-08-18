@@ -25,7 +25,6 @@ interface DentistScheduleEditorWithCalendarProps {
 }
 
 export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWithCalendarProps> = ({ dentistId }) => {
-  // States
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedShift, setSelectedShift] = useState<ShiftType | ''>('');
   const [note, setNote] = useState('');
@@ -41,7 +40,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  // Queries and mutations
+
   const { data, isLoading, error, refetch } = useDentistSchedule(dentistId);
   const createScheduleMutation = useCreateSchedule();
   const editScheduleMutation = useEditSchedule();
@@ -67,7 +66,6 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
 
   const schedules = sortedSchedules;
 
-  // Handlers
   // const handleAddSchedule = () => {
   //   setIsEditMode(false);
   //   setSelectedDate('');
@@ -117,7 +115,6 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
     }
   };
 
-  // Xử lý khi chọn nhiều ca làm việc
   const handleCalendarSlotSelect = (date: string, shift: ShiftType) => {
     const existingSchedule = schedules.find(s => s.date === date && s.shift === shift);
 
@@ -172,7 +169,6 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
       return;
     }
 
-    // Kiểm tra ngày trong quá khứ
     if (isPastDate(new Date(selectedDate))) {
       toast.error('Không thể đặt lịch cho ngày trong quá khứ!');
       return;
@@ -188,7 +184,6 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
 
     try {
       if (isEditMode && currentSchedule?.id) {
-        // Chỉnh sửa lịch
         await editScheduleMutation.mutateAsync({
           scheduleId: currentSchedule.id,
           workDate: selectedDate,
@@ -196,20 +191,17 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
         });
         toast.success('Cập nhật lịch làm việc thành công!');
       } else {
-        // Thêm lịch mới
         await createScheduleMutation.mutateAsync(scheduleData);
         toast.success('Thêm lịch làm việc thành công!');
       }
 
       setIsDialogOpen(false);
 
-      // Cập nhật lại dữ liệu
       await refetch();
     } catch (error) {
       toast.error(getErrorMessage(error) || 'Có lỗi xảy ra!');
     }
   };
-  // Xử lý tạo nhiều lịch làm việc cùng lúc
   const handleBulkCreateSchedules = async () => {
     if (!selectedSlots.length || !dentistId) {
       toast.error('Vui lòng chọn ít nhất một ca làm việc!');
@@ -221,8 +213,6 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
     }
 
     try {
-      
-      // Gửi 1 lần duy nhất với toàn bộ mảng slots
       await createScheduleMutation.mutateAsync(
         selectedSlots.map(slot => ({
           dentistId,
@@ -244,7 +234,6 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
       toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi tạo lịch!');
     }
   };
-  // Mở dialog tạo nhiều lịch
   const handleOpenBulkCreateDialog = () => {
     if (selectedSlots.length === 0) {
       toast.info('Vui lòng chọn ít nhất một ca làm việc trên lịch!');
@@ -255,12 +244,10 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
     setIsBulkCreateDialogOpen(true);
   };
 
-  // Xóa tất cả các ca đã chọn
   const clearSelectedSlots = () => {
     setSelectedSlots([]);
   };
 
-  // Render danh sách lịch của bác sĩ
   const renderScheduleList = () => {
     if (isLoading) {
       return (

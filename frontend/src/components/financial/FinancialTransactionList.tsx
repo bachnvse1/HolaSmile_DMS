@@ -342,10 +342,10 @@ export const FinancialTransactionList: React.FC = () => {
               </Button>
             </div>
 
-            {/* Expandable Filter Section */}
+            {/* Filter Section */}
             {isFilterExpanded && (
               <div className="border-t border-gray-300 pt-4 space-y-4">
-                {/* Type Filter Row */}
+                {/* Type Filter*/}
                 <div className="flex flex-col sm:flex-row gap-4">
                   <div className="flex-1">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -415,7 +415,7 @@ export const FinancialTransactionList: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Date Filter Row */}
+                {/* Date Filter */}
                 <div className="flex flex-col gap-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>

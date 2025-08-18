@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { User, LogOut, Settings, Menu, X } from 'lucide-react';
+import { User, LogOut, Menu, X } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../../hooks/useAuth';
-import { NotificationButton } from "@/components/notification/NotificationButton"; // cập nhật đúng path của bạn
+import { NotificationButton } from "@/components/notification/NotificationButton"; 
 
 interface UserInfo {
   name: string;
@@ -12,7 +12,7 @@ interface UserInfo {
 }
 
 interface PatientNavigationProps {
-  userInfo?: UserInfo; // Make optional since we'll get from hook
+  userInfo?: UserInfo; 
 }
 
 export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }) => {
@@ -22,11 +22,9 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
   const { fullName, logout } = useAuth();
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Use passed userInfo or fallback to auth data
   const displayName = userInfo?.name || fullName || 'User';
   const displayRole = 'Bệnh nhân';
 
-  // Close user menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
@@ -116,7 +114,6 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
               <NotificationButton />
             </div>
 
-            {/* Book Appointment Button */}
             <button
               onClick={() => navigate('/patient/book-appointment')}
               className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition hidden lg:block"
@@ -149,13 +146,13 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
                     <User className="h-4 w-4 mr-2" />
                     Thông Tin Cá Nhân
                   </button>
-                  <button
+                  {/* <button
                     onClick={() => navigate('/patient/settings')}
                     className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                   >
                     <Settings className="h-4 w-4 mr-2" />
                     Cài Đặt
-                  </button>
+                  </button> */}
 
                   <button
                     onClick={handleLogout}

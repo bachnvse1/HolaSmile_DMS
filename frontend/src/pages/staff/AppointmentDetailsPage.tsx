@@ -11,7 +11,7 @@ export const AppointmentDetailsPage: React.FC = () => {
   const navigate = useNavigate();
   const userInfo = useUserInfo();
   const handleGoBack = () => {
-    navigate(-1); // Go back to previous page
+    navigate(-1); 
   };
 
   if (!appointmentId) {

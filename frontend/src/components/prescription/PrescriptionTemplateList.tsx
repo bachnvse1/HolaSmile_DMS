@@ -46,11 +46,9 @@ export const PrescriptionTemplateList: React.FC = () => {
   const userRole = userInfo?.role || '';
   const canEdit = userRole === 'Assistant' || userRole === 'Dentist';
 
-  // Fetch all templates without search filter
-  const { data: allTemplates = [], isLoading, error } = usePrescriptionTemplates();
+  const { data: allTemplates = [], isLoading } = usePrescriptionTemplates();
   const { mutate: deactivateTemplate, isPending: isDeactivating } = useDeactivatePrescriptionTemplate();
 
-  // Client-side search filtering
   const templates = React.useMemo(() => {
     if (!searchQuery) return allTemplates;
 
@@ -62,7 +60,7 @@ export const PrescriptionTemplateList: React.FC = () => {
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-    setCurrentPage(1); // Reset to first page when searching
+    setCurrentPage(1); 
   };
 
   const handlePageChange = (page: number) => {
@@ -71,10 +69,10 @@ export const PrescriptionTemplateList: React.FC = () => {
 
   const handleItemsPerPageChange = (newItemsPerPage: number) => {
     setItemsPerPage(newItemsPerPage);
-    setCurrentPage(1); // Reset to first page when changing items per page
+    setCurrentPage(1); 
   };
 
-  // Pagination logic
+  // Pagination 
   const totalItems = templates.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -127,41 +125,6 @@ export const PrescriptionTemplateList: React.FC = () => {
         </div>
       </div>
     );
-  }
-
-  // Only show error for non-empty data errors
-  if (error) {
-    const apiError = error as { 
-      response?: { status?: number; data?: { message?: string } }; 
-      message?: string;
-    };
-    
-    // Check for various empty data error patterns
-    const isEmptyDataError = 
-      (apiError?.response?.status === 200 && 
-       apiError?.response?.data?.message === "Không có dữ liệu phù hợp") ||
-      (apiError?.message?.includes('is not a function')) ||
-      (apiError?.message?.includes('Cannot read property')) ||
-      (apiError?.message?.includes('map is not a function'));
-    
-    if (!isEmptyDataError) {
-      return (
-        <div className="container mx-auto p-6 max-w-7xl">
-          <div className="flex justify-center items-center min-h-[400px]">
-            <div className="text-center">
-              <p className="text-red-600">Có lỗi xảy ra khi tải dữ liệu: {(error as Error).message}</p>
-              <Button
-                variant="outline"
-                onClick={() => window.location.reload()}
-                className="mt-2"
-              >
-                Thử lại
-              </Button>
-            </div>
-          </div>
-        </div>
-      );
-    }
   }
 
   return (
@@ -233,7 +196,7 @@ export const PrescriptionTemplateList: React.FC = () => {
               </CardHeader>
               <CardContent className="pt-0 flex flex-col flex-1">
                 <div className="space-y-3 flex-1">
-                  {/* Preview - always 3 lines */}
+                  {/* Preview */}
                   <div className="bg-gray-50 rounded-lg p-3 flex-1">
                     <p className="text-sm text-gray-600 line-clamp-2 min-h-[4rem] leading-relaxed">
                       {template.PreTemplateContext}
@@ -243,7 +206,7 @@ export const PrescriptionTemplateList: React.FC = () => {
                   {/* Metadata */}
                   <div className="flex items-center text-xs text-gray-500">
                     <Calendar className="h-3 w-3 mr-1 flex-shrink-0" />
-                    <span className="truncate">Cập nhật: {formatDate(new Date(template.UpdatedAt), 'dd/MM/yyyy HH:mm:ss')}</span>
+                    <span className="truncate">Cập nhật: {formatDate(new Date(template.UpdatedAt || template.CreatedAt), 'dd/MM/yyyy HH:mm:ss')}</span>
                   </div>
 
                   {/* Actions */}

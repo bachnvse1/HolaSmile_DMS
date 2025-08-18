@@ -145,7 +145,7 @@ export const PrescriptionTemplateDetail: React.FC = () => {
                 </div>
                 <div className="flex items-center text-sm text-gray-600">
                   <Calendar className="h-4 w-4 mr-2" />
-                  <span>Cập nhật: {formatDate(new Date(template.UpdatedAt), 'dd/MM/yyyy HH:mm:ss')}</span>
+                  <span>Cập nhật: {formatDate(new Date(template.UpdatedAt || template.CreatedAt), 'dd/MM/yyyy HH:mm:ss')}</span>
                 </div>
               </div>
             </div>

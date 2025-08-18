@@ -19,13 +19,12 @@ interface ScheduleItem {
 }
 
 schedules.forEach((item: ScheduleItem) => {
-    const date: string = item.workDate.split('T')[0]; // Lấy yyyy-mm-dd
+    const date: string = item.workDate.split('T')[0]; 
     
     if (!result[date]) {
         result[date] = { morning: false, afternoon: false, evening: false };
     }
     
-    // Chỉ cho phép đặt lịch nếu status là 'free'
     if (item.status === 'free') {
         if (item.shift === 'Morning') result[date].morning = true;
         if (item.shift === 'Afternoon') result[date].afternoon = true;  
@@ -36,7 +35,6 @@ schedules.forEach((item: ScheduleItem) => {
   return result;
 }
 
-// Helper function để lấy scheduleId
 export function getScheduleId(
   schedules: DentistScheduleData['schedules'], 
   date: string, 
