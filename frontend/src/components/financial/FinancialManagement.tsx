@@ -7,8 +7,6 @@ import { useAuth } from '@/hooks/useAuth';
 
 export const FinancialManagement: React.FC = () => {
   const { role } = useAuth();
-
-  // Xác định quyền truy cập dựa trên vai trò
   const isOwner = role === 'Owner';
 
   return (
@@ -24,7 +22,6 @@ export const FinancialManagement: React.FC = () => {
           </>
         )}
 
-        {/* Tab Giao dịch tài chính */}
         <TabsContent value="transactions" className="py-4">
           <Card>
             <CardHeader>
@@ -39,7 +36,6 @@ export const FinancialManagement: React.FC = () => {
           </Card>
         </TabsContent>
 
-        {/* Tab Phê duyệt phiếu chi - Chỉ Owner */}
         {isOwner && (
           <TabsContent value="approve" className="py-4">
             <Card>
@@ -56,7 +52,6 @@ export const FinancialManagement: React.FC = () => {
           </TabsContent>
         )}
 
-        {/* Tab Phiếu chi đã duyệt - Chỉ Owner */}
         {isOwner && (
           <TabsContent value="approved" className="py-4">
             <Card>

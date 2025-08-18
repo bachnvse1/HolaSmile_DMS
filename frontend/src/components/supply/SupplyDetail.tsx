@@ -20,7 +20,6 @@ export const SupplyDetail: React.FC = () => {
   const userInfo = useUserInfo();
   const userRole = userInfo?.role || '';
 
-  // Chỉ Assistant có quyền edit/delete
   const canModify = ['Assistant'].includes(userRole);
 
   const [confirmModal, setConfirmModal] = useState<{

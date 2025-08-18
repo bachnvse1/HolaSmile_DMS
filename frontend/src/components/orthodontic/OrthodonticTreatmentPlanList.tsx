@@ -40,7 +40,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
     to: Date | undefined;
   }>({ from: undefined, to: undefined });
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
-  // const [priceSliderRange, setPriceSliderRange] = useState([0, 100000000]); // For slider
+  // const [priceSliderRange, setPriceSliderRange] = useState([0, 100000000]); 
 
   const userInfo = useUserInfo();
   const isEditable = userInfo?.role === 'Dentist' || userInfo?.role === 'Assistant';
@@ -54,32 +54,23 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
     parseInt(patientId || '0')
   );
 
-  // Auto-refetch data when component mounts or when returning from create/edit
   React.useEffect(() => {
     const refetchData = () => {
-      console.log('Refetching orthodontic treatment plans for patient:', patientId);
       queryClient.invalidateQueries({
         queryKey: ['orthodontic-treatment-plans', parseInt(patientId || '0')]
       });
     };
 
-    // Refetch immediately when component mounts
     refetchData();
-
-    // Listen for focus event (when user returns to this tab/window)
     window.addEventListener('focus', refetchData);
-
-    // Listen for visibility change (when tab becomes visible)
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
         refetchData();
       }
     });
 
-    // Listen for storage changes (in case data changes from another tab)
     window.addEventListener('storage', refetchData);
 
-    // Cleanup event listeners
     return () => {
       window.removeEventListener('focus', refetchData);
       document.removeEventListener('visibilitychange', refetchData);
@@ -87,7 +78,6 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
     };
   }, [patientId, queryClient]);
 
-  // Get unique values for filter options
   const uniqueTemplates = useMemo(() => {
     if (!Array.isArray(treatmentPlans)) return [];
     return [...new Set(treatmentPlans.map((plan: OrthodonticTreatmentPlan) => plan.templateName))];
@@ -98,11 +88,9 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
     return [...new Set(treatmentPlans.map((plan: OrthodonticTreatmentPlan) => (plan as { dentistName?: string }).dentistName).filter(Boolean))];
   }, [treatmentPlans]);
 
-  // Advanced filtering logic
   const filteredPlans = useMemo(() => {
     if (!Array.isArray(treatmentPlans)) return [];
     return treatmentPlans.filter((plan: OrthodonticTreatmentPlan) => {
-      // Search term filter
       const matchesSearch = plan.planTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
         plan.templateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (plan.treatmentPlanContent || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -127,7 +115,7 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
     });
   }, [treatmentPlans, searchTerm, selectedTemplate, selectedDentist, dateRange, priceRange]);
 
-  // Pagination logic
+  // Pagination 
   const paginatedPlans = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -136,7 +124,6 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
 
   const totalPages = Math.ceil(filteredPlans.length / itemsPerPage);
 
-  // Reset to first page when filters change
   React.useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, selectedTemplate, selectedDentist, dateRange, priceRange]);
@@ -169,7 +156,6 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
   };
 
   const handleViewPlanImages = (planId: number) => {
-    // You can navigate to a dedicated images page or open a modal
     if (userInfo.role !== 'Patient') {
       navigate(`/patients/${patientId}/orthodontic-treatment-plans/${planId}/images`)
     } else {
@@ -190,13 +176,9 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
     setIsDeleting(true);
     try {
       await deactivateMutation.mutateAsync(deletingPlanId);
-
-      // Invalidate and refetch the treatment plans query
       await queryClient.invalidateQueries({
         queryKey: ['orthodontic-treatment-plans', parseInt(patientId || '0')]
       });
-
-      console.log('Successfully deleted plan and refreshed data');
     } catch (error) {
       console.error('Error deleting plan:', error);
     } finally {
@@ -220,11 +202,9 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
   }
 
   if (error) {
-    // Check if it's a 404 error (no data found) - this is normal, not an error
     const is404Error = error.message.includes('404') || error.message.includes('Not Found');
 
     if (is404Error) {
-      // Treat 404 as empty data, not an error
       return (
         <div className="container mx-auto p-6 max-w-7xl">
           {/* Header */}
@@ -256,7 +236,6 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
             )}
           </div>
 
-          {/* Empty state for 404 */}
           <Card>
             <CardContent className="p-8 text-center">
               <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -278,7 +257,6 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
       );
     }
 
-    // Check if it's an authentication error
     const isAuthError = error.message.includes('401') || error.message.includes('403') ||
       error.message.includes('Unauthorized') || error.message.includes('Forbidden');
 
@@ -305,7 +283,6 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
       );
     }
 
-    // Other errors
     return (
       <div className="container mx-auto p-6 max-w-7xl">
         <div className="flex justify-center items-center min-h-[400px]">
@@ -324,7 +301,6 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
     );
   }
 
-  // Handle case when no patient ID is available
   if (!patientId || patientId === '0') {
     return (
       <div className="container mx-auto p-6 max-w-7xl">

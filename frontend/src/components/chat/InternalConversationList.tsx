@@ -1,8 +1,6 @@
 import React, { memo, useCallback, useEffect, useRef } from 'react';
 import { Search, Filter, Users, MessageCircle, Clock } from 'lucide-react';
 import type { ConversationUser, ConversationFilters } from '@/hooks/chat/useInternalConversations';
-import { useAuth } from '@/hooks/useAuth';
-import { useUnreadMessages } from '@/hooks/chat/useUnreadMessages';
 
 interface InternalConversationListProps {
   conversations: ConversationUser[];
@@ -207,21 +205,14 @@ export const InternalConversationList: React.FC<InternalConversationListProps> =
   loading,
   totalCount
 }) => {
-  const { userId } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
-  
-  // 🔥 Use useUnreadMessages hook to get real-time unread counts
-  const { getTotalUnreadCount } = useUnreadMessages(userId);
 
   // Handle conversation selection with mark as read
   const handleSelectConversation = useCallback(async (conversation: ConversationUser) => {
     onSelectConversation(conversation);
-    
-    // Mark conversation as read when selected - call the markAsRead from hook
-    // This should be handled by the parent component through onSelectConversation
   }, [onSelectConversation]);
 
-  // Use unread counts directly from conversations prop instead of useUnreadMessages hook
+  // Use unread counts directly from conversations 
   const sortedConversations = React.useMemo(() => {
     return [...conversations].sort((a, b) => {
       // First priority: unread messages
@@ -258,9 +249,7 @@ export const InternalConversationList: React.FC<InternalConversationListProps> =
     }
   }, [handleScroll]);
 
-  // 🔥 Calculate stats using useUnreadMessages hook instead of conversations prop
   const unreadCount = conversations.filter(conv => conv.unreadCount > 0).length;
-  const totalUnreadMessages = getTotalUnreadCount(); // Use hook instead of reducing conversations
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-gray-50 to-gray-100">

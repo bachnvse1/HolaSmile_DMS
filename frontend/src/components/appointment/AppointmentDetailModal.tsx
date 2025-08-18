@@ -59,20 +59,12 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
   const treatmentFormMethods = useForm<TreatmentFormData>({});
   const [treatmentToday, setTreatmentToday] = useState<boolean | null>(null);
 
-  // Fetch appointment details
   const { data: appointment, isLoading: isAppointmentLoading } = useAppointmentDetail(appointmentId || 0);
-
-  // Fetch dentist data for edit dialog
   const { dentists } = useDentistSchedule();
   const patientId = appointment?.patientId;
-
-  // Check if prescription exists for this appointment
   const { isLoading: isPrescriptionLoading } = usePrescriptionByAppointment(appointmentId || 0);
-
-  // Change appointment status mutation
   const { mutate: changeStatus, isPending: isChangingStatus } = useChangeAppointmentStatus();
 
-  // Helper function to refresh appointment data
   const refreshAppointmentData = async () => {
     await Promise.all([
       queryClient.invalidateQueries({
@@ -214,7 +206,6 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50">
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/20 bg-opacity-75"
         onClick={onClose}
@@ -283,14 +274,11 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    // TODO: Create InstructionModal instead of navigate
-                    // For now, keep navigate behavior but we should create nested modal
                     if (role === 'Patient') {
                       window.open(`/patient/instructions/${appointmentId}`, '_blank');
                     } else {
                       window.open(`/instructions/${appointmentId}`, '_blank');
                     }
-                    // Don't close modal - keep it open
                   }}
                   className="flex items-center gap-2 text-xs sm:text-sm"
                 >

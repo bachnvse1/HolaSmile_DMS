@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { X, TrendingUp, TrendingDown, Upload, Image } from 'lucide-react';
+import { X, TrendingUp, TrendingDown, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -82,29 +82,11 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
 
   const onSubmit = async (data: FormData) => { 
     try {
-      // Convert amount to number (remove formatting)
       const numericAmount = parseInt(data.amount.replace(/[^\d]/g, '')) || 0;
-      
-      if (numericAmount <= 0) {
-        toast.error('Vui lòng nhập số tiền hợp lệ');
-        return;
-      }
 
       // Check if image is required for expense transactions
       if (data.transactionType === 'chi' && !selectedImage) {
         toast.error('Vui lòng tải lên ảnh chứng từ cho phiếu chi');
-        return;
-      }
-
-      // Check if description is provided
-      if (!data.description || data.description.trim() === '') {
-        toast.error('Vui lòng nhập mô tả');
-        return;
-      }
-
-      // Check if category is provided
-      if (!data.category || data.category.trim() === '') {
-        toast.error('Vui lòng nhập danh mục');
         return;
       }
 
@@ -119,8 +101,8 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
       if (selectedImage) {
         formData.append('EvidenceImage', selectedImage);
       }
-      const result = await createTransactionMutation.mutateAsync(formData);
-      console.log('Backend response:', result);
+
+      await createTransactionMutation.mutateAsync(formData);
 
       toast.success(`Đã tạo giao dịch ${data.transactionType} thành công`);
       form.reset();
@@ -159,7 +141,6 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
 
         {/* Form */}
         <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-4">
-          {/* Transaction Type & Category - Same Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Transaction Type */}
             <div className="space-y-2">
@@ -202,7 +183,7 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
             </div>
           </div>
 
-          {/* Description - Full Width (2 columns) */}
+          {/* Description */}
           <div className="space-y-2">
             <Label htmlFor="description">Mô tả<span className='text-red-400'>*</span></Label>
             <Textarea
@@ -219,7 +200,6 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
             )}
           </div>
 
-          {/* Two Column Layout */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Amount */}
             <div className="space-y-2">

@@ -27,7 +27,7 @@ export const ViewTransactionModal: React.FC<ViewTransactionModalProps> = ({
         year: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-        hour12: false // Use 24-hour format
+        hour12: false 
       });
     } catch {
       return dateString;
@@ -205,7 +205,6 @@ export const ViewTransactionModal: React.FC<ViewTransactionModalProps> = ({
             </div>
           </div>
         ) : (
-          /* Error State */
           <div className="flex justify-center items-center min-h-[400px]">
             <div className="text-center">
               <p className="text-red-600">Không tìm thấy giao dịch</p>
