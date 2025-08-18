@@ -188,7 +188,6 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             ), Times.Never);
         }
 
-        // ... các test case khác giữ nguyên, thêm verify không gửi notification ...
 
         public void Dispose()
         {

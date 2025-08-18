@@ -64,7 +64,6 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
         {
             await _context.Database.EnsureDeletedAsync();
 
-            // Tạo User đầy đủ thông tin
             var user = new User
             {
                 UserID = 100,
@@ -176,7 +175,6 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             Assert.Equal(1, card.UpdatedBy);
             Assert.NotNull(card.UpdatedAt);
 
-            // Verify notification với nội dung chính xác từ handler
             _mediatorMock.Verify(m => m.Send(
                 It.Is<SendNotificationCommand>(n =>
                     n.UserId == 100 &&

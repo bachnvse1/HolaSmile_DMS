@@ -95,7 +95,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             // Arrange
             SetupHttpContext(null);
 
-            // Act & Assert
             var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
                 _handler.Handle(new ViewAssignedTasksCommand(), default));
 
@@ -118,8 +117,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
         [Fact(DisplayName = "UTCID05 - Missing role_table_id claim => UnauthorizedAccessException")]
         public async System.Threading.Tasks.Task UTCID05_Missing_RoleTableId_Should_Throw()
         {
-            // Arrange
-            // role_table_id is missing
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Role, "Assistant")
