@@ -106,8 +106,6 @@ namespace Application.Usecases.Assistants.CreatePatientDentalImage
                 }
                 catch (Exception ex)
                 {
-                    // TODO: log lỗi nếu cần
-                    // Không throw exception để không chặn luồng chính
                 }
             }
 
