@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Send, Bot, User, RotateCcw } from 'lucide-react';
+import { X, Send, Bot, User, RotateCcw, Calendar } from 'lucide-react';
 import { chatbotService } from '@/services/chatbotService';
+import { useNavigate } from 'react-router';
 
 interface Message {
   id: string;
@@ -28,6 +29,7 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const navigate = useNavigate();
 
   const adjustTextareaHeight = () => {
     const textarea = textareaRef.current;
@@ -260,6 +262,20 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
                           {message.content}
                         </p>
                       </div>
+                      
+                      {/* Book Appointment Button - Only show for bot messages */}
+                      {message.sender === 'bot' && (
+                        <div className="mt-3">
+                          <button
+                            onClick={() => navigate('/appointment-booking')}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs font-medium rounded-lg transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                          >
+                            <Calendar className="h-3 w-3" />
+                            Đặt lịch ngay
+                          </button>
+                        </div>
+                      )}
+                      
                       <p className={`text-xs text-gray-400 mt-2 ${
                         message.sender === 'user' ? 'text-right' : 'text-left'
                       }`}>
