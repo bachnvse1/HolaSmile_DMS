@@ -15,6 +15,9 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
 
         public CreatePrescriptionTemplateHandlerTests()
         {
+            _repoMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>()))
+                     .ReturnsAsync(new List<PrescriptionTemplate>());
+
             _handler = new CreatePrescriptionTemplateHandler(
                 _repoMock.Object,
                 _httpContextAccessorMock.Object
