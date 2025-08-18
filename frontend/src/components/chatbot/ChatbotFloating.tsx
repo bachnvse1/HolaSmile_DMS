@@ -172,12 +172,19 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
         }`}>
           <button
             onClick={handleOpen}
-            className="group relative flex items-center gap-3 px-4 py-3 sm:px-6 sm:py-4 rounded-full shadow-lg
-              transition-all duration-300 hover:scale-105 hover:shadow-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold text-sm"
+            className="group relative flex items-center gap-3 px-4 py-3 sm:px-6 sm:py-4 rounded-full shadow-2xl
+              transition-all duration-500 hover:scale-110 hover:shadow-purple-500/25 hover:shadow-2xl 
+              bg-gradient-to-br from-purple-600 via-purple-700 to-pink-600 
+              hover:from-purple-700 hover:via-purple-800 hover:to-pink-700 
+              text-white font-semibold text-sm border border-purple-400/20
+              before:absolute before:inset-0 before:rounded-full before:bg-gradient-to-br 
+              before:from-white/20 before:to-transparent before:opacity-0 hover:before:opacity-100 
+              before:transition-opacity before:duration-300 overflow-hidden"
             title="Chat với AI"
           >
-            <Bot className="h-5 w-5" />
-            <span className="hidden sm:block">Trợ lý AI</span>
+            <Bot className="h-5 w-5 animate-pulse group-hover:animate-bounce" />
+            <span className="hidden sm:block relative z-10">Trợ lý AI</span>
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/10 to-transparent opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
           </button>
         </div>
       )}
@@ -187,61 +194,73 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
           adjustPosition 
             ? 'right-4 bottom-24' 
             : 'right-4 bottom-6'  
-        }`}>
-          <div className="bg-white rounded-lg shadow-2xl border border-gray-200">
-            <div className="bg-purple-600 text-white p-4 rounded-t-lg flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Bot className="h-5 w-5" />
-                <div>
-                  <h3 className="font-semibold">AI HolaSmile</h3>
-                  <p className="text-xs text-purple-100">Trợ lý nha khoa</p>
+        } transform transition-all duration-300 ease-out animate-slide-up`}>
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden backdrop-blur-sm bg-white/95">
+            <div className="bg-gradient-to-r from-purple-600 via-purple-700 to-pink-600 text-white p-4 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+              <div className="flex items-center justify-between relative z-10">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                    <Bot className="h-6 w-6 text-white animate-pulse" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">AI HolaSmile</h3>
+                    <p className="text-xs text-purple-100 flex items-center gap-1">
+                      <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                      Trợ lý nha khoa trực tuyến
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={clearChatHistory}
-                  className="text-white hover:text-gray-200 transition-colors p-1"
-                  title="Xóa lịch sử chat"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={handleClose}
-                  className="text-white hover:text-gray-200 transition-colors"
-                  title="Đóng chat"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={clearChatHistory}
+                    className="text-white/80 hover:text-white hover:bg-white/20 transition-all duration-200 p-2 rounded-full"
+                    title="Xóa lịch sử chat"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={handleClose}
+                    className="text-white/80 hover:text-white hover:bg-white/20 transition-all duration-200 p-2 rounded-full"
+                    title="Đóng chat"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div className="h-80 overflow-y-auto p-4 space-y-4">
+            <div className="h-80 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50/50 to-white scrollbar-thin scrollbar-thumb-purple-200 scrollbar-track-transparent">
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
                 >
                   <div className={`flex w-full ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                    <div className={`flex-shrink-0 ${message.sender === 'user' ? 'ml-2' : 'mr-2'}`}>
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        message.sender === 'user' ? 'bg-purple-600' : 'bg-gray-200'
+                    <div className={`flex-shrink-0 ${message.sender === 'user' ? 'ml-3' : 'mr-3'}`}>
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center shadow-lg ${
+                        message.sender === 'user' 
+                          ? 'bg-gradient-to-br from-purple-600 to-pink-600' 
+                          : 'bg-gradient-to-br from-gray-100 to-white border-2 border-gray-200'
                       }`}>
                         {message.sender === 'user' ? (
                           <User className="h-4 w-4 text-white" />
                         ) : (
-                          <Bot className="h-4 w-4 text-gray-600" />
+                          <Bot className="h-4 w-4 text-purple-600" />
                         )}
                       </div>
                     </div>
                     <div className="max-w-[75%]">
-                      <div className={`px-4 py-2 rounded-lg ${
+                      <div className={`px-4 py-3 rounded-2xl shadow-md transition-all duration-200 hover:shadow-lg ${
                         message.sender === 'user'
-                          ? 'bg-purple-600 text-white'
-                          : 'bg-gray-100 text-gray-900'
+                          ? 'bg-gradient-to-br from-purple-600 to-pink-600 text-white'
+                          : 'bg-white text-gray-800 border border-gray-100'
                       }`}>
-                        <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">{message.content}</p>
+                        <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere leading-relaxed">
+                          {message.content}
+                        </p>
                       </div>
-                      <p className={`text-xs text-gray-500 mt-1 ${
+                      <p className={`text-xs text-gray-400 mt-2 ${
                         message.sender === 'user' ? 'text-right' : 'text-left'
                       }`}>
                         {formatTime(message.timestamp)}
@@ -252,17 +271,17 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
               ))}
               
               {isLoading && (
-                <div className="flex justify-start">
-                  <div className="flex mr-2">
-                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                      <Bot className="h-4 w-4 text-gray-600" />
+                <div className="flex justify-start animate-fade-in">
+                  <div className="flex mr-3">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-100 to-white border-2 border-gray-200 flex items-center justify-center shadow-lg">
+                      <Bot className="h-4 w-4 text-purple-600" />
                     </div>
                   </div>
-                  <div className="bg-gray-100 px-4 py-2 rounded-lg">
+                  <div className="bg-white px-4 py-3 rounded-2xl shadow-md border border-gray-100">
                     <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
+                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-100"></div>
+                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-200"></div>
                     </div>
                   </div>
                 </div>
@@ -270,31 +289,46 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-4 border-t border-gray-200">
-              <div className="flex items-end space-x-2">
-                <textarea
-                  ref={textareaRef}
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Nhập câu hỏi của bạn..."
-                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none leading-6 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-                  style={{ minHeight: '40px', maxHeight: '72px' }}
-                  disabled={isLoading}
-                  rows={1}
-                />
+            <div className="p-4 border-t border-gray-100 bg-white/80 backdrop-blur-sm">
+              <div className="flex items-center space-x-3">
+                <div className="flex-1 relative">
+                  <textarea
+                    ref={textareaRef}
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Nhập câu hỏi của bạn..."
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 
+                      resize-none leading-6 overflow-y-auto bg-white/90 backdrop-blur-sm transition-all duration-200
+                      placeholder:text-gray-400 text-gray-700
+                      [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-purple-200 [&::-webkit-scrollbar-thumb]:rounded-full
+                      hover:border-purple-300 hover:shadow-md"
+                    style={{ minHeight: '44px', maxHeight: '88px' }}
+                    disabled={isLoading}
+                    rows={1}
+                  />
+                </div>
                 <button
                   onClick={handleSendMessage}
                   disabled={!inputMessage.trim() || isLoading}
-                  className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white rounded-lg px-4 py-2 transition-colors flex-shrink-0"
+                  className="bg-gradient-to-br from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 
+                    disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed
+                    text-white rounded-xl w-11 h-11 transition-all duration-200 flex-shrink-0 shadow-lg hover:shadow-xl 
+                    hover:scale-105 active:scale-95 group flex items-center justify-center"
                   title="Gửi tin nhắn"
                 >
-                  <Send className="h-7 w-4" />
+                  <Send className="h-5 w-5 group-hover:translate-x-0.5 transition-transform duration-200" />
                 </button>
               </div>
-              <p className="text-xs text-gray-500 mt-2 text-center">
-                Enter để gửi tin nhắn, Shift + Enter để xuống dòng
-              </p>
+              <div className="flex items-center justify-between mt-3">
+                <p className="text-xs text-gray-400 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
+                  AI đang sẵn sàng hỗ trợ
+                </p>
+                <p className="text-xs text-gray-400">
+                  <span className="hidden sm:inline">Enter để gửi, </span>Shift + Enter xuống dòng
+                </p>
+              </div>
             </div>
           </div>
         </div>
