@@ -125,14 +125,6 @@ Hãy luôn nhớ: Bạn chỉ là trợ lý trả lời dựa trên dữ liệu 
                 parts.GetArrayLength() > 0 &&
                 parts[0].TryGetProperty("text", out var textProp))
             {
-                var newKnowledge = new ChatBotKnowledge
-                {
-                    Question = request.UserQuestion,
-                    Answer = textProp.GetString() ?? string.Empty,
-                    Category = "new"
-                };
-                var isCreated = await _chatbotRepo.CreateNewKnownledgeAsync(newKnowledge);
-                if (!isCreated) throw new Exception("hệ thống có lỗi xảy ra");
                 return textProp.GetString();
             }
             else if (doc.RootElement.TryGetProperty("error", out var error))
