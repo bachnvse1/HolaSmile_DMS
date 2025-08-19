@@ -137,28 +137,6 @@ namespace HDMS_API.Infrastructure.Repositories
 
         public async Task<List<ViewListUserDTO>> GetAllUserAsync()
         {
-            //var allUsers = await _context.Users.Select(u => new
-            //{
-            //    u.Email,
-            //    u.Fullname,
-            //    u.Phone,
-            //    u.CreatedAt,
-            //    u.Status,
-            //    Role = _context.Dentists.Any(d => d.UserId == u.UserID) ? "nha sĩ" :
-            //   _context.Receptionists.Any(r => r.UserId == u.UserID) ? "lễ tân" :
-            //   _context.Assistants.Any(a => a.UserId == u.UserID) ? "trợ thủ" :
-            //   _context.Owners.Any(o => o.UserId == u.UserID) ? "chủ phòng khám" :
-            //   _context.Patients.Any(p => p.UserID == u.UserID) ? "chủ phòng khám" : "không xác định"
-            //}).Select(x => new ViewListUserDTO
-            //{
-            //    email = x.Email,
-            //    fullName = x.Fullname,
-            //    phoneNumber = x.Phone,
-            //    role = x.Role,
-            //    createdAt = x.CreatedAt,
-            //    isActive = x.Status
-            //}).ToListAsync();
-
             var dentistUsers = _context.Users
             .Join(_context.Dentists,
              u => u.UserID,

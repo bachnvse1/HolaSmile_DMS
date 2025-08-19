@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Security.Claims;
+using System.Text.Json;
 using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Administrators.ChatbotData;
@@ -16,11 +17,13 @@ namespace HDMS_API.Controllers
 
         private readonly IMediator _mediator;
         private readonly IChatBotKnowledgeRepository _repo;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ChatbotController(IMediator mediator, IChatBotKnowledgeRepository chatBotKnowledgeRepository)
+        public ChatbotController(IMediator mediator, IChatBotKnowledgeRepository chatBotKnowledgeRepository, IHttpContextAccessor httpContextAccessor)
         {
             _mediator = mediator;
             _repo = chatBotKnowledgeRepository;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         [HttpGet]
@@ -119,6 +122,37 @@ namespace HDMS_API.Controllers
             return new JsonResult(data, opts);
         }
 
+        [HttpGet("get-user-data")]
+        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetDataDentist(CancellationToken ct)
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
+
+            var guestData = await _repo.GetClinicDataAsync(ct);
+            var commonData = await _repo.GetUserCommonDataAsync(ct);
+            object? result = currentUserRole?.ToLower() switch
+            {
+                "receptionist" => new { ReceptionistData = await _repo.GetReceptionistData(currentUserId, ct), CommonData = commonData },
+                "assistant" => new { AssistantData = await _repo.GetAssistanttData(currentUserId, ct), CommonData = commonData },
+                "patient" => new { PatientData = await _repo.GetPatientData(currentUserId, ct), CommonData = commonData },
+                "dentist" => new { DentistData = await _repo.GetDentistData(currentUserId, ct), CommonData = commonData },
+                "owner" => new { OwnerData = await _repo.GetOwnerData(ct), CommonData = commonData },
+                _ => new { GuestData = guestData }
+            };
+
+            if (result is null) return NotFound();
+
+            var opts = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = true
+            };
+
+            return new JsonResult(result, opts);
+        }
 
     }
 }

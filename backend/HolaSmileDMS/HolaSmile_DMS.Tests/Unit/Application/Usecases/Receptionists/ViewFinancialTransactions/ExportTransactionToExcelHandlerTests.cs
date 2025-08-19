@@ -99,14 +99,14 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists.ViewFinanc
             // Kiểm tra dữ liệu dòng 2
             worksheet.Cells[2, 1].Text.Should().Be("thu");
             worksheet.Cells[2, 2].Text.Should().Be("Thu tiền");
-            worksheet.Cells[2, 3].Text.Should().Be("Khách thanh toán");
-            worksheet.Cells[2, 4].Text.Should().Be("100000");
+            worksheet.Cells[2, 4].Text.Should().Be("Khách thanh toán");
+            worksheet.Cells[2, 3].Text.Should().Be("100000");
 
             // Kiểm tra dữ liệu dòng 3
             worksheet.Cells[3, 1].Text.Should().Be("chi");
-            worksheet.Cells[3, 2].Text.Should().Be("Chi phí");
             worksheet.Cells[3, 3].Text.Should().Be("Mua vật tư");
-            worksheet.Cells[3, 4].Text.Should().Be("50000");
+            worksheet.Cells[3, 4].Text.Should().Be("Chi phí");
+            worksheet.Cells[3, 2].Text.Should().Be("50000");
         }
     }
 
