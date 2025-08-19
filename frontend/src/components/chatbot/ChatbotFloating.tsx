@@ -63,22 +63,54 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
   };
 
   useEffect(() => {
-    const savedMessages = sessionStorage.getItem('chatbot-messages');
-    if (savedMessages) {
-      try {
-        const parsedMessages = JSON.parse(savedMessages).map((msg: Message) => ({
-          ...msg,
-          timestamp: new Date(msg.timestamp)
-        }));
-        setMessages(parsedMessages);
-      } catch (error) {
-        console.error('Error loading chat history:', error);
+    const loadMessages = () => {
+      const savedMessages = sessionStorage.getItem('chatbot-messages');
+      if (savedMessages) {
+        try {
+          const parsedMessages = JSON.parse(savedMessages).map((msg: Message) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp)
+          }));
+          setMessages(parsedMessages);
+        } catch (error) {
+          console.error('Error loading chat history:', error);
+          setDefaultMessage();
+        }
+      } else {
         setDefaultMessage();
       }
-    } else {
+    };
+
+    loadMessages();
+
+    const handleAuthChange = () => {
+      setIsOpen(false);
+      onOpenStateChange?.(false);
       setDefaultMessage();
-    }
-  }, []);
+    };
+
+    const handleChatbotReset = () => {
+      setIsOpen(false);
+      onOpenStateChange?.(false);
+      setDefaultMessage();
+    };
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'chatbot-messages' && e.newValue === null) {
+        setDefaultMessage();
+      }
+    };
+
+    window.addEventListener('authChange', handleAuthChange);
+    window.addEventListener('chatbot-reset', handleChatbotReset);
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('authChange', handleAuthChange);
+      window.removeEventListener('chatbot-reset', handleChatbotReset);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [onOpenStateChange]);
 
   useEffect(() => {
     if (messages.length > 0) {

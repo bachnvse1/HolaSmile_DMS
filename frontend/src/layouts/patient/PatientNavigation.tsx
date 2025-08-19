@@ -41,6 +41,7 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
   }, [isUserMenuOpen]);
 
   const handleLogout = () => {
+    sessionStorage.removeItem('chatbot-messages');
     logout();
     navigate('/');
   };

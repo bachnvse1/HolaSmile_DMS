@@ -39,6 +39,7 @@ export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSide
   }, [isUserMenuOpen]);
 
   const handleLogout = () => {
+    sessionStorage.removeItem('chatbot-messages')
     AuthService.logout();
     navigate('/');
   };
