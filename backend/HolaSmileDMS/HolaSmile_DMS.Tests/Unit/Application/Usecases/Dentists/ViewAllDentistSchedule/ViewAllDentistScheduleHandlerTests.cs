@@ -68,7 +68,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
         public async System.Threading.Tasks.Task U02_Guest_View_Available_Schedules_Success()
         {
             SetupHttpContext("guest", 2);
-            _scheduleRepositoryMock.Setup(r => r.GetAllAvailableDentistSchedulesAsync(3))
+            _scheduleRepositoryMock.Setup(r => r.GetAllAvailableDentistSchedulesAsync(5))
                 .ReturnsAsync(new List<Schedule>
                 {
                 new Schedule

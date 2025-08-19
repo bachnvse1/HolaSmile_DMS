@@ -12,15 +12,13 @@ namespace Application.Usecases.Assistant.CreateSupply
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ISupplyRepository _supplyRepository;
-        private readonly ITransactionRepository _transactionRepository;
         private readonly IUserCommonRepository _userCommonRepository;
         private readonly IOwnerRepository _ownerRepository;
         private readonly IMediator _mediator;
-        public CreateSupplyHandler(IHttpContextAccessor httpContextAccessor, ISupplyRepository supplyRepository,ITransactionRepository transactionRepository, IOwnerRepository ownerRepository, IUserCommonRepository userCommonRepository, IMediator mediator) 
+        public CreateSupplyHandler(IHttpContextAccessor httpContextAccessor, ISupplyRepository supplyRepository, IOwnerRepository ownerRepository, IUserCommonRepository userCommonRepository, IMediator mediator) 
         {
             _httpContextAccessor = httpContextAccessor;
             _supplyRepository = supplyRepository;
-            _transactionRepository = transactionRepository;
             _userCommonRepository = userCommonRepository;
             _ownerRepository = ownerRepository;
             _mediator = mediator;
@@ -55,24 +53,6 @@ namespace Application.Usecases.Assistant.CreateSupply
                 return await _supplyRepository.EditSupplyAsync(existSupply);
             }
 
-            // Create new supply and transaction records
-            var newTransaction = new FinancialTransaction
-            {
-                TransactionDate = DateTime.Now,
-                Description = $"Nhập kho vật tư: {request.SupplyName.Trim()}",
-                TransactionType = false, // True for chi
-                Category = "Vật tư y tế",
-                PaymentMethod = true, // True for cash
-                Amount = request.Price * request.QuantityInStock,
-                status = "approved",
-                CreatedAt = DateTime.Now,
-                CreatedBy = currentUserId,
-                IsDelete = false
-            };
-            var isTransactionCreated = await _transactionRepository.CreateTransactionAsync(newTransaction);
-            if (!isTransactionCreated)
-                throw new Exception(MessageConstants.MSG.MSG58);
-
             var newSupply = new Supplies
             {
                 Name = request.SupplyName.Trim(),
@@ -95,7 +75,7 @@ namespace Application.Usecases.Assistant.CreateSupply
                 await _mediator.Send(new SendNotificationCommand(
                       o.User.UserID,
                       "Nhập vật tư",
-                      $"Trợ lý {assistant.Fullname} nhập vật tư mới {newSupply.Name} vào lúc {DateTime.Now}",
+                      $"Trợ lý {assistant.Fullname} nhập vật tư mới {newSupply.Name} vào lúc {DateTime.Now.ToString("dd/MM/yyyy")}",
                       "supply", 0, $"inventory/{newSupply.SupplyId}"),
                 cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);

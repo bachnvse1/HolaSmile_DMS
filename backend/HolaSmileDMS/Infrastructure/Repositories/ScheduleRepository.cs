@@ -118,7 +118,7 @@ namespace Infrastructure.Repositories
         .Include(s => s.Dentist)
         .ThenInclude(d => d.User)
         .Include(s => s.Dentist.Appointments)
-        .Where(s =>  s.IsActive && s.Status == "approved" &&
+        .Where(s =>  s.IsActive && s.Status == "approved" && s.Dentist.User.Status == true &&
         s.Dentist.Appointments.Count(a =>
         a.AppointmentDate.Date == s.WorkDate.Date &&
         (

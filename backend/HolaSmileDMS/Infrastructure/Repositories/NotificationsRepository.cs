@@ -1,6 +1,5 @@
 ﻿using Application.Interfaces;
 using Application.Usecases.SendNotification;
-using Application.Usecases.UserCommon.ViewNotification;
 using AutoMapper;
 using HDMS_API.Infrastructure.Persistence;
 using Infrastructure.Hubs;

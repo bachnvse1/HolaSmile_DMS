@@ -1,6 +1,4 @@
-﻿using Application.Usecases.UserCommon.ViewNotification;
-
-namespace Application.Interfaces
+﻿namespace Application.Interfaces
 {
     public interface INotificationsRepository
     {
