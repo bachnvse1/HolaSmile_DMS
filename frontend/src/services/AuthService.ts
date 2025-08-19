@@ -94,6 +94,7 @@ export class AuthService {
 
   static logout(): void {
     TokenUtils.clearTokenData();
+    sessionStorage.removeItem('chatbot-messages');
   }
   static saveAuthData(token: string, refreshToken?: string): void {
     localStorage.setItem("authToken", token);
