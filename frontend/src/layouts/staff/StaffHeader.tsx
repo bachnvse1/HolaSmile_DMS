@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Menu, User, LogOut, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { AuthService } from '@/services/AuthService';
-import { NotificationButton } from "@/components/notification/NotificationButton"; // cập nhật đúng path của bạn
-
+import { NotificationButton } from "@/components/notification/NotificationButton"; 
 interface UserInfo {
   name: string;
   email: string;
@@ -19,12 +18,11 @@ interface StaffHeaderProps {
   isCollapsed?: boolean;
 }
 
-export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSidebar, isSidebarOpen = false, isMobile = false, isCollapsed = false }) => {
+export const StaffHeader: React.FC<StaffHeaderProps> = ({ userInfo, onToggleSidebar, isMobile = false, isCollapsed = false }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const navigate = useNavigate();
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Close user menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {

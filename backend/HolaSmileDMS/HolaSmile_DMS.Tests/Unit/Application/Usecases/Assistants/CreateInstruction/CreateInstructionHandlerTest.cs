@@ -16,7 +16,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
         private readonly Mock<IInstructionTemplateRepository> _templateRepoMock = new();
         private readonly Mock<IAppointmentRepository> _appointmentRepoMock = new();
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new();
-        private readonly Mock<IMediator> _mediatorMock = new(); // Thêm dòng này
+        private readonly Mock<IMediator> _mediatorMock = new();
 
         private CreateInstructionHandler CreateHandlerWithRole(string? role, string? userId)
         {
@@ -36,7 +36,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
                 _httpContextAccessorMock.Object,
                 _templateRepoMock.Object,
                 _appointmentRepoMock.Object,
-                _mediatorMock.Object // Truyền vào đây
+                _mediatorMock.Object
             );
         }
 
@@ -55,7 +55,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
         [Fact(DisplayName = "Abnormal - UTCID02 - UserId không hợp lệ sẽ bị chặn")]
         public async System.Threading.Tasks.Task Abnormal_UTCID02_InvalidUserId_Throws()
         {
-            var handler = CreateHandlerWithRole("Dentist", "abc"); // not an integer
+            var handler = CreateHandlerWithRole("Dentist", "abc");
             var command = new CreateInstructionCommand { AppointmentId = 1 };
 
             var act = async () => await handler.Handle(command, CancellationToken.None);

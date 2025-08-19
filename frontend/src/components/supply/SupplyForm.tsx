@@ -56,7 +56,6 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
     },
   });
 
-  // Load supply data for edit mode
   useEffect(() => {
     if (mode === 'edit' && supply) {
       form.reset({
@@ -120,7 +119,6 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
 
   const [priceDisplayValue, setPriceDisplayValue] = React.useState<string>('');
 
-  // Initialize price display value when supply data loads
   React.useEffect(() => {
     if (mode === 'edit' && supply) {
       setPriceDisplayValue(formatCurrency(supply.Price));
@@ -131,7 +129,6 @@ export const SupplyForm: React.FC<SupplyFormProps> = ({ mode }) => {
     const value = e.target.value;
     handleCurrencyInput(value, (formattedValue) => {
       setPriceDisplayValue(formattedValue);
-      // Update form with numeric value
       const numericValue = parseCurrency(formattedValue);
       form.setValue('price', numericValue);
     });

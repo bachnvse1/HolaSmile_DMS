@@ -82,7 +82,7 @@ export const PediatricDentistryPage = () => {
   const navigate = useNavigate();
   return (
     <Layout>
-      {/* Phần giới thiệu */}
+      {/* Hero section  */}
       <section className="bg-gradient-to-br from-green-50 to-blue-50 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -115,7 +115,7 @@ export const PediatricDentistryPage = () => {
         </div>
       </section>
 
-      {/* Dịch vụ */}
+      {/* Services section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -152,7 +152,7 @@ export const PediatricDentistryPage = () => {
         </div>
       </section>
 
-      {/* Hướng dẫn theo độ tuổi */}
+      {/* Guide section */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -192,7 +192,7 @@ export const PediatricDentistryPage = () => {
         </div>
       </section>
 
-      {/* Mẹo cho phụ huynh */}
+      {/* Tips for parents section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -219,7 +219,7 @@ export const PediatricDentistryPage = () => {
         </div>
       </section>
 
-      {/* Điều đặc biệt của chúng tôi */}
+      {/* Our special section */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -260,7 +260,7 @@ export const PediatricDentistryPage = () => {
         </div>
       </section>
 
-      {/* Kêu gọi hành động */}
+      {/* Action section */}
       <section className="py-20 bg-gradient-to-r from-green-500 to-blue-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">

@@ -1,133 +1,180 @@
-﻿//using Application.Interfaces;
-//using Application.Usecases.Assistants.ViewPatientDentalImage;
-//using Microsoft.EntityFrameworkCore;
-//using Moq;
-//using Xunit;
+﻿using Application.Interfaces;
+using Application.Usecases.Assistants.ViewPatientDentalImage;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Moq;
+using System.Security.Claims;
+using Xunit;
 
-//namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
-//{
-//    public class ViewPatientDentalImageHandlerTests
-//    {
-//        private readonly Mock<IImageRepository> _imageRepoMock;
-//        private readonly ViewPatientDentalImageHandler _handler;
-//        private readonly DbContextOptions<FakeDbContext> _dbOptions;
+// using Domain.Entities; // nếu entity ở namespace khác, sửa lại cho đúng
 
-//        public ViewPatientDentalImageHandlerTests()
-//        {
-//            _imageRepoMock = new Mock<IImageRepository>();
-//            _handler = new ViewPatientDentalImageHandler(_imageRepoMock.Object);
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
+{
+    public class ViewPatientDentalImageHandlerTests
+    {
+        private readonly Mock<IImageRepository> _imageRepoMock;
+        private readonly Mock<IHttpContextAccessor> _httpAccessorMock;
+        private readonly ViewPatientDentalImageHandler _handler;
 
-//            _dbOptions = new DbContextOptionsBuilder<FakeDbContext>()
-//                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-//                .Options;
-//        }
+        public ViewPatientDentalImageHandlerTests()
+        {
+            _imageRepoMock = new Mock<IImageRepository>();
+            _httpAccessorMock = new Mock<IHttpContextAccessor>();
+            _handler = new ViewPatientDentalImageHandler(_imageRepoMock.Object, _httpAccessorMock.Object);
+        }
 
-//        private void SeedData(FakeDbContext context)
-//        {
-//            var images = new List<Image>
-//            {
-//                new Image { ImageId = 1, PatientId = 1, ImageURL = "url1", IsDeleted = false, Description = "desc1", CreatedAt = DateTime.UtcNow },
-//                new Image { ImageId = 2, PatientId = 1, ImageURL = "url2", IsDeleted = false, Description = "desc2", CreatedAt = DateTime.UtcNow },
-//                new Image { ImageId = 3, PatientId = 2, ImageURL = "url3", IsDeleted = false, Description = "desc3", CreatedAt = DateTime.UtcNow },
-//                new Image { ImageId = 4, PatientId = 1, ImageURL = "deleted", IsDeleted = true, Description = "desc4", CreatedAt = DateTime.UtcNow }
-//            };
+        private void SetupHttpContext(string role = "Assistant", string userId = "1")
+        {
+            var ctx = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, userId),
+                    new Claim(ClaimTypes.Role, role)
+                }, "TestAuth"))
+            };
+            _httpAccessorMock.Setup(a => a.HttpContext).Returns(ctx);
+        }
 
-//            context.Images.AddRange(images);
-//            context.SaveChanges();
-//        }
+        // ---- Fake DbContext chỉ chứa các entity cần dùng ----
+        private static FakeImageDbContext NewDb()
+        {
+            var options = new DbContextOptionsBuilder<FakeImageDbContext>()
+                .UseInMemoryDatabase($"ImgDb_{Guid.NewGuid()}")
+                .Options;
+            return new FakeImageDbContext(options);
+        }
 
-//        [Fact(DisplayName = "UTCID01 - Return all non-deleted images for a patient")]
-//        public async System.Threading.Tasks.Task UTCID01_Return_All_Images_By_Patient()
-//        {
-//            using var context = new FakeDbContext(_dbOptions);
-//            SeedData(context);
+        [Fact(DisplayName = "UTCID01 - Return all non-deleted images for a patient")]
+        public async System.Threading.Tasks.Task UTCID01_Return_All_Images_By_Patient()
+        {
+            using var db = NewDb();
+            db.Images.AddRange(new[]
+            {
+                new Image { ImageId = 1, PatientId = 1, ImageURL = "url1", IsDeleted = false, Description = "desc1", CreatedAt = DateTime.UtcNow },
+                new Image { ImageId = 2, PatientId = 1, ImageURL = "url2", IsDeleted = false, Description = "desc2", CreatedAt = DateTime.UtcNow },
+                new Image { ImageId = 3, PatientId = 2, ImageURL = "url3", IsDeleted = false, Description = "desc3", CreatedAt = DateTime.UtcNow },
+                new Image { ImageId = 4, PatientId = 1, ImageURL = "deleted", IsDeleted = true,  Description = "desc4", CreatedAt = DateTime.UtcNow }
+            });
+            await db.SaveChangesAsync();
 
-//            _imageRepoMock.Setup(r => r.Query()).Returns(context.Images);
+            // Trả về DbSet thực tế (IQueryable có provider async) => ToListAsync/Include hoạt động
+            _imageRepoMock.Setup(r => r.Query()).Returns(db.Images);
 
-//            var command = new ViewPatientDentalImageCommand { PatientId = 1 };
+            SetupHttpContext("Assistant");
 
-//            var result = await _handler.Handle(command, default);
+            var command = new ViewPatientDentalImageCommand { PatientId = 1 };
+            var result = await _handler.Handle(command, default);
 
-//            Assert.Equal(2, result.Count);
-//            Assert.All(result, r => Assert.NotNull(r.ImageURL));
-//        }
+            Assert.Equal(2, result.Count);
+            Assert.All(result, r => Assert.NotNull(r.ImageURL));
+        }
 
-//        [Fact(DisplayName = "UTCID02 - Filter by TreatmentRecordId")]
-//        public async System.Threading.Tasks.Task UTCID02_Filter_By_TreatmentRecordId()
-//        {
-//            using var context = new FakeDbContext(_dbOptions);
+        [Fact(DisplayName = "UTCID02 - Filter by TreatmentRecordId")]
+        public async System.Threading.Tasks.Task UTCID02_Filter_By_TreatmentRecordId()
+        {
+            using var db = NewDb();
 
-//            var images = new List<Image>
-//            {
-//                new Image { ImageId = 1, PatientId = 1, TreatmentRecordId = 10, IsDeleted = false, ImageURL = "1", CreatedAt = DateTime.UtcNow },
-//                new Image { ImageId = 2, PatientId = 1, TreatmentRecordId = 11, IsDeleted = false, ImageURL = "2", CreatedAt = DateTime.UtcNow }
-//            };
-//            context.Images.AddRange(images);
-//            context.SaveChanges();
+            db.Images.AddRange(new[]
+            {
+                new Image { ImageId = 1, PatientId = 1, TreatmentRecordId = 10, IsDeleted = false, ImageURL = "1", CreatedAt = DateTime.UtcNow },
+                new Image { ImageId = 2, PatientId = 1, TreatmentRecordId = 11, IsDeleted = false, ImageURL = "2", CreatedAt = DateTime.UtcNow }
+            });
+            await db.SaveChangesAsync();
 
-//            _imageRepoMock.Setup(r => r.Query()).Returns(context.Images);
+            _imageRepoMock.Setup(r => r.Query()).Returns(db.Images);
+            SetupHttpContext("Assistant");
 
-//            var command = new ViewPatientDentalImageCommand { PatientId = 1, TreatmentRecordId = 10 };
+            var command = new ViewPatientDentalImageCommand { PatientId = 1, TreatmentRecordId = 10 };
+            var result = await _handler.Handle(command, default);
 
-//            var result = await _handler.Handle(command, default);
+            Assert.Single(result);
+            Assert.Equal(10, result.First().TreatmentRecordId);
+        }
 
-//            Assert.Single(result);
-//            Assert.Equal(10, result.First().TreatmentRecordId);
-//        }
+        [Fact(DisplayName = "UTCID03 - Filter by OrthodonticTreatmentPlanId")]
+        public async System.Threading.Tasks.Task UTCID03_Filter_By_OrthodonticTreatmentPlanId()
+        {
+            using var db = NewDb();
 
-//        [Fact(DisplayName = "UTCID03 - Filter by OrthodonticTreatmentPlanId")]
-//        public async System.Threading.Tasks.Task UTCID03_Filter_By_OrthodonticTreatmentPlanId()
-//        {
-//            using var context = new FakeDbContext(_dbOptions);
+            db.Images.AddRange(new[]
+            {
+                new Image { ImageId = 1, PatientId = 1, OrthodonticTreatmentPlanId = 20, IsDeleted = false, ImageURL = "1", CreatedAt = DateTime.UtcNow },
+                new Image { ImageId = 2, PatientId = 1, OrthodonticTreatmentPlanId = 21, IsDeleted = false, ImageURL = "2", CreatedAt = DateTime.UtcNow }
+            });
+            await db.SaveChangesAsync();
 
-//            var images = new List<Image>
-//            {
-//                new Image { ImageId = 1, PatientId = 1, OrthodonticTreatmentPlanId = 20, IsDeleted = false, ImageURL = "1", CreatedAt = DateTime.UtcNow },
-//                new Image { ImageId = 2, PatientId = 1, OrthodonticTreatmentPlanId = 21, IsDeleted = false, ImageURL = "2", CreatedAt = DateTime.UtcNow }
-//            };
-//            context.Images.AddRange(images);
-//            context.SaveChanges();
+            _imageRepoMock.Setup(r => r.Query()).Returns(db.Images);
+            SetupHttpContext("Assistant");
 
-//            _imageRepoMock.Setup(r => r.Query()).Returns(context.Images);
+            var command = new ViewPatientDentalImageCommand { PatientId = 1, OrthodonticTreatmentPlanId = 20 };
+            var result = await _handler.Handle(command, default);
 
-//            var command = new ViewPatientDentalImageCommand { PatientId = 1, OrthodonticTreatmentPlanId = 20 };
+            Assert.Single(result);
+            Assert.Equal(20, result.First().OrthodonticTreatmentPlanId);
+        }
 
-//            var result = await _handler.Handle(command, default);
+        [Fact(DisplayName = "UTCID04 - No match => return empty")]
+        public async System.Threading.Tasks.Task UTCID04_No_Match_Return_Empty()
+        {
+            using var db = NewDb();
+            db.Images.Add(new Image { ImageId = 1, PatientId = 99, IsDeleted = false, ImageURL = "x", CreatedAt = DateTime.UtcNow });
+            await db.SaveChangesAsync();
 
-//            Assert.Single(result);
-//            Assert.Equal(20, result.First().OrthodonticTreatmentPlanId);
-//        }
+            _imageRepoMock.Setup(r => r.Query()).Returns(db.Images);
+            SetupHttpContext("Assistant");
 
-//        [Fact(DisplayName = "UTCID04 - No match => return empty")]
-//        public async System.Threading.Tasks.Task UTCID04_No_Match_Return_Empty()
-//        {
-//            using var context = new FakeDbContext(_dbOptions);
+            var command = new ViewPatientDentalImageCommand { PatientId = 1 };
+            var result = await _handler.Handle(command, default);
 
-//            context.Images.Add(new Image { ImageId = 1, PatientId = 99, IsDeleted = false, CreatedAt = DateTime.UtcNow });
-//            context.SaveChanges();
+            Assert.Empty(result);
+        }
 
-//            _imageRepoMock.Setup(r => r.Query()).Returns(context.Images);
+        // ---------- Fake DbContext tối thiểu ----------
+        public class FakeImageDbContext : DbContext
+        {
+            public FakeImageDbContext(DbContextOptions<FakeImageDbContext> options) : base(options) { }
 
-//            var command = new ViewPatientDentalImageCommand { PatientId = 1 };
+            public DbSet<Image> Images => Set<Image>();
+            public DbSet<TreatmentRecord> TreatmentRecords => Set<TreatmentRecord>();
+            public DbSet<Procedure> Procedures => Set<Procedure>();
+            public DbSet<OrthodonticTreatmentPlan> OrthodonticTreatmentPlans => Set<OrthodonticTreatmentPlan>();
 
-//            var result = await _handler.Handle(command, default);
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                // Khóa & quan hệ TỐI THIỂU cho các entity bạn đang test
+                modelBuilder.Entity<Image>().HasKey(i => i.ImageId);
+                modelBuilder.Entity<TreatmentRecord>().HasKey(tr => tr.TreatmentRecordID);
+                modelBuilder.Entity<Procedure>().HasKey(p => p.ProcedureId);
+                modelBuilder.Entity<OrthodonticTreatmentPlan>().HasKey(o => o.PlanId);
 
-//            Assert.Empty(result);
-//        }
+                modelBuilder.Entity<Image>()
+                    .HasOne(i => i.TreatmentRecord)
+                    .WithMany()
+                    .HasForeignKey(i => i.TreatmentRecordId)
+                    .IsRequired(false);
 
-//        public class FakeDbContext : DbContext
-//        {
-//            public FakeDbContext(DbContextOptions<FakeDbContext> options) : base(options) { }
+                modelBuilder.Entity<Image>()
+                    .HasOne(i => i.OrthodonticTreatmentPlan)
+                    .WithMany()
+                    .HasForeignKey(i => i.OrthodonticTreatmentPlanId)
+                    .IsRequired(false);
 
-//            public DbSet<Image> Images => Set<Image>();
+                modelBuilder.Entity<TreatmentRecord>()
+                    .HasOne(tr => tr.Procedure)
+                    .WithMany()
+                    .HasForeignKey(tr => tr.ProcedureID)
+                    .IsRequired(false);
 
-//            protected override void OnModelCreating(ModelBuilder modelBuilder)
-//            {
-//                // Không include các entity khác, chỉ define Images
-//                modelBuilder.Entity<Image>().HasKey(i => i.ImageId);
-//                base.OnModelCreating(modelBuilder);
-//            }
-//        }
+                // ✅ Chỉ ở TEST: bỏ qua các entity không dùng để tránh lỗi thiếu PK
+                modelBuilder.Ignore<MaintenanceSupply>();
+                // nếu còn lỗi tương tự, thêm tiếp các dòng dưới (tùy project bạn có type nào):
+                // modelBuilder.Ignore<EquipmentMaintenance>();
+                modelBuilder.Ignore<SuppliesUsed>();
 
-//    }
-//}
+                base.OnModelCreating(modelBuilder);
+            }
+
+        }
+    }
+}

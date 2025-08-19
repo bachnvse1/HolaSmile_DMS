@@ -24,7 +24,6 @@ export const ChatWrapper: React.FC = () => {
 
   return (
     <>
-      {/* Chỉ hiển thị ConsultantChatBox khi chưa đăng nhập */}
       {!isAuthenticated && (
         <ConsultantChatBox 
           onOpenStateChange={handleConsultantChatChange}
@@ -32,7 +31,6 @@ export const ChatWrapper: React.FC = () => {
         />
       )}
       
-      {/* Chatbot luôn hiển thị - điều chỉnh vị trí khi consultant chat mở */}
       <ChatbotFloating 
         onOpenStateChange={handleChatbotChange}
         forceClose={!isChatbotOpen && isConsultantChatOpen && !isAuthenticated}

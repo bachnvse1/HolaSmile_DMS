@@ -18,13 +18,12 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children, userInfo }) 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Check if mobile and set initial sidebar state
   useEffect(() => {
     const checkMobile = () => {
-      const mobile = window.innerWidth < 768; // md breakpoint
+      const mobile = window.innerWidth < 768; 
       setIsMobile(mobile);
       if (mobile) {
-        setIsSidebarCollapsed(true); // Always collapsed on mobile
+        setIsSidebarCollapsed(true); 
       }
     };
 
@@ -33,7 +32,6 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children, userInfo }) 
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Prevent body scroll when sidebar is open on mobile
   useEffect(() => {
     if (isMobile && !isSidebarCollapsed) {
       document.body.style.overflow = 'hidden';
@@ -43,7 +41,6 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children, userInfo }) 
       document.body.style.touchAction = '';
     }
 
-    // Cleanup on unmount
     return () => {
       document.body.style.overflow = '';
       document.body.style.touchAction = '';
@@ -71,7 +68,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children, userInfo }) 
         onToggle={toggleSidebar}
       />
 
-      {/* Main Content Area - No margin, header will handle its own positioning */}
+      {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Fixed Header with dynamic margin */}
         <StaffHeader 
@@ -82,7 +79,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children, userInfo }) 
           isCollapsed={isSidebarCollapsed}
         />
 
-        {/* Scrollable Content with margin to avoid sidebar overlap */}
+        {/* Scrollable Content */}
         <main className={`flex-1 overflow-y-auto bg-gray-50 ${
           isMobile 
             ? '' 

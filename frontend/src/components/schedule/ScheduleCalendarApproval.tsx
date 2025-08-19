@@ -1,4 +1,3 @@
-// ScheduleCalendarApproval.tsx
 import React, { useState } from "react";
 import { addDays, addWeeks, format, startOfWeek } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -11,11 +10,8 @@ import { cn } from "@/lib/utils";
 import { startOfDay } from "date-fns";
 
 interface Props {
-  /** Danh sách lịch (đã lọc Pending ở trên) */
   schedules: Schedule[];
-  /** Callback khi click 1 lịch (để chọn phê duyệt / từ chối) */
   onScheduleSelect?: (scheduleId: number | number[]) => void;
-  /** Mảng id lịch đang được chọn (highlight) */
   selectedScheduleIds?: number[];
   viewOnly?: boolean;
 }
@@ -26,7 +22,6 @@ export const ScheduleCalendarApproval: React.FC<Props> = ({
   selectedScheduleIds = [],
   viewOnly = false
 }) => {
-  /* ====== tính tuần ====== */
   const [weekOffset, setWeekOffset] = useState(0);
   const startDay = startOfWeek(addWeeks(new Date(), weekOffset), {
     weekStartsOn: 1
@@ -38,7 +33,6 @@ export const ScheduleCalendarApproval: React.FC<Props> = ({
   const fmt = (d: Date) => format(d, "yyyy-MM-dd");
   const todayStr = fmt(new Date());
 
-  /* ====== hằng số ca ====== */
   const shiftNames = {
     [ShiftType.Morning]: "Sáng",
     [ShiftType.Afternoon]: "Chiều",
@@ -64,10 +58,10 @@ export const ScheduleCalendarApproval: React.FC<Props> = ({
     const now = new Date();
     const startOfWeek = new Date(now);
     const day = startOfWeek.getDay();
-    startOfWeek.setDate(startOfWeek.getDate() - (day === 0 ? 6 : day - 1)); // Thứ hai
+    startOfWeek.setDate(startOfWeek.getDate() - (day === 0 ? 6 : day - 1)); 
 
     const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6); // Chủ nhật
+    endOfWeek.setDate(startOfWeek.getDate() + 6); 
 
     return schedules.filter(schedule => {
       if (schedule.status !== 'pending') return false;
@@ -80,10 +74,10 @@ export const ScheduleCalendarApproval: React.FC<Props> = ({
     const now = new Date();
     const startOfWeek = new Date(now);
     const day = startOfWeek.getDay();
-    startOfWeek.setDate(startOfWeek.getDate() - (day === 0 ? 6 : day - 1)); // Thứ hai tuần hiện tại
+    startOfWeek.setDate(startOfWeek.getDate() - (day === 0 ? 6 : day - 1)); 
 
     const endOfNextWeek = new Date(startOfWeek);
-    endOfNextWeek.setDate(startOfWeek.getDate() + 13); // Chủ nhật tuần sau
+    endOfNextWeek.setDate(startOfWeek.getDate() + 13); 
 
     return schedules.filter(schedule => {
       if (schedule.status !== 'pending') return false;
@@ -92,7 +86,6 @@ export const ScheduleCalendarApproval: React.FC<Props> = ({
     });
   };
 
-  // Handlers cho các nút chọn nhanh
   const handleSelectAllPending = () => {
     const pendingSchedules = getPendingSchedules();
     const scheduleIds = pendingSchedules.map(schedule => schedule.scheduleId).filter((id): id is number => id !== undefined);
@@ -111,7 +104,6 @@ export const ScheduleCalendarApproval: React.FC<Props> = ({
     onScheduleSelect?.(scheduleIds);
   };
 
-  /* ====== render 1 ô ====== */
   const getDateString = (dateStr: string) => dateStr.split('T')[0];
   const renderCell = (day: Date, shift: ShiftType) => {
     const cellSchedules = schedules.filter(
@@ -198,7 +190,7 @@ export const ScheduleCalendarApproval: React.FC<Props> = ({
         </div>
       )}
       
-      {/* Header tuần */}
+      {/* Header */}
       <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200">
         <Button
           variant="outline"
@@ -226,10 +218,9 @@ export const ScheduleCalendarApproval: React.FC<Props> = ({
 
       {/* Desktop Layout */}
       <div className="hidden sm:block">
-        {/* Grid 8 cột (1 cột ca + 7 cột ngày) */}
         <div className="grid grid-cols-8 gap-1 p-4">
-          {/* Header ngày */}
-          <div /> {/* ô trống góc trái */}
+          {/* Header */}
+          <div /> 
           {daysOfWeek.map(d => (
             <div key={"h" + d} className="text-center">
               <div className="font-medium text-sm text-gray-900">
@@ -246,16 +237,13 @@ export const ScheduleCalendarApproval: React.FC<Props> = ({
             </div>
           ))}
 
-          {/* 3 hàng ca */}
           {shifts.map(shift => (
             <React.Fragment key={shift}>
-              {/* Cột ca cố định */}
               <div className="text-sm font-medium text-gray-700 py-2">
                 {shiftNames[shift]}
                 <div className="text-xs text-gray-400">{shiftTimes[shift]}</div>
               </div>
 
-              {/* 7 ô ngày */}
               {daysOfWeek.map(day => (
                 <div key={shift + fmt(day)} className="pt-2">
                   {renderCell(day, shift)}
@@ -270,10 +258,9 @@ export const ScheduleCalendarApproval: React.FC<Props> = ({
       <div className="sm:hidden">
         <div className="overflow-x-auto">
           <div className="min-w-[800px] p-3">
-            {/* Grid 8 cột (1 cột ca + 7 cột ngày) */}
             <div className="grid grid-cols-8 gap-2">
-              {/* Header ngày */}
-              <div className="min-w-[80px]" /> {/* ô trống góc trái */}
+              {/* Header */}
+              <div className="min-w-[80px]" /> 
               {daysOfWeek.map(d => (
                 <div key={"h" + d} className="text-center min-w-[90px]">
                   <div className="font-medium text-xs text-gray-900">
@@ -290,16 +277,13 @@ export const ScheduleCalendarApproval: React.FC<Props> = ({
                 </div>
               ))}
 
-              {/* 3 hàng ca */}
               {shifts.map(shift => (
                 <React.Fragment key={shift}>
-                  {/* Cột ca cố định */}
                   <div className="text-xs font-medium text-gray-700 py-2 min-w-[80px]">
                     <div>{shiftNames[shift]}</div>
                     <div className="text-xs text-gray-400">{shiftTimes[shift]}</div>
                   </div>
 
-                  {/* 7 ô ngày */}
                   {daysOfWeek.map(day => (
                     <div key={shift + fmt(day)} className="pt-2 min-w-[90px]">
                       {renderCell(day, shift)}

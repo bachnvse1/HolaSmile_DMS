@@ -49,15 +49,12 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
     }
   });
 
-  // Populate form when transaction data is loaded
   useEffect(() => {
     if (transaction) {
-      // Parse date and time from backend response (keep local timezone)
       const transactionDateTime = new Date(transaction.transactionDate);
-      const transactionDate = transactionDateTime.toISOString().split('T')[0]; // YYYY-MM-DD
-      const transactionTime = transactionDateTime.toTimeString().split(' ')[0].substring(0, 5); // HH:MM
+      const transactionDate = transactionDateTime.toISOString().split('T')[0]; 
+      const transactionTime = transactionDateTime.toTimeString().split(' ')[0].substring(0, 5); 
       
-      // Handle different backend response formats for transactionType
       let transactionType: 'thu' | 'chi';
       if (typeof transaction.transactionType === 'boolean') {
         transactionType = transaction.transactionType ? 'thu' : 'chi';
@@ -65,7 +62,6 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
         transactionType = transaction.transactionType?.toLowerCase() === 'thu' ? 'thu' : 'chi';
       }
       
-      // Handle different backend response formats for paymentMethod
       let paymentMethod: 'cash' | 'transfer';
       if (typeof transaction.paymentMethod === 'boolean') {
         paymentMethod = transaction.paymentMethod ? 'cash' : 'transfer';
@@ -83,9 +79,6 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
         transactionTime: transactionTime
       };
       
-      console.log('Populating form with:', formData);
-      
-      // Reset form with new data
       form.reset(formData);
     }
   }, [transaction, form]);
@@ -125,25 +118,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
 
   const onSubmit = async (data: FormData) => {
     try {
-      // Convert amount to number (remove formatting)
       const numericAmount = parseInt(data.amount.replace(/[^\d]/g, '')) || 0;
-      
-      if (numericAmount <= 0) {
-        toast.error('Vui lòng nhập số tiền hợp lệ');
-        return;
-      }
-
-      // Check if description is provided
-      if (!data.description || data.description.trim() === '') {
-        toast.error('Vui lòng nhập mô tả');
-        return;
-      }
-
-      // Check if category is provided
-      if (!data.category || data.category.trim() === '') {
-        toast.error('Vui lòng nhập danh mục');
-        return;
-      }
 
       // Check if transaction can be edited (only pending transactions)
       if (transaction?.status !== 'pending') {
@@ -151,7 +126,6 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
         return;
       }
 
-      // Use FormData if image is provided
       if (selectedImage) {
         const formData = new FormData();
         formData.append('TransactionId', transactionId.toString());
@@ -164,8 +138,6 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
         formData.append('EvidenceImage', selectedImage);
         await updateTransactionMutation.mutateAsync(formData);
       } else {
-        
-        // Test if backend expects FormData always
         const testFormData = new FormData();
         testFormData.append('TransactionId', transactionId.toString());
         testFormData.append('TransactionType', (data.transactionType === 'thu').toString());
@@ -180,19 +152,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
       toast.success(`Đã cập nhật giao dịch thành công`);
       onClose();
     } catch (error) {
-      const axiosError = error as { response?: { data?: any; status?: number; headers?: any } };
-      if (axiosError?.response) {
-        
-        // Show specific backend error message if available
-        const backendMessage = axiosError.response.data?.message || axiosError.response.data?.errors || axiosError.response.data;
-        if (backendMessage && typeof backendMessage === 'string') {
-          toast.error(backendMessage);
-        } else {
-          toast.error(`Lỗi ${axiosError.response.status}: ${getErrorMessage(error) || 'Có lỗi xảy ra khi cập nhật giao dịch'}`);
-        }
-      } else {
         toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi cập nhật giao dịch');
-      }
     }
   };
 
@@ -247,7 +207,6 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
         ) : (
           /* Form */
           <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-4">
-            {/* Transaction Type & Category - Same Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Transaction Type */}
               <div className="space-y-2">
@@ -255,7 +214,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                 <Select 
                   value={form.watch('transactionType') || ''}
                   onValueChange={(value: 'thu' | 'chi') => form.setValue('transactionType', value)}
-                  key={`transactionType-${transaction?.transactionID}-${form.watch('transactionType')}`} // Force re-render
+                  key={`transactionType-${transaction?.transactionID}-${form.watch('transactionType')}`} 
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn loại giao dịch" />
@@ -291,7 +250,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
               </div>
             </div>
 
-            {/* Description - Full Width (2 columns) */}
+            {/* Description */}
             <div className="space-y-2">
               <Label htmlFor="description">Mô tả<span className='text-red-400'>*</span></Label>
               <Textarea
@@ -308,9 +267,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
               )}
             </div>
 
-            {/* Two Column Layout */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
               {/* Amount */}
               <div className="space-y-2">
                 <Label htmlFor="amount">Số tiền<span className='text-red-400'>*</span></Label>
@@ -335,7 +292,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                 <Select 
                   value={form.watch('paymentMethod') || ''}
                   onValueChange={(value: 'cash' | 'transfer') => form.setValue('paymentMethod', value)}
-                  key={`paymentMethod-${transaction?.transactionID}-${form.watch('paymentMethod')}`} // Force re-render
+                  key={`paymentMethod-${transaction?.transactionID}-${form.watch('paymentMethod')}`} 
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn phương thức thanh toán" />

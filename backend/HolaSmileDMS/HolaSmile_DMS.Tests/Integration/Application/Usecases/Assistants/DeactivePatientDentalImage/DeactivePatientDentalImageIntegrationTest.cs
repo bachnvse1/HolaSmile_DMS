@@ -66,8 +66,8 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             var user = new User
             {
                 UserID = 200,
-                Username = "patient1",  // Thêm trường bắt buộc
-                Phone = "0123456789",  // Thêm trường bắt buộc
+                Username = "patient1",
+                Phone = "0123456789",
                 Fullname = "Test Patient",
                 Status = true,
                 CreatedAt = DateTime.Now
@@ -140,7 +140,6 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             Assert.NotNull(img.UpdatedAt);
             Assert.Equal(1, img.UpdatedBy);
 
-            // Verify notification với nội dung chính xác từ handler
             _mediatorMock.Verify(m => m.Send(
                 It.Is<SendNotificationCommand>(n =>
                     n.UserId == 200 &&

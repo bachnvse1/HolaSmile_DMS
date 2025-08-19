@@ -38,7 +38,6 @@ export class TokenUtils {
       const decodedPayload = this.base64UrlDecode(payload);
       const parsedPayload: JWTPayload = JSON.parse(decodedPayload);
 
-      // Extract and map claims to friendly names
       return {
         userId:
           parsedPayload[
@@ -114,17 +113,13 @@ export class TokenUtils {
    * Base64URL decode (used in JWT)
    */
   private static base64UrlDecode(str: string): string {
-    // Replace URL-safe characters
     let base64 = str.replace(/-/g, "+").replace(/_/g, "/");
-
-    // Pad with '=' if needed
     const pad = base64.length % 4;
     if (pad) {
       base64 += "=".repeat(4 - pad);
     }
 
     try {
-      // Decode base64 and handle Unicode
       return decodeURIComponent(
         atob(base64)
           .split("")

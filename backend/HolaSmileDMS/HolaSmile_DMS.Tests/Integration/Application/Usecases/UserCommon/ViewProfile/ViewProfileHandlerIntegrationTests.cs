@@ -77,7 +77,6 @@ public class ViewProfileHandlerIntegrationTests
         _httpContextAccessor.HttpContext = context;
     }
 
-    // ✅ Truy cập thành công
     [Fact(DisplayName = "Normal - UTCID01 - View profile successfully with valid token")]
     public async System.Threading.Tasks.Task UTCID01_ViewProfile_Success()
     {
@@ -92,7 +91,6 @@ public class ViewProfileHandlerIntegrationTests
         Assert.Equal("test@example.com", result.Email);
     }
 
-    // ❌ Không có HttpContext (chưa đăng nhập)
     [Fact(DisplayName = "Abnormal - UTCID02 - View profile without login should throw MSG53")]
     public async System.Threading.Tasks.Task UTCID02_ViewProfile_NoHttpContext_Throws()
     {

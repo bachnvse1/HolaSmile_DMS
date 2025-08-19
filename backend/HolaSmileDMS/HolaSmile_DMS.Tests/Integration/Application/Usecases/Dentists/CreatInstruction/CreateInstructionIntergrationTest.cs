@@ -198,7 +198,6 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Dentists
         {
             SetupHttpContext("Dentist");
 
-            // Thêm instruction cho appointmentId = 1
             _context.Instructions.Add(new Instruction
             {
                 AppointmentId = 1,

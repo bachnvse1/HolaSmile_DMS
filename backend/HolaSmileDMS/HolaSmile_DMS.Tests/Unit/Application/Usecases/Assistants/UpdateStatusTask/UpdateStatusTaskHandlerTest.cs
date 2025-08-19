@@ -20,7 +20,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
 
         public UpdateTaskStatusHandlerTests()
         {
-            // Setup mặc định cho notification
             _mediatorMock
                 .Setup(m => m.Send(It.IsAny<SendNotificationCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(MediatR.Unit.Value);
@@ -28,8 +27,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             _userCommonRepositoryMock
                 .Setup(x => x.GetUserIdByRoleTableIdAsync(It.IsAny<string>(), It.IsAny<int>()))
                 .ReturnsAsync(1);
-
-            // Setup mặc định cho TreatmentProgress
             var treatmentProgress = new TreatmentProgress { DentistID = 1 };
             _taskRepoMock
                 .Setup(r => r.GetTreatmentProgressByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
@@ -90,15 +87,14 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             var result = await _handler.Handle(command, default);
 
             // Assert
-            Assert.Equal(MessageConstants.MSG.MSG97, result); // Lưu thành công
+            Assert.Equal(MessageConstants.MSG.MSG97, result);
             Assert.True(task.Status);
             Assert.Equal(1, task.UpdatedBy);
 
-            // Verify notification
             _mediatorMock.Verify(x => x.Send(
                 It.Is<SendNotificationCommand>(n =>
                     n.UserId == 1 &&
-                    n.Title == "Cập nhật trạng thái công việc trợ lý" && // Sửa lại title
+                    n.Title == "Cập nhật trạng thái công việc trợ lý" &&
                     n.Message == "Tiến trình: Test Task - đã hoàn thành" &&
                     n.Type == "Update" &&
                     n.MappingUrl == "/dentist/assigned-tasks"),
@@ -118,9 +114,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
                 _handler.Handle(command, default));
 
-            Assert.Equal(MessageConstants.MSG.MSG53, ex.Message); // Chưa đăng nhập
-
-            // Verify no notification sent
+            Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
             _mediatorMock.Verify(x => x.Send(It.IsAny<SendNotificationCommand>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
@@ -136,7 +130,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
                 _handler.Handle(command, default));
 
-            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message); // Không có quyền
+            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
 
             // Verify no notification sent
             _mediatorMock.Verify(x => x.Send(It.IsAny<SendNotificationCommand>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -157,7 +151,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
                 _handler.Handle(command, default));
 
-            Assert.Equal(MessageConstants.MSG.MSG16, ex.Message); // Không có dữ liệu phù hợp
+            Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
 
             // Verify no notification sent
             _mediatorMock.Verify(x => x.Send(It.IsAny<SendNotificationCommand>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -184,7 +178,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
                 _handler.Handle(command, default));
 
-            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message); // Không có quyền
+            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
 
             // Verify no notification sent
             _mediatorMock.Verify(x => x.Send(It.IsAny<SendNotificationCommand>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -215,7 +209,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             var result = await _handler.Handle(command, default);
 
             // Assert
-            Assert.Equal(MessageConstants.MSG.MSG58, result); // Cập nhật thất bại
+            Assert.Equal(MessageConstants.MSG.MSG58, result);
 
             // Verify no notification sent
             _mediatorMock.Verify(x => x.Send(It.IsAny<SendNotificationCommand>(), It.IsAny<CancellationToken>()), Times.Never);

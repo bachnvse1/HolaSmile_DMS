@@ -39,8 +39,6 @@ export const ContactSection = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission logic here
-    console.log('Form submitted:', formData);
   };
 
   return (
@@ -149,7 +147,7 @@ export const ContactSection = () => {
                     onChange={handleInputChange}
                     required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                    placeholder="Your full name"
+                    placeholder="Nhập họ tên đầy đủ của bạn"
                   />
                 </div>
                 
@@ -165,7 +163,7 @@ export const ContactSection = () => {
                     onChange={handleInputChange}
                     required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                    placeholder="your@email.com"
+                    placeholder="example@gmail.com"
                   />
                 </div>
               </div>
@@ -182,7 +180,7 @@ export const ContactSection = () => {
                     value={formData.phone}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                    placeholder="(555) 123-4567"
+                    placeholder="(094) 123-4567"
                   />
                 </div>
                 
@@ -219,7 +217,7 @@ export const ContactSection = () => {
                   onChange={handleInputChange}
                   rows={5}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                  placeholder="Tell us about your dental needs or questions..."
+                  placeholder="Kể cho chúng tôi biết về vấn đề của bạn hoặc câu hỏi bạn muốn hỏi"
                 ></textarea>
               </div>
 

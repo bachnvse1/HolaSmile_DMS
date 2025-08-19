@@ -51,7 +51,6 @@ export const CreatePromotionModal: React.FC<CreatePromotionModalProps> = ({
   });
 
   const handleDiscountPercentageChange = (index: number, value: string) => {
-    // Only allow numbers and ensure it's between 0-100
     const numericValue = value.replace(/[^\d]/g, '');
     const percentage = Math.min(100, Math.max(0, parseInt(numericValue) || 0));
     form.setValue(`procedures.${index}.discountAmount`, percentage.toString());
@@ -61,14 +60,12 @@ export const CreatePromotionModal: React.FC<CreatePromotionModalProps> = ({
     try {
       setIsSubmitting(true);
 
-      // Validate procedures
       const validProcedures = data.procedures.filter(p => p.procedureId > 0 && p.discountAmount);
       if (validProcedures.length === 0) {
         toast.error('Vui lòng thêm ít nhất một thủ thuật với phần trăm giảm giá');
         return;
       }
 
-      // Validate dates
       const startDate = new Date(data.createDate);
       const endDate = new Date(data.endDate);
       const today = new Date();
@@ -128,13 +125,11 @@ export const CreatePromotionModal: React.FC<CreatePromotionModalProps> = ({
       .filter(id => id > 0);
   };
 
-  // Get available procedures for a specific index
   const getAvailableProcedures = (currentIndex: number) => {
     const selectedIds = getSelectedProcedureIds();
     const currentProcedureId = form.watch(`procedures.${currentIndex}.procedureId`);
     
     return procedures.filter((procedure: Procedure) => {
-      // Include current selection or unselected procedures
       return procedure.procedureId === currentProcedureId || 
              !selectedIds.includes(procedure.procedureId);
     });

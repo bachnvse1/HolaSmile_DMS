@@ -15,6 +15,7 @@ import {
   Download,
   Upload,
 } from 'lucide-react';
+import { SupplyFormModal } from './SupplyFormModal';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,6 +43,14 @@ export const SupplyList: React.FC = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showImportModal, setShowImportModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [supplyFormModal, setSupplyFormModal] = useState<{
+    isOpen: boolean;
+    mode: 'create' | 'edit';
+    supplyId?: number;
+  }>({
+    isOpen: false,
+    mode: 'create'
+  });
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     supply: Supply | null;
@@ -57,10 +66,8 @@ export const SupplyList: React.FC = () => {
   const userInfo = useUserInfo();
   const userRole = userInfo?.role || '';
 
-  // Chỉ Administrator, Owner, Assistant có quyền edit/delete
   const canModify = ['Assistant'].includes(userRole);
 
-  // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
@@ -76,7 +83,6 @@ export const SupplyList: React.FC = () => {
   const { mutate: exportExcel, isPending: isExportExcel } = useExportSupplies();
   const { mutate: importExcel, isPending: isImporting } = useImportSupplies();
 
-  // Filter supplies based on selected filter
   const filteredSupplies = supplies.filter(supply => {
     if (filter === 'low-stock') {
       return supply.QuantityInStock <= 10;
@@ -97,15 +103,15 @@ export const SupplyList: React.FC = () => {
   const paginatedSupplies = filteredSupplies.slice(startIndex, endIndex);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.persist(); // Ensure event persists
+    e.persist(); 
     const value = e.target.value;
     setSearchQuery(value);
-    setCurrentPage(1); // Reset to first page when searching
+    setCurrentPage(1); 
   };
 
   const handleFilterChange = (newFilter: 'all' | 'low-stock' | 'expiring') => {
     setFilter(newFilter);
-    setCurrentPage(1); // Reset to first page when filtering
+    setCurrentPage(1); 
   };
 
   const handlePageChange = (page: number) => {
@@ -114,7 +120,7 @@ export const SupplyList: React.FC = () => {
 
   const handleItemsPerPageChange = (newItemsPerPage: number) => {
     setItemsPerPage(newItemsPerPage);
-    setCurrentPage(1); // Reset to first page when changing items per page
+    setCurrentPage(1); 
   };
 
   const handleDownloadTemplate = () => {
@@ -165,14 +171,12 @@ export const SupplyList: React.FC = () => {
         refetch();
         setShowImportModal(false);
         setSelectedFile(null);
-        // Reset file input
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
       },
       onError: (error) => {
         toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi nhập file Excel');
-        // Reset file input
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
@@ -193,7 +197,11 @@ export const SupplyList: React.FC = () => {
   };
 
   const handleEdit = (supply: Supply) => {
-    navigate(`/inventory/${supply.SupplyID}/edit`);
+    setSupplyFormModal({
+      isOpen: true,
+      mode: 'edit',
+      supplyId: supply.SupplyID
+    });
   };
 
   const handleDeactivate = async (supply: Supply) => {
@@ -259,7 +267,6 @@ export const SupplyList: React.FC = () => {
     );
   }
 
-  // Only show error for non-empty data errors
   if (error) {
     const apiError = error as { response?: { status?: number; data?: { message?: string } } };
     const isEmptyDataError = apiError?.response?.status === 500 &&
@@ -299,7 +306,6 @@ export const SupplyList: React.FC = () => {
 
         {/* Action buttons */}
         <div className="flex flex-col gap-2 sm:gap-3 sm:ml-auto">
-          {/* Mobile layout: 2 rows */}
           <div className="grid grid-cols-2 gap-2 sm:hidden">
             {canModify && (supplies.length > 0) && (
               <Button
@@ -328,7 +334,7 @@ export const SupplyList: React.FC = () => {
           {canModify && (
             <div className="grid grid-cols-1 gap-2 sm:hidden">
               <Button
-                onClick={() => navigate('/inventory/create')}
+                onClick={() => setSupplyFormModal({ isOpen: true, mode: 'create' })}
                 className="text-xs"
               >
                 <Plus className="h-3 w-3 mr-1" />
@@ -337,7 +343,7 @@ export const SupplyList: React.FC = () => {
             </div>
           )}
 
-          {/* Desktop layout: Single row */}
+          {/* Desktop layout */}
           <div className="hidden sm:flex sm:gap-3">
             {canModify && supplies.length > 0 && (
               <Button
@@ -362,7 +368,7 @@ export const SupplyList: React.FC = () => {
                 </Button>
 
                 <Button
-                  onClick={() => navigate('/inventory/create')}
+                  onClick={() => setSupplyFormModal({ isOpen: true, mode: 'create' })}
                   className="text-sm"
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -446,7 +452,7 @@ export const SupplyList: React.FC = () => {
               />
             </div>
 
-            {/* Filter buttons - cùng hàng trên desktop, xuống dòng trên mobile */}
+            {/* Filter buttons */}
             <div className="grid grid-cols-3 gap-2 sm:flex sm:gap-2">
               <Button
                 variant={filter === 'all' ? 'default' : 'outline'}
@@ -480,7 +486,7 @@ export const SupplyList: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Supplies Table - Mobile Responsive */}
+      {/* Supplies Table */}
       {filteredSupplies.length === 0 ? (
         <Card>
           <CardContent className="p-8 text-center">
@@ -495,7 +501,7 @@ export const SupplyList: React.FC = () => {
               }
             </p>
             {!searchQuery && canModify && (
-              <Button onClick={() => navigate('/inventory/create')}>
+              <Button onClick={() => setSupplyFormModal({ isOpen: true, mode: 'create' })}>
                 <Plus className="h-4 w-4 mr-2" />
                 Thêm Vật Tư Mới
               </Button>
@@ -824,7 +830,6 @@ export const SupplyList: React.FC = () => {
                         : 'border-gray-300 hover:border-blue-400'
                       }`}
                     onClick={() => {
-                      console.log('Clicking to open file dialog');
                       fileInputRef.current?.click();
                     }}
                   >
@@ -851,7 +856,7 @@ export const SupplyList: React.FC = () => {
                     )}
                   </div>
 
-                  {/* File input with proper event handling */}
+                  {/* File input */}
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -907,6 +912,14 @@ export const SupplyList: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Supply Form Modal */}
+      <SupplyFormModal
+        isOpen={supplyFormModal.isOpen}
+        onClose={() => setSupplyFormModal({ isOpen: false, mode: 'create' })}
+        mode={supplyFormModal.mode}
+        supplyId={supplyFormModal.supplyId}
+      />
     </div>
   );
 };

@@ -18,16 +18,13 @@ export const orthodonticTreatmentPlanApi = {
     return response.data;
   },
 
-  // Create new orthodontic treatment plan (using existing endpoint)
+  // Create new orthodontic treatment plan 
   createOrthodonticTreatmentPlan: async (data: CreateOrthodonticTreatmentPlanRequest): Promise<OrthodonticTreatmentPlan> => {
-    console.log('Creating orthodontic treatment plan with data:', data);
-    
     const response = await axiosInstance.post<OrthodonticTreatmentPlan>(
       '/orthodontic-treatment-plan',
       data
     );
     
-    console.log('API Response:', response.data);
     return response.data;
   },
 

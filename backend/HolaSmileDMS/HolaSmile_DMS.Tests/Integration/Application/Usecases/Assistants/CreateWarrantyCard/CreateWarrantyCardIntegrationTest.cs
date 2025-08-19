@@ -146,7 +146,6 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             );
             Assert.Equal(1, card.CreateBy);
 
-            // Verify notification với nội dung thực tế từ handler
             _mediatorMock.Verify(m => m.Send(
                 It.Is<SendNotificationCommand>(n =>
                     n.UserId == 2 &&

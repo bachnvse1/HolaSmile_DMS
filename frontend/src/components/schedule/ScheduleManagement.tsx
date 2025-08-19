@@ -6,26 +6,21 @@ import { DentistScheduleEditorWithCalendar } from './DentistScheduleEditorWithCa
 import { ScheduleApproval } from './ScheduleApproval';
 import { ScheduleListWithCalendar } from './ScheduleListWithCalendar';
 export const ScheduleManagement: React.FC = () => {
-  // Lấy thông tin người dùng từ TokenUtils
   const userData = TokenUtils.getUserData();
   const role = userData.role;
   const roleTableId = userData.role_table_id
 
-  // Xác định quyền truy cập dựa trên vai trò
   const isDentist = role === 'Dentist';
   const isAdmin = role === 'Admin' || role === 'Owner';
 
-  // Xác định dentistId nếu user là dentist
   const dentistId = isDentist && roleTableId ? Number(roleTableId) : undefined;
 
-  // Các role khác chỉ xem, không cho chọn tab
   const isOther = !isDentist && !isAdmin;
 
   return (
     <div className="container mx-auto py-8 px-4">
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Quản lý lịch làm việc</h1>
       <Tabs defaultValue="view" className="w-full">
-        {/* Ẩn TabsList nếu không phải dentist hoặc admin */}
         {!(isOther) && (
           <TabsList className="mb-6">
             <TabsTrigger value="view">Xem lịch làm việc</TabsTrigger>
@@ -38,7 +33,6 @@ export const ScheduleManagement: React.FC = () => {
           </TabsList>
         )}
 
-        {/* Tab Xem lịch làm việc */}
         <TabsContent value="view" className="py-4">
           <Card>
             <CardHeader>
