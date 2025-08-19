@@ -97,16 +97,21 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists.ViewFinanc
             worksheet.Cells[1, 2].Text.Should().Be("Tiêu đề");
 
             // Kiểm tra dữ liệu dòng 2
-            worksheet.Cells[2, 1].Text.Should().Be("thu");
-            worksheet.Cells[2, 2].Text.Should().Be("Thu tiền");
-            worksheet.Cells[2, 4].Text.Should().Be("Khách thanh toán");
-            worksheet.Cells[2, 3].Text.Should().Be("100000");
+            worksheet.Cells[2, 1].Text.Should().Be("thu");                 // Loại phiếu
+            worksheet.Cells[2, 2].Text.Should().Be("Thu tiền");            // Tiêu đề (Category)
+            worksheet.Cells[2, 3].Text.Should().Be("100000");              // Số tiền (Amount)
+            worksheet.Cells[2, 4].Text.Should().Be("Khách thanh toán");    // Mô tả (Description)
+            worksheet.Cells[2, 5].Text.Should().Be("chuyển khoản");        // PaymentMethod
+            worksheet.Cells[2, 6].Text.Should().Be("25/07/2025");          // Ngày
 
             // Kiểm tra dữ liệu dòng 3
-            worksheet.Cells[3, 1].Text.Should().Be("chi");
-            worksheet.Cells[3, 3].Text.Should().Be("Mua vật tư");
-            worksheet.Cells[3, 4].Text.Should().Be("Chi phí");
-            worksheet.Cells[3, 2].Text.Should().Be("50000");
+            worksheet.Cells[3, 1].Text.Should().Be("chi");                 // Loại phiếu
+            worksheet.Cells[3, 2].Text.Should().Be("Chi phí");             // Tiêu đề (Category)
+            worksheet.Cells[3, 3].Text.Should().Be("50000");               // Số tiền (Amount)
+            worksheet.Cells[3, 4].Text.Should().Be("Mua vật tư");          // Mô tả (Description)
+            worksheet.Cells[3, 5].Text.Should().Be("tiền mặt");            // PaymentMethod
+            worksheet.Cells[3, 6].Text.Should().Be("24/07/2025");          // Ngày
+
         }
     }
 

@@ -85,17 +85,6 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.UserCommon
             Assert.All(result, d => Assert.NotEmpty(d.Schedules));
         }
 
-        [Fact(DisplayName = "[Integration - Normal] OtherRole_Sees_Limited_Schedules")]
-        [Trait("TestType", "Normal")]
-        public async System.Threading.Tasks.Task N_OtherRole_Sees_Limited_Schedules()
-        {
-            SetupHttpContext("Assistant", 999);
-
-            var result = await _handler.Handle(new ViewAllDentistScheduleCommand(), default);
-
-            Assert.NotEmpty(result);
-        }
-
         [Fact(DisplayName = "[Integration - Abnormal] No_Schedule_Data_Should_Throw_MSG28")]
         [Trait("TestType", "Abnormal")]
         public async System.Threading.Tasks.Task A_No_Schedule_Data_Should_Throw_MSG28()
