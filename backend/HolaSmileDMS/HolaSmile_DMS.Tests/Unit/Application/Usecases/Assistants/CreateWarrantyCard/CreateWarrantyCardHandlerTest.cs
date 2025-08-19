@@ -72,8 +72,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             _httpContextAccessorMock.Setup(h => h.HttpContext).Returns(context);
         }
 
-        // ----------------- TEST CASES -----------------
-
         [Fact(DisplayName = "Normal - UTCID01 - Assistant creates warranty card successfully")]
         public async System.Threading.Tasks.Task UTCID01_Assistant_Creates_WarrantyCard_Success()
         {
@@ -145,7 +143,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
         public async System.Threading.Tasks.Task UTCID02_NotLoggedIn_Throws_MSG53()
         {
             // Arrange
-            SetupHttpContext(null); // không đăng nhập
+            SetupHttpContext(null);
 
             var command = new CreateWarrantyCardCommand
             {
@@ -169,7 +167,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
         public async System.Threading.Tasks.Task UTCID03_InvalidRole_Throws_MSG26()
         {
             // Arrange
-            SetupHttpContext("Receptionist"); // role không được phép
+            SetupHttpContext("Receptionist");
 
             var command = new CreateWarrantyCardCommand
             {
@@ -197,7 +195,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
 
             var command = new CreateWarrantyCardCommand
             {
-                TreatmentRecordId = 999, // không tồn tại
+                TreatmentRecordId = 999,
                 Duration = 12
             };
 
@@ -218,8 +216,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
         {
             // Arrange
             SetupHttpContext("Assistant");
-
-            // Tạo dữ liệu TreatmentRecord chưa Completed
             var user = new User
             {
                 UserID = 1001,
@@ -282,7 +278,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             // Arrange
             SetupHttpContext("Assistant");
 
-            // Tạo dữ liệu TreatmentRecord Completed
             var user = new User
             {
                 UserID = 2001,

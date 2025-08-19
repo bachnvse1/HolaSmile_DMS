@@ -37,7 +37,7 @@ interface MenuItem {
   children?: MenuItem[];
   roles: string[];
   element?: React.ReactNode;
-  unreadCount?: number; // 🔥 THÊM UNREAD COUNT
+  unreadCount?: number; 
 }
 
 interface StaffSidebarProps {
@@ -60,19 +60,16 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
   };
 
   const { userId } = useAuth();
-  const { getTotalUnreadCount, getUnreadCount, refreshUnreadCounts, unreadCounts } = useUnreadMessages(userId);
+  const { getTotalUnreadCount, refreshUnreadCounts, unreadCounts } = useUnreadMessages(userId);
   const { isConnected, messages } = useChatHub();
 
-  // 🔥 THÊM HOOK ĐỂ LẤY THÔNG TIN USER/CONVERSATIONS
-  const { conversations } = useChatConversations(); // Cần import hook này
-
-  // 🔥 TÍNH TOÁN UNREAD COUNT CHO TỪNG LOẠI TIN NHẮN
+  const { conversations } = useChatConversations(); 
   const messageStats = useMemo(() => {
     if (!conversations || !unreadCounts || unreadCounts.length === 0) {
       return {
-        internal: 0,          // Staff messages
-        patientConsultation: 0, // Patient messages  
-        guestConsultation: 0    // Guest messages
+        internal: 0,          
+        patientConsultation: 0, 
+        guestConsultation: 0  
       };
     }
 
@@ -81,9 +78,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
     let guestConsultation = 0;
 
     unreadCounts.forEach(unread => {
-      // Tìm conversation tương ứng với senderId
       const conversation = conversations.find(conv => conv.userId === unread.senderId);
-      console.log('🔥 StaffSidebar: Processing unread count for conversation:', conversation);
       if (conversation) {
         switch (conversation.role.toLowerCase()) {
           case 'administrator':
@@ -100,7 +95,6 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
             guestConsultation += unread.unreadCount;
             break;
           default:
-            // Fallback - có thể là tin nhắn nội bộ
             internal += unread.unreadCount;
             break;
         }
@@ -114,34 +108,30 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
     };
   }, [conversations, unreadCounts]);
 
-  // 🔥 Force refresh unread counts khi có tin nhắn mới trong ChatHub
   useEffect(() => {
     if (!userId || messages.length === 0) return;
 
     const lastMessage = messages[messages.length - 1];
 
-    // Chỉ refresh nếu tin nhắn đến cho user hiện tại (không phải từ user hiện tại)
     if (lastMessage.receiverId === userId && lastMessage.senderId !== userId) {
       const timer = setTimeout(() => {
         refreshUnreadCounts();
-      }, 1000); // Tăng delay lên 1 giây
+      }, 1000); 
 
       return () => clearTimeout(timer);
     }
   }, [messages, userId, refreshUnreadCounts]);
 
-  // 🔥 Periodic refresh mỗi 30 giây để đảm bảo sync
   useEffect(() => {
     if (!userId) return;
 
     const interval = setInterval(() => {
       refreshUnreadCounts();
-    }, 30000); // 30 giây
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [userId, refreshUnreadCounts]);
 
-  // 🔥 Refresh khi user thay đổi hoặc component mount
   useEffect(() => {
     if (userId) {
       refreshUnreadCounts();
@@ -193,7 +183,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           icon: <Users2 className="h-4 w-4" />,
           path: '/messages/internal',
           roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist'],
-          unreadCount: messageStats.internal // 🔥 THÊM UNREAD COUNT
+          unreadCount: messageStats.internal 
         },
         {
           id: 'messages-patient-consultation',
@@ -201,7 +191,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           icon: <UserCircle className="h-4 w-4" />,
           path: '/messages/patient-consultation',
           roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist'],
-          unreadCount: messageStats.patientConsultation // 🔥 THÊM UNREAD COUNT
+          unreadCount: messageStats.patientConsultation
         },
         {
           id: 'messages-customer-consultation',
@@ -209,7 +199,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           icon: <Phone className="h-4 w-4" />,
           path: '/messages/guest-consultation',
           roles: ['Receptionist'],
-          unreadCount: messageStats.guestConsultation // 🔥 THÊM UNREAD COUNT
+          unreadCount: messageStats.guestConsultation 
         }
       ]
     },
@@ -382,7 +372,6 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           <div className="flex items-center space-x-3">
             <div className="relative">
               {item.icon}
-              {/* 🔥 MAIN MESSAGES BADGE */}
               {isMessagesItem && getTotalUnreadCount() > 0 && (
                 <div className="absolute -top-2 -right-2">
                   <div
@@ -401,7 +390,6 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
                 </div>
               )}
 
-              {/* 🔥 SUB-MESSAGES BADGES */}
               {!isMessagesItem && hasUnreadMessages && level > 0 && (
                 <div className="absolute -top-2 -right-2">
                   <div
@@ -418,7 +406,6 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
             {!isCollapsed && (
               <div className="flex items-center gap-2 flex-1">
                 <span className="font-medium">{item.label}</span>
-                {/* 🔥 TEXT BADGE CHO SUB-ITEMS */}
                 {!isMessagesItem && hasUnreadMessages && level > 0 && (
                   <div className="ml-auto">
                     <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
@@ -451,7 +438,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
 
   return (
     <>
-      {/* Mobile Overlay - Prevent interaction with content behind */}
+      {/* Mobile Overlay */}
       {isMobile && !isCollapsed && (
         <div
           className="fixed inset-0 bg-opacity-30 z-20 md:hidden"
@@ -529,7 +516,6 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           {!isCollapsed && (
             <div className="text-xs text-gray-500 text-center">
               <div>Version 1.0.0</div>
-              {/* 🔥 DEBUG INFO - SỬ DỤNG useUnreadMessages */}
               <div className="mt-1">
                 Messages: {totalUnreadCount} | 🟢 "Online"
               </div>

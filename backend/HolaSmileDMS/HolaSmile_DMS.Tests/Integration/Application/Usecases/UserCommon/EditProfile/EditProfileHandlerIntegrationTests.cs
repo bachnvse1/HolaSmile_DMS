@@ -6,7 +6,7 @@ using HDMS_API.Infrastructure.Persistence;
 using HDMS_API.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;   // ✅ NEW
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using System.Security.Claims;
@@ -19,7 +19,7 @@ public class EditProfileHandlerIntegrationTests : IDisposable
     private readonly ApplicationDbContext _context;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly Mock<ICloudinaryService> _cloudinaryMock;
-    private readonly IMemoryCache _memoryCache;                  // ✅ NEW
+    private readonly IMemoryCache _memoryCache;
     private readonly EditProfileHandler _handler;
     private readonly string _testAvatarPath;
 
@@ -38,13 +38,13 @@ public class EditProfileHandlerIntegrationTests : IDisposable
         _cloudinaryMock.Setup(cs => cs.UploadImageAsync(It.IsAny<IFormFile>(), It.IsAny<string>()))
             .ReturnsAsync("new-avatar-url.jpg");
 
-        _memoryCache = new MemoryCache(new MemoryCacheOptions()); // ✅ NEW
+        _memoryCache = new MemoryCache(new MemoryCacheOptions());
 
         _handler = new EditProfileHandler(
             new UserCommonRepository(_context),
             _httpContextAccessor,
             _cloudinaryMock.Object,
-            _memoryCache                                        // ✅ NEW
+            _memoryCache
         );
 
         _testAvatarPath = Path.Combine(Path.GetTempPath(), $"test-avatar-{Guid.NewGuid()}.jpg");
@@ -101,7 +101,6 @@ public class EditProfileHandlerIntegrationTests : IDisposable
             Address = "New Address",
             DOB = "15/05/1995",
             Avatar = avatarFile
-            // Không đổi email ⇒ không cần token
         };
 
         // Act
@@ -133,7 +132,6 @@ public class EditProfileHandlerIntegrationTests : IDisposable
         var command = new EditProfileCommand
         {
             Fullname = "Updated Name",
-            // Các field còn lại để null -> không đổi
         };
 
         // Act
@@ -195,7 +193,7 @@ public class EditProfileHandlerIntegrationTests : IDisposable
             mockRepo.Object,
             _httpContextAccessor,
             _cloudinaryMock.Object,
-            _memoryCache                                 // ✅ pass cache vào handler phụ
+            _memoryCache
         );
 
         var command = new EditProfileCommand { Fullname = "Will Not Save" };

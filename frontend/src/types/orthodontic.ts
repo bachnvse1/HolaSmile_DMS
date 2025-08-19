@@ -1,4 +1,3 @@
-// Định nghĩa type cho kế hoạch điều trị chỉnh nha
 export interface OrthodonticTreatmentPlan {
   planId: number;
   patientId: number;

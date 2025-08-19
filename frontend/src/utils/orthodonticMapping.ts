@@ -1,4 +1,3 @@
-// Utility functions để mapping dữ liệu form thành API request
 export interface DetailFormData {
   // Tiểu sử y khoa
   medicalHistory: {
@@ -46,11 +45,7 @@ export interface DetailFormData {
   molarRelation: string;
   r3Relation: string;
   r6Relation: string;
-  
-  // Nội dung và kế hoạch điều trị
   treatmentPlanContent: string;
-  
-  // Chi phí chi tiết
   costItems: {
     khophang: string;
     xquang: string;
@@ -141,7 +136,6 @@ export const mapModelAnalysis = (data: DetailFormData): string => {
 export const mapCostItemsToTotalCost = (costItems: DetailFormData['costItems'], additionalCost: string): number => {
   const costs = [];
   
-  // Parse currency formatted values
   if (costItems.khophang) costs.push(parseCurrencyValue(costItems.khophang));
   if (costItems.xquang) costs.push(parseCurrencyValue(costItems.xquang));
   if (costItems.minivis) costs.push(parseCurrencyValue(costItems.minivis));

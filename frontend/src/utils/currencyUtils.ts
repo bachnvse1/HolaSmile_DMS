@@ -1,4 +1,3 @@
-// Utility functions for currency formatting and calculation
 export const formatCurrency = (value: string | number): string => {
   const numValue = typeof value === 'string' ? parseFloat(value.replace(/[^\d]/g, '')) : value;
   if (isNaN(numValue) || numValue === 0) return '';

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { promotionApi, type CreatePromotionRequest, type UpdatePromotionRequest } from '@/services/promotionApi';
-
+import { promotionApi} from '@/services/promotionApi';
+import type { UpdatePromotionRequest, CreatePromotionRequest } from '@/types/promotion.types';
 // Query keys
 const PROMOTION_KEYS = {
   all: ['promotions'] as const,
@@ -16,7 +16,6 @@ export const usePromotionPrograms = () => {
       try {
         return await promotionApi.getPromotionPrograms();
       } catch (error: unknown) {
-        // Handle empty data case
         const apiError = error as { response?: { status?: number; data?: { message?: string } } };
         if (apiError?.response?.status === 500 && 
             apiError?.response?.data?.message === "Không có dữ liệu phù hợp") {

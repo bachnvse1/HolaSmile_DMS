@@ -30,7 +30,6 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
   useEffect(() => {
     if (userId) {
       if (lastUserId && lastUserId !== userId) {
-        console.log('CalendarView: User changed, clearing cache:', lastUserId, '->', userId);
         queryClient.invalidateQueries({ queryKey: ['appointments'] });
       }
       setLastUserId(userId);

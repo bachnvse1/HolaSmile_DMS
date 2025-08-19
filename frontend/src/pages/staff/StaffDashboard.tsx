@@ -23,7 +23,6 @@ import {
 import { useMemo, memo, useState } from 'react';
 import { AuthGuard } from '@/components/AuthGuard';
 
-// Memoized Chart Components to prevent re-render lag
 const RevenueChart = memo(({ data }: { data: Array<{ label: string, revenueInMillions: number, totalAppointments: number }> }) => (
   <ResponsiveContainer width="100%" height={300}>
     <BarChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
@@ -85,13 +84,11 @@ export const StaffDashboard = () => {
   const userInfo = useUserInfo();
   const [filter] = useState('week');
 
-  // Fetch data from API
   const { data: dashboardStats } = useDashboardStats(filter);
   const { data: columnData, isLoading: columnLoading } = useColumnChart(filter);
   const { data: lineData, isLoading: lineLoading } = useLineChart();
   const { data: pieData, isLoading: pieLoading } = usePieChart();
 
-  // Transform pie chart data
   const pieChartData = useMemo(() => {
     if (!pieData) return [];
     return [
@@ -203,7 +200,6 @@ export const StaffDashboard = () => {
     return colorMap[color as keyof typeof colorMap] || 'bg-gray-100 text-gray-600';
   };
 
-  // Owner Dashboard with advanced charts
   if (userInfo.role === 'Administrator' || userInfo.role === 'Owner') {
     return (
       <StaffLayout userInfo={userInfo}>

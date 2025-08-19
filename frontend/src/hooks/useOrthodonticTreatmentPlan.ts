@@ -87,22 +87,16 @@ export const useOrthodonticTreatmentPlans = (
       }
     },
     enabled: patientId > 0,
-    // Optimized retry strategy for 404 errors
     retry: (failureCount, error) => {
-      // Don't retry on 404 errors (expected when no data exists)
       const errorMessage = error?.message || error?.toString() || '';
       if (errorMessage.includes('404') || errorMessage.includes('Not Found')) {
         return false;
       }
-      // Only retry 2 times for other errors
       return failureCount < 2;
     },
-    // Prevent unnecessary refetching
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    // Cache data for 5 minutes
     staleTime: 5 * 60 * 1000,
-    // Use gcTime instead of cacheTime for newer versions of React Query
     gcTime: 10 * 60 * 1000,
   });
 };
@@ -139,7 +133,7 @@ export const useOrthodonticTreatmentPlan = (
   });
 };
 
-// Update orthodontic treatment plan (edit mode): không yêu cầu dentistId
+// Update orthodontic treatment plan (edit mode)
 export interface UpdateOrthodonticTreatmentPlanRequest {
   planId: number;
   patientId: number;

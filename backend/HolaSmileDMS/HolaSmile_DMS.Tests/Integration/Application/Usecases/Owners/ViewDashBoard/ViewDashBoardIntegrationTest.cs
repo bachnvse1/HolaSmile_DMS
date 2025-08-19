@@ -56,24 +56,19 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Owners
         new User { UserID = 5, Fullname = "Patient 2",  Username = "patient2",  Phone = "000111226", CreatedAt = today, Status = true, IsVerify = true },
          });
 
-            // ===== Role tables =====
-            // Owner
             _context.Owners.Add(new Owner { OwnerId = 1, UserId = 1 });
 
-            // Employees (ít nhất 2 người có role != Owner/Patient)
             _context.Assistants.AddRange(new[]
             {
                 new Assistant { AssistantId = 1, UserId = 2 },
             });
 
-            // ===== Patients =====
             _context.Patients.AddRange(new[]
             {
         new Patient { PatientID = 1, UserID = 3, CreatedAt = today },
         new Patient { PatientID = 2, UserID = 5, CreatedAt = today },
             });
 
-            // ===== Invoices =====
             _context.Invoices.AddRange(new[]
             {
         new Invoice { InvoiceId = 1, PaidAmount = 1000m, CreatedAt = today },
@@ -81,17 +76,16 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Owners
         new Invoice { InvoiceId = 3, PaidAmount =  200m, CreatedAt = today.AddMonths(-1) },
             });
 
-            // ===== Appointments =====
             _context.Appointments.AddRange(new[]
             {
                 new Appointment {
                     AppointmentId = 1,
                     PatientId = 1,
-                    DentistId = 1,              // cần có Dentist hợp lệ nếu repo join Dentist
-                    Status = "Confirmed",       // trạng thái hợp lệ để repo đếm
+                    DentistId = 1,             
+                    Status = "Confirmed",
                     IsNewPatient = true,
                     AppointmentType = "Checkup",
-                    AppointmentDate = today,    // quan trọng: repo so sánh với cái này
+                    AppointmentDate = today,
                     AppointmentTime = new TimeSpan(9, 0, 0),
                     CreatedAt = today,
                     IsDeleted = false
@@ -109,15 +103,11 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Owners
                     IsDeleted = false
                 },
             });
-            // ===== Dentist =====
             _context.Dentists.Add(new Dentist { DentistId = 1, UserId = 4});
 
 
             _context.SaveChanges();
         }
-
-
-
 
         [Fact(DisplayName = "ITCID01 - Owner role gets dashboard (today filter)")]
             public async System.Threading.Tasks.Task ITCID01_Should_ReturnDashboardData_WhenRoleIsOwner()

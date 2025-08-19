@@ -26,7 +26,6 @@ public class ChangePasswordIntegrationTest
     {
         var services = new ServiceCollection();
 
-        // Setup in-memory database
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseInMemoryDatabase("ChangePasswordTestDb"));
 

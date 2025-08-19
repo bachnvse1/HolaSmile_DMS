@@ -31,7 +31,6 @@ function getOrCreateGuestId(): string {
   return id;
 }
 
-// 🔥 SỬA LẠI HÀM UPLOAD MEDIA - DÙNG GIỐNG CHATWINDOW
 const uploadMedia = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append('file', file);
@@ -43,8 +42,6 @@ const uploadMedia = async (file: File): Promise<string> => {
       },
       withCredentials: true
     });
-
-    console.log('Upload successful:', response.data);
     return response.data.url;
   } catch (error) {
     console.error('Upload media error:', error);
@@ -106,13 +103,11 @@ export default function ConsultantChatBox({ onOpenStateChange, forceClose = fals
 
     const seen = new Set<string>();
     const unique = merged.filter((msg) => {
-      // Ưu tiên dùng messageId nếu có
       let key = msg.messageId;
 
       if (!key) {
-        // Nếu không có messageId, tạo key theo nội dung
         const ts = msg.timestamp
-          ? Math.floor(new Date(msg.timestamp).getTime() / 1000) // Làm tròn về giây
+          ? Math.floor(new Date(msg.timestamp).getTime() / 1000) 
           : "";
         key = `${msg.senderId}-${msg.receiverId}-${msg.message}-${ts}`;
       }
@@ -151,9 +146,6 @@ export default function ConsultantChatBox({ onOpenStateChange, forceClose = fals
       // Phát âm thanh thông báo
       if (audioRef.current) {
         audioRef.current.currentTime = 0;
-        audioRef.current.play().catch((err) => {
-          console.log("Could not play notification sound:", err);
-        });
       }
     }
   }, [realtimeMessages, guestId, isOpen]);
@@ -162,17 +154,13 @@ export default function ConsultantChatBox({ onOpenStateChange, forceClose = fals
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [allMessages]);
 
-  // 🔥 HANDLE SEND MESSAGE - CHỈ GỬI TEXT
   const handleSend = useCallback(() => {
     const text = input.trim();
     if (!text) return;
-
-    // ✅ Gọi sendMessage từ hook
     sendMessage(text);
     setInput("");
   }, [input, sendMessage]);
 
-  // 🔥 HANDLE FILE UPLOAD - SỬ DỤNG API GIỐNG CHATWINDOW
   const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -187,7 +175,7 @@ export default function ConsultantChatBox({ onOpenStateChange, forceClose = fals
     }
 
     // Kiểm tra kích thước file (50MB)
-    const maxSize = 50 * 1024 * 1024; // 50MB
+    const maxSize = 50 * 1024 * 1024; 
     if (file.size > maxSize) {
       alert('File không được vượt quá 50MB!');
       return;
@@ -196,10 +184,7 @@ export default function ConsultantChatBox({ onOpenStateChange, forceClose = fals
     setIsUploading(true);
 
     try {
-      // 🔥 UPLOAD FILE LÊN SERVER TRƯỚC
       const fileUrl = await uploadMedia(file);
-      
-      // 🔥 SAU ĐÓ GỬI URL QUA CHAT
       sendMessage(fileUrl);
       
     } catch (error) {
@@ -207,14 +192,12 @@ export default function ConsultantChatBox({ onOpenStateChange, forceClose = fals
       alert('Có lỗi xảy ra khi gửi file!');
     } finally {
       setIsUploading(false);
-      // Reset input file
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     }
   }, [sendMessage]);
 
-  // 🔥 HANDLE PAPERCLIP CLICK
   const handlePaperclipClick = useCallback(() => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
@@ -239,7 +222,6 @@ export default function ConsultantChatBox({ onOpenStateChange, forceClose = fals
     return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
-  // 🔥 RENDER MESSAGE CONTENT WITH IMAGE/VIDEO SUPPORT - GIỐNG CHATWINDOW
   const renderMessageContent = useCallback((msg: ChatMessage) => {
     // Kiểm tra nếu message là URL của ảnh/video
     const isImageUrl = /\.(jpg|jpeg|png|gif|webp|bmp)(\?|$)/i.test(msg.message) || 
@@ -300,7 +282,6 @@ export default function ConsultantChatBox({ onOpenStateChange, forceClose = fals
 
   return (
     <>
-      {/* 🔥 HIDDEN FILE INPUT */}
       <input
         ref={fileInputRef}
         type="file"
@@ -308,6 +289,7 @@ export default function ConsultantChatBox({ onOpenStateChange, forceClose = fals
         onChange={handleFileUpload}
         style={{ display: 'none' }}
         multiple={false}
+        title="Chọn file ảnh/video"
       />
 
       {/* Floating Chat Button */}
@@ -358,6 +340,7 @@ export default function ConsultantChatBox({ onOpenStateChange, forceClose = fals
                 <button
                   onClick={handleCloseChat}
                   className="text-white/80 hover:text-white hover:bg-white/10 rounded-full p-2 transition-colors"
+                  title="Đóng chat"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -432,7 +415,6 @@ export default function ConsultantChatBox({ onOpenStateChange, forceClose = fals
             {/* Input Area */}
             <div className="p-4 bg-white border-t border-gray-100">
               <div className="flex items-center gap-2">
-                {/* 🔥 PAPERCLIP BUTTON */}
                 <button 
                   onClick={handlePaperclipClick}
                   disabled={isUploading}
@@ -479,7 +461,6 @@ export default function ConsultantChatBox({ onOpenStateChange, forceClose = fals
                 </button>
               </div>
               
-              {/* 🔥 UPLOADING INDICATOR */}
               {isUploading && (
                 <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>

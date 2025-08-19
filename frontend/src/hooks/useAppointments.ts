@@ -14,7 +14,7 @@ export const useAppointments = () => {
     },
     enabled: !!userId, 
     refetchOnWindowFocus: false,
-    staleTime: 2 * 60 * 1000, // 2 minutes - appointments change frequently
+    staleTime: 2 * 60 * 1000, 
     retry: 2,
   });
 };
@@ -44,7 +44,7 @@ export const useAppointmentDetail = (appointmentId: number) => {
     },
     enabled: !!appointmentId,
     refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 };
 

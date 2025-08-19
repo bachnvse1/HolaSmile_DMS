@@ -6,7 +6,7 @@ export interface OrthodonticTreatmentPlan {
   templateName: string;
   consultationDate: string;
   
-  // Thông tin bệnh nhân (lấy từ bảng patient)
+  // Thông tin bệnh nhân 
   patientInfo?: {
     fullname: string;
     dob: string;
@@ -50,7 +50,7 @@ export interface OrthodonticTreatmentPlan {
     };
     
     // Hình ảnh
-    images: string[]; // URLs của ảnh
+    images: string[]; 
     
     // Khám trong miệng
     intraoralExam: string;
@@ -79,14 +79,9 @@ export interface OrthodonticTreatmentPlan {
     };
   };
   
-  // Nội dung và kế hoạch điều trị
   treatmentPlanContent: string;
-  
-  // Chi phí và thanh toán
   totalCost: number;
   paymentMethod: string;
-  
-  // Meta
   createdAt: string;
   updatedAt: string;
   createdBy: number;

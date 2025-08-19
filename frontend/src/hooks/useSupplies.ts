@@ -23,7 +23,6 @@ export const useSupplies = (searchQuery?: string) => {
       try {
         const supplies = await supplyApi.getSupplies();
         
-        // Filter by search query if provided
         if (searchQuery) {
           return supplies.filter(supply => 
             supply.Name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -32,7 +31,6 @@ export const useSupplies = (searchQuery?: string) => {
         
         return supplies;
       } catch (error: unknown) {
-        // Handle empty data case - return empty array instead of throwing error
         const apiError = error as { response?: { status?: number; data?: { message?: string } } };
         if (apiError?.response?.status === 500 && 
             apiError?.response?.data?.message === "Không có dữ liệu phù hợp") {
@@ -75,7 +73,6 @@ export const useUpdateSupply = () => {
   return useMutation({
     mutationFn: (data: UpdateSupplyRequest) => supplyApi.updateSupply(data),
     onSuccess: (updatedSupply) => {
-      // Update the specific supply in cache
       queryClient.setQueryData(
         SUPPLY_KEYS.detail(updatedSupply.SupplyID),
         updatedSupply
@@ -107,7 +104,6 @@ export const useSupplyStats = () => {
       try {
         const supplies = await supplyApi.getSupplies();
         
-        // Calculate statistics
         const lowStockSupplies = supplies.filter(supply => supply.QuantityInStock <= 50);
         const expiringSoonSupplies = supplies.filter(supply => {
           const futureDate = new Date();
@@ -125,7 +121,6 @@ export const useSupplyStats = () => {
           totalValue
         };
       } catch (error: unknown) {
-        // Handle empty data case - return zero stats instead of throwing error
         const apiError = error as { response?: { status?: number; data?: { message?: string } } };
         if (apiError?.response?.status === 500 && 
             apiError?.response?.data?.message === "Không có dữ liệu phù hợp") {
@@ -148,7 +143,6 @@ export const useDownloadExcelSupplies = () => {
   return useMutation({
     mutationFn: () => supplyApi.downloadExcelTemplate(),
     onSuccess: (blob) => {
-      // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -166,7 +160,6 @@ export const useExportSupplies = () => {
   return useMutation({
     mutationFn: () => supplyApi.exportExcel(),
     onSuccess: (blob: Blob) => {
-      // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
