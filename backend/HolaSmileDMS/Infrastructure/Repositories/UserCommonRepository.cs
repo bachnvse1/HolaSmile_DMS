@@ -111,22 +111,22 @@ namespace HDMS_API.Infrastructure.Repositories
 
             string sql = $@"
         SELECT AdministratorId AS RoleTableId, 'Administrator' AS Role
-        FROM   Administrators   WHERE UserId = {user.UserID}
+        FROM   administrators   WHERE UserId = {user.UserID}
         UNION ALL
         SELECT AssistantId,     'Assistant'
-        FROM   Assistants       WHERE UserId = {user.UserID}
+        FROM   assistants       WHERE UserId = {user.UserID}
         UNION ALL
         SELECT DentistId,       'Dentist'
-        FROM   Dentists         WHERE UserId = {user.UserID}
+        FROM   dentists         WHERE UserId = {user.UserID}
         UNION ALL
         SELECT OwnerId,         'Owner'
-        FROM   Owners           WHERE UserId = {user.UserID}
+        FROM   owners           WHERE UserId = {user.UserID}
         UNION ALL
         SELECT PatientID,       'Patient'
-        FROM   Patients         WHERE UserId = {user.UserID}
+        FROM   patients         WHERE UserId = {user.UserID}
         UNION ALL
         SELECT ReceptionistId,  'Receptionist'
-        FROM   Receptionists    WHERE UserId = {user.UserID}
+        FROM   receptionists    WHERE UserId = {user.UserID}
         LIMIT 1";
 
             return await _context.Set<UserRoleResult>()

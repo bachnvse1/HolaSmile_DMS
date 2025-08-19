@@ -108,7 +108,7 @@ export const TeamSection = () => {
                   {dentist.name}
                 </h3>
                 <p className="text-blue-600 font-medium mb-3">
-                  Bác sĩ Nha khoa
+                  Nha sĩ
                 </p>
                 <p className="text-gray-600 text-sm mb-2">
                   Chuyên khoa: Nha khoa tổng quát
@@ -230,7 +230,7 @@ export const TeamSection = () => {
                   />
                   <div>
                     <h2 className="text-2xl font-bold">{selectedDentist.name}</h2>
-                    <p className="text-blue-100">Bác sĩ Nha khoa</p>
+                    <p className="text-blue-100">Nha sĩ</p>
                   </div>
                 </div>
                 <button
