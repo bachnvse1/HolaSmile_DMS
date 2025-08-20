@@ -13,7 +13,7 @@ services:
       MYSQL_ROOT_PASSWORD: HolaSmile123
       PMA_ARBITRARY: 1
     ports:
-      - "8080:80"
+      - "8081:80"
     networks:
       - holasmile-net-azure
 
