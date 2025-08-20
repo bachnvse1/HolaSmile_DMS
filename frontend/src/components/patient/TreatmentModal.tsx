@@ -326,7 +326,7 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
               <fieldset disabled={isSubmitting} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Bác sĩ *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nha sĩ *</label>
                     <button
                       type="button"
                       onClick={() => setShowDentistModal(true)}
@@ -334,7 +334,7 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                     >
                       {selectedDentistId
                         ? `${dentists.find((d) => String(d.id) === String(selectedDentistId))?.name || "Không xác định"}`
-                        : "Chọn bác sĩ"}
+                        : "Chọn nha sĩ"}
                     </button>
                     {errors.dentistID && (
                       <p className="text-sm text-red-500 mt-1">{errors.dentistID.message}</p>
@@ -555,7 +555,7 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                     </div>
                     <div className="text-sm text-gray-700 space-y-1">
                       <p><strong>Thủ thuật:</strong> {record.procedureName}</p>
-                      <p><strong>Bác sĩ:</strong> {record.dentistName}</p>
+                      <p><strong>Nha sĩ:</strong> {record.dentistName}</p>
                       <p><strong>Vị trí:</strong> {record.toothPosition}</p>
                       <p><strong>SL:</strong> {record.quantity} | <strong>Đơn giá:</strong> {formatCurrency(record.unitPrice)}</p>
                       <p className="text-green-600 font-semibold">
