@@ -8,15 +8,14 @@ services:
     environment:
       PMA_HOST: holasmile_db_azure
       PMA_PORT: 3306
-      PMA_USER: ${MYSQL_USER}
-      PMA_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      PMA_USER: root
+      PMA_PASSWORD: HolaSmile123
+      MYSQL_ROOT_PASSWORD: HolaSmile123
+      PMA_ARBITRARY: 1
     ports:
       - "8080:80"
     networks:
       - holasmile-net-azure
-    depends_on:
-      - db
 
 networks:
   holasmile-net-azure:
