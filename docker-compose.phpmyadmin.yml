@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: holasmile_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: holasmile_db_azure
+      PMA_PORT: 3306
+      PMA_USER: ${MYSQL_USER}
+      PMA_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "8080:80"
+    networks:
+      - holasmile-net-azure
+    depends_on:
+      - db
+
+networks:
+  holasmile-net-azure:
+    external: true
