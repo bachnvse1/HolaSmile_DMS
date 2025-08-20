@@ -85,6 +85,9 @@ namespace HDMS_API.Infrastructure.Persistence
             modelBuilder.Entity<Salary>().ToTable("salaries");
             modelBuilder.Entity<SalaryComponent>().ToTable("salarycomponents");
             modelBuilder.Entity<ChatBotKnowledge>().ToTable("chatbotknowledge");
+            modelBuilder.Entity<MaintenanceSupply>().ToTable("maintenancesupplies");
+            modelBuilder.Entity<SuppliesUsed>().ToTable("suppliesuseds");
+            modelBuilder.Entity<ProcedureDiscountProgram>().ToTable("procedurediscountprograms");
 
             // Composite key for MaintenanceSupply
             modelBuilder.Entity<MaintenanceSupply>()

@@ -10,10 +10,13 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      TZ: Asia/Ho_Chi_Minh
     command: ["--default-authentication-plugin=mysql_native_password"]
     volumes:
       - db-data-azure:/var/lib/mysql
       - ./db-init:/docker-entrypoint-initdb.d:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
     ports:
       - "3306:3306"
     networks:
@@ -33,7 +36,11 @@ services:
       ASPNETCORE_HTTPS_PORTS: 5001
       ASPNETCORE_HTTP_PORTS: ""
       ASPNETCORE_ENVIRONMENT: Production
+      TZ: Asia/Ho_Chi_Minh
       ConnectionStrings__DefaultConnection: "Server=db;Port=3306;Database=${MYSQL_DATABASE};User=${MYSQL_USER};Password=${MYSQL_PASSWORD};SslMode=none;"
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
     ports:
       - "5001:5001"
     networks:
