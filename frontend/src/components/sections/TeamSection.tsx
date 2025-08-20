@@ -1,55 +1,45 @@
-import { Linkedin, Twitter, Mail } from 'lucide-react';
+import { Linkedin, Twitter, Mail, Calendar, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useEffect, useState, useRef } from 'react';
-import doc1 from '@/assets/doc1.jpg';
-import doc2 from '@/assets/doc2.jpg';
-export const teamMembers = [
-  {
-    id: 1,
-    name: 'BS. Nguyễn Minh Tuấn',
-    role: 'Nha sĩ trưởng & Chuyên gia Implant',
-    speciality: 'Phẫu thuật răng miệng, Cấy ghép Implant',
-    experience: '15+ năm kinh nghiệm',
-    education: 'Thạc sĩ Nha khoa - Đại học Y Hà Nội',
-    image: "https://images.unsplash.com/photo-1582750433449-648ed127bb54?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-    description: 'Bác sĩ Tuấn có hơn 15 năm kinh nghiệm trong lĩnh vực nha khoa, chuyên sâu về phẫu thuật và cấy ghép implant.'
-  },
-  {
-    id: 2,
-    name: 'BS. Trần Thị Hương',
-    role: 'Chuyên gia Nha khoa Thẩm mỹ',
-    speciality: 'Thiết kế nụ cười, Veneer, Tẩy trắng răng',
-    experience: '12+ năm kinh nghiệm',
-    education: 'Thạc sĩ Nha khoa Thẩm mỹ - ĐH Y Tokyo',
-    image: doc2,
-    description: 'Bác sĩ Hương chuyên về nha khoa thẩm mỹ với nhiều năm đào tạo tại Nhật Bản và kinh nghiệm thực tế phong phú.'
-  },
-  {
-    id: 3,
-    name: 'BS. Lê Văn Nam',
-    role: 'Chuyên gia Nha khoa Trẻ em',
-    speciality: 'Chăm sóc nha khoa trẻ em, Chỉnh nha sớm',
-    experience: '10+ năm kinh nghiệm',
-    education: 'Thạc sĩ Nha khoa Trẻ em - ĐH Y TP.HCM',
-    image: doc1,
-    description: 'Bác sĩ Nam có niềm đam mê đặc biệt với việc chăm sóc răng miệng cho trẻ em, tạo môi trường thân thiện và an toàn.'
-  },
-  {
-    id: 4,
-    name: 'BS. Phạm Thị Lan',
-    role: 'Chuyên gia Chỉnh nha',
-    speciality: 'Niềng răng trong suốt, Chỉnh nha Invisalign',
-    experience: '8+ năm kinh nghiệm',
-    education: 'Thạc sĩ Chỉnh nha - ĐH Y Huế',
-    image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-    description: 'Bác sĩ Lan chuyên về chỉnh nha hiện đại, đặc biệt là niềng răng trong suốt Invisalign cho người trưởng thành.'
-  }
-];
+import { ScheduleCalendar } from '@/components/appointment/ScheduleCalendar';
+import { useDentistSchedule } from '@/hooks/useDentistSchedule';
 
 export const TeamSection = () => {
   const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [selectedDentist, setSelectedDentist] = useState<any>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [currentWeek, setCurrentWeek] = useState(0);
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('');
   const sectionRef = useRef<HTMLElement>(null);
+  
+  // Load danh sách bác sĩ từ API
+  const { dentists, isLoading, error } = useDentistSchedule();
+  
+  // Auto slide every 5 seconds
+  useEffect(() => {
+    if (dentists.length > 4) {
+      const interval = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % Math.ceil(dentists.length / 4));
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [dentists.length]);
+  
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % Math.ceil(dentists.length / 4));
+  };
+  
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + Math.ceil(dentists.length / 4)) % Math.ceil(dentists.length / 4));
+  };
+  
+  const getCurrentDentists = () => {
+    const startIndex = currentSlide * 4;
+    return dentists.slice(startIndex, startIndex + 4);
+  };
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -84,65 +74,124 @@ export const TeamSection = () => {
           </p>
         </div>
 
-        {/* Team Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {teamMembers.map((member, index) => (
-            <div 
-              key={index} 
-              className={`text-center group transform transition-all duration-700 hover:scale-105 ${
-                isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
-              }`}
-              style={{ transitionDelay: `${index * 150}ms` }}
-            >
-              <div className="relative mb-6">
-                <img
-                  src={member.image}
-                  alt={member.name}
-                  className="w-full h-64 object-cover rounded-xl shadow-lg group-hover:shadow-xl transition-shadow duration-300"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              </div>
-              
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {member.name}
-              </h3>
-              <p className="text-blue-600 font-medium mb-3">
-                {member.role}
-              </p>
-              <p className="text-gray-600 text-sm mb-2">
-                {member.speciality}
-              </p>
-              <p className="text-gray-500 text-xs mb-4">
-                {member.education}
-              </p>
+        {/* Team Grid with Carousel */}
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-red-600">Có lỗi xảy ra khi tải danh sách bác sĩ</p>
+          </div>
+        ) : (
+          <div className="relative">
+            {/* Dentist Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {getCurrentDentists().map((dentist, index) => (
+                <div 
+                  key={dentist.id} 
+                  className={`text-center group transform transition-all duration-700 hover:scale-105 ${
+                    isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+                  }`}
+                  style={{ transitionDelay: `${index * 150}ms` }}
+                >
+                <div className="relative mb-6">
+                  <img
+                    src={dentist.avatar}
+                    alt={dentist.name}
+                    className="w-full h-64 object-cover rounded-xl shadow-lg group-hover:shadow-xl transition-shadow duration-300"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </div>
+                
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {dentist.name}
+                </h3>
+                <p className="text-blue-600 font-medium mb-3">
+                  Bác sĩ Nha khoa
+                </p>
+                <p className="text-gray-600 text-sm mb-2">
+                  Chuyên khoa: Nha khoa tổng quát
+                </p>
+                <p className="text-gray-500 text-xs mb-4">
+                  Bác sĩ chuyên nghiệp với nhiều năm kinh nghiệm
+                </p>
 
-              {/* Social Links */}
-              <div className="flex justify-center space-x-3">
-                <a
-                  href="#"
-                  className="p-2 text-gray-400 hover:text-blue-600 transition-colors transform hover:scale-110"
-                  aria-label="LinkedIn"
+                {/* View Schedule Button */}
+                <button
+                  onClick={() => {
+                    setSelectedDentist(dentist);
+                    setShowScheduleModal(true);
+                  }}
+                  className="mb-4 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors duration-300 flex items-center justify-center mx-auto"
                 >
-                  <Linkedin className="h-5 w-5" />
-                </a>
-                <a
-                  href="#"
-                  className="p-2 text-gray-400 hover:text-blue-600 transition-colors transform hover:scale-110"
-                  aria-label="Twitter"
-                >
-                  <Twitter className="h-5 w-5" />
-                </a>
-                <a
-                  href="#"
-                  className="p-2 text-gray-400 hover:text-blue-600 transition-colors transform hover:scale-110"
-                  aria-label="Email"
-                >
-                  <Mail className="h-5 w-5" />
-                </a>
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Xem lịch làm việc
+                </button>
+
+                {/* Social Links */}
+                <div className="flex justify-center space-x-3">
+                  <a
+                    href="#"
+                    className="p-2 text-gray-400 hover:text-blue-600 transition-colors transform hover:scale-110"
+                    aria-label="LinkedIn"
+                  >
+                    <Linkedin className="h-5 w-5" />
+                  </a>
+                  <a
+                    href="#"
+                    className="p-2 text-gray-400 hover:text-blue-600 transition-colors transform hover:scale-110"
+                    aria-label="Twitter"
+                  >
+                    <Twitter className="h-5 w-5" />
+                  </a>
+                  <a
+                    href="#"
+                    className="p-2 text-gray-400 hover:text-blue-600 transition-colors transform hover:scale-110"
+                    aria-label="Email"
+                  >
+                    <Mail className="h-5 w-5" />
+                  </a>
+                </div>
               </div>
+            ))}
             </div>
-          ))}
-        </div>
+            
+            {/* Navigation and Slide Indicators */}
+            {dentists.length > 4 && (
+              <div className="flex justify-center items-center mt-8 space-x-6">
+                {/* Previous Button */}
+                <button
+                  onClick={prevSlide}
+                  className="bg-white shadow-lg rounded-full p-3 transition-all duration-200 hover:scale-110 hover:shadow-xl border border-gray-200"
+                >
+                  <ChevronLeft className="h-5 w-5 text-gray-600" />
+                </button>
+                
+                {/* Slide Indicators */}
+                <div className="flex space-x-2">
+                  {Array.from({ length: Math.ceil(dentists.length / 4) }, (_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentSlide(i)}
+                      className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                        i === currentSlide ? 'bg-blue-600' : 'bg-gray-300 hover:bg-gray-400'
+                      }`}
+                    />
+                  ))}
+                </div>
+                
+                {/* Next Button */}
+                <button
+                  onClick={nextSlide}
+                  className="bg-white shadow-lg rounded-full p-3 transition-all duration-200 hover:scale-110 hover:shadow-xl border border-gray-200"
+                >
+                  <ChevronRight className="h-5 w-5 text-gray-600" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* CTA */}
         <div className={`text-center mt-16 transform transition-all duration-1000 delay-500 ${
@@ -165,6 +214,57 @@ export const TeamSection = () => {
           </div>
         </div>
       </div>
+
+      {/* Schedule Modal */}
+      {showScheduleModal && selectedDentist && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden mx-4">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-purple-600 text-white p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <img
+                    src={selectedDentist.avatar}
+                    alt={selectedDentist.name}
+                    className="w-16 h-16 rounded-full border-4 border-white/20 object-cover"
+                  />
+                  <div>
+                    <h2 className="text-2xl font-bold">{selectedDentist.name}</h2>
+                    <p className="text-blue-100">Bác sĩ Nha khoa</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowScheduleModal(false);
+                    setSelectedDentist(null);
+                  }}
+                  className="text-white/80 hover:text-white hover:bg-white/20 transition-all duration-200 p-2 rounded-full"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 max-h-[80vh] overflow-y-auto">
+              <ScheduleCalendar
+                dentist={selectedDentist}
+                currentWeek={currentWeek}
+                selectedDate={selectedDate}
+                selectedTimeSlot={selectedTimeSlot}
+                onDateSelect={(date: string, timeSlot: string) => {
+                  setSelectedDate(date);
+                  setSelectedTimeSlot(timeSlot);
+                }}
+                onPreviousWeek={() => setCurrentWeek(Math.max(0, currentWeek - 1))}
+                onNextWeek={() => setCurrentWeek(Math.min(1, currentWeek + 1))}
+                mode="view"
+                canBookAppointment={false}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
