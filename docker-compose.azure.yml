@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: holasmile_db_azure
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      TZ: Asia/Ho_Chi_Minh
+    command: ["--default-authentication-plugin=mysql_native_password"]
+    volumes:
+      - db-data-azure:/var/lib/mysql
+      - ./db-init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "3306:3306"
+    networks:
+      - holasmile-net-azure
+
+  api:
+    build:
+      context: ./backend/HolaSmileDMS
+      dockerfile: Dockerfile
+    image: holasmile-api:latest
+    container_name: holasmile_api_azure
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      ASPNETCORE_URLS: https://+:5001
+      ASPNETCORE_HTTPS_PORTS: 5001
+      ASPNETCORE_HTTP_PORTS: ""
+      ASPNETCORE_ENVIRONMENT: Production
+      TZ: Asia/Ho_Chi_Minh
+      ConnectionStrings__DefaultConnection: "Server=db;Port=3306;Database=${MYSQL_DATABASE};User=${MYSQL_USER};Password=${MYSQL_PASSWORD};SslMode=none;"
+    ports:
+      - "5001:5001"
+    networks:
+      - holasmile-net-azure
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: http://20.2.83.192/api
+        VITE_API_BASE_URL_Not_Api: http://20.2.83.192
+    image: holasmile-web:latest
+    container_name: holasmile_web_azure
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "3000:80"
+    networks:
+      - holasmile-net-azure
+
+  nginx:
+    image: nginx:alpine
+    container_name: holasmile_nginx_azure
+    restart: unless-stopped
+    depends_on:
+      - web
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d/azure.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - holasmile-net-azure
+
+volumes:
+  db-data-azure:
+
+networks:
+  holasmile-net-azure:
+    driver: bridge

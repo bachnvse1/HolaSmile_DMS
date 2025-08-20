@@ -9,12 +9,10 @@ namespace Infrastructure.BackGroundCleanupServices
     public class PromotionCleanupService : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory;
-        private readonly IMediator _mediator;
 
-        public PromotionCleanupService(IServiceScopeFactory scopeFactory, IMediator mediator)
+        public PromotionCleanupService(IServiceScopeFactory scopeFactory)
         {
             _scopeFactory = scopeFactory;
-            _mediator = mediator;
         }
         protected override async System.Threading.Tasks.Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -24,6 +22,7 @@ namespace Infrastructure.BackGroundCleanupServices
                 var promoRepo = scope.ServiceProvider.GetRequiredService<IPromotionRepository>();
                 var ownerRepo = scope.ServiceProvider.GetRequiredService<IOwnerRepository>();
                 var userRepo = scope.ServiceProvider.GetRequiredService<IUserCommonRepository>();
+                var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
                 var promotions = await promoRepo.GetAllPromotionProgramsAsync();
 
@@ -57,7 +56,7 @@ namespace Infrastructure.BackGroundCleanupServices
                        var receps = await userRepo.GetAllReceptionistAsync();
 
                         var notifyOwners = owners.Select(o =>
-                            _mediator.Send(new SendNotificationCommand(
+                            mediator.Send(new SendNotificationCommand(
                                 o.User.UserID,
                                 "Kết thúc chương trình khuyến mãi",
                                 $"Chương trình khuyến mãi {promotion.DiscountProgramName} đã {(promotion.IsDelete ? "kết thúc" : "áp dụng")} vào lúc {DateTime.Now}",
@@ -66,7 +65,7 @@ namespace Infrastructure.BackGroundCleanupServices
                        await System.Threading.Tasks.Task.WhenAll(notifyOwners);
 
                         var notifyReceps = receps.Select(r =>
-                            _mediator.Send(new SendNotificationCommand(
+                            mediator.Send(new SendNotificationCommand(
                                 r.User.UserID,
                                 "Kết thúc chương trình khuyến mãi",
                                 $"Chương trình khuyến mãi {promotion.DiscountProgramName} đã {(promotion.IsDelete ? "kết thúc" : "áp dụng")} vào lúc {DateTime.Now}",

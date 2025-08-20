@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: holasmile_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: holasmile_db_azure
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: HolaSmile123
+      MYSQL_ROOT_PASSWORD: HolaSmile123
+      PMA_ARBITRARY: 1
+    ports:
+      - "8081:80"
+    network_mode: "bridge"

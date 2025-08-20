@@ -92,7 +92,9 @@ namespace HDMS_API.Container.DependencyInjection
                         {
                             policy.WithOrigins(
                                     "https://dd4b55c264ef.ngrok-free.app",
-                                    "http://localhost:5173"
+                                    "http://localhost:5173",
+                                    "http://localhost:3000",
+                                    "http://localhost"
                                 )
                                 .AllowAnyHeader()
                                 .AllowAnyMethod()
@@ -112,10 +114,10 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddAutoMapper(typeof(MappingTreatmentProgress).Assembly);
             services.AddAutoMapper(typeof(OrthodonticTreatmentPlanProfile).Assembly);
 
-            //background services
-            services.AddHostedService<PromotionCleanupService>();
-            services.AddHostedService<AppointmentCleanupService>();
-            services.AddHostedService<EmailCleanupService>();
+            //background services - Tạm tắt hết vì lỗi case-sensitive table names
+            //services.AddHostedService<PromotionCleanupService>(); // Lỗi table case sensitivity  
+            //services.AddHostedService<AppointmentCleanupService>(); // Tạm comment vì lỗi table Appointments
+            //services.AddHostedService<EmailCleanupService>(); // Tạm comment vì cũng gọi GetAllAppointments
 
 
 

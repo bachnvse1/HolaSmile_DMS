@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: holasmile_db_prod
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    command: ["--default-authentication-plugin=mysql_native_password"]
+    volumes:
+      - db-data-prod:/var/lib/mysql
+      - ./db-init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "3307:3306"
+    networks:
+      - holasmile-net-prod
+
+  api:
+    build:
+      context: ./backend/HolaSmileDMS
+      dockerfile: Dockerfile
+    image: holasmile-api:latest
+    container_name: holasmile_api_prod
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      ASPNETCORE_URLS: http://+:5000
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Server=db;Port=3306;Database=${MYSQL_DATABASE};User=${MYSQL_USER};Password=${MYSQL_PASSWORD};SslMode=none;"
+    ports:
+      - "5000:5000"
+    networks:
+      - holasmile-net-prod
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: https://bachnvse.me/api
+        VITE_API_BASE_URL_Not_Api: https://bachnvse.me
+    image: holasmile-web:latest
+    container_name: holasmile_web_prod
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "3000:80"
+    networks:
+      - holasmile-net-prod
+
+  nginx:
+    image: nginx:alpine
+    container_name: holasmile_nginx_prod
+    restart: unless-stopped
+    depends_on:
+      - web
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d/bachnvse.me.conf:/etc/nginx/conf.d/default.conf
+      - ./ssl:/etc/ssl:ro
+    networks:
+      - holasmile-net-prod
+
+volumes:
+  db-data-prod:
+
+networks:
+  holasmile-net-prod:
+    driver: bridge

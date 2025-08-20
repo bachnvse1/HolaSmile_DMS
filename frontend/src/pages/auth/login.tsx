@@ -20,10 +20,10 @@ export function Login() {
     },
     validationSchema: Yup.object({
       email: Yup.string()
-        .required("Bắt buộc nhập email hoặc số điện thoại")
+        .required("Bắt buộc nhập số điện thoại")
         .test(
           "is-email-or-phone",
-          "Phải là email hợp lệ hoặc số điện thoại hợp lệ",
+          "Phải số điện thoại hợp lệ",
           (value) => {
             if (!value) return false;
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
