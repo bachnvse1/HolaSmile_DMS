@@ -15,8 +15,6 @@ services:
     volumes:
       - db-data-azure:/var/lib/mysql
       - ./db-init:/docker-entrypoint-initdb.d:ro
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
     ports:
       - "3306:3306"
     networks:
@@ -38,9 +36,6 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       TZ: Asia/Ho_Chi_Minh
       ConnectionStrings__DefaultConnection: "Server=db;Port=3306;Database=${MYSQL_DATABASE};User=${MYSQL_USER};Password=${MYSQL_PASSWORD};SslMode=none;"
-    volumes:
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
     ports:
       - "5001:5001"
     networks:
