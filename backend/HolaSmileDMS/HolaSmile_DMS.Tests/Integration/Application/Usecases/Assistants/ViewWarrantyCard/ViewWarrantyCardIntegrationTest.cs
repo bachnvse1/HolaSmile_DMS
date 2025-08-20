@@ -1,5 +1,4 @@
-﻿/*
-using Application.Constants;
+﻿using Application.Constants;
 using Application.Usecases.Assistant.ViewListWarrantyCards;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Http;
@@ -8,7 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
 using Xunit;
 using Infrastructure.Repositories;
-namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
+
+namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
 {
     public class ViewWarrantyCardIntegrationTest
     {
@@ -21,7 +21,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
             var services = new ServiceCollection();
 
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseInMemoryDatabase("ViewWarrantyCardTestDb"));
+                options.UseInMemoryDatabase($"ViewWarrantyCardTestDb_{Guid.NewGuid()}")); // tách DB theo test run
 
             services.AddHttpContextAccessor();
 
@@ -38,46 +38,130 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
 
         private void ClearData()
         {
+            // Xoá theo thứ tự tránh FK
             _context.WarrantyCards.RemoveRange(_context.WarrantyCards);
+            _context.TreatmentRecords.RemoveRange(_context.TreatmentRecords);
+            _context.Appointments.RemoveRange(_context.Appointments);
             _context.Procedures.RemoveRange(_context.Procedures);
+            _context.Patients.RemoveRange(_context.Patients);
+            _context.Users.RemoveRange(_context.Users);
             _context.SaveChanges();
         }
 
-        private void SetupHttpContext(string role)
+        private void SetupHttpContext(string role, string userId = "1")
         {
             var context = new DefaultHttpContext();
             context.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, "1"),
+                new Claim(ClaimTypes.NameIdentifier, userId),
                 new Claim(ClaimTypes.Role, role)
             }, "TestAuth"));
 
             _httpContextAccessor.HttpContext = context;
         }
 
-        [Fact(DisplayName = "Normal - UTCID01 - Assistant views warranty cards successfully")]
-        public async System.Threading.Tasks.Task UTCID01_Assistant_ViewWarrantyCards_Success()
+        private (WarrantyCard card, TreatmentRecord tr) SeedCardWithProcedure()
         {
-            ClearData();
-            var procedure = new Procedure
+            var user = new User
             {
-                ProcedureId = 1,
-                ProcedureName = "Nhổ răng"
+                UserID = 1,
+                Fullname = "Patient F",
+                Username = "patientf",
+                Phone = "0900000001",
+                Email = "patientf@example.com" 
+            };
+            var patient = new Patient { PatientID = 10, User = user };
+
+            var procedure = new Procedure { ProcedureId = 1, ProcedureName = "Nhổ răng" };
+
+            var appointment = new Appointment
+            {
+                AppointmentId = 100,
+                Patient = patient,
+                AppointmentDate = new DateTime(2025, 6, 1),
+                AppointmentTime = new TimeSpan(8, 0, 0)
             };
 
-            var warrantyCard = new WarrantyCard
+            var tr = new TreatmentRecord
+            {
+                TreatmentRecordID = 1000,
+                Procedure = procedure,
+                Appointment = appointment
+            };
+
+            var card = new WarrantyCard
             {
                 WarrantyCardID = 1,
                 StartDate = new DateTime(2025, 6, 1),
                 EndDate = new DateTime(2025, 12, 1),
-                Term = "6 tháng",
+                Duration = 6,
                 Status = true,
-                Procedures = new List<Procedure> { procedure }
+                TreatmentRecord = tr
             };
 
+            _context.Users.Add(user);
+            _context.Patients.Add(patient);
             _context.Procedures.Add(procedure);
-            _context.WarrantyCards.Add(warrantyCard);
+            _context.Appointments.Add(appointment);
+            _context.TreatmentRecords.Add(tr);
+            _context.WarrantyCards.Add(card);
             _context.SaveChanges();
+
+            return (card, tr);
+        }
+
+        private (WarrantyCard card, TreatmentRecord tr) SeedCardWithoutProcedure()
+        {
+            var user = new User
+            {
+                UserID = 2,
+                Fullname = "Patient G",
+                Username = "patientg",
+                Phone = "0900000002",
+                Email = "patientg@example.com"
+            };
+            var patient = new Patient { PatientID = 11, User = user };
+
+            var appointment = new Appointment
+            {
+                AppointmentId = 101,
+                Patient = patient,
+                AppointmentDate = new DateTime(2025, 1, 2),
+                AppointmentTime = new TimeSpan(9, 0, 0)
+            };
+
+            var tr = new TreatmentRecord
+            {
+                TreatmentRecordID = 1001,
+                Procedure = null,
+                Appointment = appointment
+            };
+
+            var card = new WarrantyCard
+            {
+                WarrantyCardID = 2,
+                StartDate = new DateTime(2025, 1, 1),
+                EndDate = new DateTime(2025, 12, 1),
+                Duration = 12,
+                Status = true,
+                TreatmentRecord = tr
+            };
+
+            _context.Users.Add(user);
+            _context.Patients.Add(patient);
+            _context.Appointments.Add(appointment);
+            _context.TreatmentRecords.Add(tr);
+            _context.WarrantyCards.Add(card);
+            _context.SaveChanges();
+
+            return (card, tr);
+        }
+
+        [Fact(DisplayName = "Normal - UTCID01 - Assistant views warranty cards successfully")]
+        public async System.Threading.Tasks.Task UTCID01_Assistant_ViewWarrantyCards_Success()
+        {
+            ClearData();
+            SeedCardWithProcedure();
 
             SetupHttpContext("Assistant");
             var command = new ViewListWarrantyCardsCommand();
@@ -101,10 +185,12 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
             Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
         }
 
-        [Fact(DisplayName = "Abnormal - UTCID03 - Unauthorized when not assistant")]
+        [Fact(DisplayName = "Abnormal - UTCID03 - Unauthorized when role is not allowed")]
         public async System.Threading.Tasks.Task UTCID03_ViewWarrantyCards_InvalidRole_Throws()
         {
-            SetupHttpContext("Receptionist");
+            // Handler cho phép: Assistant, Dentist, Receptionist, Patient
+            // Chọn role KHÔNG hợp lệ để đúng với điều kiện ném MSG26:
+            SetupHttpContext("Owner");
             var command = new ViewListWarrantyCardsCommand();
 
             var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
@@ -126,34 +212,5 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistant
             Assert.NotNull(result);
             Assert.Empty(result);
         }
-
-        [Fact(DisplayName = "Normal - UTCID05 - WarrantyCard without procedure returns 'Không xác định'")]
-        public async System.Threading.Tasks.Task UTCID05_ViewWarrantyCards_NoProcedure_ReturnsUnknown()
-        {
-            ClearData();
-
-            var warrantyCard = new WarrantyCard
-            {
-                WarrantyCardID = 2,
-                StartDate = new DateTime(2025, 1, 1),
-                EndDate = new DateTime(2025, 12, 1),
-                Term = "12 tháng",
-                Status = true,
-                Procedures = new List<Procedure>() // Empty
-            };
-
-            _context.WarrantyCards.Add(warrantyCard);
-            _context.SaveChanges();
-
-            SetupHttpContext("Assistant");
-            var command = new ViewListWarrantyCardsCommand();
-
-            var result = await _handler.Handle(command, default);
-
-            Assert.Single(result);
-            var card = result.First();
-            Assert.Equal("Không xác định", card.ProcedureName);
-        }
     }
 }
-*/

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Application.Usecases.Dentist.ViewAllDentistSchedule;
 
 namespace Application.Usecases.Guests.AskChatBot
 {
@@ -15,6 +11,8 @@ namespace Application.Usecases.Guests.AskChatBot
         public List<string> DentistName { get; set; } = new();
         public List<DentistScheduleData> DentistSchedules { get; set; } = new();
 
+
+
         //public string? Versions { get; set; }
         //public DateTime UpdatedAt { get; set; }
 
@@ -25,7 +23,7 @@ namespace Application.Usecases.Guests.AskChatBot
     public sealed class DentistScheduleData
     {
         public string DentistName { get; set; } = "";
-        public string Date { get; set; } = "";          // yyyy-MM-dd
-        public List<string> Shift { get; set; } = new();
+        public List<ScheduleDTO> Schedules { get; set; }= new List<ScheduleDTO> { };
     }
+
 }

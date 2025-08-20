@@ -85,14 +85,13 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             _context.Users.Add(new User
             {
                 UserID = 100,
-                Username = "patient1",  // Thêm trường bắt buộc
-                Phone = "0123456789",  // Thêm trường bắt buộc
+                Username = "patient1",  
+                Phone = "0123456789",  
                 Fullname = "Test Patient",
                 Status = true,
-                CreatedAt = DateTime.Now  // Nếu cần
+                CreatedAt = DateTime.Now  
             });
 
-            // Thêm user cho dentist nếu cần thiết
             _context.Users.Add(new User
             {
                 UserID = 200,
@@ -259,8 +258,6 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             Assert.Equal(MessageConstants.MSG.MSG113, result);
             Assert.NotNull(await _context.Images.FirstOrDefaultAsync(x => x.PatientId == 10));
         }
-
-        // ... các test case khác giữ nguyên ...
 
         public void Dispose()
         {
