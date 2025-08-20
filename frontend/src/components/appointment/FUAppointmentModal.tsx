@@ -51,6 +51,7 @@ export const FUAppointmentModal: React.FC<FUAppointmentModalProps> = ({
         <button
           onClick={() => navigate(-1)}
           className="flex items-center border border-gray-300 px-2 py-2 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all"
+          title="Quay lại"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>

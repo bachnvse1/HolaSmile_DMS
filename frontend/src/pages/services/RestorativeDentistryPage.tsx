@@ -295,7 +295,7 @@ export const RestorativeDentistryPage = () => {
                   Nếu bạn bị đau dữ dội hoặc có tình huống khẩn cấp, đừng chần chừ – hãy gọi cho chúng tôi để được hỗ trợ ngay.
                 </p>
                 <button className="bg-amber-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-amber-700 transition-colors">
-                  Gọi +84 (09) 41-120-015
+                  Gọi +84 (03) 33-538-991
                 </button>
               </div>
             </div>

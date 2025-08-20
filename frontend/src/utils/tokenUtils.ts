@@ -159,11 +159,7 @@ export class TokenUtils {
     try {
       const decoded = this.decodeToken(token);
       if (!decoded) return false;
-
-      // Clear chatbot session when login with new token
       sessionStorage.removeItem('chatbot-messages');
-      // Dispatch custom event to notify chatbot
-      window.dispatchEvent(new CustomEvent('chatbot-reset'));
 
       localStorage.setItem("authToken", token);
       if (refreshToken) {
@@ -240,10 +236,7 @@ export class TokenUtils {
     localStorage.removeItem("avatar");
     localStorage.removeItem("userId");
     localStorage.removeItem("username");
-    // Clear chatbot session when logout
     sessionStorage.removeItem('chatbot-messages');
-    // Dispatch custom event to notify chatbot
-    window.dispatchEvent(new CustomEvent('chatbot-reset'));
     window.dispatchEvent(new Event('authChange'));
   }
 

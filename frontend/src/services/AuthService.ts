@@ -1,6 +1,6 @@
 import axiosInstance from "../lib/axios";
 import axios from "axios";
-import type { EnhancedUserInfo } from "../types/user.types";
+import type { UserInfo } from "../types/user.types";
 import { TokenUtils } from "../utils/tokenUtils";
 
 export interface OTPRequestPayload {
@@ -67,7 +67,7 @@ export class AuthService {
       throw new Error("Lỗi không xác định");
     }
   }
-  static async fetchUserProfile(): Promise<EnhancedUserInfo> {
+  static async fetchUserProfile(): Promise<UserInfo> {
     try {
       const response = await axiosInstance.get(`/user/profile`);
       return response.data;

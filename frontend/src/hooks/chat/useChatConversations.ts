@@ -220,8 +220,6 @@ export const useChatConversations = () => {
         updatedUnreadCounts.set(targetUserId, unreadCount);
       });
       
-      console.log('Syncing unread counts:', Object.fromEntries(updatedUnreadCounts));
-      
       // Only update if there are actual differences to avoid unnecessary re-renders
       setUnreadCounts(prev => {
         let hasChanges = false;
@@ -239,10 +237,6 @@ export const useChatConversations = () => {
             hasChanges = true;
           }
         });
-        
-        if (hasChanges) {
-          console.log('Updating unread counts from', Object.fromEntries(prev), 'to', Object.fromEntries(updatedUnreadCounts));
-        }
         
         return hasChanges ? updatedUnreadCounts : prev;
       });
