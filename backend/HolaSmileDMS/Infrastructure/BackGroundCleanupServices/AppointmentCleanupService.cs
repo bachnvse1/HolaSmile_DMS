@@ -10,7 +10,6 @@ namespace Infrastructure.BackGroundServices
     public class AppointmentCleanupService : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory;
-        private readonly ILogger<AppointmentCleanupService> _logger;
         private readonly IMediator _mediator;
 
         public AppointmentCleanupService(
@@ -20,7 +19,6 @@ namespace Infrastructure.BackGroundServices
         {
             _scopeFactory = scopeFactory;
             _mediator = mediator;
-            _logger = logger;
         }
 
         protected override async System.Threading.Tasks.Task ExecuteAsync(CancellationToken stoppingToken)
@@ -47,7 +45,6 @@ namespace Infrastructure.BackGroundServices
                                 var result = await appointmentRepo.UpdateAppointmentAsync(appointment);
                                 if (!result)
                                 {
-                                    _logger.LogWarning("Không thể cập nhật trạng thái lịch hẹn {AppointmentId}", appointment.AppointmentId);
                                     continue;
                                 }
 
@@ -94,7 +91,6 @@ namespace Infrastructure.BackGroundServices
                                 }
                                 catch (Exception ex)
                                 {
-                                    _logger.LogError(ex, "Lỗi khi gửi thông báo cho lịch hẹn {AppointmentId}", appointment.AppointmentId);
                                 }
                             }
                         }
@@ -102,7 +98,6 @@ namespace Infrastructure.BackGroundServices
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Lỗi trong quá trình xử lý AppointmentCleanupService");
                 }
 
                 var now = DateTime.Now;

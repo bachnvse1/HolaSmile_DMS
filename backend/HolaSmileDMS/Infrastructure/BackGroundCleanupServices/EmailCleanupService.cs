@@ -25,7 +25,7 @@ namespace Infrastructure.BackGroundCleanupServices
                 var appointments = await appointmentRepo.GetAllAppointments() ?? new List<Appointment>();
                 foreach (var app in appointments)
                 {
-                    if(app.AppointmentDate.Date == DateTime.Now.Date.AddDays(1) && app.Status == "confirmed" && app.Patient?.User?.Email != null)
+                    if(app.AppointmentDate.Date <= DateTime.Now.Date.AddDays(1) && app.Status == "confirmed" && app.Patient?.User?.Email != null)
                     {
                         var subject = $"Nhắc lịch hẹn nha khoa tại HolaSmile vào {app.AppointmentDate.ToString("dd/MM/yyyy")} lúc {app.AppointmentTime}";
                         // Gửi email thông báo

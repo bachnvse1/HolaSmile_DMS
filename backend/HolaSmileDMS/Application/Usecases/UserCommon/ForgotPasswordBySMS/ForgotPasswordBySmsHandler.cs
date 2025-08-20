@@ -34,6 +34,7 @@ namespace Application.Usecases.UserCommon.ForgotPasswordBySMS
                 try
                 {
                     var sent = await _smsService.SendPasswordAsync(request.PhoneNumber, newPassword);
+                    Console.WriteLine(sent);
                 }
                 catch (Exception ex)
                 {
