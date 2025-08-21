@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   db:
@@ -46,8 +46,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_BASE_URL: http://20.2.83.192/api
-        VITE_API_BASE_URL_Not_Api: http://20.2.83.192
+        VITE_API_BASE_URL: https://bachnvse.me/api
+        VITE_API_BASE_URL_Not_Api: https://bachnvse.me
     image: holasmile-web:latest
     container_name: holasmile_web_azure
     restart: unless-stopped
