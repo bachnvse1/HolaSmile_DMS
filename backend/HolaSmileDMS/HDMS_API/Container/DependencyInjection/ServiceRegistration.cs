@@ -91,7 +91,7 @@ namespace HDMS_API.Container.DependencyInjection
                         policy =>
                         {
                             policy.WithOrigins(
-                                    "https://dd4b55c264ef.ngrok-free.app",
+                                    "https://bachnvse.me",
                                     "http://localhost:5173",
                                     "http://localhost:3000",
                                     "http://localhost"
