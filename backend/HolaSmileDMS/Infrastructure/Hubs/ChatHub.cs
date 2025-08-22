@@ -131,7 +131,7 @@ public class ChatHub : Hub
     
     private async System.Threading.Tasks.Task<string> GenerateUniqueAnonymousNameAsync()
     {
-        string baseName = "Anonymous";
+        string baseName = "Khách";
         int suffix = 1;
         string candidate;
     

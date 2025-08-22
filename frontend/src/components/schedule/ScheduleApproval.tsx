@@ -184,7 +184,7 @@ export const ScheduleApproval: React.FC<{ viewOnlyApproved?: boolean }> = ({ vie
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
               <Input
-                placeholder="Tìm theo tên bác sĩ..."
+                placeholder="Tìm theo tên Nha sĩ..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9 w-full sm:w-auto min-w-[240px]"
@@ -292,7 +292,7 @@ export const ScheduleApproval: React.FC<{ viewOnlyApproved?: boolean }> = ({ vie
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
             <Input
-              placeholder="Tìm theo tên bác sĩ..."
+              placeholder="Tìm theo tên Nha sĩ..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 w-full sm:w-auto min-w-[240px]"

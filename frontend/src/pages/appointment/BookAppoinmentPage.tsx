@@ -65,7 +65,7 @@ export const BookAppointmentPage = () => {
                   Đau răng cấp tính, chấn thương răng miệng
                 </p>
                 <button className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors">
-                  Gọi Ngay: 0941120015
+                  Gọi Ngay: 0333538991
                 </button>
               </div>
             </div>
