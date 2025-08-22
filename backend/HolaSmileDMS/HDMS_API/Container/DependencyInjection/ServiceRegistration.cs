@@ -113,11 +113,10 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddAutoMapper(typeof(MappingAppointment));
             services.AddAutoMapper(typeof(MappingTreatmentProgress).Assembly);
             services.AddAutoMapper(typeof(OrthodonticTreatmentPlanProfile).Assembly);
-
-            //background services - Tạm tắt hết vì lỗi case-sensitive table names
-            //services.AddHostedService<PromotionCleanupService>(); // Lỗi table case sensitivity  
-            //services.AddHostedService<AppointmentCleanupService>(); // Tạm comment vì lỗi table Appointments
-            //services.AddHostedService<EmailCleanupService>(); // Tạm comment vì cũng gọi GetAllAppointments
+            
+            services.AddHostedService<PromotionCleanupService>();
+            services.AddHostedService<AppointmentCleanupService>();
+            services.AddHostedService<EmailCleanupService>();
 
 
 
