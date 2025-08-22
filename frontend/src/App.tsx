@@ -14,7 +14,7 @@ import AddPatient from './pages/auth/CreatePatientAccount';
 import AuthCallback from './pages/auth/AuthCallback';
 import ResetPassword from './pages/auth/ResetPassword';
 import ViewProfile from './pages/auth/ViewProfile';
-import { PatientDashboardPage } from './pages/patient/PatientDashboardPage';
+// import { PatientDashboardPage } from './pages/patient/PatientDashboardPage';
 import { StaffDashboard } from './pages/staff/StaffDashboard';
 import { PatientBookingPage } from './pages/patient/PatientBookingPage';
 import { PatientAppointmentsPage } from './pages/patient/PatientAppointmentsPage';
@@ -69,6 +69,7 @@ import InternalMessagesPage from "./pages/messages/internal-new";
 import ChatbotKnowledgeManagement from "./pages/chatbot/ChatbotKnowledgeManagement";
 import { ChatWrapper } from './components/chat/ChatWrapper';
 import MaintenancePage from "./pages/maintenance/MaintenancePage";
+import { RouteGuard } from './components/auth/RouteGuard';
 
 function App() {
   return (
@@ -80,87 +81,140 @@ function App() {
       />
 
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/learn-more" element={<LearnMorePage />} />
+        <Route path="/login" element={
+          <RouteGuard publicOnly={true}>
+            <Login />
+          </RouteGuard>
+        } />
+        <Route path="/forgot-password" element={
+          <RouteGuard publicOnly={true}>
+            <ForgotPassword />
+          </RouteGuard>
+        } />
+        <Route path="/verify-otp" element={
+          <RouteGuard publicOnly={true}>
+            <VerifyOTPPage />
+          </RouteGuard>
+        } />
+        <Route path="/reset-password" element={
+          <RouteGuard publicOnly={true}>
+            <ResetPassword />
+          </RouteGuard>
+        } />
+          <Route path="/" element={
+            <RouteGuard publicOnly={true}>
+              <HomePage />
+            </RouteGuard>
+          } />
 
-        <Route
-          path="*"
-          element={
-            <ChatHubProvider>
-              <>
-                <Routes>
-                  <Route path="/services/general-dentistry" element={<GeneralDentistryPage />} />
-                  <Route path="/services/cosmetic-dentistry" element={<CosmeticDentistryPage />} />
-                  <Route path="/services/oral-surgery" element={<OralSurgeryPage />} />
-                  <Route path="/services/pediatric-dentistry" element={<PediatricDentistryPage />} />
-                  <Route path="/services/preventive-care" element={<PreventiveCare />} />
-                  <Route path="/services/restorative-dentistry" element={<RestorativeDentistryPage />} />
-                  <Route path="/appointment-booking" element={<BookAppointmentPage />} />
-                  <Route path="/verify-otp" element={<VerifyOTPPage />} />
-                  <Route path="/add-patient" element={<AddPatient />} />
-                  <Route path="/auth/callback" element={<AuthCallback />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/view-profile" element={<ViewProfile />} />
-                  <Route path="/patient/dashboard" element={<PatientDashboardPage />} />
-                  <Route path="/dashboard" element={<StaffDashboard />} />
-                  <Route path="/patient/book-appointment" element={<PatientBookingPage />} />
-                  <Route path="/patient/appointments" element={<PatientAppointmentsPage />} />
-                  <Route path="/patient/appointments/:appointmentId" element={<PatientAppointmentDetailPage />} />
-                  <Route path="/appointments/:appointmentId" element={<AppointmentDetailsPage />} />
-                  <Route path="/appointments" element={<StaffAppointmentsPage />} />
-                  <Route path="/schedules" element={<ScheduleManagementPage />} />
-                  <Route path="/patient/view-treatment-records" element={<PatientTreatmentRecords />} />
-                  <Route path="/patient/view-treatment-progress/:treatmentRecordId" element={<ViewTreatmentProgressPage />} />
-                  <Route path="/patients" element={<PatientList />} />
-                  <Route path="/patients/:patientId/orthodontic-treatment-plans" element={<OrthodonticTreatmentPlanListPage />} />
-                  <Route path="/patients/:patientId/orthodontic-treatment-plans/create" element={<CreateOrthodonticTreatmentPlanBasicPage />} />
-                  <Route path="/patients/:patientId/orthodontic-treatment-plans/create/detail" element={<CreateOrthodonticTreatmentPlanDetailPage />} />
-                  <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId" element={<OrthodonticTreatmentPlanDetailPage />} />
-                  <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId/edit" element={<OrthodonticTreatmentPlanEditPage />} />
-                  <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId/edit/detail" element={<OrthodonticTreatmentPlanEditDetailPage />} />
-                  <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId/images" element={<OrthodonticTreatmentPlanImagesPage />} />
-                  <Route path="/patient/orthodontic-treatment-plans/:planId/images" element={<PatientOrthodonticImagesPage />} />
-                  <Route path="/patient/treatment-records/:recordId/images" element={<PatientTreatmentImagesPage />} />
-                  <Route path="/patient/:patientId/treatment-records/:recordId/images" element={<TreatmentRecordImagesPage />} />
-                  <Route path="/patient/orthodontic-treatment-plans" element={<PatientOrthodonticListPage />} />
-                  <Route path="/patient/orthodontic-treatment-plans/:planId" element={<PatientOrthodonticDetailPage />} />
-                  <Route path="/patient/follow-up" element={<FUAppointmentPage />} />
-                  <Route path="/administrator/user-list" element={<UserManagement />} />
-                  <Route path="/prescription-templates" element={<PrescriptionTemplatesPage />} />
-                  <Route path="/prescription-templates/create" element={<CreatePrescriptionTemplatePage />} />
-                  <Route path="/prescription-templates/:id" element={<PrescriptionTemplateDetailPage />} />
-                  <Route path="/prescription-templates/:id/edit" element={<EditPrescriptionTemplatePage />} />
-                  <Route path="/inventory" element={<InventoryPage />} />
-                  <Route path="/inventory/create" element={<CreateSupplyPage />} />
-                  <Route path="/inventory/:supplyId" element={<SupplyDetailPage />} />
-                  <Route path="/inventory/:supplyId/edit" element={<EditSupplyPage />} />
-                  <Route path="/assistant/assigned-tasks" element={<AssignedTasks />} />
-                  <Route path="/proceduces" element={<ProcedureManagement />} />
-                  <Route path="/invoices" element={<InvoiceList />} />
-                  <Route path="/assistant/warranty-cards" element={<WarrantyCardManagement />} />
-                  <Route path="/thank-you" element={<ThankYou />} />
-                  <Route path="/cancel" element={<PaymentCancelled />} />
-                  <Route path="/patient/treatment-records" element={<PatientTreatmentRecordsSection />} />
-                  <Route path="/financial-transactions" element={<FinancialTransactionsPage />} />
-                  <Route path="/financial-transactions/:transactionId" element={<ViewTransactionPage />} />
-                  <Route path="/promotions" element={<PromotionManagementPage />} />
-                  <Route path="/promotions/:programId" element={<ViewPromotionPage />} />
-                  <Route path="/instruction-templates" element={<InstructionTemplateManagement />} />
-                  <Route path="/patient/instructions/:appointmentId" element={<PatientInstructionsList />} />
-                  <Route path="/instructions/:appointmentId" element={<InstructionsPage />} />
-                  <Route path="*" element={<NotFound />} />
-                  <Route path="/messages/guest-consultation" element={<GuestConsultationPage />} />
-                  <Route path="/messages/patient-consultation" element={<PatientConsultationPage />} />
-                  <Route path="/messages/internal" element={<InternalMessagesPage />} />
-                  <Route path="/chatbot/knowledge" element={<ChatbotKnowledgeManagement />} />
-                  <Route path="/maintenance" element={<MaintenancePage />} />
-                </Routes>
-              </>
-            </ChatHubProvider>
-          }
-        />
+          <Route path="/learn-more" element={
+            <RouteGuard publicOnly={true}>
+              <LearnMorePage />
+            </RouteGuard>
+          } />
+
+          <Route
+            path="*"
+            element={
+              <ChatHubProvider>
+                <>
+                  <Routes>
+                    <Route path="/services/general-dentistry" element={
+                      <RouteGuard publicOnly={true}>
+                        <GeneralDentistryPage />
+                      </RouteGuard>
+                    } />
+                    <Route path="/services/cosmetic-dentistry" element={
+                      <RouteGuard publicOnly={true}>
+                        <CosmeticDentistryPage />
+                      </RouteGuard>
+                    } />
+                    <Route path="/services/oral-surgery" element={
+                      <RouteGuard publicOnly={true}>
+                        <OralSurgeryPage />
+                      </RouteGuard>
+                    } />
+                    <Route path="/services/pediatric-dentistry" element={
+                      <RouteGuard publicOnly={true}>
+                        <PediatricDentistryPage />
+                      </RouteGuard>
+                    } />
+                    <Route path="/services/preventive-care" element={
+                      <RouteGuard publicOnly={true}>
+                        <PreventiveCare />
+                      </RouteGuard>
+                    } />
+                    <Route path="/services/restorative-dentistry" element={
+                      <RouteGuard publicOnly={true}>
+                        <RestorativeDentistryPage />
+                      </RouteGuard>
+                    } />
+                    <Route path="/appointment-booking" element={
+                      <RouteGuard publicOnly={true}>
+                        <BookAppointmentPage />
+                      </RouteGuard>
+                    } />
+                    <Route path="/add-patient" element={<AddPatient />} />
+                    <Route path="/auth/callback" element={<AuthCallback />} />
+                    <Route path="/view-profile" element={<ViewProfile />} />
+                    {/* <Route path="/patient/dashboard" element={<PatientDashboardPage />} /> */}
+                    <Route path="/dashboard" element={<StaffDashboard />} />
+                    <Route path="/patient/book-appointment" element={<PatientBookingPage />} />
+                    <Route path="/patient/appointments" element={<PatientAppointmentsPage />} />
+                    <Route path="/patient/appointments/:appointmentId" element={<PatientAppointmentDetailPage />} />
+                    <Route path="/appointments/:appointmentId" element={<AppointmentDetailsPage />} />
+                    <Route path="/appointments" element={<StaffAppointmentsPage />} />
+                    <Route path="/schedules" element={<ScheduleManagementPage />} />
+                    <Route path="/patient/view-treatment-records" element={<PatientTreatmentRecords />} />
+                    <Route path="/patient/view-treatment-progress/:treatmentRecordId" element={<ViewTreatmentProgressPage />} />
+                    <Route path="/patients" element={<PatientList />} />
+                    <Route path="/patients/:patientId/orthodontic-treatment-plans" element={<OrthodonticTreatmentPlanListPage />} />
+                    <Route path="/patients/:patientId/orthodontic-treatment-plans/create" element={<CreateOrthodonticTreatmentPlanBasicPage />} />
+                    <Route path="/patients/:patientId/orthodontic-treatment-plans/create/detail" element={<CreateOrthodonticTreatmentPlanDetailPage />} />
+                    <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId" element={<OrthodonticTreatmentPlanDetailPage />} />
+                    <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId/edit" element={<OrthodonticTreatmentPlanEditPage />} />
+                    <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId/edit/detail" element={<OrthodonticTreatmentPlanEditDetailPage />} />
+                    <Route path="/patients/:patientId/orthodontic-treatment-plans/:planId/images" element={<OrthodonticTreatmentPlanImagesPage />} />
+                    <Route path="/patient/orthodontic-treatment-plans/:planId/images" element={<PatientOrthodonticImagesPage />} />
+                    <Route path="/patient/treatment-records/:recordId/images" element={<PatientTreatmentImagesPage />} />
+                    <Route path="/patient/:patientId/treatment-records/:recordId/images" element={<TreatmentRecordImagesPage />} />
+                    <Route path="/patient/orthodontic-treatment-plans" element={<PatientOrthodonticListPage />} />
+                    <Route path="/patient/orthodontic-treatment-plans/:planId" element={<PatientOrthodonticDetailPage />} />
+                    <Route path="/patient/follow-up" element={<FUAppointmentPage />} />
+                    <Route path="/administrator/user-list" element={<UserManagement />} />
+                    <Route path="/prescription-templates" element={<PrescriptionTemplatesPage />} />
+                    <Route path="/prescription-templates/create" element={<CreatePrescriptionTemplatePage />} />
+                    <Route path="/prescription-templates/:id" element={<PrescriptionTemplateDetailPage />} />
+                    <Route path="/prescription-templates/:id/edit" element={<EditPrescriptionTemplatePage />} />
+                    <Route path="/inventory" element={<InventoryPage />} />
+                    <Route path="/inventory/create" element={<CreateSupplyPage />} />
+                    <Route path="/inventory/:supplyId" element={<SupplyDetailPage />} />
+                    <Route path="/inventory/:supplyId/edit" element={<EditSupplyPage />} />
+                    <Route path="/assistant/assigned-tasks" element={<AssignedTasks />} />
+                    <Route path="/proceduces" element={<ProcedureManagement />} />
+                    <Route path="/invoices" element={<InvoiceList />} />
+                    <Route path="/assistant/warranty-cards" element={<WarrantyCardManagement />} />
+                    <Route path="/thank-you" element={<ThankYou />} />
+                    <Route path="/cancel" element={<PaymentCancelled />} />
+                    <Route path="/patient/treatment-records" element={<PatientTreatmentRecordsSection />} />
+                    <Route path="/financial-transactions" element={<FinancialTransactionsPage />} />
+                    <Route path="/financial-transactions/:transactionId" element={<ViewTransactionPage />} />
+                    <Route path="/promotions" element={<PromotionManagementPage />} />
+                    <Route path="/promotions/:programId" element={<ViewPromotionPage />} />
+                    <Route path="/instruction-templates" element={<InstructionTemplateManagement />} />
+                    <Route path="/patient/instructions/:appointmentId" element={<PatientInstructionsList />} />
+                    <Route path="/instructions/:appointmentId" element={<InstructionsPage />} />
+                    <Route path="*" element={<NotFound />} />
+                    <Route path="/messages/guest-consultation" element={<GuestConsultationPage />} />
+                    <Route path="/messages/patient-consultation" element={<PatientConsultationPage />} />
+                    <Route path="/messages/internal" element={<InternalMessagesPage />} />
+                    <Route path="/chatbot/knowledge" element={<ChatbotKnowledgeManagement />} />
+                    <Route path="/maintenance" element={<MaintenancePage />} />
+                  </Routes>
+                </>
+              </ChatHubProvider>
+            }
+          />
       </Routes>
       <ChatWrapper />
     </>

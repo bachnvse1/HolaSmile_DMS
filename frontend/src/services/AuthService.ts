@@ -8,9 +8,9 @@ export interface OTPRequestPayload {
 }
 
 export interface PasswordForm {
-  currentPassword: string
-  newPassword: string
-  confirmPassword: string
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 }
 
 export interface LoginResponse {
@@ -28,12 +28,12 @@ export interface RoleRedirectMap {
 export class AuthService {
   // Define redirect paths for each role
   private static readonly ROLE_REDIRECTS: RoleRedirectMap = {
-    Patient: "/patient/dashboard",
-    Administrator: "/dashboard",
-    Owner: "/dashboard",
-    Receptionist: "/dashboard",
-    Assistant: "/dashboard",
-    Dentist: "/dashboard",
+    Patient: "/patient/appointments", 
+    Owner: "/dashboard", 
+    Administrator: "/appointments",
+    Receptionist: "/appointments",
+    Assistant: "/appointments",
+    Dentist: "/appointments",
   };
   static async login(
     username: string,
@@ -86,6 +86,7 @@ export class AuthService {
   static getRedirectPath(role: string): string {
     return this.ROLE_REDIRECTS[role] || "/";
   }
+  
   static async loginWithGoogle(): Promise<void> {
     const baseURL =
       import.meta.env.VITE_API_BASE_URL || "http://localhost:5135/api";
@@ -94,7 +95,7 @@ export class AuthService {
 
   static logout(): void {
     TokenUtils.clearTokenData();
-    sessionStorage.removeItem('chatbot-messages');
+    sessionStorage.removeItem("chatbot-messages");
   }
   static saveAuthData(token: string, refreshToken?: string): void {
     localStorage.setItem("authToken", token);
@@ -187,7 +188,6 @@ export class AuthService {
       throw new Error("Lỗi không xác định khi đổi mật khẩu");
     }
   }
-
 }
 
 // Setup axios interceptor to automatically add auth token
@@ -234,14 +234,20 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-export const requestOtpSms = async (payload: OTPRequestPayload): Promise<string> => {
+export const requestOtpSms = async (
+  payload: OTPRequestPayload
+): Promise<string> => {
   try {
-    const response = await axiosInstance.post<string>("/user/OTP-Request-sms", payload, {
-      headers: {
-        Accept: "*/*",
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await axiosInstance.post<string>(
+      "/user/OTP-Request-sms",
+      payload,
+      {
+        headers: {
+          Accept: "*/*",
+          "Content-Type": "application/json",
+        },
+      }
+    );
     return response.data;
   } catch (error: any) {
     if (error.response) {
@@ -250,6 +256,3 @@ export const requestOtpSms = async (payload: OTPRequestPayload): Promise<string>
     throw new Error("Network error");
   }
 };
-
-
-

@@ -102,7 +102,7 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <button onClick={() => navigate('/patient/dashboard')} className="flex items-center">
+            <button className="flex items-center">
               <img
                 src="/logo.png"
                 alt="HolaSmile Logo"
@@ -148,6 +148,12 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
                 className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-md font-medium"
               >
                 Hóa Đơn
+              </button>
+              <button
+                onClick={() => navigate('/messages/patient-consultation')}
+                className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-md font-medium"
+              >
+                Tư Vấn
               </button>
             </div>
           </div>
@@ -253,6 +259,12 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
               className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
             >
               Hóa Đơn
+            </button>
+            <button
+              onClick={() => navigate('/messages/patient-consultation')}
+              className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
+            >
+              Tư Vấn
             </button>
             <div className="border-t pt-4 border-gray-300">
               <button

@@ -290,18 +290,13 @@ export const useChatConversations = () => {
         msg.senderId === user.userId && !msg.isRead
       ).length;
       
-      // Include user if:
-      // 1. Has messages OR
-      // 2. Currently searching (to allow starting new conversations)
-      if (lastMessage || filters.searchTerm.trim()) {
-        conversations.push({
-          ...user,
-          lastMessage,
-          lastMessageTime: lastMessage?.timestamp,
-          unreadCount: actualUnreadCount, // Use calculated count instead of stored count
-          hasUnreadMessages: actualUnreadCount > 0
-        });
-      }
+      conversations.push({
+        ...user,
+        lastMessage,
+        lastMessageTime: lastMessage?.timestamp,
+        unreadCount: actualUnreadCount,
+        hasUnreadMessages: actualUnreadCount > 0
+      });
     }
     
     return conversations;
