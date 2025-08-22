@@ -132,10 +132,6 @@ export function ProcedureSelectionModal({
                           <div><span className="text-muted-foreground">Giá gốc: </span>{formatPrice(procedure.originalPrice)}</div>
                           <div><span className="text-muted-foreground">Giảm giá: </span>{procedure.discount}%</div>
                           <div><span className="text-muted-foreground">Chi phí vật tư: </span>{formatPrice(procedure.consumableCost)}</div>
-                          <div><span className="text-muted-foreground">Bảo hành: </span>{procedure.warrantyPeriod}</div>
-                          <div><span className="text-muted-foreground">Hoa hồng bác sĩ: </span>{procedure.doctorCommissionRate}%</div>
-                          <div><span className="text-muted-foreground">Hoa hồng trợ lý: </span>{procedure.assistantCommissionRate}%</div>
-                          <div><span className="text-muted-foreground">Kỹ thuật viên: </span>{procedure.technicianCommissionRate}%</div>
                         </div>
                       </div>
                     </div>

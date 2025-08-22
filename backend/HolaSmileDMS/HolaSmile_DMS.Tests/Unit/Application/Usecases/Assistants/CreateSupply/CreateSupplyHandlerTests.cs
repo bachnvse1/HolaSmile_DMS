@@ -15,7 +15,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
     {
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new();
         private readonly Mock<ISupplyRepository> _supplyRepositoryMock = new();
-        private readonly Mock<ITransactionRepository> _transactionRepositoryMock = new();
         private readonly Mock<IUserCommonRepository> _userCommonRepositoryMock = new();
         private readonly Mock<IOwnerRepository> _ownerRepositoryMock = new();
         private readonly Mock<IMediator> _mediatorMock = new();
@@ -26,7 +25,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             _handler = new CreateSupplyHandler(
                 _httpContextAccessorMock.Object,
                 _supplyRepositoryMock.Object,
-                _transactionRepositoryMock.Object,
                 _ownerRepositoryMock.Object,
                 _userCommonRepositoryMock.Object,
                 _mediatorMock.Object
@@ -184,9 +182,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
 
             _supplyRepositoryMock.Setup(x => x.GetExistSupply("Gauze", 10000, It.IsAny<DateTime?>()))
                 .ReturnsAsync((Supplies?)null);
-
-            _transactionRepositoryMock.Setup(x => x.CreateTransactionAsync(It.IsAny<FinancialTransaction>()))
-                .ReturnsAsync(true);
 
             _supplyRepositoryMock.Setup(x => x.CreateSupplyAsync(It.IsAny<Supplies>()))
                 .ReturnsAsync(true);

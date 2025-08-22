@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Application.Usecases.Dentist.ViewAllDentistSchedule
+﻿namespace Application.Usecases.Dentist.ViewAllDentistSchedule
 {
     public class ScheduleDTO
     {
@@ -13,6 +7,7 @@ namespace Application.Usecases.Dentist.ViewAllDentistSchedule
         public DateTime WorkDate { get; set; }
         public string Shift { get; set; } // e.g., "Morning", "Afternoon", "Evening"
         public string Status { get; set; } // e.g., "approved", "pending", "rejected" 
+        public string Workload { get; set; } // e.g., "free", "busy", "full"
         public string createdBy { get; set; } // Username of the creator
         public string updatedBy { get; set; } // Username of the updater
         public DateTime CreatedAt { get; set; }

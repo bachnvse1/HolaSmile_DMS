@@ -13,7 +13,7 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
         }
         public async Task<List<DentistScheduleDTO>> Handle(ViewAllAvailableDentistScheduleCommand request, CancellationToken cancellationToken)
         {
-            var schedules = await _scheduleRepository.GetAllAvailableDentistSchedulesAsync(3);
+            var schedules = await _scheduleRepository.GetAllAvailableDentistSchedulesAsync(5);
             if (schedules == null || schedules.Count == 0)
             {
                 schedules = new List<Schedule>();

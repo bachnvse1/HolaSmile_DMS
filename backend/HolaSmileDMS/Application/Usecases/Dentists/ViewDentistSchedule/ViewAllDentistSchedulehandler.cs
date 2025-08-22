@@ -31,7 +31,7 @@ namespace Application.Usecases.Dentist.ViewDentistSchedule
             }
             else
             {
-                schedules = await _scheduleRepository.GetAllAvailableDentistSchedulesAsync(3);
+                schedules = await _scheduleRepository.GetAllAvailableDentistSchedulesAsync(5);
             }
 
             if(schedules == null || !schedules.Any())

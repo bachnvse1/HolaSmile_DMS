@@ -78,7 +78,7 @@ export const AppointmentSuccess: React.FC<AppointmentSuccessProps> = ({
             Thông tin lịch hẹn:
           </h4>
           <div className="space-y-2 text-sm">
-            <p><span className="font-medium text-gray-700">Bác sĩ:</span> {selectedDentist?.name}</p>
+            <p><span className="font-medium text-gray-700">Nha sĩ:</span> {selectedDentist?.name}</p>
             <p><span className="font-medium text-gray-700">Ngày:</span> {new Date(selectedDate).toLocaleDateString('vi-VN')}</p>
             <p><span className="font-medium text-gray-700">Ca làm việc:</span> {timeSlotsWithIcons.find(slot => slot.period === selectedTimeSlot)?.label}</p>
             <p><span className="font-medium text-gray-700">Thời gian:</span> {timeSlotsWithIcons.find(slot => slot.period === selectedTimeSlot)?.timeRange}</p>

@@ -75,7 +75,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Dentists
                 new Schedule { ScheduleId = 3, WorkDate = DateTime.Today, Shift = "Morning", Status = "approved", Dentist = dentist, DentistId = 3 }
             };
 
-            _scheduleRepoMock.Setup(r => r.GetAllAvailableDentistSchedulesAsync(3)).ReturnsAsync(schedules);
+            _scheduleRepoMock.Setup(r => r.GetAllAvailableDentistSchedulesAsync(5)).ReturnsAsync(schedules);
 
             // Act
             var result = await _handler.Handle(new ViewAllDentistScheduleCommand(), CancellationToken.None);

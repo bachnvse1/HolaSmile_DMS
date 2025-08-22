@@ -135,7 +135,7 @@ export const BookAppointmentForm = () => {
       <div className="max-w-lg mx-auto">
         <div className="bg-white rounded-3xl shadow-xl p-8 text-center border border-gray-100">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Đang tải danh sách bác sĩ...</p>
+          <p className="text-gray-600">Đang tải danh sách Nha sĩ...</p>
         </div>
       </div>
     );
@@ -209,10 +209,10 @@ export const BookAppointmentForm = () => {
             <Calendar className="h-10 w-10 text-blue-600" />
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Chọn Bác Sĩ & Lịch Hẹn
+            Chọn Nha sĩ & Lịch Hẹn
           </h2>
           <p className="text-gray-600">
-            Bước 2/3: Chọn bác sĩ và thời gian phù hợp
+            Bước 2/3: Chọn Nha sĩ và thời gian phù hợp
           </p>
         </div>
 

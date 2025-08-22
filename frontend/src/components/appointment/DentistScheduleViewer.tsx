@@ -143,12 +143,12 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
     <div className="space-y-8">
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-900 mb-2">
-          {mode === 'book' ? '' : 'Lịch Làm Việc Bác Sĩ'}
+          {mode === 'book' ? '' : 'Lịch Làm Việc Nha sĩ'}
         </h2>
         <p className="text-gray-600">
           {mode === 'book'
             ? ''
-            : 'Xem lịch làm việc của các bác sĩ'
+            : 'Xem lịch làm việc của các Nha sĩ'
           }
         </p>
         {mode === 'book' && !canBookAppointment && (
@@ -284,7 +284,7 @@ export const DentistScheduleViewer: React.FC<DentistScheduleViewerProps> = ({
                       required
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Thông tin này giúp bác sĩ chuẩn bị tốt hơn cho buổi khám
+                      Thông tin này giúp Nha sĩ chuẩn bị tốt hơn cho buổi khám
                     </p>
                   </div>
                 </>
