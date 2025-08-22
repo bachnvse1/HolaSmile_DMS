@@ -39,7 +39,7 @@ export function UserTableRow({ user, index, onToggleStatus }: UserTableRowProps)
             case "Patient":
                 return "Bệnh nhân"
             case "Dentist":
-                return "Bác sĩ nha khoa"
+                return "Nha sĩ"
             case "Assistant":
                 return "Trợ lý"
             case "Owner":

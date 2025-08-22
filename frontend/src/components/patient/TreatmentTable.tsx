@@ -395,7 +395,7 @@ const TreatmentTable: React.FC<TreatmentTableProps> = ({
                       Thủ thuật
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Bác sĩ
+                      Nha sĩ
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">
                       Chẩn đoán & Triệu chứng
