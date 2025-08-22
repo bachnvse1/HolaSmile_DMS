@@ -96,7 +96,7 @@ export const AppointmentCaptchaStep: React.FC<AppointmentCaptchaStepProps> = ({
               <p className="font-semibold text-gray-900" title={step1Data.phoneNumber}>{step1Data.phoneNumber}</p>
             </div>
             <div className="bg-white rounded-xl p-4 border border-blue-100">
-              <span className="text-sm font-medium text-gray-600">Bác sĩ:</span>
+              <span className="text-sm font-medium text-gray-600">Nha sĩ:</span>
               <p className="font-semibold text-gray-900 truncate" title={selectedDentist.name}>
                 {selectedDentist.name.length > 20 ? `${selectedDentist.name.substring(0, 20)}...` : selectedDentist.name}
               </p>
