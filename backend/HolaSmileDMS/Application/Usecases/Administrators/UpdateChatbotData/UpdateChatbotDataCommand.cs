@@ -9,5 +9,6 @@ namespace Application.Usecases.Administrators.UpdateChatbotData
     {
         public int KnowledgeId { get; set; }
         public string NewAnswer { get; set; }
+        public string NewQuestion { get; set; }
     }
 }

@@ -3,7 +3,6 @@ using Application.Constants;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Application.Usecases.Administrators.UpdateChatbotData
 {
@@ -27,12 +26,13 @@ namespace Application.Usecases.Administrators.UpdateChatbotData
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             }
             var existingKnowledge = await _chatbotRepo.GetByIdAsync(request.KnowledgeId);
-            if (request.NewAnswer.Trim().IsNullOrEmpty())
+            if (string.IsNullOrWhiteSpace(request.NewQuestion) || string.IsNullOrWhiteSpace(request.NewAnswer))
             {
-                throw new Exception("Câu trả lời không được để trống");
+                throw new ArgumentException(MessageConstants.MSG.MSG07); // "Câu hỏi và câu trả lời không được để trống"
             }
             existingKnowledge.Answer = request.NewAnswer;
             existingKnowledge.Category = "update";
+            existingKnowledge.Question = request.NewQuestion;
             var isUpdated = await _chatbotRepo.UpdateResponseAsync(existingKnowledge);
             return isUpdated;
         }

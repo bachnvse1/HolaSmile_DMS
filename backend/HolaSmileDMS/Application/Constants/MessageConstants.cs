@@ -134,6 +134,7 @@ public static class MessageConstants
                 public const string MSG129 = "Phiếu thu chi đã được phê duyệt trước đó";
                 public const string MSG130 = "Phê duyệt thành công ";
                 public const string MSG131 = "Cập nhật câu trả lời thành công";
+                public const string MSG132 = "Tạo câu trả lời và câu hỏi thành công";
     }
 }   
  

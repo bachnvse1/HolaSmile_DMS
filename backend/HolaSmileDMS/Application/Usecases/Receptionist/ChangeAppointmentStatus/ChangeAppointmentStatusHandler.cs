@@ -66,13 +66,13 @@ namespace Application.Usecases.Receptionist.ChangeAppointmentStatus
                 await _mediator.Send(new SendNotificationCommand(
                       patient.User.UserID,
                       "Thay đổi trạng thái lịch",
-                      $"Lễ tân đã thay đổi lịch hẹn {existApp.AppointmentId} với trạng thái bệnh nhân {(request.Status.ToLower() == "attended" ? "đã đến" : "vắng mặt")} vào lúc {DateTime.Now}",
+                      $"Lễ tân đã thay đổi lịch hẹn #{existApp.AppointmentId} với trạng thái bệnh nhân {(request.Status.ToLower() == "attended" ? "đã đến" : "vắng mặt")} vào lúc {DateTime.Now}",
                       "appointment", 0, $"appointments/{existApp.AppointmentId}"), cancellationToken);
 
                 await _mediator.Send(new SendNotificationCommand(
                       dentist.User.UserID,
                       "Đặt lịch hẹn tái khám",
-                      $"Lễ tân đã thay đổi lịch hẹn {existApp.AppointmentId} với trạng thái bệnh nhân {(request.Status.ToLower() == "attended" ? "đã đến" : "vắng mặt")} vào lúc {DateTime.Now}",
+                      $"Lễ tân đã thay đổi lịch hẹn #{existApp.AppointmentId} với trạng thái bệnh nhân {(request.Status.ToLower() == "attended" ? "đã đến" : "vắng mặt")} vào lúc {DateTime.Now}",
                       "appointment", 0, $"appointments/{existApp.AppointmentId}"), cancellationToken);
             }
             catch
