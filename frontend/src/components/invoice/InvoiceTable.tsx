@@ -51,6 +51,15 @@ interface PatientGroup {
   treatmentRecords: GroupedInvoice[]
 }
 
+const safeCurrency = (amount: number | null | undefined): string => {
+  const safeAmount = amount ?? 0;
+  return formatCurrency(safeAmount);
+}
+
+const isValidArray = (arr: any[]): boolean => {
+  return Array.isArray(arr) && arr.length > 0;
+}
+
 const TableSkeleton = () => (
   <>
     {Array.from({ length: 3 }).map((_, index) => (
@@ -142,18 +151,20 @@ const ActionsDropdown = ({
   paymentLoading: boolean
   printLoading: boolean
 }) => {
-  const { role } = useUserInfo()
+  const { role } = useUserInfo() || { role: "" }
 
-  const remainingAmount = invoice.remainingAmount ?? ((invoice.totalAmount || 0) - (invoice.paidAmount || 0))
+  const remainingAmount = invoice?.remainingAmount ?? ((invoice?.totalAmount || 0) - (invoice?.paidAmount || 0))
 
   const canMakePayment = (role === "Patient" || role === "Receptionist") && 
                         remainingAmount > 0 && 
-                        invoice.status !== "paid" && 
-                        invoice.paymentMethod !== "cash" &&
-                        (invoice.paymentUrl || invoice.orderCode) 
+                        invoice?.status !== "paid" && 
+                        invoice?.paymentMethod !== "cash" &&
+                        (invoice?.paymentUrl || invoice?.orderCode) 
 
   const canUpdateInvoice = (role === "Admin" || role === "Receptionist") && 
-                          invoice.status !== "paid"
+                          invoice?.status !== "paid"
+
+  if (!invoice) return null;
 
   return (
     <DropdownMenu>
@@ -235,15 +246,24 @@ const InvoiceRow = ({
   const [paymentLoading, setPaymentLoading] = useState(false)
   const [printLoading, setPrintLoading] = useState(false)
 
+  if (!invoice) return null;
+
   const remainingAmount = invoice.remainingAmount ?? ((invoice.totalAmount || 0) - (invoice.paidAmount || 0))
 
   const handlePayment = async () => {
+    if (!invoice?.invoiceId) {
+      toast.error('Thông tin hóa đơn không hợp lệ')
+      return;
+    }
+
     setPaymentLoading(true)
     try {
       const paymentUrl = await invoiceService.handlePayment(invoice)
 
       if (paymentUrl) {
-        localStorage.setItem('orderCode', invoice.orderCode || '')
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.setItem('orderCode', invoice.orderCode || '')
+        }
         window.location.href = paymentUrl
       } else {
         toast.error('Không thể tạo link thanh toán')
@@ -257,6 +277,11 @@ const InvoiceRow = ({
   }
 
   const handlePrint = async () => {
+    if (!invoice?.invoiceId) {
+      toast.error('Thông tin hóa đơn không hợp lệ')
+      return;
+    }
+
     setPrintLoading(true)
     try {
       const pdfBlob = await invoiceService.printInvoice(invoice.invoiceId)
@@ -334,15 +359,15 @@ const InvoiceRow = ({
           </div>
           <div>
             <span className="text-gray-500">Tổng tiền:</span>
-            <div className="font-medium">{formatCurrency(invoice.totalAmount)}</div>
+            <div className="font-medium">{safeCurrency(invoice.totalAmount)}</div>
           </div>
           <div>
             <span className="text-gray-500">Đã thanh toán:</span>
-            <div className="font-medium text-green-600">{formatCurrency(invoice.paidAmount)}</div>
+            <div className="font-medium text-green-600">{safeCurrency(invoice.paidAmount)}</div>
           </div>
           <div>
             <span className="text-gray-500">Còn lại:</span>
-            <div className="font-medium text-red-600">{formatCurrency(remainingAmount)}</div>
+            <div className="font-medium text-red-600">{safeCurrency(remainingAmount)}</div>
           </div>
           <div>
             <span className="text-gray-500">Phương thức:</span>
@@ -358,8 +383,8 @@ const InvoiceRow = ({
         </div>
         
         <div className="flex items-center justify-between mt-2">
-          <div>{getTransactionTypeBadge(invoice.transactionType)}</div>
-          <div>{getStatusBadge(invoice.status)}</div>
+          <div>{getTransactionTypeBadge(invoice.transactionType || "")}</div>
+          <div>{getStatusBadge(invoice.status || "pending")}</div>
         </div>
       </div>
 
@@ -378,15 +403,15 @@ const InvoiceRow = ({
             </div>
 
             <div className="text-sm text-gray-700 w-16 sm:w-20 lg:w-24 text-right">
-              {formatCurrency(invoice.totalAmount)}
+              {safeCurrency(invoice.totalAmount)}
             </div>
 
             <div className="text-sm text-gray-700 w-16 sm:w-20 lg:w-24 text-right">
-              {formatCurrency(invoice.paidAmount)}
+              {safeCurrency(invoice.paidAmount)}
             </div>
 
             <div className="text-sm text-gray-700 w-16 sm:w-20 lg:w-24 text-right">
-              {formatCurrency(remainingAmount)}
+              {safeCurrency(remainingAmount)}
             </div>
 
             <div className="w-16 sm:w-20">
@@ -403,11 +428,11 @@ const InvoiceRow = ({
             </div>
 
             <div className="w-20 sm:w-24">
-              {getTransactionTypeBadge(invoice.transactionType)}
+              {getTransactionTypeBadge(invoice.transactionType || "")}
             </div>
 
             <div className="w-16 sm:w-20">
-              {getStatusBadge(invoice.status)}
+              {getStatusBadge(invoice.status || "pending")}
             </div>
 
             <div className="w-12 flex justify-center">
@@ -439,6 +464,11 @@ const TreatmentRecordHeader = ({
   onToggle: () => void
   formatDate: (dateString: string | null) => string
 }) => {
+  if (!group) return null;
+
+  const safeInvoices = group.invoices || [];
+  const firstInvoice = safeInvoices[0];
+
   return (
     <div
       className="bg-blue-50 p-3 sm:p-4 cursor-pointer hover:bg-blue-100 transition-colors ml-2 sm:ml-4"
@@ -454,7 +484,7 @@ const TreatmentRecordHeader = ({
             )}
             <Calendar className="h-4 w-4 text-blue-600" />
             <span className="text-sm font-medium text-blue-900 truncate">
-              Hồ sơ: {group.treatmentRecordId}
+              Hồ sơ: {group.treatmentRecordId || 'N/A'}
             </span>
           </div>
         </div>
@@ -462,32 +492,32 @@ const TreatmentRecordHeader = ({
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div className="text-right">
             <div className="text-sm font-semibold text-gray-900">
-              {formatCurrency(group.totalAmount)}
+              {safeCurrency(group.totalAmount)}
             </div>
             <div className="text-xs text-gray-500">Tổng tiền</div>
           </div>
           <div className="text-right">
             <div className="text-sm font-medium text-green-600">
-              {formatCurrency(group.paidAmount)}
+              {safeCurrency(group.paidAmount)}
             </div>
             <div className="text-xs text-gray-500">
-              {group.paymentProgress.toFixed(1)}% hoàn thành
+              {(group.paymentProgress || 0).toFixed(1)}% hoàn thành
             </div>
           </div>
           <div className="text-right">
-            <div className={`text-sm font-medium ${group.remainingAmount > 0 ? 'text-red-600' : 'text-gray-700'}`}>
-              {formatCurrency(group.remainingAmount)}
+            <div className={`text-sm font-medium ${(group.remainingAmount || 0) > 0 ? 'text-red-600' : 'text-gray-700'}`}>
+              {safeCurrency(group.remainingAmount)}
             </div>
             <div className="text-xs text-gray-500">
-              {group.remainingAmount > 0 ? 'Chưa thanh toán' : 'Hoàn tất'}
+              {(group.remainingAmount || 0) > 0 ? 'Chưa thanh toán' : 'Hoàn tất'}
             </div>
           </div>
           <div className="text-right">
             <div className="text-sm font-medium text-gray-700">
-              {group.invoices.length} hóa đơn
+              {safeInvoices.length} hóa đơn
             </div>
             <div className="text-xs text-gray-500">
-              {formatDate(group.invoices[0]?.createdAt)}
+              {firstInvoice ? formatDate(firstInvoice.createdAt) : 'N/A'}
             </div>
           </div>
         </div>
@@ -506,7 +536,7 @@ const TreatmentRecordHeader = ({
             <div className="flex items-center space-x-3 min-w-0">
               <Calendar className="h-4 w-4 text-blue-600 flex-shrink-0" />
               <span className="text-sm font-medium text-blue-900 truncate">
-                Hồ sơ điều trị: {group.treatmentRecordId}
+                Hồ sơ điều trị: {group.treatmentRecordId || 'N/A'}
               </span>
             </div>
           </div>
@@ -516,35 +546,35 @@ const TreatmentRecordHeader = ({
             
             <div className="text-right">
               <div className="text-sm font-semibold text-gray-900">
-                {formatCurrency(group.totalAmount)}
+                {safeCurrency(group.totalAmount)}
               </div>
               <div className="text-xs text-gray-500">Tổng tiền</div>
             </div>
 
             <div className="text-right">
               <div className="text-sm font-medium text-green-600">
-                {formatCurrency(group.paidAmount)}
+                {safeCurrency(group.paidAmount)}
               </div>
               <div className="text-xs text-gray-500">
-                {group.paymentProgress.toFixed(1)}% hoàn thành
+                {(group.paymentProgress || 0).toFixed(1)}% hoàn thành
               </div>
             </div>
 
             <div className="text-right">
-              <div className={`text-sm font-medium ${group.remainingAmount > 0 ? 'text-red-600' : 'text-gray-700'}`}>
-                {formatCurrency(group.remainingAmount)}
+              <div className={`text-sm font-medium ${(group.remainingAmount || 0) > 0 ? 'text-red-600' : 'text-gray-700'}`}>
+                {safeCurrency(group.remainingAmount)}
               </div>
               <div className="text-xs text-gray-500">
-                {group.remainingAmount > 0 ? 'Chưa thanh toán' : 'Hoàn tất'}
+                {(group.remainingAmount || 0) > 0 ? 'Chưa thanh toán' : 'Hoàn tất'}
               </div>
             </div>
 
             <div className="text-right">
               <div className="text-sm font-medium text-gray-700">
-                {group.invoices.length} hóa đơn
+                {safeInvoices.length} hóa đơn
               </div>
               <div className="text-xs text-gray-500">
-                {formatDate(group.invoices[0]?.createdAt)}
+                {firstInvoice ? formatDate(firstInvoice.createdAt) : 'N/A'}
               </div>
             </div>
           </div>
@@ -563,6 +593,11 @@ const PatientGroupHeader = ({
   isExpanded: boolean
   onToggle: () => void
 }) => {
+  if (!patientGroup) return null;
+
+  const safeTreatmentRecords = patientGroup.treatmentRecords || [];
+  const totalInvoices = safeTreatmentRecords.reduce((sum, record) => sum + (record?.invoices?.length || 0), 0);
+
   return (
     <div
       className="bg-blue-100 p-3 sm:p-4 cursor-pointer hover:bg-blue-200 transition-colors border-b border-blue-200"
@@ -578,7 +613,7 @@ const PatientGroupHeader = ({
             )}
             <Users className="h-5 w-5 text-blue-700 flex-shrink-0" />
             <span className="text-base font-semibold text-blue-900 truncate">
-              {patientGroup.patientName}
+              {patientGroup.patientName || 'N/A'}
             </span>
           </div>
         </div>
@@ -586,32 +621,32 @@ const PatientGroupHeader = ({
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div className="text-right">
             <div className="text-sm font-semibold text-gray-900">
-              {formatCurrency(patientGroup.totalAmount)}
+              {safeCurrency(patientGroup.totalAmount)}
             </div>
             <div className="text-xs text-gray-500">Tổng tiền</div>
           </div>
           <div className="text-right">
             <div className="text-sm font-medium text-green-600">
-              {formatCurrency(patientGroup.paidAmount)}
+              {safeCurrency(patientGroup.paidAmount)}
             </div>
             <div className="text-xs text-gray-500">
-              {patientGroup.paymentProgress.toFixed(2)}% hoàn thành
+              {(patientGroup.paymentProgress || 0).toFixed(2)}% hoàn thành
             </div>
           </div>
           <div className="text-right">
-            <div className={`text-sm font-medium ${patientGroup.remainingAmount > 0 ? 'text-red-600' : 'text-gray-700'}`}>
-              {formatCurrency(patientGroup.remainingAmount)}
+            <div className={`text-sm font-medium ${(patientGroup.remainingAmount || 0) > 0 ? 'text-red-600' : 'text-gray-700'}`}>
+              {safeCurrency(patientGroup.remainingAmount)}
             </div>
             <div className="text-xs text-gray-500">
-              {patientGroup.remainingAmount > 0 ? 'Chưa thanh toán' : 'Hoàn tất'}
+              {(patientGroup.remainingAmount || 0) > 0 ? 'Chưa thanh toán' : 'Hoàn tất'}
             </div>
           </div>
           <div className="text-right">
             <div className="text-sm font-medium text-gray-700">
-              {patientGroup.treatmentRecords.length} hồ sơ
+              {safeTreatmentRecords.length} hồ sơ
             </div>
             <div className="text-xs text-gray-500">
-              {patientGroup.treatmentRecords.reduce((sum, record) => sum + record.invoices.length, 0)} hóa đơn
+              {totalInvoices} hóa đơn
             </div>
           </div>
         </div>
@@ -630,7 +665,7 @@ const PatientGroupHeader = ({
             <div className="flex items-center space-x-3 min-w-0">
               <Users className="h-5 w-5 text-blue-700 flex-shrink-0" />
               <span className="text-base font-semibold text-blue-900 truncate">
-                {patientGroup.patientName}
+                {patientGroup.patientName || 'N/A'}
               </span>
             </div>
           </div>
@@ -640,35 +675,35 @@ const PatientGroupHeader = ({
             
             <div className="text-right">
               <div className="text-sm font-semibold text-gray-900">
-                {formatCurrency(patientGroup.totalAmount)}
+                {safeCurrency(patientGroup.totalAmount)}
               </div>
               <div className="text-xs text-gray-500">Tổng tiền</div>
             </div>
 
             <div className="text-right">
               <div className="text-sm font-medium text-green-600">
-                {formatCurrency(patientGroup.paidAmount)}
+                {safeCurrency(patientGroup.paidAmount)}
               </div>
               <div className="text-xs text-gray-500">
-                {patientGroup.paymentProgress.toFixed(2)}% hoàn thành
+                {(patientGroup.paymentProgress || 0).toFixed(2)}% hoàn thành
               </div>
             </div>
 
             <div className="text-right">
-              <div className={`text-sm font-medium ${patientGroup.remainingAmount > 0 ? 'text-red-600' : 'text-gray-700'}`}>
-                {formatCurrency(patientGroup.remainingAmount)}
+              <div className={`text-sm font-medium ${(patientGroup.remainingAmount || 0) > 0 ? 'text-red-600' : 'text-gray-700'}`}>
+                {safeCurrency(patientGroup.remainingAmount)}
               </div>
               <div className="text-xs text-gray-500">
-                {patientGroup.remainingAmount > 0 ? 'Chưa thanh toán' : 'Hoàn tất'}
+                {(patientGroup.remainingAmount || 0) > 0 ? 'Chưa thanh toán' : 'Hoàn tất'}
               </div>
             </div>
 
             <div className="text-right">
               <div className="text-sm font-medium text-gray-700">
-                {patientGroup.treatmentRecords.length} hồ sơ
+                {safeTreatmentRecords.length} hồ sơ
               </div>
               <div className="text-xs text-gray-500">
-                {patientGroup.treatmentRecords.reduce((sum, record) => sum + record.invoices.length, 0)} hóa đơn
+                {totalInvoices} hóa đơn
               </div>
             </div>
           </div>
@@ -690,12 +725,35 @@ export function InvoiceTable({
   const [expandedPatients, setExpandedPatients] = useState<Set<string>>(new Set())
   const [expandedTreatments, setExpandedTreatments] = useState<Set<string>>(new Set())
 
+  if (isLoading) {
+    return (
+      <div className="relative overflow-hidden border border-gray-200 rounded-lg shadow-sm bg-white">
+        <TableSkeleton />
+      </div>
+    )
+  }
+
+  if (!isValidArray(displayData)) {
+    return (
+      <div className="relative overflow-hidden border border-gray-200 rounded-lg shadow-sm bg-white">
+        <EmptyState />
+      </div>
+    )
+  }
+
+  // Safe data processing with null checks
   const treatmentGroups = displayData.reduce((acc, invoice) => {
-    const treatmentId = invoice.treatmentRecordId
+    if (!invoice || !invoice.treatmentRecordId) {
+      console.warn('Invalid invoice data:', invoice);
+      return acc;
+    }
+
+    const treatmentId = String(invoice.treatmentRecordId);
+    
     if (!acc[treatmentId]) {
       acc[treatmentId] = {
-        treatmentRecordId: String(treatmentId),
-        patientName: invoice.patientName,
+        treatmentRecordId: treatmentId,
+        patientName: invoice.patientName || 'N/A',
         totalAmount: 0,
         paidAmount: 0,
         remainingAmount: 0,
@@ -707,8 +765,8 @@ export function InvoiceTable({
     acc[treatmentId].invoices.push(invoice)
 
     const groupInvoices = acc[treatmentId].invoices
-    const totalAmount = Math.max(...groupInvoices.map(inv => inv.totalAmount || 0))
-    const paidAmount = groupInvoices.reduce((sum, inv) => sum + (inv.paidAmount || 0), 0)
+    const totalAmount = Math.max(...groupInvoices.map(inv => inv?.totalAmount || 0))
+    const paidAmount = groupInvoices.reduce((sum, inv) => sum + (inv?.paidAmount || 0), 0)
     const remainingAmount = totalAmount - paidAmount
     const paymentProgress = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0
 
@@ -721,7 +779,12 @@ export function InvoiceTable({
   }, {} as Record<string, GroupedInvoice>)
 
   const patientGroups = Object.values(treatmentGroups).reduce((acc, treatmentGroup) => {
+    if (!treatmentGroup || !treatmentGroup.patientName) {
+      return acc;
+    }
+
     const patientName = treatmentGroup.patientName
+    
     if (!acc[patientName]) {
       acc[patientName] = {
         patientName,
@@ -736,8 +799,8 @@ export function InvoiceTable({
     acc[patientName].treatmentRecords.push(treatmentGroup)
 
     const patientTreatments = acc[patientName].treatmentRecords
-    const totalAmount = patientTreatments.reduce((sum, record) => sum + record.totalAmount, 0)
-    const paidAmount = patientTreatments.reduce((sum, record) => sum + record.paidAmount, 0)
+    const totalAmount = patientTreatments.reduce((sum, record) => sum + (record?.totalAmount || 0), 0)
+    const paidAmount = patientTreatments.reduce((sum, record) => sum + (record?.paidAmount || 0), 0)
     const remainingAmount = totalAmount - paidAmount
     const paymentProgress = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0
 
@@ -749,9 +812,19 @@ export function InvoiceTable({
     return acc
   }, {} as Record<string, PatientGroup>)
 
-  const patients = Object.values(patientGroups)
+  const patients = Object.values(patientGroups).filter(patient => patient != null)
+
+  if (!isValidArray(patients)) {
+    return (
+      <div className="relative overflow-hidden border border-gray-200 rounded-lg shadow-sm bg-white">
+        <EmptyState />
+      </div>
+    )
+  }
 
   const togglePatient = (patientName: string) => {
+    if (!patientName) return;
+    
     const newExpanded = new Set(expandedPatients)
     if (newExpanded.has(patientName)) {
       newExpanded.delete(patientName)
@@ -762,6 +835,8 @@ export function InvoiceTable({
   }
 
   const toggleTreatment = (treatmentId: string) => {
+    if (!treatmentId) return;
+    
     const newExpanded = new Set(expandedTreatments)
     if (newExpanded.has(treatmentId)) {
       newExpanded.delete(treatmentId)
@@ -771,113 +846,117 @@ export function InvoiceTable({
     setExpandedTreatments(newExpanded)
   }
 
-  if (isLoading) {
-    return (
-      <div className="relative overflow-hidden border border-gray-200 rounded-lg shadow-sm bg-white">
-        <TableSkeleton />
-      </div>
-    )
-  }
-
-  if (displayData.length === 0) {
-    return (
-      <div className="relative overflow-hidden border border-gray-200 rounded-lg shadow-sm bg-white">
-        <EmptyState />
-      </div>
-    )
-  }
+  const totalPatientAmount = patients.reduce((sum, patient) => sum + (patient?.totalAmount || 0), 0)
+  const totalPaidAmount = patients.reduce((sum, patient) => sum + (patient?.paidAmount || 0), 0)
+  const totalRemainingAmount = patients.reduce((sum, patient) => sum + (patient?.remainingAmount || 0), 0)
+  const totalTreatmentRecords = Object.values(treatmentGroups).length
+  const totalDisplayedInvoices = displayData.length
 
   return (
     <div className="relative overflow-x-auto border border-gray-200 rounded-lg shadow-sm bg-white">
       <div className="divide-y divide-gray-200">
-        {patients.map((patientGroup) => (
-          <div key={patientGroup.patientName}>
-            <PatientGroupHeader
-              patientGroup={patientGroup}
-              isExpanded={expandedPatients.has(patientGroup.patientName)}
-              onToggle={() => togglePatient(patientGroup.patientName)}
-            />
+        {patients.map((patientGroup) => {
+          if (!patientGroup?.patientName) return null;
+          
+          return (
+            <div key={patientGroup.patientName}>
+              <PatientGroupHeader
+                patientGroup={patientGroup}
+                isExpanded={expandedPatients.has(patientGroup.patientName)}
+                onToggle={() => togglePatient(patientGroup.patientName)}
+              />
 
-            {expandedPatients.has(patientGroup.patientName) && (
-              <div className="bg-white">
-                {patientGroup.treatmentRecords.map((treatmentGroup) => (
-                  <div key={treatmentGroup.treatmentRecordId}>
-                    <TreatmentRecordHeader
-                      group={treatmentGroup}
-                      isExpanded={expandedTreatments.has(treatmentGroup.treatmentRecordId)}
-                      onToggle={() => toggleTreatment(treatmentGroup.treatmentRecordId)}
-                      formatDate={formatDate}
-                    />
+              {expandedPatients.has(patientGroup.patientName) && (
+                <div className="bg-white">
+                  {isValidArray(patientGroup.treatmentRecords) && 
+                    patientGroup.treatmentRecords.map((treatmentGroup) => {
+                      if (!treatmentGroup?.treatmentRecordId) return null;
+                      
+                      return (
+                        <div key={treatmentGroup.treatmentRecordId}>
+                          <TreatmentRecordHeader
+                            group={treatmentGroup}
+                            isExpanded={expandedTreatments.has(treatmentGroup.treatmentRecordId)}
+                            onToggle={() => toggleTreatment(treatmentGroup.treatmentRecordId)}
+                            formatDate={formatDate}
+                          />
 
-                    {expandedTreatments.has(treatmentGroup.treatmentRecordId) && (
-                      <div className="bg-white">
-                        <div className="hidden sm:block bg-gray-50 px-4 py-2 border-b border-gray-200 ml-4 sm:ml-8">
-                          <div className="min-w-[900px]">
-                            <div className="flex items-center justify-between text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              <div className="flex items-center space-x-3">
-                                <div className="w-4"></div>
-                                <span>Ngày tạo</span>
+                          {expandedTreatments.has(treatmentGroup.treatmentRecordId) && (
+                            <div className="bg-white">
+                              <div className="hidden sm:block bg-gray-50 px-4 py-2 border-b border-gray-200 ml-4 sm:ml-8">
+                                <div className="min-w-[900px]">
+                                  <div className="flex items-center justify-between text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div className="flex items-center space-x-3">
+                                      <div className="w-4"></div>
+                                      <span>Ngày tạo</span>
+                                    </div>
+                                    <div className="flex items-center space-x-4 lg:space-x-6">
+                                      <div className="w-20 lg:w-24 text-right">Mã đơn hàng</div>
+                                      <div className="w-16 sm:w-20 lg:w-24 text-right">Tổng tiền</div>
+                                      <div className="w-16 sm:w-20 lg:w-24 text-right">Thanh toán</div>
+                                      <div className="w-16 sm:w-20 lg:w-24 text-right">Còn lại</div>
+                                      <div className="w-16 sm:w-20">Phương thức</div>
+                                      <div className="w-20 sm:w-24">Loại giao dịch</div>
+                                      <div className="w-16 sm:w-20">Trạng thái</div>
+                                      <div className="w-12 text-center">Thao tác</div>
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
-                              <div className="flex items-center space-x-4 lg:space-x-6">
-                                <div className="w-20 lg:w-24 text-right">Mã đơn hàng</div>
-                                <div className="w-16 sm:w-20 lg:w-24 text-right">Tổng tiền</div>
-                                <div className="w-16 sm:w-20 lg:w-24 text-right">Thanh toán</div>
-                                <div className="w-16 sm:w-20 lg:w-24 text-right">Còn lại</div>
-                                <div className="w-16 sm:w-20">Phương thức</div>
-                                <div className="w-20 sm:w-24">Loại giao dịch</div>
-                                <div className="w-16 sm:w-20">Trạng thái</div>
-                                <div className="w-12 text-center">Thao tác</div>
+
+                              <div className="divide-y divide-gray-100">
+                                {isValidArray(treatmentGroup.invoices) &&
+                                  treatmentGroup.invoices.map((invoice) => {
+                                    if (!invoice?.invoiceId) return null;
+                                    
+                                    return (
+                                      <InvoiceRow
+                                        key={invoice.invoiceId}
+                                        invoice={invoice}
+                                        formatDate={formatDate}
+                                        getStatusBadge={getStatusBadge}
+                                        getTransactionTypeBadge={getTransactionTypeBadge}
+                                        openInvoiceDetail={openInvoiceDetail}
+                                        onUpdateInvoice={onUpdateInvoice}
+                                      />
+                                    )
+                                  })}
                               </div>
                             </div>
-                          </div>
+                          )}
                         </div>
-
-                        <div className="divide-y divide-gray-100">
-                          {treatmentGroup.invoices.map((invoice) => (
-                            <InvoiceRow
-                              key={invoice.invoiceId}
-                              invoice={invoice}
-                              formatDate={formatDate}
-                              getStatusBadge={getStatusBadge}
-                              getTransactionTypeBadge={getTransactionTypeBadge}
-                              openInvoiceDetail={openInvoiceDetail}
-                              onUpdateInvoice={onUpdateInvoice}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+                      )
+                    })}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
 
       <div className="bg-gray-50 border-t border-gray-200 px-3 sm:px-6 py-3">
         <div className="block sm:hidden">
           <div className="text-xs text-gray-600 mb-2">
             <span>
-              Tổng: {patients.length} bệnh nhân, {Object.values(treatmentGroups).length} hồ sơ, {displayData.length} hóa đơn
+              Tổng: {patients.length} bệnh nhân, {totalTreatmentRecords} hồ sơ, {totalDisplayedInvoices} hóa đơn
             </span>
           </div>
           <div className="grid grid-cols-3 gap-2 text-xs">
             <div className="text-center">
               <div className="font-medium text-gray-900">
-                {formatCurrency(patients.reduce((sum, patient) => sum + patient.totalAmount, 0))}
+                {safeCurrency(totalPatientAmount)}
               </div>
               <div className="text-gray-500">Tổng giá trị</div>
             </div>
             <div className="text-center">
               <div className="font-medium text-green-600">
-                {formatCurrency(patients.reduce((sum, patient) => sum + patient.paidAmount, 0))}
+                {safeCurrency(totalPaidAmount)}
               </div>
               <div className="text-gray-500">Đã thu</div>
             </div>
             <div className="text-center">
               <div className="font-medium text-red-600">
-                {formatCurrency(patients.reduce((sum, patient) => sum + patient.remainingAmount, 0))}
+                {safeCurrency(totalRemainingAmount)}
               </div>
               <div className="text-gray-500">Còn lại</div>
             </div>
@@ -886,23 +965,17 @@ export function InvoiceTable({
 
         <div className="hidden sm:flex justify-between items-center text-sm text-gray-600">
           <span className="truncate">
-            Tổng cộng: {patients.length} bệnh nhân ({Object.values(treatmentGroups).length} hồ sơ điều trị, {displayData.length} hóa đơn)
+            Tổng cộng: {patients.length} bệnh nhân ({totalTreatmentRecords} hồ sơ điều trị, {totalDisplayedInvoices} hóa đơn)
           </span>
           <div className="flex space-x-4 lg:space-x-6 flex-shrink-0">
             <span className="whitespace-nowrap">
-              Tổng giá trị: {formatCurrency(
-                patients.reduce((sum, patient) => sum + patient.totalAmount, 0)
-              )}
+              Tổng giá trị: {safeCurrency(totalPatientAmount)}
             </span>
             <span className="whitespace-nowrap">
-              Đã thu: {formatCurrency(
-                patients.reduce((sum, patient) => sum + patient.paidAmount, 0)
-              )}
+              Đã thu: {safeCurrency(totalPaidAmount)}
             </span>
             <span className="whitespace-nowrap">
-              Còn lại: {formatCurrency(
-                patients.reduce((sum, patient) => sum + patient.remainingAmount, 0)
-              )}
+              Còn lại: {safeCurrency(totalRemainingAmount)}
             </span>
           </div>
         </div>

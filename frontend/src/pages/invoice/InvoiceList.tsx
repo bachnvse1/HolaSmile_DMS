@@ -206,6 +206,7 @@ export default function InvoiceList() {
     const [allInvoices, setAllInvoices] = useState<Invoice[]>([])
     const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([])
     const [paginatedData, setPaginatedData] = useState<Invoice[]>([])
+    // Initialize patientList as empty array to prevent undefined errors
     const [patientList, setPatientList] = useState<Patient[]>([])
     const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
     const [isDetailOpen, setIsDetailOpen] = useState(false)
@@ -273,13 +274,16 @@ export default function InvoiceList() {
                     patientId: userInfo.roleTableId
                 })
                 setAllInvoices(invoices)
+                // For patients, we don't need the full patient list
+                setPatientList([])
             } else if (isReceptionist) {
                 const [invoices, patients] = await Promise.all([
                     invoiceService.getInvoices({}),
                     getAllPatients(),
                 ])
                 setAllInvoices(invoices)
-                setPatientList(patients)
+                // Ensure patients is an array before setting
+                setPatientList(Array.isArray(patients) ? patients : [])
             }
         } catch (error) {
             const errorMessage = axios.isAxiosError(error)
@@ -288,6 +292,8 @@ export default function InvoiceList() {
 
             toast.error(errorMessage)
             console.error("Error fetching initial data:", error)
+            // Reset patientList on error
+            setPatientList([])
         } finally {
             setIsLoading(false)
         }

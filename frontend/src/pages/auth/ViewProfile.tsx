@@ -132,7 +132,6 @@ const updateUserProfile = async (
     formDataToSend.append('avatar', avatarFile);
   }
 
-  // QUAN TRỌNG: gửi token xác nhận đổi email sau khi verify OTP
   if (changeEmailToken) {
     formDataToSend.append('changeEmailToken', changeEmailToken);
   }
@@ -613,10 +612,8 @@ export default function ViewProfile() {
     if (!otpModal.formData) return
 
     try {
-      // Lấy token xác nhận từ BE
       const changeEmailToken = await verifyEmailOTP(otpModal.email, otp)
-
-      // Gọi update và gửi kèm token
+      
       await updateUserProfile(otpModal.formData, token, selectedFile, changeEmailToken)
 
       queryClient.setQueryData(["user-profile"], otpModal.formData)

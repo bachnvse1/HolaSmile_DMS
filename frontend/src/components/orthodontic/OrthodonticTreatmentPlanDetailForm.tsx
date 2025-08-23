@@ -758,7 +758,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
                 <span className="font-medium">Giới tính:</span> {patientData?.gender === true ? 'Nam' : 'Nữ'}
               </div>
               <div>
-                <span className="font-medium">Bác sĩ phụ trách:</span> {
+                <span className="font-medium">Nha sĩ phụ trách:</span> {
                   mode === 'view' && treatmentPlan && (treatmentPlan as { dentistName?: string }).dentistName ||
                   basicData?.dentistName ||
                   'BS. Chưa xác định'
@@ -1252,7 +1252,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
                 <div><strong>Giới tính:</strong> {patientData?.gender === true ? 'Nam' : 'Nữ'}</div>
                 <div><strong>Điện thoại:</strong> {patientData?.phone || basicData?.patientInfo?.phone || 'Chưa cập nhật'}</div>
                 <div><strong>Địa chỉ:</strong> {patientData?.address || 'Chưa cập nhật'}</div>
-                <div><strong>Bác sĩ:</strong> {
+                <div><strong>Nha sĩ:</strong> {
                   mode === 'view' && treatmentPlan && (treatmentPlan as { dentistName?: string }).dentistName ||
                   basicData?.dentistName ||
                   'BS. N/A'
@@ -1377,7 +1377,7 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
                 <p>{patientData?.fullname || basicData?.patientInfo?.fullname}</p>
               </div>
               <div className="text-center">
-                <p><strong>Bác sĩ điều trị</strong></p>
+                <p><strong>Nha sĩ điều trị</strong></p>
                 <p className="mt-8">_________________</p>
                 <p>{mode === 'view' && treatmentPlan && (treatmentPlan as { dentistName?: string }).dentistName ||
                     basicData?.dentistName ||

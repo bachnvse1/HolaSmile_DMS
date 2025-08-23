@@ -273,7 +273,7 @@ export const OralSurgeryPage = () => {
             Chăm Sóc Tận Tâm Cho Các Ca Phức Tạp
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
-            Hãy tin tưởng đội ngũ bác sĩ chuyên môn cao của chúng tôi – luôn tận tâm và chính xác trong từng ca phẫu thuật.
+            Hãy tin tưởng đội ngũ Nha sĩ chuyên môn cao của chúng tôi – luôn tận tâm và chính xác trong từng ca phẫu thuật.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button onClick={() => navigate("/appointment-booking")} className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center">

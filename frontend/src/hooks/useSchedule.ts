@@ -38,7 +38,7 @@ const shiftHourMap: Record<string, string> = {
   evening: "17:00:00",
 };
 
-// Hook để lấy lịch làm việc của tất cả bác sĩ
+// Hook để lấy lịch làm việc của tất cả Nha sĩ
 export const useAllDentistSchedules = () => {
   const user = useAuth()
   return useQuery({
@@ -83,7 +83,7 @@ export const useAllDentistSchedules = () => {
   });
 };
 
-// Hook để lấy lịch làm việc của một bác sĩ cụ thể
+// Hook để lấy lịch làm việc của một Nha sĩ cụ thể
 export const useDentistSchedule = (dentistId?: number) => {
   return useQuery({
     queryKey: ["schedules", "dentist", dentistId],
@@ -123,7 +123,7 @@ export const useDentistSchedule = (dentistId?: number) => {
   });
 };
 
-// Hook để tạo lịch làm việc mới cho bác sĩ
+// Hook để tạo lịch làm việc mới cho Nha sĩ
 export const useCreateSchedule = () => {
   const queryClient = useQueryClient();
 

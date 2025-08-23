@@ -154,7 +154,7 @@ const TreatmentRecordDetail: React.FC<TreatmentRecordDetailProps> = ({
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <User className="h-5 w-5 text-blue-600" />
-                                    Bác sĩ điều trị
+                                    Nha sĩ điều trị
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
