@@ -8,20 +8,14 @@ import { useUserProfile } from '../../hooks/useUserProfile';
 export const PatientBookingPage = () => {
   const { fullName } = useAuth();
   
-  // Fetch user profile để lấy email với custom hook
   const { data: userProfile, isLoading, error } = useUserProfile();
-
-  // Debug user profile data
-  console.log('User Profile Data:', userProfile);
-  console.log('Loading:', isLoading);
-  console.log('Error:', error);
 
   const userData = TokenUtils.getUserData();
   const token = userData.token;
-  const userInfo = token ? TokenUtils.decodeToken(token) : null;  // Fallback data khi không fetch được userProfile
+  const userInfo = token ? TokenUtils.decodeToken(token) : null;  
   const prefilledData = {
-    fullName: fullName || userProfile?.name || '',
-    email: userProfile?.email || '', // Will be empty if API fails
+    fullName: fullName || userProfile?.fullname || '',
+    email: userProfile?.email || '', 
     phoneNumber: userInfo?.username || userProfile?.phone || '',
     medicalIssue: ''
   };
@@ -137,7 +131,7 @@ export const PatientBookingPage = () => {
                   <div className="space-y-3">
                     <div>
                       <span className="text-sm font-medium text-gray-600">Hotline:</span>
-                      <p className="font-semibold text-blue-600">0941-120-015</p>
+                      <p className="font-semibold text-blue-600">0333-538-991</p>
                     </div>
                     <div>
                       <span className="text-sm font-medium text-gray-600">Email:</span>

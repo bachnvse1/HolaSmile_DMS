@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { ConversationList } from '@/components/chat/ConversationList';
 import { ChatWindow } from '@/components/chat/ChatWindow';
@@ -7,6 +7,7 @@ import { usePatientConversations } from '@/hooks/chat/usePatientConversations';
 import type { ConversationUser } from '@/hooks/chat/useChatConversations';
 import { StaffLayout } from '@/layouts/staff';
 import { useUserInfo } from '@/hooks/useUserInfo';
+import { PatientLayout } from '@/layouts/patient';
 
 const PatientConsultationPage: React.FC = () => {
   const { role, userId } = useAuth();
@@ -30,21 +31,28 @@ const PatientConsultationPage: React.FC = () => {
     loading,
     markAsRead: markConversationAsRead,
     loadConversationData,
-    totalCount,
     totalUnreadCount
   } = isStaff ? staffHook : patientHook;
 
-  // Filter conversations for patients (staff already filtered in hook)
   const filteredConversations = useMemo(() => {
     if (role === 'Patient') {
-      // Patient sees staff members
       return rawConversations.filter(conv => STAFF_ROLES.includes(conv.role));
     } else if (isStaff) {
-      // Staff sees patients (already filtered in usePatientConversations)
-      return rawConversations;
+      if (filters.searchTerm && filters.searchTerm.trim()) {
+        return rawConversations.filter(conv => conv.role === 'Patient');
+      } else {
+        // Show patients with existing conversations/messages
+        return rawConversations.filter(cv => 
+          cv.role === 'Patient' && (
+            cv.lastMessage || 
+            cv.unreadCount > 0 || 
+            cv.lastMessageTime
+          )
+        );
+      }
     }
     return [];
-  }, [rawConversations, role, STAFF_ROLES, isStaff]);
+  }, [rawConversations, role, STAFF_ROLES, isStaff, filters.searchTerm]);
 
   // For consistency, use conversations directly from hook instead of useUnreadMessages
   const sortedConversations = useMemo(() => {
@@ -65,16 +73,20 @@ const PatientConsultationPage: React.FC = () => {
     });
   }, [filteredConversations]);
 
-  // Handle conversation selection
+  // Handle conversation selection with pre-loading optimization
   const handleSelectConversation = async (conversation: ConversationUser) => {
     setSelectedConversation(conversation);
     setShowMobileChat(true);
     
-    // Mark messages as read
-    markConversationAsRead(conversation.userId);
-    
-    // Load conversation data
-    await loadConversationData(conversation.userId);
+    const loadData = async () => {
+      try {
+        markConversationAsRead(conversation.userId);
+        await loadConversationData(conversation.userId);
+      } catch (error) {
+        console.error('Error loading conversation data:', error);
+      }
+    };
+    loadData();
   };
 
   // Handle back from mobile chat
@@ -136,8 +148,7 @@ const PatientConsultationPage: React.FC = () => {
   const patientsWithMessages = sortedConversations.filter(conv => conv.lastMessage).length;
   const patientsWithoutMessages = totalPatients - patientsWithMessages;
 
-  return (
-    <StaffLayout userInfo={userInfo}>
+   const PageContent = () => (
       <div className="min-h-screen bg-gray-50">
         {/* Mobile: Show chat list or chat window */}
         <div className="lg:hidden">
@@ -272,8 +283,20 @@ const PatientConsultationPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </StaffLayout>
   );
+  if (role === 'Patient') {
+    return (
+      <PatientLayout userInfo={userInfo}>
+        <PageContent />
+      </PatientLayout>
+    );
+  } else {
+    return (
+      <StaffLayout userInfo={userInfo}>
+        <PageContent />
+      </StaffLayout>
+    );
+  }
 };
 
 export default PatientConsultationPage;

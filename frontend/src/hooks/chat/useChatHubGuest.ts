@@ -44,12 +44,8 @@ export function useChatHubGuest(guestId: string) {
       .then(() => {
       })
       .catch(err => {
-        console.error('❌ SignalR failed to connect:', err);
+        console.error('SignalR connection failed:', err);
       });
-
-    connection.onclose(err => {
-      console.warn('⚠️ SignalR disconnected:', err);
-    });
 
     return () => {
       if (connection.state === signalR.HubConnectionState.Connected || connection.state === signalR.HubConnectionState.Connecting) {
@@ -63,7 +59,6 @@ export function useChatHubGuest(guestId: string) {
 
   const sendMessage = (message: string) => {
     if (connectionRef.current?.state !== signalR.HubConnectionState.Connected) {
-      console.warn('⚠️ SignalR not connected yet');
       return;
     }
 
@@ -72,7 +67,7 @@ export function useChatHubGuest(guestId: string) {
       .then(() => {
       })
       .catch(err => {
-        console.error('❌ Failed to send message via SignalR:', err);
+        console.error(' Failed to send message via SignalR:', err);
       });
   };
 
@@ -87,7 +82,7 @@ export function useChatHubGuest(guestId: string) {
       });
       return res.data || [];
     } catch (err) {
-      console.error('❌ Không thể tải lịch sử chat:', err);
+      console.error('Không thể tải lịch sử chat:', err);
       return [];
     }
   }, [guestId]);

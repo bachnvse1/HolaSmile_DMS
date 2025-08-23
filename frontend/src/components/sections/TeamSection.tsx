@@ -164,6 +164,7 @@ export const TeamSection = () => {
                 <button
                   onClick={prevSlide}
                   className="bg-white shadow-lg rounded-full p-3 transition-all duration-200 hover:scale-110 hover:shadow-xl border border-gray-200"
+                  title='Trước'
                 >
                   <ChevronLeft className="h-5 w-5 text-gray-600" />
                 </button>
@@ -177,6 +178,7 @@ export const TeamSection = () => {
                       className={`w-3 h-3 rounded-full transition-all duration-200 ${
                         i === currentSlide ? 'bg-blue-600' : 'bg-gray-300 hover:bg-gray-400'
                       }`}
+                      title='Chọn Slide'
                     />
                   ))}
                 </div>
@@ -185,6 +187,7 @@ export const TeamSection = () => {
                 <button
                   onClick={nextSlide}
                   className="bg-white shadow-lg rounded-full p-3 transition-all duration-200 hover:scale-110 hover:shadow-xl border border-gray-200"
+                  title='Tiếp'
                 >
                   <ChevronRight className="h-5 w-5 text-gray-600" />
                 </button>
@@ -217,7 +220,7 @@ export const TeamSection = () => {
 
       {/* Schedule Modal */}
       {showScheduleModal && selectedDentist && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden mx-4">
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-purple-600 text-white p-6">
@@ -239,6 +242,7 @@ export const TeamSection = () => {
                     setSelectedDentist(null);
                   }}
                   className="text-white/80 hover:text-white hover:bg-white/20 transition-all duration-200 p-2 rounded-full"
+                  title='Đóng'
                 >
                   <X className="h-6 w-6" />
                 </button>

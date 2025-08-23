@@ -38,7 +38,7 @@ export const usePatientConversations = () => {
   const { userId } = useAuth();
   const { messages: realtimeMessages, fetchChatHistory } = useChatHub();
   
-  // 🔥 Use useUnreadMessages hook instead of managing unread counts manually
+  // Use useUnreadMessages hook instead of managing unread counts manually
   const { 
     getUnreadCount, 
     getTotalUnreadCount, 
@@ -56,7 +56,7 @@ export const usePatientConversations = () => {
     roleFilter: 'all'
   });
 
-  // 🔥 Refresh unread counts when userId changes (F5, login, etc.)
+  // Refresh unread counts when userId changes (F5, login, etc.)
   useEffect(() => {
     if (userId) {
       refreshUnreadCounts();
@@ -207,7 +207,7 @@ export const usePatientConversations = () => {
     return () => clearTimeout(timer);
   }, [users, userId, fetchChatHistory, hasLoadedInitialConversations, conversationHistory]);
 
-  // 🔥 Refresh unread counts when new realtime messages arrive
+  // Refresh unread counts when new realtime messages arrive
   useEffect(() => {
     if (!userId || realtimeMessages.length === 0) return;
     
@@ -250,7 +250,7 @@ export const usePatientConversations = () => {
       
       const lastMessage = uniqueMessages[uniqueMessages.length - 1];
       
-      // 🔥 Get unread count from useUnreadMessages hook
+      // Get unread count from useUnreadMessages hook
       const unreadCount = getUnreadCount(user.userId);
       
       // Include all patients - HIỂN THỊ TẤT CẢ PATIENTS
@@ -321,7 +321,7 @@ export const usePatientConversations = () => {
     }
   }, [hasMore, loading]);
 
-  // 🔥 Mark conversation as read - use useUnreadMessages hook
+  // Mark conversation as read - use useUnreadMessages hook
   const markAsRead = useCallback(async (otherUserId: string) => {
     if (!userId) return;
     
@@ -369,7 +369,7 @@ export const usePatientConversations = () => {
     }
   }, [conversationHistory, userId]);
 
-  // 🔥 Count total unread messages using useUnreadMessages hook
+  // Count total unread messages using useUnreadMessages hook
   const totalUnreadCount = useMemo(() => {
     return getTotalUnreadCount();
   }, [getTotalUnreadCount]);

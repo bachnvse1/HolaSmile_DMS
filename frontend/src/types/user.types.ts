@@ -64,8 +64,8 @@ export type RoleSpecificData =
 // Role mapping type
 export type UserRole = 'Patient' | 'Administrator' | 'Owner' | 'Receptionist' | 'Assistant' | 'Dentist';
 
-// Enhanced user interface with role-specific data
-export interface EnhancedUserInfo {
+// user interface with role-specific data
+export interface UserInfo {
   // Base user info
   id: string;
   email: string;
@@ -77,9 +77,8 @@ export interface EnhancedUserInfo {
   // Role-specific info
   roleId: string;
   roleData: RoleSpecificData;
-  
-  // Common fields that might be in role-specific tables
-  name: string;
+
+  fullname: string;
   phone?: string;
   avatar?: string;
 }
@@ -89,11 +88,11 @@ export interface LoginApiResponse {
   token: string;
   refreshToken?: string;
   expiresIn: number;
-  user: EnhancedUserInfo;
+  user: UserInfo;
 }
 
 export interface UserProfileResponse {
-  user: EnhancedUserInfo;
+  user: UserInfo;
   permissions: string[];
   lastLogin: string;
 }

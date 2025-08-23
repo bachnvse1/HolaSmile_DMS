@@ -37,7 +37,7 @@ interface MenuItem {
   children?: MenuItem[];
   roles: string[];
   element?: React.ReactNode;
-  unreadCount?: number; 
+  unreadCount?: number;
 }
 
 interface StaffSidebarProps {
@@ -63,13 +63,13 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
   const { getTotalUnreadCount, refreshUnreadCounts, unreadCounts } = useUnreadMessages(userId);
   const { isConnected, messages } = useChatHub();
 
-  const { conversations } = useChatConversations(); 
+  const { conversations } = useChatConversations();
   const messageStats = useMemo(() => {
     if (!conversations || !unreadCounts || unreadCounts.length === 0) {
       return {
-        internal: 0,          
-        patientConsultation: 0, 
-        guestConsultation: 0  
+        internal: 0,
+        patientConsultation: 0,
+        guestConsultation: 0
       };
     }
 
@@ -116,7 +116,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
     if (lastMessage.receiverId === userId && lastMessage.senderId !== userId) {
       const timer = setTimeout(() => {
         refreshUnreadCounts();
-      }, 1000); 
+      }, 1000);
 
       return () => clearTimeout(timer);
     }
@@ -141,7 +141,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
   const totalUnreadCount = getTotalUnreadCount();
 
 
-  const menuItems: MenuItem[] = [
+  const menuItems: MenuItem[] = useMemo(() => [
     {
       id: 'dashboard',
       label: 'Tổng Quan',
@@ -183,7 +183,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           icon: <Users2 className="h-4 w-4" />,
           path: '/messages/internal',
           roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist'],
-          unreadCount: messageStats.internal 
+          unreadCount: messageStats.internal
         },
         {
           id: 'messages-patient-consultation',
@@ -199,7 +199,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           icon: <Phone className="h-4 w-4" />,
           path: '/messages/guest-consultation',
           roles: ['Receptionist'],
-          unreadCount: messageStats.guestConsultation 
+          unreadCount: messageStats.guestConsultation
         }
       ]
     },
@@ -324,7 +324,52 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
         }
       ]
     }
-  ];
+  ], [messageStats]);
+
+  useEffect(() => {
+    const savedExpandedItems = localStorage.getItem('sidebar-expanded-items');
+    if (savedExpandedItems) {
+      try {
+        const parsed = JSON.parse(savedExpandedItems);
+        if (Array.isArray(parsed)) {
+          setExpandedItems(parsed);
+        }
+      } catch (error) {
+        console.error('Error parsing saved sidebar state:', error);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('sidebar-expanded-items', JSON.stringify(expandedItems));
+  }, [expandedItems]);
+
+  useEffect(() => {
+    const currentPath = location.pathname;
+
+    const findParentForPath = (): string | null => {
+      for (const item of menuItems) {
+        if (item.children) {
+          for (const child of item.children) {
+            if (child.path && (currentPath === child.path || currentPath.startsWith(child.path + '/'))) {
+              return item.id;
+            }
+          }
+        }
+      }
+      return null;
+    };
+
+    const parentId = findParentForPath();
+    if (parentId && !expandedItems.includes(parentId)) {
+      setExpandedItems(prev => {
+        if (!prev.includes(parentId)) {
+          return [...prev, parentId];
+        }
+        return prev;
+      });
+    }
+  }, [location.pathname, expandedItems, menuItems]);
 
   const toggleExpand = (itemId: string) => {
     setExpandedItems(prev =>
@@ -496,8 +541,8 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
         </div>
 
         {/* Navigation - Scrollable */}
-        <nav className="flex-1 overflow-y-auto overflow-x-hidden">
-          <div className="overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div >
             {menuItems.map(item => renderMenuItem(item))}
 
             {/* Expand button when collapsed (non-mobile) */}

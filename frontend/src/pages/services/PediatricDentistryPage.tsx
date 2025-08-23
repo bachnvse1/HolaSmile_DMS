@@ -100,7 +100,7 @@ export const PediatricDentistryPage = () => {
                   Đặt lịch khám vui vẻ
                 </button>
                 <button className="border-2 border-green-500 text-green-600 px-8 py-4 rounded-lg font-semibold hover:bg-green-50 transition-colors">
-                  Gọi +84 (09) 41-120-015
+                  Gọi +84 (03) 33-538-991
                 </button>
               </div>
             </div>

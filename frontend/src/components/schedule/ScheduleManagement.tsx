@@ -41,8 +41,8 @@ export const ScheduleManagement: React.FC = () => {
               </CardTitle>
               <CardDescription>
                 {isDentist
-                  ? 'Xem lịch làm việc của bạn và trạng thái phê duyệt'
-                  : 'Xem lịch làm việc đã được phê duyệt của tất cả Nha sĩ trong phòng khám'}
+                  ? 'Xem lịch làm việc đã được phê duyệt của bạn'
+                  : 'Xem lịch làm việc đã được phê duyệt của tất cả nha sĩ trong phòng khám'}
               </CardDescription>
             </CardHeader>
             <CardContent>

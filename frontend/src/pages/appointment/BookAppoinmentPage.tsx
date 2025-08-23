@@ -42,7 +42,7 @@ export const BookAppointmentPage = () => {
                     <Phone className="h-5 w-5 text-blue-600 mt-1 mr-3 flex-shrink-0" />
                     <div>
                       <p className="font-semibold text-gray-900">Hotline:</p>
-                      <p className="text-gray-600">+84 (09) 41-120-015</p>
+                      <p className="text-gray-600">+84 (03) 33-538-991</p>
                     </div>
                   </div>
                   <div className="flex items-start">

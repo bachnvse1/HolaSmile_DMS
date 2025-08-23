@@ -217,7 +217,7 @@ export const OralSurgeryPage = () => {
                   Nếu gặp bất kỳ triệu chứng nào đáng lo ngại, hãy liên hệ với chúng tôi ngay lập tức.
                 </p>
                 <button className="bg-red-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors">
-                  +84 (09) 41-120-015
+                  +84 (03) 33-538-991
                 </button>
               </div>
             </div>
