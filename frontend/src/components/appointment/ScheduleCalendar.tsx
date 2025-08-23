@@ -41,9 +41,27 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
   // Kiểm tra xem một time slot có khả dụng hay không
   const checkTimeSlotAvailability = (dateString: string, period: 'morning' | 'afternoon' | 'evening'): boolean => {
     const isAvailableInFrontend = isTimeSlotAvailable(dentist.schedule, dateString, period);
-    return isAvailableInFrontend;
-  };
+    if (!isAvailableInFrontend) {
+      return false;
+    }
 
+    const now = new Date();
+    let minAllowedTime: Date;
+    switch (period) {
+      case 'morning':
+        minAllowedTime = new Date(dateString + 'T11:00:00');
+        break;
+      case 'afternoon':
+        minAllowedTime = new Date(dateString + 'T15:00:00');
+        break;
+      case 'evening':
+        minAllowedTime = new Date(dateString + 'T20:00:00');
+        break;
+      default:
+        minAllowedTime = new Date(dateString + 'T11:00:00');
+    }
+    return now < minAllowedTime;
+  };
   return (
     <div className="mb-8">
       <div className="flex justify-between items-center mb-6">
@@ -83,8 +101,8 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
               <div
                 key={getDateString(date)}
                 className={`text-center p-3 rounded-xl border transition-all ${isToday(date)
-                    ? 'bg-blue-100 border-blue-300 text-blue-900'
-                    : 'bg-white border-gray-200'
+                  ? 'bg-blue-100 border-blue-300 text-blue-900'
+                  : 'bg-white border-gray-200'
                   }`}
               >
                 <div className="text-xs font-medium text-gray-600">
@@ -117,20 +135,20 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
 
                 return (
                   <button
-                    key={`${dateString}-${slot.period}`} 
+                    key={`${dateString}-${slot.period}`}
                     onClick={() => {
                       if (canInteract) {
                         onDateSelect(dateString, slot.period);
                       }
                     }}
-                    disabled={!canInteract} 
+                    disabled={!canInteract}
                     className={`p-3 rounded-xl font-medium transition-all transform hover:scale-105 ${isAvailable
-                        ? isSelected
-                          ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg border-2 border-green-400'
-                          : mode === 'book' && canBookAppointment
-                            ? 'bg-gradient-to-br from-green-100 to-emerald-100 text-green-800 hover:from-green-200 hover:to-emerald-200 border-2 border-green-200 cursor-pointer'
-                            : 'bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-800 border-2 border-blue-200'
-                        : 'bg-gray-100 text-gray-400 cursor-not-allowed border-2 border-gray-200'
+                      ? isSelected
+                        ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg border-2 border-green-400'
+                        : mode === 'book' && canBookAppointment
+                          ? 'bg-gradient-to-br from-green-100 to-emerald-100 text-green-800 hover:from-green-200 hover:to-emerald-200 border-2 border-green-200 cursor-pointer'
+                          : 'bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-800 border-2 border-blue-200'
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed border-2 border-gray-200'
                       }`}
                   >
                     <div className="text-xs">
@@ -157,8 +175,8 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
                   <div
                     key={getDateString(date)}
                     className={`text-center p-2 rounded-xl border transition-all min-w-[80px] ${isToday(date)
-                        ? 'bg-blue-100 border-blue-300 text-blue-900'
-                        : 'bg-white border-gray-200'
+                      ? 'bg-blue-100 border-blue-300 text-blue-900'
+                      : 'bg-white border-gray-200'
                       }`}
                   >
                     <div className="text-xs font-medium text-gray-600">
@@ -191,20 +209,20 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
 
                     return (
                       <button
-                        key={`${dateString}-${slot.period}`} 
+                        key={`${dateString}-${slot.period}`}
                         onClick={() => {
                           if (canInteract) {
                             onDateSelect(dateString, slot.period);
                           }
                         }}
-                        disabled={!canInteract} 
+                        disabled={!canInteract}
                         className={`p-2 rounded-xl font-medium transition-all min-w-[80px] ${isAvailable
-                            ? isSelected
-                              ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg border-2 border-green-400'
-                              : mode === 'book' && canBookAppointment
-                                ? 'bg-gradient-to-br from-green-100 to-emerald-100 text-green-800 hover:from-green-200 hover:to-emerald-200 border-2 border-green-200 cursor-pointer'
-                                : 'bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-800 border-2 border-blue-200'
-                            : 'bg-gray-100 text-gray-400 cursor-not-allowed border-2 border-gray-200'
+                          ? isSelected
+                            ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg border-2 border-green-400'
+                            : mode === 'book' && canBookAppointment
+                              ? 'bg-gradient-to-br from-green-100 to-emerald-100 text-green-800 hover:from-green-200 hover:to-emerald-200 border-2 border-green-200 cursor-pointer'
+                              : 'bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-800 border-2 border-blue-200'
+                          : 'bg-gray-100 text-gray-400 cursor-not-allowed border-2 border-gray-200'
                           }`}
                       >
                         <div className="text-xs">

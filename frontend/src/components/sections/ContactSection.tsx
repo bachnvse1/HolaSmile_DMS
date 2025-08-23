@@ -88,7 +88,7 @@ export const ContactSection = () => {
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-1">Điện thoại</h4>
-                  <p className="text-gray-600">+84 (09) 41-120-015</p>
+                  <p className="text-gray-600">+84 (03) 33-538-991</p>
                 </div>
               </div>
 
@@ -122,7 +122,7 @@ export const ContactSection = () => {
               <h4 className="font-semibold text-red-900 mb-2">Số Điện Thoại Khẩn Cấp</h4>
               <p className="text-red-700 text-sm">
                 Trong trường hợp khẩn cấp nha khoa ngoài giờ làm việc, vui lòng gọi:
-                <span className="font-semibold"> +84 (09) 41-120-015</span>
+                <span className="font-semibold">+84 (03) 33-538-991</span>
               </p>
             </div>
           </div>
@@ -180,7 +180,7 @@ export const ContactSection = () => {
                     value={formData.phone}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                    placeholder="(094) 123-4567"
+                    placeholder="0841234567"
                   />
                 </div>
                 

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Bell } from "lucide-react";
 import { createNotificationConnection } from "@/services/notificationHub";
-import { toast } from "react-toastify";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { TokenUtils } from "@/utils/tokenUtils";
@@ -163,6 +162,28 @@ export function NotificationButton() {
     setHasUnread(unreadLeft.length > 0);
   };
 
+    const handleMarkAllAsRead = async (): Promise<void> => {
+    const token = localStorage.getItem("token") || "";
+    const userId = TokenUtils.getUserIdFromToken(token);
+    if (!token || !userId) return;
+    try {
+      await axios.put(
+        `${import.meta.env.VITE_API_BASE_URL}/notifications/mark-all-as-read/${userId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "true"
+          },
+        }
+      );
+      setNotifications((prev: NotificationDto[]) => prev.map((n: NotificationDto) => ({ ...n, isRead: true })));
+      setHasUnread(false);
+    } catch {
+      toast.error("Không thể đánh dấu tất cả đã đọc");
+    }
+  };
+
   return (
     <div className="relative inline-block text-left">
       <audio ref={audioRef} src="/sound/inflicted-601.ogg" preload="auto" />
@@ -189,32 +210,85 @@ export function NotificationButton() {
       </button>
 
       {showList && (
-        <div className="absolute right-0 mt-2 w-96 max-w-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
-          <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
-            {notifications.length === 0 ? (
-              <div className="p-4 text-sm text-gray-500 dark:text-gray-400 text-center">Không có thông báo.</div>
-            ) : (
-              notifications.map((n) => (
-                <div
-                  key={n.notificationId}
-                  onClick={() => handleNotificationClick(n)}
-                  className={`p-4 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-all ${
-                    !n.isRead
-                      ? 'bg-blue-50 dark:bg-blue-950 border-l-4 border-blue-500'
-                      : 'opacity-60'
-                  }`}
-
+        <>
+          {/* Mobile Top Sheet */}
+          <div className="fixed inset-x-0 top-0 z-50 sm:hidden bg-white dark:bg-gray-900 rounded-b-2xl shadow-2xl border-b border-gray-200 dark:border-gray-700 animate-slide-down" style={{ minWidth: '0' }}>
+            <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-gray-100 dark:border-gray-800">
+              <span className="font-bold text-lg text-gray-800 dark:text-gray-100">Thông báo</span>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleMarkAllAsRead}
+                  className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900 border border-blue-300"
+                  disabled={notifications.every(n => n.isRead)}
                 >
-                  <div className="font-semibold text-gray-800 dark:text-gray-100">{n.title}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">{n.message}</div>
-                  <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                    {new Date(n.createdAt).toLocaleString()}
+                  Đánh dấu tất cả đã đọc
+                </button>
+                <button onClick={() => setShowList(false)} className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1 rounded-full">
+                  <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+            </div>
+            <div className="max-h-[60vh] overflow-y-auto custom-scrollbar px-2 pb-3">
+              {notifications.length === 0 ? (
+                <div className="py-8 text-sm text-gray-500 dark:text-gray-400 text-center">Không có thông báo.</div>
+              ) : (
+                notifications.map((n) => (
+                  <div
+                    key={n.notificationId}
+                    onClick={() => handleNotificationClick(n)}
+                    className={`mb-2 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-all ${
+                      !n.isRead
+                        ? 'bg-blue-50 dark:bg-blue-950 border-l-4 border-blue-500'
+                        : 'opacity-60'
+                    }`}
+                  >
+                    <div className="font-semibold text-gray-800 dark:text-gray-100 text-base mb-1">{n.title}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300 mb-1 line-clamp-2">{n.message}</div>
+                    <div className="text-xs text-gray-400 dark:text-gray-500">{new Date(n.createdAt).toLocaleString()}</div>
                   </div>
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
           </div>
-        </div>
+
+          {/* Desktop Dropdown */}
+          <div
+            className="absolute sm:right-0 sm:left-auto left-0 right-0 mt-2 sm:w-96 sm:max-w-sm w-full max-w-xs bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden hidden sm:block"
+            style={{ minWidth: '0' }}
+          >
+            <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-gray-100 dark:border-gray-800">
+              <span className="font-bold text-lg text-gray-800 dark:text-gray-100">Thông báo</span>
+              <button
+                onClick={handleMarkAllAsRead}
+                className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900 border border-blue-300"
+                disabled={notifications.every(n => n.isRead)}
+              >
+                Đánh dấu tất cả đã đọc
+              </button>
+            </div>
+            <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+              {notifications.length === 0 ? (
+                <div className="p-4 text-sm text-gray-500 dark:text-gray-400 text-center">Không có thông báo.</div>
+              ) : (
+                notifications.map((n) => (
+                  <div
+                    key={n.notificationId}
+                    onClick={() => handleNotificationClick(n)}
+                    className={`p-4 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-all ${
+                      !n.isRead
+                        ? 'bg-blue-50 dark:bg-blue-950 border-l-4 border-blue-500'
+                        : 'opacity-60'
+                    }`}
+                  >
+                    <div className="font-semibold text-gray-800 dark:text-gray-100">{n.title}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">{n.message}</div>
+                    <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">{new Date(n.createdAt).toLocaleString()}</div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

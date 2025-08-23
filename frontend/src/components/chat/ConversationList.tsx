@@ -209,6 +209,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   showFilters = false
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Sort conversations: unread first, then by recent activity, then alphabetically
   const sortedConversations = React.useMemo(() => {
@@ -249,6 +250,12 @@ export const ConversationList: React.FC<ConversationListProps> = ({
 
   const unreadCount = conversations.filter(conv => conv.unreadCount > 0).length;
 
+  // Simple direct search handler without local state complications
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    onFiltersChange({ searchTerm: value });
+  }, [onFiltersChange]);
+
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-gray-50 to-gray-100">
       {/* Header */}
@@ -274,10 +281,11 @@ export const ConversationList: React.FC<ConversationListProps> = ({
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
+            ref={searchInputRef}
             type="text"
             placeholder="Tìm kiếm theo tên, số điện thoại..."
             value={filters.searchTerm}
-            onChange={(e) => onFiltersChange({ searchTerm: e.target.value })}
+            onChange={handleSearchChange}
             className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
           />
         </div>

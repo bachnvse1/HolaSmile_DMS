@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { useNavigate, Link } from "react-router";
+import { Link } from "react-router";
 import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowLeft } from "lucide-react";
 import { AuthService } from "../../services/AuthService";
 import { TokenUtils } from "../../utils/tokenUtils";
@@ -11,7 +11,6 @@ export function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const navigate = useNavigate();
 
   const formik = useFormik({
     initialValues: {
@@ -42,23 +41,12 @@ export function Login() {
         const loginResult = await AuthService.login(values.email, values.password);
 
         if (loginResult.success && loginResult.token) {
-          const role = TokenUtils.getRoleFromToken(loginResult.token);
           const fullName = TokenUtils.getFullNameFromToken(loginResult.token);
           toast.success(`Đăng nhập thành công! Xin chào ${fullName}`, {
             position: "top-right",
             autoClose: 3000,
           });
-          if (role === "Patient") {
-            navigate("/patient/appointments");
-          } else if (role && ["Administrator", "Receptionist", "Assistant", "Dentist"].includes(role)) {
-            navigate("/appointments");
-          } else if (role === "Owner") {
-            navigate("/dashboard");
-          }
-          else {
-            navigate("/");
-          }
-
+        
           localStorage.setItem("token", loginResult.token);
         } else {
           setApiError("Đăng nhập thất bại. Vui lòng thử lại.");

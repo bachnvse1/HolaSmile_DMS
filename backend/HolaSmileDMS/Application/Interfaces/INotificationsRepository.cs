@@ -7,6 +7,7 @@
         System.Threading.Tasks.Task AddAsync(Notification notification, CancellationToken ct);
 
         System.Threading.Tasks.Task MarkAsSentAsync(int notificationId, CancellationToken ct);
+        System.Threading.Tasks.Task MarkAllAsSentAsync(int userId, CancellationToken ct);
 
         System.Threading.Tasks.Task SendNotificationAsync(Notification notification, CancellationToken ct);
         Task<int> CountUnreadNotificationsAsync(int userId, CancellationToken cancellationToken);

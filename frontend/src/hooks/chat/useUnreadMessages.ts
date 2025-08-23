@@ -10,7 +10,7 @@ export const useUnreadMessages = (userId: string | null) => {
   const [unreadCounts, setUnreadCounts] = useState<UnreadCount[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // 🔥 Fetch unread counts từ API với force refresh option
+  // Fetch unread counts từ API với force refresh option
   const fetchUnreadCounts = useCallback(async (forceRefresh = false) => {
     if (!userId) {
       setUnreadCounts([]);
@@ -20,7 +20,7 @@ export const useUnreadMessages = (userId: string | null) => {
     try {
       setLoading(true);
       
-      // 🔥 Add timestamp để force refresh cache
+      // Add timestamp để force refresh cache
       const params: any = { userId };
       if (forceRefresh) {
         params._t = Date.now();
@@ -32,7 +32,6 @@ export const useUnreadMessages = (userId: string | null) => {
       });
       
       if (response.data) {
-        console.log('🔥 Fetched unread counts from API:', response.data);
         setUnreadCounts(response.data || []);
       } else {
         console.error('Failed to fetch unread counts');
@@ -46,7 +45,7 @@ export const useUnreadMessages = (userId: string | null) => {
     }
   }, [userId]);
 
-  // 🔥 Auto refresh khi userId thay đổi (login/logout/F5)
+  // Auto refresh khi userId thay đổi (login/logout/F5)
   useEffect(() => {
     if (userId) {
       fetchUnreadCounts(true); // Force refresh on userId change
@@ -112,7 +111,7 @@ export const useUnreadMessages = (userId: string | null) => {
     return unreadCounts.reduce((total, count) => total + count.unreadCount, 0);
   }, [unreadCounts]);
 
-  // 🔥 Manual refresh function
+  // Manual refresh function
   const refreshUnreadCounts = useCallback(() => {
     return fetchUnreadCounts(true);
   }, [fetchUnreadCounts]);
@@ -124,7 +123,7 @@ export const useUnreadMessages = (userId: string | null) => {
     markConversationAsRead,
     getUnreadCount,
     getTotalUnreadCount,
-    refreshUnreadCounts, // 🔥 Export refresh function
+    refreshUnreadCounts, 
     clearAllUnreadCounts: () => setUnreadCounts([])
   };
 };

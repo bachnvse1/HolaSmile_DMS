@@ -40,7 +40,7 @@ export const AppointmentStep1: React.FC<AppointmentStep1Props> = ({ form, onSubm
 
   return (
     <div className="max-w-lg mx-auto">
-      <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
+      <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 min-w-2md">
         <div className="text-center mb-8">
           <div className="bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
             <User className="h-10 w-10 text-blue-600" />
@@ -113,16 +113,16 @@ export const AppointmentStep1: React.FC<AppointmentStep1Props> = ({ form, onSubm
               <p className="mt-2 text-sm text-red-600 flex items-center">
                 <span className="w-1 h-1 bg-red-600 rounded-full mr-2"></span>
                 {serverErrors.phoneNumber === "Số điện thoại đã được đăng ký tài khoản" ? (
-                  <>
-                    {serverErrors.phoneNumber} –{' '}
+                  <span className="inline">
+                    Số điện thoại đã được đăng ký tài khoản –{' '}
                     <a
                       href="/login"
-                      className="underline text-blue-600 hover:text-blue-800 ml-1"
+                      className="underline text-blue-600 hover:text-blue-800"
                     >
                       Đăng nhập
                     </a>
-                    &nbsp;để đặt lịch hẹn&nbsp;
-                  </>
+                    {' '}để đặt lịch hẹn
+                  </span>
                 ) : (
                   errors.phoneNumber?.message || serverErrors.phoneNumber
                 )}

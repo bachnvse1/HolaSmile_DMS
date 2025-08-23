@@ -45,9 +45,7 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
   const roleTableId = userInfo.roleTableId ?? TokenUtils.getRoleTableIdFromToken(localStorage.getItem('token') || '');
   const MAX_IMAGES = 10;
 
-  // Determine the actual patient ID to use
-  // For Patient role: use their own ID (roleTableId), for others: use passed patientId
-  let actualPatientId = patientId; // Default to passed patientId
+  let actualPatientId = patientId; 
   
   if (userInfo.role === 'Patient' && roleTableId) {
     actualPatientId = Number(roleTableId);
@@ -63,7 +61,6 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
   const { data: imagesResponse, isLoading, error } = usePatientImages(queryParams);
   const createImageMutation = useCreatePatientImage();
   const deleteImageMutation = useDeletePatientImage();
-  // Fix: Handle response that is now processed in the hook
   const images = Array.isArray(imagesResponse) ? imagesResponse : [];
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,7 +97,7 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
           return {
             file: compressedFile,
             description: '',
-            id: Math.random().toString(36).substr(2, 9), // Generate unique ID
+            id: Math.random().toString(36).substr(2, 9), 
           };
         } catch (error) {
           console.error('Compression failed for', file.name, error);
@@ -116,7 +113,6 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
       setSelectedFiles(prev => [...prev, ...validFiles]);
       setIsCompressing(false);
 
-      // Clear input
       event.target.value = '';
     });
   };
@@ -148,7 +144,6 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
       const img = new Image();
 
       img.onload = () => {
-        // Calculate new dimensions (max 1200px width/height)
         const maxSize = 1200;
         let { width, height } = img;
 
@@ -178,11 +173,11 @@ export const PatientImageGallery: React.FC<PatientImageGalleryProps> = ({
               });
               resolve(compressedFile);
             } else {
-              resolve(file); // Fallback to original
+              resolve(file); 
             }
           },
           'image/jpeg',
-          0.8 // 80% quality
+          0.8 
         );
       };
 

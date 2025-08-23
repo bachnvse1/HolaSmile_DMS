@@ -208,7 +208,8 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9 w-full sm:w-auto min-w-[240px]"
-              />            {searchTerm && (
+              />            
+              {searchTerm && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -257,7 +258,8 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
       {/* Filters panel */}
       {showFilters && (
         <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <div className="flex flex-wrap gap-4">            <div className="flex-1 min-w-[150px]">
+          <div className="flex flex-wrap gap-4">            
+            <div className="flex-1 min-w-[150px]">
             <label htmlFor="statusFilter" className="mb-1.5 block text-sm font-medium">Trạng thái</label>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger id="statusFilter">
@@ -301,7 +303,7 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
               </Select>
             </div>
 
-            <div className="flex items-end">
+            <div className="flex items-end mb-1">
               <Button
                 variant="outline"
                 size="sm"

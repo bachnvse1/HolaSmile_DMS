@@ -2,28 +2,53 @@ import { useState, useEffect, useRef } from 'react';
 import { User, LogOut, Menu, X } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../../hooks/useAuth';
-import { NotificationButton } from "@/components/notification/NotificationButton"; 
-
-interface UserInfo {
-  name: string;
-  email: string;
-  avatar?: string;
-  role: string;
-}
+import { AuthService } from '@/services/AuthService';
+import { NotificationButton } from "@/components/notification/NotificationButton";
+import type { UserInfo } from '@/types/user.types';
 
 interface PatientNavigationProps {
-  userInfo?: UserInfo; 
+  userInfo?: UserInfo;
 }
 
 export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [profileData, setProfileData] = useState<UserInfo | null>(null);
   const navigate = useNavigate();
   const { fullName, logout } = useAuth();
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  const displayName = userInfo?.name || fullName || 'User';
-  const displayRole = 'Bệnh nhân';
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+        try {
+          const profile = await AuthService.fetchUserProfile();
+          setProfileData(profile);
+        } catch (error) {
+          console.error('Failed to fetch user profile:', error);
+        }
+    };
+
+    fetchUserProfile();
+  }, [userInfo]);
+
+  const getCurrentUserData = () => {
+    if (profileData) {
+      return {
+        name: profileData.fullname || fullName || 'User',
+        email: profileData.email || '',
+        role: 'Bệnh nhân',
+        avatar: profileData.avatar
+      };
+    }
+    return {
+      name: fullName || 'User',
+      email: '',
+      role: 'Bệnh nhân',
+      avatar: undefined
+    };
+  };
+
+  const currentUser = getCurrentUserData();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -41,6 +66,7 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
   }, [isUserMenuOpen]);
 
   const handleLogout = () => {
+    sessionStorage.removeItem('chatbot-messages');
     logout();
     navigate('/');
   };
@@ -48,13 +74,35 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const toggleUserMenu = () => setIsUserMenuOpen(!isUserMenuOpen);
 
+  const renderUserAvatar = () => {
+    if (currentUser.avatar) {
+      return (
+        <img
+          src={currentUser.avatar}
+          alt={currentUser.name}
+          className="w-8 h-8 rounded-full object-cover"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+          }}
+        />
+      );
+    }
+    
+    return (
+      <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+        <User className="h-5 w-5 text-white" />
+      </div>
+    );
+  };
+
   return (
     <nav className="bg-white shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <button onClick={() => navigate('/patient/dashboard')} className="flex items-center">
+            <button className="flex items-center">
               <img
                 src="/logo.png"
                 alt="HolaSmile Logo"
@@ -101,6 +149,12 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
               >
                 Hóa Đơn
               </button>
+              <button
+                onClick={() => navigate('/messages/patient-consultation')}
+                className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-md font-medium"
+              >
+                Tư Vấn
+              </button>
             </div>
           </div>
 
@@ -127,14 +181,15 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
                 onClick={toggleUserMenu}
                 className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 p-2 rounded-lg hover:bg-gray-100"
               >
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                {renderUserAvatar()}
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center hidden">
                   <User className="h-5 w-5 text-white" />
                 </div>
+                
                 <div className="text-left hidden lg:block">
-                  <p className="text-sm font-medium">{displayName}</p>
-                  <p className="text-xs text-gray-500">{displayRole}</p>
+                  <p className="text-sm font-medium">{currentUser.name}</p>
+                  <p className="text-xs text-gray-500">{currentUser.role}</p>
                 </div>
-                {/* <ChevronDown className="h-4 w-4 hidden sm:block" /> */}
               </button>
 
               {isUserMenuOpen && (
@@ -146,13 +201,6 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
                     <User className="h-4 w-4 mr-2" />
                     Thông Tin Cá Nhân
                   </button>
-                  {/* <button
-                    onClick={() => navigate('/patient/settings')}
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                  >
-                    <Settings className="h-4 w-4 mr-2" />
-                    Cài Đặt
-                  </button> */}
 
                   <button
                     onClick={handleLogout}
@@ -212,6 +260,12 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
             >
               Hóa Đơn
             </button>
+            <button
+              onClick={() => navigate('/messages/patient-consultation')}
+              className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
+            >
+              Tư Vấn
+            </button>
             <div className="border-t pt-4 border-gray-300">
               <button
                 onClick={() => navigate('/patient/book-appointment')}
@@ -221,12 +275,13 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
               </button>
 
               <div className="flex items-center px-3 py-2">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-3">
+                {renderUserAvatar()}
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center hidden">
                   <User className="h-5 w-5 text-white" />
                 </div>
-                <div>
-                  <p className="text-sm font-medium">{displayName}</p>
-                  <p className="text-xs text-gray-500">{displayRole}</p>
+                <div className="ml-3">
+                  <p className="text-sm font-medium">{currentUser.name}</p>
+                  <p className="text-xs text-gray-500">{currentUser.role}</p>
                 </div>
               </div>
 

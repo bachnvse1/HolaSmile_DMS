@@ -176,7 +176,7 @@ export const HeroSection = () => {
       </div>
 
       {/* Phone & Zalo Buttons */}
-      <div className="fixed left-2 sm:left-4 bottom-4 sm:bottom-6 z-50 flex flex-col space-y-2">
+      <div className="fixed left-2 sm:left-4 bottom-6 sm:bottom-6 z-20 flex flex-col space-y-2">
         {/* Phone Button */}
         <div className="relative">
           <a 
