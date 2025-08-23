@@ -455,9 +455,22 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      
+      const trimmedInput = input.trim();
+      if (!trimmedInput || !conversation || !sendMessage) return;
+      
+      sendMessage(conversation.userId, trimmedInput);
+      setInput('');
+      
+      if (!searchMode) {
+        setShouldScrollToBottom(true);
+      }
+
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
     }
-  }, []);
+  }, [input, conversation, sendMessage, searchMode]);
 
   const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

@@ -152,7 +152,8 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
 
   const goToCurrentWeek = () => {
     setCurrentWeek(0);
-  }; return (
+  }; 
+  return (
     <Card className="shadow-lg">
       {/* Calendar Header */}
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
