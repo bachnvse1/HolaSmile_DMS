@@ -9,7 +9,7 @@ namespace HDMS_API.Controllers
 {
     [Route("api/owner")]
     [ApiController]
-    [Authorize(Roles = "Owner")]
+    //[Authorize(Roles = "Owner")]
     public class OwnerController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -53,18 +53,16 @@ namespace HDMS_API.Controllers
         }
 
         [HttpGet("line-chart")]
-        public async Task<IActionResult> GetLineChart()
+        public async Task<IActionResult> GetLineChart([FromQuery] string? filter)
         {
-            var command = new LineChartCommand();
-            var result = await _mediator.Send(command);
+            var result = await _mediator.Send(new LineChartCommand(filter));
             return Ok(result);
         }
 
         [HttpGet("pie-chart")]
-        public async Task<IActionResult> GetPieChart()
+        public async Task<IActionResult> GetPieChart([FromQuery] string? filter)
         {
-            var command = new PieChartCommand();
-            var result = await _mediator.Send(command);
+            var result = await _mediator.Send(new PieChartCommand(filter));
             return Ok(result);
         }
     }

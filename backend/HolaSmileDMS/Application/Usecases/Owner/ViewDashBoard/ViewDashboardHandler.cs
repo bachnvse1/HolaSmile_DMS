@@ -35,13 +35,15 @@ namespace Application.Usecases.Owner.ViewDashboard
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             }
 
-            string filter = request.Filter?.ToLower() ?? "today";
+            var invoices = await _invoiceRepository.GetTotalInvoice();
+            var latestInvoice = invoices.OrderByDescending(i => i.PaymentDate).FirstOrDefault();
+            var users = await _userCommonRepository.GetAllPatientsAsync(cancellationToken);
 
-            var totalRevenue = await CalculateTotalRevenue(filter);
-            var totalAppointments = await CalculateTotalAppointments(filter);
-            var totalPatients = await CalculateTotalPatients(filter);
-            var totalEmployees = await CalculateTotalEmployees(filter);
-            var newPatients = await CalculateNewPatients(filter);
+            var totalRevenue = await CalculateTotalRevenue(request.Filter);
+            var totalAppointments = await CalculateTotalAppointments(request.Filter);
+            var totalPatients = await CalculateTotalPatients(request.Filter);
+            var totalEmployees = await CalculateTotalEmployees(request.Filter);
+            var newPatients = await CalculateNewPatients(request.Filter);
 
             var dashboardData = new ViewDashboardDTO
             {
@@ -56,40 +58,37 @@ namespace Application.Usecases.Owner.ViewDashboard
             return dashboardData;
         }
 
-        public async Task<decimal> CalculateTotalRevenue(string filter)
+        public async Task<decimal> CalculateTotalRevenue(string? filter)
         {
             var invoices = await _invoiceRepository.GetTotalInvoice();
             if (invoices == null || !invoices.Any())
                 return 0;
 
-            var now = DateTime.Now;
-            DateTime fromDate;
+            var fromDate = DateTime.Now;
 
             switch (filter?.ToLower())
             {
                 case "today":
-                    fromDate = now.Date;
                     invoices = invoices.Where(i => i.CreatedAt.Date == fromDate).ToList();
                     break;
 
                 case "week":
-                    fromDate = now.Date.AddDays(-7);
+                    fromDate = fromDate.AddDays(-7);
                     invoices = invoices.Where(i => i.CreatedAt.Date >= fromDate).ToList();
                     break;
 
                 case "month":
-                    fromDate = new DateTime(now.Year, now.Month, 1); // đầu tháng
+                    fromDate = new DateTime(fromDate.Year, fromDate.Month, 1); // đầu tháng
                     invoices = invoices.Where(i => i.CreatedAt >= fromDate).ToList();
                     break;
 
                 case "year":
-                    fromDate = new DateTime(now.Year, 1, 1); // đầu năm
+                    fromDate = new DateTime(fromDate.Year, 1, 1); // đầu năm
                     invoices = invoices.Where(i => i.CreatedAt >= fromDate).ToList();
                     break;
 
                 default:
                     // không lọc gì cả
-                    fromDate = now.Date;
                     invoices = invoices.Where(i => i.CreatedAt.Date == fromDate).ToList();
                     break;
             }
@@ -97,7 +96,7 @@ namespace Application.Usecases.Owner.ViewDashboard
             var totalRevenue = invoices.Sum(i => i.PaidAmount ?? 0);
             return totalRevenue;
         }
-        public async Task<int> CalculateTotalAppointments(string filter)
+        public async Task<int> CalculateTotalAppointments(string? filter)
         {
             var appointments = await _appointmentRepository.GetAllAppointmentAsync();
             if (appointments == null || !appointments.Any())
@@ -137,7 +136,7 @@ namespace Application.Usecases.Owner.ViewDashboard
 
             return appointments.Count();
         }
-        public async Task<int> CalculateTotalPatients(string filter)
+        public async Task<int> CalculateTotalPatients(string? filter)
         {
             var patients = await _userCommonRepository.GetAllPatientsAsync(CancellationToken.None);
             if (patients == null || !patients.Any())
@@ -176,7 +175,7 @@ namespace Application.Usecases.Owner.ViewDashboard
 
             return patients.Count();
         }
-        public async Task<int> CalculateTotalEmployees(string filter)
+        public async Task<int> CalculateTotalEmployees(string? filter)
         {
             var users = await _userCommonRepository.GetAllUserAsync();
             if (users == null || !users.Any())
@@ -228,7 +227,7 @@ namespace Application.Usecases.Owner.ViewDashboard
 
             return employees < 0 ? 0 : employees;
         }
-        public async Task<int> CalculateNewPatients(string filter)
+        public async Task<int> CalculateNewPatients(string? filter)
         {
             var patients = await _userCommonRepository.GetAllPatientsAsync(CancellationToken.None);
             if (patients == null || !patients.Any())

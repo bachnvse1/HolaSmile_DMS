@@ -3,8 +3,8 @@
     public class ColumnChartItemDto
     {
         public string Label { get; set; } // ví dụ: "25/7" hoặc "T1"
-        public decimal RevenueInMillions { get; set; }
-        public int TotalAppointments { get; set; }
+        public int TotalReceipt { get; set; }
+        public int TotalPayment { get; set; }
     }
 
     public class ColumnChartDto
