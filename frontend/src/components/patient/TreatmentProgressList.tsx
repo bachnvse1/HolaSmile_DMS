@@ -9,10 +9,9 @@ import TaskListModal from "@/components/task/TaskListModal"
 import { useAuth } from "@/hooks/useAuth"
 import { useUserInfo } from "@/hooks/useUserInfo"
 
-// Constants
 const STATUS_MAP = {
   "in-progress": { label: "Đang điều trị", className: "bg-blue-100 text-blue-800 border-blue-200" },
-  "canceled": { label: "Đã huỷ", className: "bg-red-100 text-red-800 border-red-200" },
+  "canceled": { label: "Đã hủy", className: "bg-red-100 text-red-800 border-red-200" },
   "completed": { label: "Đã hoàn thành", className: "bg-green-100 text-green-800 border-green-200" },
   "pending": { label: "Đã lên lịch", className: "bg-gray-100 text-gray-800 border-gray-200" },
 } as const
@@ -22,10 +21,9 @@ const FILTER_OPTIONS = [
   { value: "pending", label: "Đã lên lịch" },
   { value: "in-progress", label: "Đang điều trị" },
   { value: "completed", label: "Đã hoàn thành" },
-  { value: "canceled", label: "Đã huỷ" },
+  { value: "canceled", label: "Đã hủy" },
 ] as const
 
-// Types
 interface Props {
   data: TreatmentProgress[]
   loading?: boolean
@@ -45,7 +43,6 @@ interface TaskModalState {
   selectedProgressId: number | null
 }
 
-// Custom hooks
 const useFilterState = () => {
   const [filterState, setFilterState] = useState<FilterState>({
     status: "all",
@@ -92,18 +89,22 @@ export function TreatmentProgressList({ data, loading, onViewProgress, highlight
   
   const isPatient = role === "Patient"
 
-  // Reset page when data or filter changes
   useEffect(() => {
     updateFilter({ currentPage: 1 })
   }, [data, filterState.status, filterState.searchKeyword, updateFilter])
 
-  // Filtered and paginated data with search
+  const sortedData = useMemo(() => {
+    return [...data].sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0)
+      const dateB = new Date(b.createdAt || 0)
+      return dateA.getTime() - dateB.getTime() 
+    })
+  }, [data])
+
   const { filteredData, paginatedData, totalPages } = useMemo(() => {
-    const filtered = data.filter((item) => {
-      // Filter by status
+    const filtered = sortedData.filter((item) => {
       const matchStatus = filterState.status === "all" || item.status === filterState.status
       
-      // Filter by search keyword
       const matchSearch = !filterState.searchKeyword || 
         !filterState.searchKeyword.trim() || 
         (item.progressName && 
@@ -123,14 +124,12 @@ export function TreatmentProgressList({ data, loading, onViewProgress, highlight
       paginatedData: paginated,
       totalPages,
     }
-  }, [data, filterState])
+  }, [sortedData, filterState])
 
-  // Event handlers
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateFilter({ searchKeyword: e.target.value })
   }
 
-  // Render functions
   const renderStatusBadge = useCallback((status?: string) => {
     const statusInfo = STATUS_MAP[status as keyof typeof STATUS_MAP] ?? {
       label: status ?? "Không rõ",
@@ -146,7 +145,6 @@ export function TreatmentProgressList({ data, loading, onViewProgress, highlight
 
   const renderSearchAndFilterControls = () => (
     <div className="flex flex-col sm:flex-row gap-3 mb-4">
-      {/* Search Input */}
       <div className="relative flex-1">
         <input
           type="text"
@@ -159,7 +157,6 @@ export function TreatmentProgressList({ data, loading, onViewProgress, highlight
         <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
       </div>
 
-      {/* Status Filter */}
       <div className="flex items-center gap-2 min-w-fit">
         <Filter className="h-4 w-4 text-gray-500" />
         <select
@@ -216,7 +213,6 @@ export function TreatmentProgressList({ data, loading, onViewProgress, highlight
       >
         <div className="flex justify-between items-start gap-4">
           <div className="space-y-3 flex-1 min-w-0">
-            {/* Header với tên và trạng thái */}
             <div className="flex items-start justify-between gap-3">
               <h3 className="font-semibold text-base text-gray-900 flex items-center gap-2 flex-1 min-w-0">
                 <FileText className="h-4 w-4 text-blue-600 flex-shrink-0" />
@@ -227,7 +223,6 @@ export function TreatmentProgressList({ data, loading, onViewProgress, highlight
               {renderStatusBadge(item.status)}
             </div>
             
-            {/* Thông tin chi tiết */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
               <div className="flex items-center text-gray-600 gap-2">
                 <User className="h-4 w-4 text-blue-500 flex-shrink-0" />
@@ -267,7 +262,6 @@ export function TreatmentProgressList({ data, loading, onViewProgress, highlight
             </div>
           </div>
           
-          {/* Action buttons */}
           <div className="flex flex-col gap-2 flex-shrink-0">
             <Button 
               variant="outline" 

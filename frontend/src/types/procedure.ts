@@ -1,7 +1,7 @@
 export interface Supply {
   supplyId: number
   quantity: number
-  supplyName?: string // Thêm tên vật tư để hiển thị
+  supplyName?: string
 }
 
 export interface SupplyItem {
@@ -17,7 +17,6 @@ export interface Procedure {
   procedureName: string
   price: number
   description: string
-  discount: number
   originalPrice: number
   consumableCost: number
   createdAt: string
@@ -34,7 +33,6 @@ export interface ProcedureCreateForm {
   procedureName: string
   price: number
   description: string
-  discount: number
   originalPrice: number
   consumableCost: number
   suppliesUsed: Supply[]
@@ -45,7 +43,6 @@ export interface ProcedureUpdateForm {
   procedureName: string
   price: number
   description: string
-  discount: number
   originalPrice: number
   consumableCost: number
   suppliesUsed?: Supply[]

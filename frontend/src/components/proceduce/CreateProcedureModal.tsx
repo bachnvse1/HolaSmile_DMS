@@ -36,15 +36,17 @@ export function CreateProcedureModal({
   
   const [formattedPrices, setFormattedPrices] = useState({
     originalPrice: "",
+    price: "",
     consumableCost: ""
   })
 
   useEffect(() => {
     setFormattedPrices({
       originalPrice: form.originalPrice > 0 ? formatCurrency(form.originalPrice) : "",
+      price: form.price > 0 ? formatCurrency(form.price) : "",
       consumableCost: form.consumableCost > 0 ? formatCurrency(form.consumableCost) : ""
     })
-  }, [form.originalPrice, form.consumableCost])
+  }, [form.originalPrice, form.price, form.consumableCost])
 
   const updateForm = (field: keyof ProcedureCreateForm, value: string | number | Supply[]) => {
     onFormChange({ ...form, [field]: value })
@@ -58,6 +60,14 @@ export function CreateProcedureModal({
     })
   }
 
+  const handlePriceChange = (value: string) => {
+    handleCurrencyInput(value, (formatted) => {
+      setFormattedPrices(prev => ({ ...prev, price: formatted }))
+      const numericValue = parseCurrency(formatted)
+      updateForm("price", numericValue)
+    })
+  }
+
   const handleConsumableCostChange = (value: string) => {
     handleCurrencyInput(value, (formatted) => {
       setFormattedPrices(prev => ({ ...prev, consumableCost: formatted }))
@@ -65,12 +75,6 @@ export function CreateProcedureModal({
       updateForm("consumableCost", numericValue)
     })
   }
-  useEffect(() => {
-    if (form.originalPrice > 0 && form.discount >= 0) {
-      const calculatedPrice = form.originalPrice * (1 - form.discount / 100)
-      updateForm("price", Math.round(calculatedPrice))
-    }
-  }, [form.originalPrice, form.discount])
 
   const addSupplyFromSearch = (supplyItem: SupplyItem) => {
     const existing = form.suppliesUsed.find((s) => s.supplyId === supplyItem.id)
@@ -114,8 +118,8 @@ export function CreateProcedureModal({
       alert("Giá gốc phải lớn hơn 0")
       return
     }
-    if (form.discount < 0 || form.discount > 100) {
-      alert("Giảm giá phải từ 0 đến 100%")
+    if (form.price <= 0) {
+      alert("Giá bán phải lớn hơn 0")
       return
     }
     const invalidSupply = form.suppliesUsed.find((s) => s.quantity <= 0)
@@ -200,22 +204,20 @@ export function CreateProcedureModal({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="discount">Giảm Giá (%)</Label>
+                  <Label htmlFor="price">Giá Bán (VNĐ) *</Label>
                   <Input
-                    id="discount"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.1"
-                    value={form.discount || ''}
-                    onChange={(e) => updateForm("discount", Number.parseFloat(e.target.value) || 0)}
+                    id="price"
+                    type="text"
+                    value={formattedPrices.price}
+                    onChange={(e) => handlePriceChange(e.target.value)}
                     placeholder="0"
+                    required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="consumableCost">Chi Phí Ước Tính (VNĐ)</Label>
+                <Label htmlFor="consumableCost">Chi Phí Ướng Tính (VNĐ)</Label>
                 <Input
                   id="consumableCost"
                   type="text"
