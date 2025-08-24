@@ -58,7 +58,6 @@ namespace Application.Usecases.Owner.ViewDashboard
                 .FirstOrDefault();
 
             var transactions = await _transactionRepository.GetPendingTransactionsAsync() ?? new List<FinancialTransaction>();
-
             var maintainances = await _maintenanceRepository.GetAllMaintenancesWithSuppliesAsync() ?? new List<EquipmentMaintenance>();
 
             var maintainanceCount = maintainances.Where(m => m.Status == "pending").Count();
@@ -123,6 +122,7 @@ namespace Application.Usecases.Owner.ViewDashboard
 
             switch (filter?.ToLower())
             {
+
                 //case "today":
                 //    invoices = invoices.Where(i => i.CreatedAt.Date == fromDate).ToList();
                 //    break;

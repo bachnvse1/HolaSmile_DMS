@@ -45,6 +45,16 @@ namespace Infrastructure.Repositories
                 await _context.SaveChangesAsync(ct);
             }
         }
+        
+        public async System.Threading.Tasks.Task MarkAllAsSentAsync(int userId, CancellationToken ct)
+        {
+            await _context.Notifications
+                .Where(n => n.UserId == userId && !n.IsRead)
+                .ExecuteUpdateAsync(
+                    s => s.SetProperty(n => n.IsRead, true),
+                    ct
+                );
+        }
 
         /// <summary>
         /// Gửi realtime qua SignalR + lưu DB chỉ qua 1 hàm

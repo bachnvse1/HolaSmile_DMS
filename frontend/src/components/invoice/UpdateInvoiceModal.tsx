@@ -37,6 +37,7 @@ interface UpdateInvoiceModalProps {
   invoice: Invoice | null;
   onUpdateInvoice: (data: UpdateInvoiceFormData) => Promise<void>;
   isUpdating?: boolean;
+  allInvoices?: Invoice[];
 }
 
 const PAYMENT_METHODS = [
@@ -62,6 +63,7 @@ export const UpdateInvoiceModal: React.FC<UpdateInvoiceModalProps> = ({
   invoice,
   onUpdateInvoice,
   isUpdating = false,
+  allInvoices = [],
 }) => {
   const [formData, setFormData] = React.useState<UpdateInvoiceFormData>({
     invoiceId: 0,
@@ -75,6 +77,21 @@ export const UpdateInvoiceModal: React.FC<UpdateInvoiceModalProps> = ({
 
   const [formattedAmount, setFormattedAmount] = React.useState<string>("");
   const [showConfirm, setShowConfirm] = React.useState(false);
+
+  const hasMultipleInvoicesForRecord = React.useMemo(() => {
+    if (!invoice || !allInvoices.length) return false;
+    
+    const sameRecordInvoices = allInvoices.filter(inv => 
+      inv.treatmentRecordId === invoice.treatmentRecordId
+    );
+    
+    return sameRecordInvoices.length >= 2;
+  }, [invoice, allInvoices]);
+
+  const cannotChangeToFull = React.useMemo(() => {
+    return hasMultipleInvoicesForRecord && 
+           invoice?.transactionType === "partial";
+  }, [hasMultipleInvoicesForRecord, invoice?.transactionType]);
 
   React.useEffect(() => {
     if (invoice && updateOpen) {
@@ -144,6 +161,11 @@ export const UpdateInvoiceModal: React.FC<UpdateInvoiceModalProps> = ({
   const canEdit = invoice.status !== "paid";
 
   const handleTransactionTypeChange = (value: string) => {
+    if (value === "full" && cannotChangeToFull) {
+      toast.error("Không thể đổi sang 'Toàn bộ' khi đã có nhiều hóa đơn trả một phần cho cùng hồ sơ điều trị");
+      return;
+    }
+
     handleFieldChange("transactionType", value);
     if (value === "full") {
       handleFieldChange("paidAmount", maxAllowed);
@@ -196,11 +218,13 @@ export const UpdateInvoiceModal: React.FC<UpdateInvoiceModalProps> = ({
               </div>
             </div>
           </div>
+
           {!canEdit && (
             <div className="border p-4 rounded-lg bg-red-50 border-red-200">
-              <p className="text-red-700 font-medium">⚠️ Hóa đơn đã được thanh toán không thể chỉnh sửa</p>
+              <p className="text-red-700 font-medium">Hóa đơn đã được thanh toán không thể chỉnh sửa</p>
             </div>
           )}
+
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -233,8 +257,16 @@ export const UpdateInvoiceModal: React.FC<UpdateInvoiceModalProps> = ({
                     <SelectValue placeholder="Chọn loại thanh toán" />
                   </SelectTrigger>
                   <SelectContent>
-                    {TRANSACTION_TYPES.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
+                    {TRANSACTION_TYPES.filter(type => {
+                      if (type.value === "full" && cannotChangeToFull) {
+                        return false;
+                      }
+                      return true;
+                    }).map((type) => (
+                      <SelectItem 
+                        key={type.value} 
+                        value={type.value}
+                      >
                         {type.label}
                       </SelectItem>
                     ))}

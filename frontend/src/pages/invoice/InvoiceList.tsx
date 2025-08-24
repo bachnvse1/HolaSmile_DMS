@@ -274,7 +274,6 @@ export default function InvoiceList() {
                     patientId: userInfo.roleTableId
                 })
                 setAllInvoices(invoices)
-                // For patients, we don't need the full patient list
                 setPatientList([])
             } else if (isReceptionist) {
                 const [invoices, patients] = await Promise.all([
@@ -282,7 +281,6 @@ export default function InvoiceList() {
                     getAllPatients(),
                 ])
                 setAllInvoices(invoices)
-                // Ensure patients is an array before setting
                 setPatientList(Array.isArray(patients) ? patients : [])
             }
         } catch (error) {
@@ -292,7 +290,6 @@ export default function InvoiceList() {
 
             toast.error(errorMessage)
             console.error("Error fetching initial data:", error)
-            // Reset patientList on error
             setPatientList([])
         } finally {
             setIsLoading(false)
@@ -445,9 +442,12 @@ export default function InvoiceList() {
                 setFilteredInvoices(filtered)
             }, 0)
 
+            await fetchInitialData()
+
             toast.success("Cập nhật hóa đơn thành công")
             setIsUpdateModalOpen(false)
             setInvoiceToUpdate(null)
+
         } catch (error: any) {
             console.error("Error updating invoice:", error)
             const errorMessage = error?.response?.data?.message || error?.message || "Lỗi khi cập nhật hóa đơn"
@@ -698,6 +698,7 @@ export default function InvoiceList() {
                 invoice={invoiceToUpdate}
                 onUpdateInvoice={handleUpdateInvoice}
                 isUpdating={isUpdating}
+                allInvoices={allInvoices}
             />
         </Card>
     ), [

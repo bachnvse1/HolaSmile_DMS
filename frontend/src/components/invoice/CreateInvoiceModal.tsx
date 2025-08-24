@@ -58,6 +58,12 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
 
   const remainingCap = treatmentRecord.remainingAmount ?? 0;
   const isAmountExceeded = newInvoice.paidAmount > remainingCap;
+  
+  const canPayFull = remainingCap >= treatmentRecord.totalAmount;
+  
+  const availableTransactionTypes = TRANSACTION_TYPES.filter(type => 
+    canPayFull || type.value !== "full"
+  );
 
   React.useEffect(() => {
     if (newInvoice.paidAmount > 0) setFormattedAmount(formatCurrency(newInvoice.paidAmount));
@@ -72,7 +78,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
     handleCurrencyInput(value, (formattedValue) => {
       setFormattedAmount(formattedValue);
       const n = parseCurrency(formattedValue);
-      if (n >= 0) handleFieldChange("paidAmount", n); // luôn cập nhật, kể cả khi vượt mức
+      if (n >= 0) handleFieldChange("paidAmount", n);
     });
   };
 
@@ -127,7 +133,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
               <Label htmlFor="transactionType">Loại giao dịch *</Label>
               <Select value={newInvoice.transactionType} onValueChange={handleTransactionTypeChange} disabled={isCreating}>
                 <SelectTrigger id="transactionType"><SelectValue placeholder="Chọn loại thanh toán" /></SelectTrigger>
-                <SelectContent>{TRANSACTION_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                <SelectContent>{availableTransactionTypes.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
           </div>
@@ -151,13 +157,13 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
               <div className="mt-2 text-sm space-y-1">
                 <p className="text-gray-600">Số tiền thanh toán: <span className="font-semibold">{formatCurrency(newInvoice.paidAmount)}</span></p>
                 {remainingDisplay > 0 && <p className="text-orange-600">Số tiền còn lại: <span className="font-semibold">{formatCurrency(remainingDisplay)}</span></p>}
-                {remainingDisplay === 0 && <p className="text-green-600 font-semibold">✓ Đã thanh toán đủ</p>}
+                {remainingDisplay === 0 && <p className="text-green-600 font-semibold">Đã thanh toán đủ</p>}
               </div>
             )}
 
             {isAmountExceeded && (
               <div className="mt-2 text-sm space-y-1">
-                <p className="text-red-600 font-semibold">⚠️ Số tiền thanh toán không được vượt quá số tiền chưa thanh toán</p>
+                <p className="text-red-600 font-semibold">Số tiền thanh toán không được vượt quá số tiền chưa thanh toán</p>
                 <p className="text-gray-600">Số tiền tối đa: <span className="font-semibold text-orange-600">{formatCurrency(remainingCap)}</span></p>
               </div>
             )}

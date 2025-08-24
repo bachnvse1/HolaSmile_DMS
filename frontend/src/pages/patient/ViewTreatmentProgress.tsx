@@ -21,7 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 const TREATMENT_PROGRESS_STATUS = {
   "in-progress": { label: "Đang điều trị", className: "bg-blue-100 text-blue-800 border border-blue-200" },
-  "canceled": { label: "Đã huỷ", className: "bg-red-100 text-red-800 border border-red-200" },
+  "canceled": { label: "Đã hủy", className: "bg-red-100 text-red-800 border border-red-200" },
   "completed": { label: "Đã hoàn thành", className: "bg-green-100 text-green-800 border border-green-200" },
   "pending": { label: "Đã lên lịch", className: "bg-gray-100 text-gray-800 border border-gray-200" },
 } as const
@@ -73,6 +73,25 @@ export default function ViewTreatmentProgress() {
     role: role || '',
     avatar: undefined
   }), [userId, fullName, role])
+
+  const progressStats = useMemo(() => {
+    const total = state.progressList.length
+    const completed = state.progressList.filter(p => p.status === "completed").length
+    const inProgress = state.progressList.filter(p => p.status === "in-progress").length
+    const pending = state.progressList.filter(p => p.status === "pending").length
+    const canceled = state.progressList.filter(p => p.status === "canceled").length
+    
+    const completionPercentage = total > 0 ? Math.round((completed / total) * 100) : 0
+    
+    return {
+      total,
+      completed,
+      inProgress,
+      pending,
+      canceled,
+      completionPercentage
+    }
+  }, [state.progressList])
 
   const fetchData = useCallback(async (recordId: number, scrollToLatest = false) => {
     updateState({ isLoading: true, error: null })
@@ -140,6 +159,46 @@ export default function ViewTreatmentProgress() {
       </span>
     )
   }
+
+  const renderProgressBar = () => (
+    <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-medium text-gray-900">Tiến độ điều trị</h3>
+        <span className="text-sm font-semibold text-blue-600">
+          {progressStats.completionPercentage}%
+        </span>
+      </div>
+      
+      <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
+        <div 
+          className="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-500 ease-out"
+          style={{ width: `${progressStats.completionPercentage}%` }}
+        />
+      </div>
+      
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+        <div className="text-center p-2 bg-green-50 rounded-lg border border-green-200">
+          <div className="font-semibold text-green-800">{progressStats.completed}</div>
+          <div className="text-green-600">Hoàn thành</div>
+        </div>
+        
+        <div className="text-center p-2 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="font-semibold text-blue-800">{progressStats.inProgress}</div>
+          <div className="text-blue-600">Đang xử lý</div>
+        </div>
+        
+        <div className="text-center p-2 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="font-semibold text-gray-800">{progressStats.pending}</div>
+          <div className="text-gray-600">Đã lên lịch</div>
+        </div>
+        
+        <div className="text-center p-2 bg-red-50 rounded-lg border border-red-200">
+          <div className="font-semibold text-red-800">{progressStats.canceled}</div>
+          <div className="text-red-600">Đã hủy</div>
+        </div>
+      </div>
+    </div>
+  )
 
   const renderHeader = () => (
     <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">
@@ -290,13 +349,13 @@ export default function ViewTreatmentProgress() {
 
     return (
       <div className="px-6 py-6">
+        {state.progressList.length > 0 && renderProgressBar()}
+        
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Chi tiết tiến trình - Bên trái */}
           <div className="order-2 lg:order-1">
             {renderProgressView()}
           </div>
           
-          {/* Danh sách tiến trình - Bên phải */}
           <div className="order-1 lg:order-2">
             {renderProgressList()}
           </div>

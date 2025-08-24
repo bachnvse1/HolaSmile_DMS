@@ -1,4 +1,3 @@
-// ProcedureManagement.tsx
 import { useEffect, useState } from "react"
 import { ProcedureService } from "@/services/procedureService"
 import { CreateProcedureModal } from "@/components/proceduce/CreateProcedureModal"
@@ -34,7 +33,6 @@ export default function ProcedureManagement() {
         procedureName: "",
         price: 0,
         description: "",
-        discount: 0,
         originalPrice: 0,
         consumableCost: 0,
         suppliesUsed: [],
@@ -85,7 +83,6 @@ export default function ProcedureManagement() {
                 procedureName: "",
                 price: 0,
                 description: "",
-                discount: 0,
                 originalPrice: 0,
                 consumableCost: 0,
                 suppliesUsed: [],
