@@ -27,7 +27,7 @@ namespace Application.Usecases.Owner.ApproveFinancialTransaction
             {
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26); // "Bạn không có quyền truy cập chức năng này"
             }
-            var transactions = await _transactionRepository.GetExpenseTransactionsAsync();
+            var transactions = await _transactionRepository.GetPendingTransactionsAsync();
             if (transactions == null || !transactions.Any())
             {
                 transactions = new List<FinancialTransaction>();

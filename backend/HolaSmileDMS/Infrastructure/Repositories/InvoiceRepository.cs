@@ -1,8 +1,5 @@
 using Application.Interfaces;
-using AutoMapper;
 using HDMS_API.Infrastructure.Persistence;
-using Infrastructure.Hubs;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;
@@ -110,6 +107,18 @@ public class InvoiceRepository : IInvoiceRepository
         return await _context.Invoices
             .Where(i => !i.IsDeleted)
             .ToListAsync();
+    }
+
+    public async Task<Invoice> GetLastestInvoice()
+    {
+        var invoice = await _context.Invoices
+            .AsNoTracking()
+            .Include(i => i.Patient).ThenInclude(p => p.User)
+            .Where(i => !i.IsDeleted)
+            .OrderByDescending(i => i.PaymentDate ?? i.CreatedAt)
+            .FirstOrDefaultAsync();
+
+        return invoice ?? new Invoice();
     }
 
 }

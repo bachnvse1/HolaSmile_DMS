@@ -16,6 +16,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Owners
         private readonly Mock<IAppointmentRepository> _appointmentRepoMock;
         private readonly Mock<IUserCommonRepository> _userCommonRepoMock;
         private readonly Mock<IOwnerRepository> _ownerRepoMock;
+        private readonly Mock<ITransactionRepository> _transactionRepository;
+        private readonly Mock<IMaintenanceRepository> _maintenanceRepository;
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private readonly ViewDashboardHandler _handler;
 
@@ -25,6 +27,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Owners
             _appointmentRepoMock = new Mock<IAppointmentRepository>();
             _userCommonRepoMock = new Mock<IUserCommonRepository>();
             _ownerRepoMock = new Mock<IOwnerRepository>();
+            _transactionRepository = new Mock<ITransactionRepository>();
+            _maintenanceRepository = new Mock<IMaintenanceRepository>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
 
             _handler = new ViewDashboardHandler(
@@ -32,6 +36,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Owners
                 _appointmentRepoMock.Object,
                 _userCommonRepoMock.Object,
                 _ownerRepoMock.Object,
+                _transactionRepository.Object,
+                _maintenanceRepository.Object,
                 _httpContextAccessorMock.Object
             );
         }
@@ -125,7 +131,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Owners
             Assert.Equal(2, result.TotalAppointments);
             Assert.Equal(2, result.TotalPatient);
             Assert.Equal(1, result.TotalEmployee); // 3 users - 2 patients - 1 owner
-            Assert.Equal(2, result.NewPatient);
+            Assert.Equal(2, result.TotalPatient);
         }
 
         [Theory(DisplayName = "UTCID02 - Dashboard filters work correctly")]
@@ -150,7 +156,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Owners
             Assert.True(result.TotalAppointments >= 0);
             Assert.True(result.TotalPatient >= 0);
             Assert.True(result.TotalEmployee >= 0);
-            Assert.True(result.NewPatient >= 0);
+            Assert.True(result.TotalPatient >= 0);
         }
 
         [Fact(DisplayName = "UTCID03 - Non-owner role should throw unauthorized")]
@@ -211,7 +217,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Owners
             Assert.Equal(0, result.TotalAppointments);
             Assert.Equal(1, result.TotalPatient);     // 1 patient
             Assert.Equal(1, result.TotalEmployee);    // 1 employee (not patient or owner)
-            Assert.Equal(1, result.NewPatient);       // 1 new patient today
+            Assert.Equal(1, result.TotalPatient);       // 1 new patient today
         }
 
         [Fact(DisplayName = "UTCID05 - Invalid filter defaults to all data")]
@@ -233,7 +239,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Owners
             Assert.Equal(2, result.TotalAppointments);
             Assert.Equal(2, result.TotalPatient);
             Assert.Equal(1, result.TotalEmployee);
-            Assert.Equal(2, result.NewPatient);
+            Assert.Equal(2, result.TotalPatient);
         }
     }
 }

@@ -53,8 +53,7 @@ namespace HolaSmile_DMS.Tests.Unit.Infrastructure.BackGroundServices
 
             var service = new AppointmentCleanupService(
                 serviceProvider,
-                _mediatorMock.Object,
-                _loggerMock.Object
+                _mediatorMock.Object
             );
 
             // Act
@@ -94,8 +93,7 @@ namespace HolaSmile_DMS.Tests.Unit.Infrastructure.BackGroundServices
 
             var service = new AppointmentCleanupService(
                 serviceProvider,
-                _mediatorMock.Object,
-                _loggerMock.Object
+                _mediatorMock.Object
             );
 
             // Act
@@ -124,8 +122,7 @@ namespace HolaSmile_DMS.Tests.Unit.Infrastructure.BackGroundServices
 
             var service = new AppointmentCleanupService(
                 serviceProvider,
-                _mediatorMock.Object,
-                _loggerMock.Object
+                _mediatorMock.Object
             );
 
             // Act
@@ -156,8 +153,7 @@ namespace HolaSmile_DMS.Tests.Unit.Infrastructure.BackGroundServices
 
             var service = new AppointmentCleanupService(
                 serviceProvider,
-                _mediatorMock.Object,
-                _loggerMock.Object
+                _mediatorMock.Object
             );
 
             // Act
@@ -206,8 +202,7 @@ namespace HolaSmile_DMS.Tests.Unit.Infrastructure.BackGroundServices
 
             var service = new AppointmentCleanupService(
                 serviceProvider,
-                _mediatorMock.Object,
-                _loggerMock.Object
+                _mediatorMock.Object
             );
 
             // Act
