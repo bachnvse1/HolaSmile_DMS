@@ -56,7 +56,6 @@ namespace Application.Usecases.Owner.ViewDashboard
             return dashboardData;
         }
 
-
         public async Task<decimal> CalculateTotalRevenue(string filter)
         {
             var invoices = await _invoiceRepository.GetTotalInvoice();
@@ -90,13 +89,14 @@ namespace Application.Usecases.Owner.ViewDashboard
 
                 default:
                     // không lọc gì cả
+                    fromDate = now.Date;
+                    invoices = invoices.Where(i => i.CreatedAt.Date == fromDate).ToList();
                     break;
             }
 
             var totalRevenue = invoices.Sum(i => i.PaidAmount ?? 0);
             return totalRevenue;
         }
-
         public async Task<int> CalculateTotalAppointments(string filter)
         {
             var appointments = await _appointmentRepository.GetAllAppointmentAsync();
@@ -130,12 +130,13 @@ namespace Application.Usecases.Owner.ViewDashboard
 
                 default:
                     // Không filter
+                    fromDate = now.Date;
+                    appointments = appointments.Where(a => a.CreatedAt.Date == fromDate).ToList();
                     break;
             }
 
             return appointments.Count();
         }
-
         public async Task<int> CalculateTotalPatients(string filter)
         {
             var patients = await _userCommonRepository.GetAllPatientsAsync(CancellationToken.None);
@@ -168,12 +169,13 @@ namespace Application.Usecases.Owner.ViewDashboard
                     break;
 
                 default:
+                    fromDate = now.Date;
+                    patients = patients.Where(p => p.CreatedAt.Date == fromDate).ToList();
                     break;
             }
 
             return patients.Count();
         }
-
         public async Task<int> CalculateTotalEmployees(string filter)
         {
             var users = await _userCommonRepository.GetAllUserAsync();
@@ -207,6 +209,8 @@ namespace Application.Usecases.Owner.ViewDashboard
                     break;
 
                 default:
+                    fromDate = now.Date;
+                    users = users.Where(u => u.CreatedAt.Date == fromDate).ToList();
                     break; // No filter
             }
 
