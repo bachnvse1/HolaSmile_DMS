@@ -9,7 +9,7 @@ namespace HDMS_API.Controllers
 {
     [Route("api/owner")]
     [ApiController]
-    //[Authorize(Roles = "Owner")]
+    [Authorize(Roles = "Owner")]
     public class OwnerController : ControllerBase
     {
         private readonly IMediator _mediator;

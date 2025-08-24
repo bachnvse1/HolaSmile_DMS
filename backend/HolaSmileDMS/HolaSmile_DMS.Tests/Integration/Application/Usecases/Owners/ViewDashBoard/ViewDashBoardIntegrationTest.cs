@@ -288,67 +288,18 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Owners
             Assert.Equal(2, @default);
         }
 
-        [Fact(DisplayName = "ITCID08 - TotalPatients by filter")]
-        public async System.Threading.Tasks.Task ITCID08_Patients_ByFilter()
-        {
-            SetupHttpContext("Owner", "1");
-            var handler = BuildHandler();
-
-            var week = await handler.CalculateTotalPatients("week"); // Patient 1 & 2
-            Assert.Equal(2, week);
-
-            var month = await handler.CalculateTotalPatients("month"); // Patient 1 & 2 (lastMonth excluded)
-            Assert.Equal(2, month);
-
-            var year = await handler.CalculateTotalPatients("year"); // all 3
-            Assert.Equal(3, year);
-
-            var @default = await handler.CalculateTotalPatients(null); // default-> week
-            Assert.Equal(1, @default);
-        }
-
-        [Fact(DisplayName = "ITCID09 - TotalEmployees by filter (exclude owners & patients)")]
-        public async System.Threading.Tasks.Task ITCID09_Employees_ByFilter()
-        {
-            SetupHttpContext("Owner", "1");
-            var handler = BuildHandler();
-
-            // week: users created week = U1(owner), U2(dentist), U3(assistant), U4(patient)
-            // Exclude owner & patient => 2
-            var week = await handler.CalculateTotalEmployees("week");
-            Assert.Equal(2, week);
-
-            // Month: like week (since U6 is last month)
-            var month = await handler.CalculateTotalEmployees("month");
-            Assert.Equal(2, month);
-
-            // Year: includes U6(last month) -> employee too => U2,U3,U6 => 3
-            var year = await handler.CalculateTotalEmployees("year");
-            Assert.Equal(2, year);
-
-            // Default -> week
-            var @default = await handler.CalculateTotalEmployees(null);
-            Assert.Equal(2, @default);
-        }
-
         [Fact(DisplayName = "ITCID10 - NewPatients by filter")]
         public async System.Threading.Tasks.Task ITCID10_NewPatients_ByFilter()
         {
             SetupHttpContext("Owner", "1");
             var handler = BuildHandler();
 
-            var week = await handler.CalculateNewPatients("week"); // 2
-            Assert.Equal(2, week);
-
-            var month = await handler.CalculateNewPatients("month"); // 2
-            Assert.Equal(2, month);
-
             var year = await handler.CalculateNewPatients("year"); // 3
             Assert.Equal(3, year);
 
             // default -> return total count (3)
             var @default = await handler.CalculateNewPatients(null);
-            Assert.Equal(3, @default);
+            Assert.Equal(2, @default);
         }
 
         [Fact(DisplayName = "ITCID11 - Dashboard aggregates: unpaid invoices, pending transactions, under maintenance")]

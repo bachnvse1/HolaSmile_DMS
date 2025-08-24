@@ -36,10 +36,10 @@ namespace Application.Usecases.Owner.ViewDashboard
             var userId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var role = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-            //if (!string.Equals(role, "Owner", StringComparison.OrdinalIgnoreCase))
-            //{
-            //    throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
-            //}
+            if (!string.Equals(role, "Owner", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
+            }
 
             var invoices = await _invoiceRepository.GetTotalInvoice() ?? new List<Invoice>();
             var totalInvoices = invoices.Where(i => i.Status == "pending").Count();
