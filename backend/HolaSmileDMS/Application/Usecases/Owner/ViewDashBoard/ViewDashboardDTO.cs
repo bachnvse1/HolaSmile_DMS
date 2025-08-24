@@ -12,7 +12,7 @@ namespace Application.Usecases.Owner.ViewDashboard
         public int TotalAppointments { get; set; }
         public int TotalPatient { get; set; }
         public int TotalEmployee { get; set; }
-        public DashboardNotiData NewPatient { get; set; }
+        public int NewPatient { get; set; }
         public DashboardNotiData NewInvoice { get; set; } = new DashboardNotiData();
         public DashboardNotiData NewPatientAppointment { get; set; } = new DashboardNotiData();
         public DashboardNotiData NewAppointment { get; set; } = new DashboardNotiData();

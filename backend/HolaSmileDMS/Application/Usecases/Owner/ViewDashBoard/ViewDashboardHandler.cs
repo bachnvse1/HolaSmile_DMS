@@ -36,10 +36,10 @@ namespace Application.Usecases.Owner.ViewDashboard
             var userId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var role = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-            if (!string.Equals(role, "Owner", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
-            }
+            //if (!string.Equals(role, "Owner", StringComparison.OrdinalIgnoreCase))
+            //{
+            //    throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
+            //}
 
             var invoices = await _invoiceRepository.GetTotalInvoice() ?? new List<Invoice>();
             var totalInvoices = invoices.Where(i => i.Status == "pending").Count();
@@ -69,7 +69,6 @@ namespace Application.Usecases.Owner.ViewDashboard
             var totalRevenue = await CalculateTotalRevenue(request.Filter);
             var totalAppointments = await CalculateTotalAppointments(request.Filter);
             var totalPatients = await CalculateTotalPatients(request.Filter);
-            var totalEmployees = await CalculateTotalEmployees(request.Filter);
             var newPatients = await CalculateNewPatients(request.Filter);
 
             var dashboardData = new ViewDashboardDTO
@@ -77,12 +76,7 @@ namespace Application.Usecases.Owner.ViewDashboard
                 TotalRevenue = totalRevenue,
                 TotalAppointments = totalAppointments,
                 TotalPatient = totalPatients,
-                TotalEmployee = totalEmployees,
-                NewPatient = new DashboardNotiData
-                {
-                    data = newPatients > 0 ? $"bệnh nhân {latestInvoice.Patient.User.Fullname} - {(int)latestInvoice.PaidAmount}VNĐ" : "",
-                    time = now.ToString("dd/MM/yyyy")
-                },
+                NewPatient = newPatients,
                 NewInvoice = new DashboardNotiData
                 {
                     data = latestInvoice.PaidAmount.HasValue ? $"bệnh nhân {latestInvoice.Patient.User.Fullname} - {(int)latestInvoice.PaidAmount.Value} VNĐ" : "Không có hóa đơn mới",
@@ -129,9 +123,9 @@ namespace Application.Usecases.Owner.ViewDashboard
 
             switch (filter?.ToLower())
             {
-                case "today":
-                    invoices = invoices.Where(i => i.CreatedAt.Date == fromDate).ToList();
-                    break;
+                //case "today":
+                //    invoices = invoices.Where(i => i.CreatedAt.Date == fromDate).ToList();
+                //    break;
 
                 case "week":
                     fromDate = fromDate.AddDays(-7);
@@ -168,10 +162,10 @@ namespace Application.Usecases.Owner.ViewDashboard
 
             switch (filter?.ToLower())
             {
-                case "today":
-                    fromDate = now.Date;
-                    appointments = appointments.Where(a => a.CreatedAt.Date == fromDate).ToList();
-                    break;
+                //case "today":
+                //    fromDate = now.Date;
+                //    appointments = appointments.Where(a => a.CreatedAt.Date == fromDate).ToList();
+                //    break;
 
                 case "week":
                     fromDate = now.Date.AddDays(-7);
@@ -208,10 +202,10 @@ namespace Application.Usecases.Owner.ViewDashboard
 
             switch (filter?.ToLower())
             {
-                case "today":
-                    fromDate = now.Date;
-                    patients = patients.Where(p => p.CreatedAt.Date == fromDate).ToList();
-                    break;
+                //case "today":
+                //    fromDate = now.Date;
+                //    patients = patients.Where(p => p.CreatedAt.Date == fromDate).ToList();
+                //    break;
 
                 case "week":
                     fromDate = now.Date.AddDays(-7);
@@ -229,65 +223,14 @@ namespace Application.Usecases.Owner.ViewDashboard
                     break;
 
                 default:
-                    fromDate = now.Date;
-                    patients = patients.Where(p => p.CreatedAt.Date == fromDate).ToList();
+                    fromDate = now.Date.AddDays(-7);
+                    patients = patients.Where(p => p.CreatedAt.Date >= fromDate).ToList();
                     break;
             }
 
             return patients.Count();
         }
-        public async Task<int> CalculateTotalEmployees(string? filter)
-        {
-            var users = await _userCommonRepository.GetAllUserAsync();
-            if (users == null || !users.Any())
-                throw new Exception(MessageConstants.MSG.MSG16);
-
-            var now = DateTime.Now;
-            DateTime fromDate;
-
-            // Apply time filter
-            switch (filter?.ToLower())
-            {
-                case "today":
-                    fromDate = now.Date;
-                    users = users.Where(u => u.CreatedAt.Date == fromDate).ToList();
-                    break;
-
-                case "week":
-                    fromDate = now.Date.AddDays(-7);
-                    users = users.Where(u => u.CreatedAt.Date >= fromDate).ToList();
-                    break;
-
-                case "month":
-                    fromDate = new DateTime(now.Year, now.Month, 1);
-                    users = users.Where(u => u.CreatedAt >= fromDate).ToList();
-                    break;
-
-                case "year":
-                    fromDate = new DateTime(now.Year, 1, 1);
-                    users = users.Where(u => u.CreatedAt >= fromDate).ToList();
-                    break;
-
-                default:
-                    fromDate = now.Date;
-                    users = users.Where(u => u.CreatedAt.Date == fromDate).ToList();
-                    break; // No filter
-            }
-
-            // Lọc patients và owners theo danh sách users đã lọc
-            var patients = await _userCommonRepository.GetAllPatientsAsync(CancellationToken.None);
-            var owners = await _ownerCommonRepository.GetAllOwnersAsync();
-
-            var patientIds = patients.Select(p => p.UserID).ToHashSet();
-            var ownerIds = owners.Select(o => o.UserId).ToHashSet();
-
-            var employees = users.Count(u =>
-                !patientIds.Contains(u.UserId) &&
-                !ownerIds.Contains(u.UserId)
-            );
-
-            return employees < 0 ? 0 : employees;
-        }
+ 
         public async Task<int> CalculateNewPatients(string? filter)
         {
             var patients = await _userCommonRepository.GetAllPatientsAsync(CancellationToken.None);
@@ -299,9 +242,9 @@ namespace Application.Usecases.Owner.ViewDashboard
 
             switch (filter?.ToLower())
             {
-                case "today":
-                    fromDate = now.Date;
-                    break;
+                //case "today":
+                //    fromDate = now.Date;
+                //    break;
 
                 case "week":
                     fromDate = now.Date.AddDays(-7);
@@ -320,8 +263,8 @@ namespace Application.Usecases.Owner.ViewDashboard
                     break;
 
                 default:
-                    // Không lọc gì cả
-                    return patients.Count();
+                    fromDate = now.Date.AddDays(-7);
+                    break;
             }
             var newPatients = patients.Where(p => p.CreatedAt >= fromDate).ToList();
             return newPatients.Count;
