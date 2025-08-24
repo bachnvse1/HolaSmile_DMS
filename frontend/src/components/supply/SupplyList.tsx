@@ -425,7 +425,7 @@ export const SupplyList: React.FC = () => {
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm font-medium text-gray-600">Tổng giá trị</p>
                   <p className="text-sm sm:text-lg font-bold text-green-600 truncate">
-                    {formatCurrency(stats.totalValue)}
+                    {formatCurrency(stats.totalValue)} ₫
                   </p>
                 </div>
                 <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 flex-shrink-0" />

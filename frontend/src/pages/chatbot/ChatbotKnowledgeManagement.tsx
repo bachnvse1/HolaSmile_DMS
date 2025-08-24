@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
+import { Plus } from 'lucide-react';
 import { useChatbotKnowledge } from '@/hooks/useChatbotKnowledge';
 import { ChatbotHeader } from '@/components/chatbot/ChatbotHeader';
 import { ChatbotSearch } from '@/components/chatbot/ChatbotSearch';
 import { ChatbotStatistics } from '@/components/chatbot/ChatbotStatistics';
 import { ChatbotKnowledgeList } from '@/components/chatbot/ChatbotKnowledgeList';
 import { ChatbotEditModal } from '@/components/chatbot/ChatbotEditModal';
+import { ChatbotCreateModal } from '@/components/chatbot/ChatbotCreateModal';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Pagination } from '@/components/ui/Pagination';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import type { ChatbotKnowledge } from '@/types/chatbot.types';
 import { StaffLayout } from '@/layouts/staff';
 import { AuthGuard } from '@/components/AuthGuard';
@@ -14,6 +18,8 @@ import { useUserInfo } from '@/hooks/useUserInfo';
 const ChatbotKnowledgeManagement: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [editingItem, setEditingItem] = useState<ChatbotKnowledge | null>(null);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<ChatbotKnowledge | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(5);
     const userInfo = useUserInfo();
@@ -21,9 +27,12 @@ const ChatbotKnowledgeManagement: React.FC = () => {
         knowledge,
         loading,
         updating,
-        updateAnswer,
+        updateKnowledge,
+        createKnowledge,
+        deleteKnowledge,
         getStatistics
     } = useChatbotKnowledge();
+    const hasPermission = userInfo?.role === 'Owner' || userInfo?.role === 'Administrator';
 
     const statistics = getStatistics();
 
@@ -43,12 +52,40 @@ const ChatbotKnowledgeManagement: React.FC = () => {
     }, [searchTerm]);
 
     const handleEdit = (item: ChatbotKnowledge) => {
+        if (!hasPermission) return;
         setEditingItem(item);
     };
 
-    const handleSave = async (newAnswer: string): Promise<boolean> => {
-        if (!editingItem) return false;
-        return await updateAnswer(editingItem.id, newAnswer);
+    const handleSave = async (data: { knowledgeId: number; newAnswer: string; newQuestion: string }) => {
+        await updateKnowledge(data);
+    };
+
+    const handleSaveCreate = async (data: { question: string; answer: string }) => {
+        await createKnowledge(data);
+    };
+
+    const handleDelete = async (knowledgeId: number) => {
+        await deleteKnowledge(knowledgeId);
+    };
+
+    const handleCreateClick = () => {
+        if (!hasPermission) return;
+        setShowCreateModal(true);
+    };
+
+    const handleDeleteFromList = async (item: ChatbotKnowledge) => {
+        if (!hasPermission) return;
+        setItemToDelete(item);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!itemToDelete) return;
+        
+        try {
+            await deleteKnowledge(itemToDelete.id);
+        } finally {
+            setItemToDelete(null);
+        }
     };
 
     const handleCancel = () => {
@@ -82,7 +119,20 @@ const ChatbotKnowledgeManagement: React.FC = () => {
 
             <StaffLayout userInfo={userInfo}>
                 <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
-                    <ChatbotHeader />
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                        <ChatbotHeader/>
+                        
+                        {hasPermission && (
+                            <Button
+                                onClick={handleCreateClick}
+                                disabled={loading}
+                                className="flex items-center gap-2"
+                            >
+                                <Plus className="h-4 w-4" />
+                                Thêm câu hỏi mới
+                            </Button>
+                        )}
+                    </div>
 
                     <ChatbotSearch
                         searchTerm={searchTerm}
@@ -97,8 +147,10 @@ const ChatbotKnowledgeManagement: React.FC = () => {
 
                     <ChatbotKnowledgeList
                         knowledge={paginatedKnowledge}
-                        searchTerm=""
+                        searchTerm={searchTerm}
                         onEdit={handleEdit}
+                        onDelete={handleDeleteFromList}
+                        hasDeletePermission={hasPermission}
                     />
 
                     {filteredKnowledge.length > 0 && (
@@ -117,14 +169,37 @@ const ChatbotKnowledgeManagement: React.FC = () => {
                         </Card>
                     )}
 
+                    {/* Create Modal */}
+                    {showCreateModal && (
+                        <ChatbotCreateModal
+                            isCreating={updating}
+                            onSave={handleSaveCreate}
+                            onCancel={() => setShowCreateModal(false)}
+                        />
+                    )}
+
+                    {/* Edit Modal */}
                     {editingItem && (
                         <ChatbotEditModal
-                            item={editingItem}
+                            knowledge={editingItem}
                             isUpdating={updating}
                             onSave={handleSave}
+                            onDelete={handleDelete}
                             onCancel={handleCancel}
                         />
                     )}
+
+                    {/* Delete Confirmation Modal */}
+                    <ConfirmModal
+                        isOpen={!!itemToDelete}
+                        onClose={() => setItemToDelete(null)}
+                        onConfirm={handleConfirmDelete}
+                        title="Xác nhận xóa"
+                        message={`Bạn có chắc chắn muốn xóa câu hỏi: "${itemToDelete?.question}"?`}
+                        confirmText="Xóa"
+                        confirmVariant="destructive"
+                        isLoading={updating}
+                    />
                 </div>
             </StaffLayout>
         </AuthGuard>

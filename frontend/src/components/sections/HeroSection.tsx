@@ -3,7 +3,6 @@ import bg2 from '@/assets/bg2-new.jpg'
 import bg3 from '@/assets/bg3-new.jpg'
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { useState, useEffect } from 'react';
-import { Phone } from 'lucide-react';
 
 const heroImages = [
   {
@@ -172,47 +171,6 @@ export const HeroSection = () => {
               />
             ))}
           </div>
-        </div>
-      </div>
-
-      {/* Phone & Zalo Buttons */}
-      <div className="fixed left-2 sm:left-4 bottom-6 sm:bottom-6 z-20 flex flex-col space-y-2">
-        {/* Phone Button */}
-        <div className="relative">
-          <a 
-            href="tel:0333538991"
-            className="relative flex items-center bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 group"
-          >
-            <div className="relative p-2 sm:p-3">
-              <div className="absolute inset-0 bg-red-400 rounded-full animate-ping scale-110"></div>
-              <div className="absolute inset-0 bg-red-400 rounded-full animate-ping animation-delay-1000 scale-110"></div>
-              <Phone className="h-4 w-4 sm:h-5 sm:w-5 relative z-10 animate-shake" />
-            </div>
-            <div className="pr-3 sm:pr-4 pl-1 py-2 sm:py-3 font-semibold text-xs sm:text-sm">
-              0333538991
-            </div>
-          </a>
-        </div>
-
-        {/* Zalo Button */}
-        <div className="relative">
-          <a 
-            href="https://zalo.me/0333538991"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="relative flex items-center bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 group"
-          >
-            <div className="relative p-2 sm:p-3">
-              <div className="absolute inset-0 bg-blue-400 rounded-full animate-ping scale-110"></div>
-              <div className="absolute inset-0 bg-blue-400 rounded-full animate-ping animation-delay-1000 scale-110"></div>
-              <div className="h-4 w-4 sm:h-5 sm:w-5 relative z-10 flex items-center justify-center bg-white text-blue-500 rounded text-xs sm:text-sm font-bold animate-pulse">
-                Z
-              </div>
-            </div>
-            <div className="pr-3 sm:pr-4 pl-1 py-2 sm:py-3 font-semibold text-xs sm:text-sm">
-              Chat Zalo
-            </div>
-          </a>
         </div>
       </div>
 

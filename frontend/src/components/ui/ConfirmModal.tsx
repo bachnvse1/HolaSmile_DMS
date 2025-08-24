@@ -35,10 +35,10 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             <div className="flex-shrink-0">
               <AlertTriangle className="h-6 w-6 text-orange-500" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+            <h3 className="text-lg font-medium text-gray-900 break-words">{title}</h3>
           </div>
           
-          <p className="text-gray-600 mb-6">{message}</p>
+          <p className="text-gray-600 mb-6 break-words whitespace-pre-wrap">{message}</p>
           
           <div className="flex justify-end gap-3">
             <Button variant="outline" onClick={onClose} disabled={isLoading}>

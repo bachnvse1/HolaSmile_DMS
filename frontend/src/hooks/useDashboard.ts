@@ -8,19 +8,44 @@ export interface DashboardStats {
   totalPatient: number;
   totalEmployee: number;
   newPatient: number;
+  newInvoice?: {
+    data: string;
+    time: string;
+  };
+  newPatientAppointment?: {
+    data: string;
+    time: string;
+  };
+  newAppointment?: {
+    data: string;
+    time: string;
+  };
+  unpaidInvoice?: {
+    data: string;
+    time: string;
+  };
+  unapprovedTransaction?: {
+    data: string;
+    time: string;
+  };
+  underMaintenance?: {
+    data: string;
+    time: string;
+  };
 }
 
 export interface ColumnChartData {
   data: Array<{
     label: string;
-    revenueInMillions: number;
-    totalAppointments: number;
+    totalReceipt: number;
+    totalPayment: number;
   }>;
 }
 
 export interface LineChartData {
   data: Array<{
     label: string;
+    revenueInMillions: number;
     totalAppointments: number;
   }>;
 }
@@ -59,11 +84,11 @@ export const useColumnChart = (filter: string = 'month') => {
 };
 
 // Line chart hook
-export const useLineChart = () => {
+export const useLineChart = (filter: string = 'week') => {
   return useQuery<LineChartData>({
-    queryKey: ['line-chart'],
+    queryKey: ['line-chart', filter],
     queryFn: async () => {
-      const response = await axiosInstance.get('/owner/line-chart');
+      const response = await axiosInstance.get(`/owner/line-chart?filter=${filter}`);
       return response.data;
     },
     enabled: true,
@@ -72,11 +97,11 @@ export const useLineChart = () => {
 };
 
 // Pie chart hook
-export const usePieChart = () => {
+export const usePieChart = (filter: string = 'week') => {
   return useQuery<PieChartData>({
-    queryKey: ['pie-chart'],
+    queryKey: ['pie-chart', filter],
     queryFn: async () => {
-      const response = await axiosInstance.get('/owner/pie-chart');
+      const response = await axiosInstance.get(`/owner/pie-chart?filter=${filter}`);
       return response.data;
     },
     enabled: true,
