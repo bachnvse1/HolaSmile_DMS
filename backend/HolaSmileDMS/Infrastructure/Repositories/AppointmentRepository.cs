@@ -283,5 +283,16 @@ namespace HDMS_API.Infrastructure.Repositories
         {
             return await _context.Appointments.FirstOrDefaultAsync(x=>x.RescheduledFromAppointmentId == id);
         }
+
+        public async Task<Appointment?> GetLatestAppWithNewPatientAsync()
+        {
+            return await _context.Appointments
+                .AsNoTracking()
+                .Include(a => a.Patient).ThenInclude(p => p.User)
+                .Where(a => a.IsNewPatient && !a.IsDeleted)
+                .OrderByDescending(a => a.AppointmentDate)
+                .ThenByDescending(a => a.AppointmentTime)
+                .FirstOrDefaultAsync();
+        }
     }
 }

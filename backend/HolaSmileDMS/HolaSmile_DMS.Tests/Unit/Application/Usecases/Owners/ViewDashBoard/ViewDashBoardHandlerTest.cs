@@ -1,239 +1,331 @@
-﻿using Application.Constants;
+﻿using System.Security.Claims;
+using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Administrator.ViewListUser;
 using Application.Usecases.Owner.ViewDashboard;
 using Application.Usecases.UserCommon.ViewAppointment;
+using Domain.Entities;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using System.Security.Claims;
 using Xunit;
 
 namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Owners
 {
-    public class ViewDashboardHandlerTest
+    public class ViewDashboardHandlerUnitTests
     {
-        private readonly Mock<IInvoiceRepository> _invoiceRepoMock;
-        private readonly Mock<IAppointmentRepository> _appointmentRepoMock;
-        private readonly Mock<IUserCommonRepository> _userCommonRepoMock;
-        private readonly Mock<IOwnerRepository> _ownerRepoMock;
-        private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
-        private readonly ViewDashboardHandler _handler;
+        // Mocks
+        private readonly Mock<IInvoiceRepository> _invoiceRepo = new();
+        private readonly Mock<IAppointmentRepository> _apptRepo = new();
+        private readonly Mock<IUserCommonRepository> _userCommonRepo = new();
+        private readonly Mock<IOwnerRepository> _ownerRepo = new();
+        private readonly Mock<ITransactionRepository> _txnRepo = new();
+        private readonly Mock<IMaintenanceRepository> _maintRepo = new();
+        private readonly Mock<IHttpContextAccessor> _http = new();
 
-        public ViewDashboardHandlerTest()
-        {
-            _invoiceRepoMock = new Mock<IInvoiceRepository>();
-            _appointmentRepoMock = new Mock<IAppointmentRepository>();
-            _userCommonRepoMock = new Mock<IUserCommonRepository>();
-            _ownerRepoMock = new Mock<IOwnerRepository>();
-            _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+        private ViewDashboardHandler BuildHandler() => new(
+            _invoiceRepo.Object,
+            _apptRepo.Object,
+            _userCommonRepo.Object,
+            _ownerRepo.Object,
+            _txnRepo.Object,
+            _maintRepo.Object,
+            _http.Object
+        );
 
-            _handler = new ViewDashboardHandler(
-                _invoiceRepoMock.Object,
-                _appointmentRepoMock.Object,
-                _userCommonRepoMock.Object,
-                _ownerRepoMock.Object,
-                _httpContextAccessorMock.Object
-            );
-        }
-
-        private void SetupHttpContext(string? role = null, string userId = "1")
-        {
-            if (role == null)
+        private static AppointmentDTO MakeApptDto(
+            int id, DateTime date, TimeSpan time, bool isNew, string name, string content, DateTime? createdAt = null)
+            => new()
             {
-                _httpContextAccessorMock.Setup(h => h.HttpContext).Returns((HttpContext?)null);
-                return;
-            }
+                AppointmentId = id,
+                AppointmentDate = date,
+                AppointmentTime = time,
+                IsNewPatient = isNew,
+                PatientName = name,
+                Content = content,
+                CreatedAt = createdAt ?? date
+            };
 
+        private static Invoice MakeInvoice(
+            int id, decimal? amount, DateTime createdAt, string status, DateTime? payDate, string patientName)
+            => new()
+            {
+                InvoiceId = id,
+                PaidAmount = amount,
+                CreatedAt = createdAt,
+                Status = status,
+                PaymentDate = payDate,
+                Patient = new Patient
+                {
+                    User = new User { Fullname = patientName }
+                }
+            };
+
+        private static Patient MakePatient(int id, int userId, DateTime createdAt)
+            => new() { PatientID = id, UserID = userId, CreatedAt = createdAt };
+
+        private static User MakeUser(int id, DateTime createdAt)
+            => new() { UserID = id, CreatedAt = createdAt, Status = true, IsVerify = true };
+
+        private static Owner MakeOwner(int ownerId, int userId)
+            => new() { OwnerId = ownerId, UserId = userId };
+
+        private void SetupHttpContext(string role, int userId)
+        {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Role, role),
-                new Claim(ClaimTypes.NameIdentifier, userId)
+                new(ClaimTypes.Role, role),
+                new(ClaimTypes.NameIdentifier, userId.ToString())
             };
-
             var identity = new ClaimsIdentity(claims, "TestAuth");
             var principal = new ClaimsPrincipal(identity);
-            var context = new DefaultHttpContext { User = principal };
-
-            _httpContextAccessorMock.Setup(h => h.HttpContext).Returns(context);
+            _http.Setup(h => h.HttpContext).Returns(new DefaultHttpContext { User = principal });
         }
 
-        private void SetupTestData(string filter = "today")
+        /// <summary>
+        /// Seed dữ liệu mặc định phù hợp với logic handler
+        /// </summary>
+        private (DateTime today, DateTime threeDaysAgo, DateTime lastMonth) SeedDefaultData()
         {
             var today = DateTime.Now.Date;
+            var threeDaysAgo = today.AddDays(-3);
+            var lastMonth = today.AddMonths(-1);
 
-            // Invoices
-            var invoices = new List<Invoice>
+            // Invoices:
+            // today: paid 1000 (latest), pending 300; threeDaysAgo: paid 500; lastMonth: paid 200
+            var inv1 = MakeInvoice(1, 1000m, today, "paid", today, "Patient A");
+            var inv2 = MakeInvoice(2, 500m, threeDaysAgo, "paid", threeDaysAgo, "Patient B");
+            var inv3 = MakeInvoice(3, 200m, lastMonth, "paid", lastMonth, "Patient C");
+            var inv4 = MakeInvoice(4, 300m, today, "pending", null, "Patient B");
+
+            _invoiceRepo.Setup(r => r.GetTotalInvoice())
+                .ReturnsAsync(new List<Invoice> { inv1, inv2, inv3, inv4 });
+            _invoiceRepo.Setup(r => r.GetLastestInvoice())
+                .ReturnsAsync(inv1);
+
+            // Appointments (DTO)
+            var appt1 = MakeApptDto(1, today, new TimeSpan(9, 0, 0), true, "Patient A", "Checkup");
+            var appt2 = MakeApptDto(2, today, new TimeSpan(10, 0, 0), false, "Patient B", "Filling");
+            var appt3 = MakeApptDto(3, lastMonth, new TimeSpan(11, 0, 0), true, "Patient C", "Cleaning");
+
+            _apptRepo.Setup(r => r.GetAllAppointmentAsync())
+                .ReturnsAsync(new List<AppointmentDTO> { appt1, appt2, appt3 });
+
+            // Users (owner, employees, patients)
+            var users = new List<User>
             {
-                new() { CreatedAt = today, PaidAmount = 100 },
-                new() { CreatedAt = today, PaidAmount = 200 }
+                MakeUser(1, today),        // owner
+                MakeUser(2, today),        // dentist (employee)
+                MakeUser(3, today),        // assistant (employee)
+                MakeUser(4, today),        // patient1
+                MakeUser(5, threeDaysAgo), // patient2
+                MakeUser(6, lastMonth),    // another employee
+                MakeUser(7, lastMonth)     // patient3
             };
-            _invoiceRepoMock.Setup(r => r.GetTotalInvoice())
-                .ReturnsAsync(invoices);
-
-            // Appointments
-            var appointments = new List<AppointmentDTO>
-                {
-                    new() { CreatedAt = today },
-                    new() { CreatedAt = today }
-                };
-            _appointmentRepoMock.Setup(r => r.GetAllAppointmentAsync())
-                .ReturnsAsync(appointments);
-
+            _userCommonRepo.Setup(r => r.GetAllUserAsync())
+               .ReturnsAsync(new List<ViewListUserDTO>());
             // Patients
             var patients = new List<Patient>
             {
-                new() { CreatedAt = today, UserID = 1 },
-                new() { CreatedAt = today, UserID = 2 }
+                MakePatient(1, 4, today),
+                MakePatient(2, 5, threeDaysAgo),
+                MakePatient(3, 7, lastMonth)
             };
-            _userCommonRepoMock.Setup(r => r.GetAllPatientsAsync(It.IsAny<CancellationToken>()))
+            _userCommonRepo.Setup(r => r.GetAllPatientsAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(patients);
 
-            // Users (ViewListUserDTO theo interface)
-            var users = new List<ViewListUserDTO>
-            {
-                new() { CreatedAt = today, UserId = 1 },
-                new() { CreatedAt = today, UserId = 2 },
-                new() { CreatedAt = today, UserId = 4 } // employee
-            };
-            _userCommonRepoMock.Setup(r => r.GetAllUserAsync())
-                .ReturnsAsync(users);
-
             // Owners
-            var owners = new List<Owner>
-            {
-                new() { UserId = 3 }
-            };
-            _ownerRepoMock.Setup(r => r.GetAllOwnersAsync())
-                .ReturnsAsync(owners);
+            _ownerRepo.Setup(r => r.GetAllOwnersAsync())
+                .ReturnsAsync(new List<Owner> { MakeOwner(1, 1) });
+
+            // Transactions (pending 2, approved 1)
+            _txnRepo.Setup(r => r.GetPendingTransactionsAsync())
+                .ReturnsAsync(new List<FinancialTransaction>
+                {
+                    new() { TransactionID = 1, status = "pending" },
+                    new() { TransactionID = 2, status = "pending" }
+                });
+
+            // Maintenance (1 pending, 1 completed)
+            _maintRepo.Setup(r => r.GetAllMaintenancesWithSuppliesAsync())
+                .ReturnsAsync(new List<EquipmentMaintenance>
+                {
+                    new() { MaintenanceId = 1, Status = "pending", CreatedAt = today },
+                    new() { MaintenanceId = 2, Status = "completed", CreatedAt = threeDaysAgo }
+                });
+
+            return (today, threeDaysAgo, lastMonth);
         }
 
-        [Fact(DisplayName = "UTCID01 - Owner views dashboard successfully")]
-        public async System.Threading.Tasks.Task UTCID01_Owner_Views_Dashboard_Successfully()
+        // ---------------- Tests ----------------
+
+        [Fact(DisplayName = "[Abnormal] Non-owner -> Unauthorized")]
+        public async System.Threading.Tasks.Task NonOwner_Unauthorized()
         {
-            // Arrange
-            SetupHttpContext("Owner");
-            SetupTestData();
+            SetupHttpContext("Assistant", 2);
+            SeedDefaultData();
 
-            var command = new ViewDashboardCommand { Filter = "today" };
+            var handler = BuildHandler();
+            var cmd = new ViewDashboardCommand { Filter = "today" };
 
-            // Act
-            var result = await _handler.Handle(command, default);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(300m, result.TotalRevenue); // 100 + 200
-            Assert.Equal(2, result.TotalAppointments);
-            Assert.Equal(2, result.TotalPatient);
-            Assert.Equal(1, result.TotalEmployee); // 3 users - 2 patients - 1 owner
-            Assert.Equal(2, result.NewPatient);
-        }
-
-        [Theory(DisplayName = "UTCID02 - Dashboard filters work correctly")]
-        [InlineData("today")]
-        [InlineData("week")]
-        [InlineData("month")]
-        [InlineData("year")]
-        public async System.Threading.Tasks.Task UTCID02_Dashboard_Filters_Work_Correctly(string filter)
-        {
-            // Arrange
-            SetupHttpContext("Owner");
-            SetupTestData(filter);
-
-            var command = new ViewDashboardCommand { Filter = filter };
-
-            // Act
-            var result = await _handler.Handle(command, default);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.True(result.TotalRevenue >= 0);
-            Assert.True(result.TotalAppointments >= 0);
-            Assert.True(result.TotalPatient >= 0);
-            Assert.True(result.TotalEmployee >= 0);
-            Assert.True(result.NewPatient >= 0);
-        }
-
-        [Fact(DisplayName = "UTCID03 - Non-owner role should throw unauthorized")]
-        public async System.Threading.Tasks.Task UTCID03_Non_Owner_Role_Should_Throw()
-        {
-            // Arrange
-            SetupHttpContext("Dentist");
-            var command = new ViewDashboardCommand { Filter = "today" };
-
-            // Act & Assert
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(
-                () => _handler.Handle(command, default));
+            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                handler.Handle(cmd, CancellationToken.None));
 
             Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
         }
 
-        [Fact(DisplayName = "UTCID04 - No data should return zeros except total employees")]
-        public async System.Threading.Tasks.Task UTCID04_No_Data_Should_Return_Zeros_Except_Employees()
+        [Fact(DisplayName = "[Normal] Handle(today) aggregates & notifications")]
+        public async System.Threading.Tasks.Task Handle_Today_Aggregates()
         {
-            // Arrange
-            SetupHttpContext("Owner");
-            var today = DateTime.Now.Date;
+            SetupHttpContext("Owner", 1);
+            var (today, _, _) = SeedDefaultData();
 
-            // Setup empty data for most repositories
-            _invoiceRepoMock.Setup(r => r.GetTotalInvoice())
-                .ReturnsAsync(new List<Invoice>());
+            var handler = BuildHandler();
+            var dto = await handler.Handle(new ViewDashboardCommand { Filter = "today" }, CancellationToken.None);
 
-            _appointmentRepoMock.Setup(r => r.GetAllAppointmentAsync())
-                .ReturnsAsync(new List<AppointmentDTO>());
+            // Revenue: handler dùng CreatedAt, cộng cả pending -> 1000 + 300 = 1300
+            Assert.Equal(1300m, dto.TotalRevenue);
 
-            // Setup minimal data for users and patients to avoid exceptions
-            var patients = new List<Patient>
-    {
-        new() { CreatedAt = today, UserID = 1 }
-    };
-            _userCommonRepoMock.Setup(r => r.GetAllPatientsAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(patients);
+            // Appointments (CreatedAt hôm nay): 2
+            Assert.Equal(2, dto.TotalAppointments);
 
-            var users = new List<ViewListUserDTO>
-    {
-        new() { CreatedAt = today, UserId = 1 }, // Patient
-        new() { CreatedAt = today, UserId = 2 }  // Employee
-    };
-            _userCommonRepoMock.Setup(r => r.GetAllUserAsync())
-                .ReturnsAsync(users);
+            // Patients (CreatedAt hôm nay): 1
+            Assert.Equal(1, dto.TotalPatient);
 
-            _ownerRepoMock.Setup(r => r.GetAllOwnersAsync())
-                .ReturnsAsync(new List<Owner>());
+            // Employees (users today: owner(1), emp(2,3), patient(4)) -> exclude owners & patients => 2
+            Assert.Equal(2, dto.TotalEmployee);
 
-            var command = new ViewDashboardCommand { Filter = "today" };
+            // NewPatients(today) = 1 -> NewPatient.data dùng latestInvoice (theo code)
+            Assert.False(string.IsNullOrWhiteSpace(dto.NewPatient.data));
+            Assert.Contains("VNĐ", dto.NewPatient.data);
+            Assert.Equal(today.ToString("dd/MM/yyyy"), dto.NewPatient.time);
 
-            // Act
-            var result = await _handler.Handle(command, default);
+            // NewInvoice: thông tin từ latestInvoice
+            Assert.Contains("VNĐ", dto.NewInvoice.data);
+            Assert.False(string.IsNullOrWhiteSpace(dto.NewInvoice.time));
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(0, result.TotalRevenue);
-            Assert.Equal(0, result.TotalAppointments);
-            Assert.Equal(1, result.TotalPatient);     // 1 patient
-            Assert.Equal(1, result.TotalEmployee);    // 1 employee (not patient or owner)
-            Assert.Equal(1, result.NewPatient);       // 1 new patient today
+            // Unpaid invoices: 1
+            Assert.Contains("1 hóa đơn chưa thanh toán", dto.UnpaidInvoice.data);
+
+            // Pending txns: 2
+            Assert.Contains("2 giao dịch chưa duyệt", dto.UnapprovedTransaction.data);
+
+            // Maintenance pending: 1
+            Assert.Contains("1 vật tư đang bảo trì", dto.UnderMaintenance.data);
         }
 
-        [Fact(DisplayName = "UTCID05 - Invalid filter defaults to all data")]
-        public async System.Threading.Tasks.Task UTCID05_Invalid_Filter_Defaults_To_All()
+        [Fact(DisplayName = "[Normal] CalculateTotalRevenue - week/month/year/default")]
+        public async System.Threading.Tasks.Task CalculateTotalRevenue_ByFilter()
         {
-            // Arrange
-            SetupHttpContext("Owner");
-            SetupTestData();
+            SetupHttpContext("Owner", 1);
+            SeedDefaultData();
+            var handler = BuildHandler();
 
-            var command = new ViewDashboardCommand { Filter = "invalid_filter" };
+            var week = await handler.CalculateTotalRevenue("week");   // today(1000+300) + 3daysAgo(500) = 1800
+            var month = await handler.CalculateTotalRevenue("month"); // same as week (lastMonth out)
+            var year = await handler.CalculateTotalRevenue("year");   // 1000+300+500+200 = 2000
+            var @default = await handler.CalculateTotalRevenue(null); // default -> today = 1300
 
-            // Act
-            var result = await _handler.Handle(command, default);
+            Assert.Equal(1800m, week);
+            Assert.Equal(1800m, month);
+            Assert.Equal(2000m, year);
+            Assert.Equal(1300m, @default);
+        }
 
-            // Assert
-            Assert.NotNull(result);
-            // No filter applied → All data returned
-            Assert.Equal(300m, result.TotalRevenue);
-            Assert.Equal(2, result.TotalAppointments);
-            Assert.Equal(2, result.TotalPatient);
-            Assert.Equal(1, result.TotalEmployee);
-            Assert.Equal(2, result.NewPatient);
+        [Fact(DisplayName = "[Normal] CalculateTotalAppointments - today/week/month/year/default")]
+        public async System.Threading.Tasks.Task CalculateTotalAppointments_ByFilter()
+        {
+            SetupHttpContext("Owner", 1);
+            SeedDefaultData();
+            var handler = BuildHandler();
+
+            var today = await handler.CalculateTotalAppointments("today"); // 2
+            var week = await handler.CalculateTotalAppointments("week");   // 2
+            var month = await handler.CalculateTotalAppointments("month"); // 2
+            var year = await handler.CalculateTotalAppointments("year");   // 3
+            var @default = await handler.CalculateTotalAppointments(null); // last 7 days => 2
+
+            Assert.Equal(2, today);
+            Assert.Equal(2, week);
+            Assert.Equal(2, month);
+            Assert.Equal(3, year);
+            Assert.Equal(2, @default);
+        }
+
+        [Fact(DisplayName = "[Normal] CalculateTotalPatients - today/week/month/year/default")]
+        public async System.Threading.Tasks.Task CalculateTotalPatients_ByFilter()
+        {
+            SetupHttpContext("Owner", 1);
+            SeedDefaultData();
+            var handler = BuildHandler();
+
+            var today = await handler.CalculateTotalPatients("today"); // 1
+            var week = await handler.CalculateTotalPatients("week");   // 2
+            var month = await handler.CalculateTotalPatients("month"); // 2
+            var year = await handler.CalculateTotalPatients("year");   // 3
+            var @default = await handler.CalculateTotalPatients(null); // today => 1
+
+            Assert.Equal(1, today);
+            Assert.Equal(2, week);
+            Assert.Equal(2, month);
+            Assert.Equal(3, year);
+            Assert.Equal(1, @default);
+        }
+
+        [Fact(DisplayName = "[Normal] CalculateTotalEmployees - today/week/month/year/default")]
+        public async System.Threading.Tasks.Task CalculateTotalEmployees_ByFilter()
+        {
+            SetupHttpContext("Owner", 1);
+            SeedDefaultData();
+            var handler = BuildHandler();
+
+            var today = await handler.CalculateTotalEmployees("today"); // 2
+            var week = await handler.CalculateTotalEmployees("week");   // 2
+            var month = await handler.CalculateTotalEmployees("month"); // 2
+            var year = await handler.CalculateTotalEmployees("year");   // 3 (thêm U6 lastMonth)
+            var @default = await handler.CalculateTotalEmployees(null); // today => 2
+
+            Assert.Equal(2, today);
+            Assert.Equal(2, week);
+            Assert.Equal(2, month);
+            Assert.Equal(3, year);
+            Assert.Equal(2, @default);
+        }
+
+        [Fact(DisplayName = "[Normal] CalculateNewPatients - today/week/month/year/default")]
+        public async System.Threading.Tasks.Task CalculateNewPatients_ByFilter()
+        {
+            SetupHttpContext("Owner", 1);
+            SeedDefaultData();
+            var handler = BuildHandler();
+
+            var today = await handler.CalculateNewPatients("today"); // 1
+            var week = await handler.CalculateNewPatients("week");   // 2
+            var month = await handler.CalculateNewPatients("month"); // 2
+            var year = await handler.CalculateNewPatients("year");   // 3
+            var @default = await handler.CalculateNewPatients(null); // total => 3
+
+            Assert.Equal(1, today);
+            Assert.Equal(2, week);
+            Assert.Equal(2, month);
+            Assert.Equal(3, year);
+            Assert.Equal(3, @default);
+        }
+
+        [Fact(DisplayName = "[Abnormal] CalculateTotalEmployees throws MSG16 when users empty")]
+        public async System.Threading.Tasks.Task CalculateTotalEmployees_UsersEmpty_Throws()
+        {
+            SetupHttpContext("Owner", 1);
+            // Users empty
+            _userCommonRepo.Setup(r => r.GetAllUserAsync())
+               .ReturnsAsync(new List<ViewListUserDTO>());
+            // Những repo khác không dùng trong test này
+            var handler = BuildHandler();
+
+            var ex = await Assert.ThrowsAsync<Exception>(() =>
+                handler.CalculateTotalEmployees("today"));
+
+            Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
         }
     }
 }

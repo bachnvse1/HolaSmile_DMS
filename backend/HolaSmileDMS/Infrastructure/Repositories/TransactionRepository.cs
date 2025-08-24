@@ -35,7 +35,7 @@ namespace Infrastructure.Repositories
             return await _context.FinancialTransactions.FindAsync(transactionId);
         }
 
-        public async Task<List<FinancialTransaction>> GetExpenseTransactionsAsync()
+        public async Task<List<FinancialTransaction>> GetPendingTransactionsAsync()
         {
             return await _context.FinancialTransactions.Where(t => t.status == "pending" && !t.IsDelete).ToListAsync();
         }
