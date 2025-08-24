@@ -1,6 +1,5 @@
 ﻿using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.UserCommon.ViewAppointment;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
@@ -9,17 +8,14 @@ namespace Application.Usecases.Owner.ViewDashBoard
 {
     public class ColumnChartHandler : IRequestHandler<ColumnChartCommand, ColumnChartDto>
     {
-        private readonly IInvoiceRepository _invoiceRepository;
-        private readonly IAppointmentRepository _appointmentRepository;
+        private readonly ITransactionRepository _transactionRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public ColumnChartHandler(
-            IInvoiceRepository invoiceRepository,
-            IAppointmentRepository appointmentRepository,
+            ITransactionRepository transactionRepository,
             IHttpContextAccessor httpContextAccessor)
         {
-            _invoiceRepository = invoiceRepository;
-            _appointmentRepository = appointmentRepository;
+            _transactionRepository = transactionRepository;
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -31,102 +27,155 @@ namespace Application.Usecases.Owner.ViewDashBoard
             if (!string.Equals(role, "Owner", StringComparison.OrdinalIgnoreCase))
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
-            string filter = request.Filter?.ToLower() ?? "today";
+            var allTransactions = await _transactionRepository.GetAllFinancialTransactionsAsync();
 
-            // Lấy toàn bộ dữ liệu gốc
-            var invoices = await _invoiceRepository.GetTotalInvoice() ?? new List<Invoice>();
-            var appointmentDtos = await _appointmentRepository.GetAllAppointmentAsync()
-                       ?? new List<AppointmentDTO>();
+            // Phân loại thu/chi
+            var totalReceipt = allTransactions.Where(t => t.TransactionType).ToList();
+            var totalPayment = allTransactions.Where(t => !t.TransactionType).ToList();
 
-            var appointments = appointmentDtos.Select(dto => new Appointment
-            {
-                AppointmentId = dto.AppointmentId,
-                CreatedAt = dto.CreatedAt,
-            }).ToList();
+            var now = DateTime.Now;
+            var filter = string.IsNullOrEmpty(request.Filter) ? "week" : request.Filter.ToLower();
 
-            // Xử lý group theo filter
-            var result = new ColumnChartDto();
-
+            // Lọc coarse theo filter (để giảm data trước khi group)
             switch (filter)
             {
-                case "today":
                 case "week":
-                    result.Data = GroupByDay(invoices, appointments, filter);
-                    break;
-
+                    {
+                        var start = now.Date.AddDays(-6);
+                        totalReceipt = totalReceipt.Where(t => t.TransactionDate.HasValue &&
+                                                               t.TransactionDate.Value >= start).ToList();
+                        totalPayment = totalPayment.Where(t => t.TransactionDate.HasValue &&
+                                                               t.TransactionDate.Value >= start).ToList();
+                        break;
+                    }
                 case "month":
+                    {
+                        var start = new DateTime(now.Year, now.Month, 1);
+                        var end = now.Date.AddDays(1); // chỉ đến hôm nay (nửa mở)
+                        totalReceipt = totalReceipt.Where(t => t.TransactionDate.HasValue &&
+                                                               t.TransactionDate.Value >= start &&
+                                                               t.TransactionDate.Value < end).ToList();
+                        totalPayment = totalPayment.Where(t => t.TransactionDate.HasValue &&
+                                                               t.TransactionDate.Value >= start &&
+                                                               t.TransactionDate.Value < end).ToList();
+                        break;
+                    }
                 case "year":
-                    result.Data = GroupByMonth(invoices, appointments, filter);
-                    break;
-
+                    {
+                        var start = new DateTime(now.Year, 1, 1);
+                        var end = new DateTime(now.Year, now.Month, 1).AddMonths(1); // hết tháng hiện tại
+                        totalReceipt = totalReceipt.Where(t => t.TransactionDate.HasValue &&
+                                                               t.TransactionDate.Value >= start &&
+                                                               t.TransactionDate.Value < end).ToList();
+                        totalPayment = totalPayment.Where(t => t.TransactionDate.HasValue &&
+                                                               t.TransactionDate.Value >= start &&
+                                                               t.TransactionDate.Value < end).ToList();
+                        break;
+                    }
                 default:
-                    throw new ArgumentException("Invalid filter");
+                    {
+                        var start = now.Date.AddDays(-6);
+                        totalReceipt = totalReceipt.Where(t => t.TransactionDate.HasValue &&
+                                                               t.TransactionDate.Value >= start).ToList();
+                        totalPayment = totalPayment.Where(t => t.TransactionDate.HasValue &&
+                                                               t.TransactionDate.Value >= start).ToList();
+                        filter = "week";
+                        break;
+                    }
+            }
+
+            var result = new ColumnChartDto { Data = new List<ColumnChartItemDto>() };
+
+            if (filter == "year")
+            {
+                // Chỉ đến tháng hiện tại
+                for (int m = 1; m <= now.Month; m++)
+                {
+                    var start = new DateTime(now.Year, m, 1);
+                    var end = start.AddMonths(1);
+
+                    var totalR = totalReceipt.Where(t => t.TransactionDate.HasValue &&
+                                                         t.TransactionDate.Value >= start &&
+                                                         t.TransactionDate.Value < end)
+                                             .Sum(t => (int)t.Amount);
+                    var totalP = totalPayment.Where(t => t.TransactionDate.HasValue &&
+                                                         t.TransactionDate.Value >= start &&
+                                                         t.TransactionDate.Value < end)
+                                             .Sum(t => (int)t.Amount);
+
+                    result.Data.Add(new ColumnChartItemDto
+                    {
+                        Label = $"T{m}",
+                        TotalReceipt = totalR,
+                        TotalPayment = totalP
+                    });
+                }
+            }
+            else if (filter == "month")
+            {
+                // ====== Gộp 6 ngày/nhóm, chỉ đến hôm nay ======
+                var monthStart = new DateTime(now.Year, now.Month, 1);
+                var end = now.Date.AddDays(1); // nửa mở
+                var bucketStart = monthStart;
+
+                while (bucketStart < end)
+                {
+                    var bucketEnd = bucketStart.AddDays(6); // [start, start+6)
+                    if (bucketEnd > end) bucketEnd = end;
+
+                    var totalR = totalReceipt.Where(t => t.TransactionDate.HasValue &&
+                                                         t.TransactionDate.Value >= bucketStart &&
+                                                         t.TransactionDate.Value < bucketEnd)
+                                             .Sum(t => (int)t.Amount);
+                    var totalP = totalPayment.Where(t => t.TransactionDate.HasValue &&
+                                                         t.TransactionDate.Value >= bucketStart &&
+                                                         t.TransactionDate.Value < bucketEnd)
+                                             .Sum(t => (int)t.Amount);
+
+                    var fromDay = bucketStart.Day;
+                    var toDay = bucketEnd.AddDays(-1).Day; // vì nửa mở
+
+                    result.Data.Add(new ColumnChartItemDto
+                    {
+                        Label = $"{fromDay:00}–{toDay:00}", // ví dụ "01–06", "07–12", ...
+                        TotalReceipt = totalR,
+                        TotalPayment = totalP
+                    });
+
+                    bucketStart = bucketStart.AddDays(6);
+                }
+            }
+            else
+            {
+                // ====== week: gom theo từng ngày trong 7 ngày gần nhất ======
+                var startDate = now.Date.AddDays(-6);
+                var days = Enumerable.Range(0, (now.Date - startDate.Date).Days + 1)
+                                     .Select(offset => startDate.Date.AddDays(offset));
+
+                foreach (var day in days)
+                {
+                    var dayStart = day.Date;
+                    var dayEnd = dayStart.AddDays(1);
+
+                    var totalR = totalReceipt.Where(t => t.TransactionDate.HasValue &&
+                                                         t.TransactionDate.Value >= dayStart &&
+                                                         t.TransactionDate.Value < dayEnd)
+                                             .Sum(t => (int)t.Amount);
+                    var totalP = totalPayment.Where(t => t.TransactionDate.HasValue &&
+                                                         t.TransactionDate.Value >= dayStart &&
+                                                         t.TransactionDate.Value < dayEnd)
+                                             .Sum(t => (int)t.Amount);
+
+                    result.Data.Add(new ColumnChartItemDto
+                    {
+                        Label = day.ToString("dd/MM"),
+                        TotalReceipt = totalR,
+                        TotalPayment = totalP
+                    });
+                }
             }
 
             return result;
-        }
-
-        private List<ColumnChartItemDto> GroupByDay(
-            IEnumerable<Invoice> invoices,
-            IEnumerable<Appointment> appointments,
-            string filter)
-        {
-            var now = DateTime.Now;
-            var startDate = filter == "today" ? now.Date : now.Date.AddDays(-7);
-
-            // Lấy các ngày từ startDate -> now
-            var days = Enumerable.Range(0, (now.Date - startDate).Days + 1)
-                                 .Select(offset => startDate.AddDays(offset))
-                                 .ToList();
-
-            var data = new List<ColumnChartItemDto>();
-
-            foreach (var day in days)
-            {
-                var dayInvoices = invoices.Where(i => i.CreatedAt.Date == day.Date);
-                var dayAppointments = appointments.Where(a => a.CreatedAt.Date == day.Date);
-
-                data.Add(new ColumnChartItemDto
-                {
-                    Label = day.ToString("dd/MM"),
-                    RevenueInMillions = (dayInvoices.Sum(i => i.PaidAmount ?? 0)),
-                    TotalAppointments = dayAppointments.Count()
-                });
-            }
-
-            return data;
-        }
-
-        private List<ColumnChartItemDto> GroupByMonth(
-            IEnumerable<Invoice> invoices,
-            IEnumerable<Appointment> appointments,
-            string filter)
-        {
-            var now = DateTime.Now;
-            var startMonth = filter == "month" ? new DateTime(now.Year, 1, 1) : new DateTime(now.Year, 1, 1);
-
-            // Group theo tháng (T1, T2, ...)
-            var months = Enumerable.Range(1, 12)
-                                   .Select(m => new DateTime(now.Year, m, 1))
-                                   .Where(m => filter == "month" ? m.Month <= now.Month : true)
-                                   .ToList();
-
-            var data = new List<ColumnChartItemDto>();
-
-            foreach (var month in months)
-            {
-                var monthInvoices = invoices.Where(i => i.CreatedAt.Month == month.Month && i.CreatedAt.Year == now.Year);
-                var monthAppointments = appointments.Where(a => a.CreatedAt.Month == month.Month && a.CreatedAt.Year == now.Year);
-
-                data.Add(new ColumnChartItemDto
-                {
-                    Label = $"T{month.Month}",
-                    RevenueInMillions = (monthInvoices.Sum(i => i.PaidAmount ?? 0)),
-                    TotalAppointments = monthAppointments.Count()
-                });
-            }
-
-            return data;
         }
     }
 }

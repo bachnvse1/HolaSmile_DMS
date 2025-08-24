@@ -40,9 +40,6 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure
                 throw new Exception(MessageConstants.MSG.MSG07);
             if (request.Price <= 0 || request.OriginalPrice <= 0)
                 throw new Exception(MessageConstants.MSG.MSG95);
-            if (request.Discount < 0 || request.ConsumableCost < 0 || request.ReferralCommissionRate < 0 ||
-                request.DoctorCommissionRate < 0 || request.AssistantCommissionRate < 0 || request.TechnicianCommissionRate < 0)
-                throw new Exception(MessageConstants.MSG.MSG95);
 
             decimal supplyCost = 0;
             var existSuppliesUsed = new List<SuppliesUsed>();
@@ -73,7 +70,6 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure
             procedure.ProcedureName = request.ProcedureName;
             procedure.Price = priceTotal;
             procedure.Description = request.Description;
-            procedure.Discount = request.Discount;
             procedure.OriginalPrice = Math.Round(request.OriginalPrice,2);
             procedure.ConsumableCost = consumableTotal;
             procedure.ReferralCommissionRate = request.ReferralCommissionRate;

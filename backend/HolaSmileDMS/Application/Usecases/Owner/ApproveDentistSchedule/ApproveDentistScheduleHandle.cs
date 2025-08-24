@@ -31,6 +31,8 @@ namespace Application.Usecases.Owner.AprroveDentistSchedule
 
             int currentUserId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
 
+            var notifications = new Dictionary<int, List<Schedule>>();
+
             foreach (var id in request.ScheduleIds)
             {
                 var schedule = await _scheduleRepository.GetScheduleByIdAsync(id);
@@ -40,6 +42,7 @@ namespace Application.Usecases.Owner.AprroveDentistSchedule
                     throw new Exception("Chỉ có thể cập nhật lịch đang ở trạng thái pending");
                 }
 
+
                 schedule.Status = request.Action == "approved" ? "approved" : "rejected";
                 schedule.UpdatedAt = DateTime.Now;
                 schedule.UpdatedBy = currentUserId;
@@ -48,32 +51,30 @@ namespace Application.Usecases.Owner.AprroveDentistSchedule
                 if (!updated)
                     throw new Exception(MessageConstants.MSG.MSG58);
 
-                if (request.Action == "approved")
+                // Gom lịch theo DentistId
+                if (!notifications.ContainsKey(schedule.Dentist.User.UserID))
+                    notifications[schedule.Dentist.User.UserID] = new List<Schedule>();
+                notifications[schedule.Dentist.User.UserID].Add(schedule);
+            }
+
+            foreach (var kv in notifications)
+            {
+                var dentistId = kv.Key;
+                var schedules = kv.Value;
+
+                var actionText = request.Action == "approved" ? "được duyệt" : "bị từ chối";
+                var scheduleDates = string.Join(", ", schedules.Select(s => s.WorkDate.ToString("dd/MM/yyyy")));
+
+                try
                 {
-                    try
-                    {
-                        await _mediator.Send(new SendNotificationCommand(
-                        schedule.Dentist.User.UserID,
+                    await _mediator.Send(new SendNotificationCommand(
+                        dentistId,
                         "Đăng ký lịch làm việc",
-                        $"Bạn đã được duyệt lịch làm việc vào ngày {schedule.WorkDate.Date:dd/MM/yyyy} lúc {DateTime.Now:HH:mm}",
+                        $"Bạn đã {actionText} lịch làm việc vào các ngày: {scheduleDates}",
                         "Đăng ký lịch làm việc",
                         null, ""), cancellationToken);
-                    }
-                    catch { }
                 }
-                else
-                {
-                    try
-                    {
-                        await _mediator.Send(new SendNotificationCommand(
-                        schedule.Dentist.User.UserID,
-                        "Đăng ký lịch làm việc",
-                        $"Bạn đã bị từ chối lịch làm việc vào ngày {schedule.WorkDate.Date:dd/MM/yyyy} lúc {DateTime.Now:HH:mm}",
-                        "Đăng ký lịch làm việc",
-                        null, ""), cancellationToken);
-                    }
-                    catch { }
-                }
+                catch { }
             }
 
             return request.Action == "approved"

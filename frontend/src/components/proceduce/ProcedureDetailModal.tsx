@@ -38,13 +38,6 @@ export function ProcedureDetailModal({ procedure, isOpen, onOpenChange, onEdit, 
         return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}p` : `${hours} giờ`
     }
 
-    const calculateSavings = () => {
-        if (procedure.discount > 0) {
-            return procedure.originalPrice - procedure.price
-        }
-        return 0
-    }
-
     const calculateProfitMargin = () => {
         const profit = procedure.price - procedure.consumableCost
         return ((profit / procedure.price) * 100).toFixed(1)
@@ -63,7 +56,6 @@ export function ProcedureDetailModal({ procedure, isOpen, onOpenChange, onEdit, 
                 </DialogHeader>
 
                 <div className="space-y-6">
-                    {/* Header với tên và trạng thái */}
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
                             <h2 className="text-2xl font-bold">{procedure.procedureName}</h2>
@@ -76,31 +68,18 @@ export function ProcedureDetailModal({ procedure, isOpen, onOpenChange, onEdit, 
 
                     <Separator />
 
-                    {/* Thông tin giá cả */}
                     <div className="space-y-4">
                         <h3 className="text-lg font-semibold flex items-center gap-2">
                             Thông Tin Giá Cả
                         </h3>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div className="bg-muted/50 p-4 rounded-lg">
                                 <div className="flex items-center gap-2 mb-2">
                                     <span className="text-sm font-medium">Giá Gốc</span>
                                 </div>
                                 <p className="text-xl font-bold text-blue-600">{formatCurrency(procedure.originalPrice)}</p>
                             </div>
-
-                            {procedure.discount > 0 && (
-                                <div className="bg-muted/50 p-4 rounded-lg">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <span className="text-sm font-medium">Giảm Giá</span>
-                                    </div>
-                                    <p className="text-xl font-bold text-red-600">{procedure.discount}%</p>
-                                    {calculateSavings() > 0 && (
-                                        <p className="text-xs text-muted-foreground">Tiết kiệm: {formatCurrency(calculateSavings())}</p>
-                                    )}
-                                </div>
-                            )}
 
                             <div className="bg-muted/50 p-4 rounded-lg">
                                 <div className="flex items-center gap-2 mb-2">
@@ -122,7 +101,6 @@ export function ProcedureDetailModal({ procedure, isOpen, onOpenChange, onEdit, 
 
                     <Separator />
 
-                    {/* Thông tin bổ sung */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
                             <h3 className="text-lg font-semibold">Thông Tin Bổ Sung</h3>
@@ -188,7 +166,6 @@ export function ProcedureDetailModal({ procedure, isOpen, onOpenChange, onEdit, 
                         </div>
                     </div>
 
-                    {/* Supplies Used */}
                     {procedure.suppliesUsed && procedure.suppliesUsed.length > 0 && (
                         <>
                             <Separator />
@@ -218,7 +195,6 @@ export function ProcedureDetailModal({ procedure, isOpen, onOpenChange, onEdit, 
                                     ))}
                                 </div>
 
-                                {/* Summary */}
                                 <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm font-medium text-blue-800">Tổng số loại vật tư:</span>
@@ -231,7 +207,6 @@ export function ProcedureDetailModal({ procedure, isOpen, onOpenChange, onEdit, 
 
                     <Separator />
 
-                    {/* Actions */}
                     <div className="flex justify-end gap-2">
                         {role === "Assistant" && onEdit && (
                             <Button onClick={() => onEdit(procedure)}>Chỉnh Sửa</Button>

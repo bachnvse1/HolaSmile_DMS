@@ -17,4 +17,5 @@ public interface IInvoiceRepository
     System.Threading.Tasks.Task UpdateInvoiceAsync(Invoice invoice);
     Task<bool> HasUnpaidInvoice(int treatmentRecordId);
     Task<List<Invoice>> GetTotalInvoice();
+    Task<Invoice> GetLastestInvoice();
 }

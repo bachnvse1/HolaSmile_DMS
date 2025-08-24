@@ -10,13 +10,16 @@ namespace Application.Usecases.Owner.ViewDashBoard
     public class LineChartHandler : IRequestHandler<LineChartCommand, LineChartDto>
     {
         private readonly IAppointmentRepository _appointmentRepository;
+        private readonly IInvoiceRepository _invoiceRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public LineChartHandler(
             IAppointmentRepository appointmentRepository,
+            IInvoiceRepository invoiceRepository,
             IHttpContextAccessor httpContextAccessor)
         {
             _appointmentRepository = appointmentRepository;
+            _invoiceRepository = invoiceRepository;
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -25,49 +28,200 @@ namespace Application.Usecases.Owner.ViewDashBoard
             // Kiểm tra quyền Owner
             var user = _httpContextAccessor.HttpContext?.User;
             var role = user?.FindFirst(ClaimTypes.Role)?.Value;
-            if (!string.Equals(role, "Owner", StringComparison.OrdinalIgnoreCase))
-                throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
+            //if (!string.Equals(role, "Owner", StringComparison.OrdinalIgnoreCase))
+            //    throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
-            // Lấy tất cả lịch hẹn
+            var invoices = await _invoiceRepository.GetTotalInvoice() ?? new List<Invoice>();
+            
             var appointmentDtos = await _appointmentRepository.GetAllAppointmentAsync() ?? new List<AppointmentDTO>();
-
-            // Xác định tuần hiện tại (thứ 2 -> CN)
-            var today = DateTime.Now.Date;
-            var startOfWeek = today.AddDays(-(int)today.DayOfWeek + 1); // Monday
-            if (startOfWeek > today) startOfWeek = startOfWeek.AddDays(-7); // fix nếu CN = 0
-
-            var daysOfWeek = Enumerable.Range(0, 7)
-                                       .Select(offset => startOfWeek.AddDays(offset))
-                                       .ToList();
-
-            var result = new LineChartDto();
-
-            foreach (var day in daysOfWeek)
+            var appointments = appointmentDtos.Select(dto => new Appointment
             {
-                var totalAppointments = appointmentDtos.Count(a => a.CreatedAt.Date == day.Date);
-                result.Data.Add(new LineChartItemDto
-                {
-                    Label = GetDayLabel(day.DayOfWeek),
-                    TotalAppointments = totalAppointments
-                });
-            }
+                AppointmentId = dto.AppointmentId,
+                AppointmentDate = dto.AppointmentDate,
+            }).ToList();
 
+            // Xử lý group theo filter
+            var now = DateTime.Now;
+            var filter = string.IsNullOrEmpty(request.Filter) ? "week" : request.Filter.ToLower();
+            var result = new LineChartDto();
+            switch (filter)
+            {
+                case "week":
+                    {
+                        var start = now.Date.AddDays(-6);
+                        var end = now.Date.AddDays(1); // đến hôm nay
+                        result.Data = GroupByDays(invoices, appointments, start, end);
+                        break;
+                    }
+                case "month":
+                    {
+                        result.Data = GroupBySixDayBucketsInCurrentMonth(invoices, appointments, DateTime.Now);
+                        break;
+                    }
+                case "year":
+                    {
+                        result.Data = GroupByMonths(invoices, appointments, now.Year, now.Month); // đã giới hạn đến tháng hiện tại
+                        break;
+                    }
+                default:
+                    {
+                        var start = now.Date.AddDays(-6);
+                        var end = now.Date.AddDays(1);
+                        result.Data = GroupByDays(invoices, appointments, start, end);
+                        break;
+                    }
+            }
             return result;
         }
 
-        private string GetDayLabel(DayOfWeek dayOfWeek)
+        private static List<LineChartItemDto> GroupByDays(
+             IEnumerable<Invoice> invoices,
+             IEnumerable<Appointment> appointments,
+             DateTime startDate,
+             DateTime endDate)
         {
-            return dayOfWeek switch
+            var data = new List<LineChartItemDto>();
+            var totalDays = (endDate.Date - startDate.Date).Days;
+
+            for (int i = 0; i < totalDays; i++)
             {
-                DayOfWeek.Monday => "T2",
-                DayOfWeek.Tuesday => "T3",
-                DayOfWeek.Wednesday => "T4",
-                DayOfWeek.Thursday => "T5",
-                DayOfWeek.Friday => "T6",
-                DayOfWeek.Saturday => "T7",
-                DayOfWeek.Sunday => "CN",
-                _ => ""
-            };
+                var dayStart = startDate.Date.AddDays(i);
+                var dayEnd = dayStart.AddDays(1);
+
+                var dayInvoices = invoices.Where(x => x.PaymentDate >= dayStart && x.PaymentDate < dayEnd);
+                var dayAppts = appointments.Where(x => x.AppointmentDate.Date >= dayStart && x.AppointmentDate.Date < dayEnd);
+
+
+                data.Add(new LineChartItemDto
+                {
+                    Label = dayStart.ToString("dd/MM"),
+                    RevenueInMillions = (int)dayInvoices.Sum(x => x.PaidAmount ?? 0),
+                    TotalAppointments = dayAppts.Count()
+                });
+            }
+
+            return data;
         }
+
+        // Gom theo 12 tháng của 1 năm
+        private static List<LineChartItemDto> GroupByMonths(
+            IEnumerable<Invoice> invoices,
+            IEnumerable<Appointment> appointments,
+            int year, int month)
+        {
+            var data = new List<LineChartItemDto>();
+
+            for (int m = 1; m <= 12; m++)
+            {
+                var monthStart = new DateTime(year, m, 1);
+                var monthEnd = monthStart.AddMonths(1);
+
+                var monthInvoices = invoices.Where(x => x.PaymentDate >= monthStart && x.PaymentDate < monthEnd);
+                var monthAppts = appointments.Where(x => x.AppointmentDate >= monthStart && x.AppointmentDate < monthEnd);
+
+                data.Add(new LineChartItemDto
+                {
+                    Label = $"T{m}",
+                    RevenueInMillions = (int)monthInvoices.Sum(x => x.PaidAmount ?? 0),
+                    TotalAppointments = monthAppts.Count()
+                });
+            }
+
+            return data;
+        }
+
+        private static List<LineChartItemDto> GroupBySixDayBucketsInCurrentMonth(
+    IEnumerable<Invoice> invoices,
+    IEnumerable<Appointment> appointments,
+    DateTime now)
+        {
+            var data = new List<LineChartItemDto>();
+
+            var monthStart = new DateTime(now.Year, now.Month, 1); // đầu tháng
+            var end = now.Date.AddDays(1);                         // đến hết hôm nay (nửa mở)
+
+            // Chuẩn hoá dữ liệu vào bộ nhớ, tránh re-eval nhiều lần (đặc biệt khi nguồn là EF)
+            var invs = (invoices ?? Enumerable.Empty<Invoice>()).ToList();
+            var appts = (appointments ?? Enumerable.Empty<Appointment>())
+                        .Where(a => !a.IsDeleted)                 // nếu có cờ xóa mềm
+                        .ToList();
+
+            var bucketStart = monthStart;
+            while (bucketStart < end)
+            {
+                var bucketEnd = bucketStart.AddDays(6);
+                if (bucketEnd > end) bucketEnd = end;
+
+                // So sánh THEO NGÀY để không bị lệch giờ/múi giờ
+                var startDay = bucketStart.Date;
+                var endDayExclusive = bucketEnd.Date; // nửa mở theo ngày
+
+                // Invoice: dùng PaymentDate nếu có, fallback CreatedAt (tránh mất pending)
+                var invInBucket = invs.Where(x =>
+                {
+                    var d = (x.PaymentDate ?? x.CreatedAt).Date;
+                    return d >= startDay && d < endDayExclusive;
+                });
+
+                // Appointment: tính theo ngày hẹn; nếu bạn muốn theo ngày tạo, đổi thành x.CreatedAt.Date
+                var apptInBucket = appts.Where(x =>
+                    x.AppointmentDate.Date >= startDay &&
+                    x.AppointmentDate.Date < endDayExclusive
+                );
+
+                var fromDay = startDay.Day;
+                var toDay = endDayExclusive.AddDays(-1).Day;
+
+                data.Add(new LineChartItemDto
+                {
+                    Label = $"{fromDay:00}–{toDay:00}",
+                    // Nếu đúng nghĩa "InMillions", chia cho 1_000_000m; giữ nguyên nếu bạn đang hiển thị VND
+                    RevenueInMillions = (int)invInBucket.Sum(x => x.PaidAmount ?? 0),
+                    TotalAppointments = apptInBucket.Count()
+                });
+
+                bucketStart = bucketStart.AddDays(6);
+            }
+            return data;
+        }
+
+        private static List<LineChartItemDto> GroupBySixDayBucketsInCurrentMonth(
+    IEnumerable<Invoice> invoices,
+    IEnumerable<Appointment> appointments,
+    DateTime now)
+        {
+            var data = new List<LineChartItemDto>();
+
+            var monthStart = new DateTime(now.Year, now.Month, 1);   // đầu tháng hiện tại
+            var end = now.Date.AddDays(1);                    // chỉ đến hôm nay (nửa mở)
+
+            // Duyệt các cụm [start, start+6) cho đến khi vượt 'end'
+            var bucketStart = monthStart;
+            while (bucketStart < end)
+            {
+                var bucketEnd = bucketStart.AddDays(6); // nửa mở => chứa đúng 6 ngày: d, d+1, ..., d+5
+                if (bucketEnd > end) bucketEnd = end;   // cắt ở hôm nay
+
+                // Tính tổng thu/chi và số lịch hẹn trong khoảng [bucketStart, bucketEnd)
+                var invInBucket = invoices.Where(x => x.PaymentDate >= bucketStart && x.PaymentDate < bucketEnd);
+                var apptInBucket = appointments.Where(x => x.AppointmentDate >= bucketStart && x.AppointmentDate < bucketEnd);
+
+                var fromDay = bucketStart.Day;
+                var toDay = bucketEnd.AddDays(-1).Day; // vì bucketEnd là nửa mở
+
+                data.Add(new LineChartItemDto
+                {
+                    Label = $"{fromDay:00}–{toDay:00}",             // ví dụ "01–06", "07–12", ...
+                    RevenueInMillions = (int)invInBucket.Sum(x => x.PaidAmount ?? 0),
+                    TotalAppointments = apptInBucket.Count()
+                });
+
+                bucketStart = bucketStart.AddDays(6); // sang cụm kế tiếp
+            }
+
+            return data;
+        }
+
     }
+
 }

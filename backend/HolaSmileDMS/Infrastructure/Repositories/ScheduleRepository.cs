@@ -109,25 +109,38 @@ namespace Infrastructure.Repositories
         public async Task<List<Schedule>> GetAllAvailableDentistSchedulesAsync(int maxPerSlot)
         {
             var morningStart = new TimeSpan(8, 0, 0);
-            var morningEnd = new TimeSpan(11, 0, 0);
             var afternoonStart = new TimeSpan(14, 0, 0);
-            var afternoonEnd = new TimeSpan(17, 0, 0);
             var eveningStart = new TimeSpan(17, 0, 0);
-            var eveningEnd = new TimeSpan(20, 0, 0);
+
+            var now = DateTime.Now; // hoặc DateTime.UtcNow và lưu/truy vấn đồng nhất theo UTC
+
             var result = await _context.Schedules
-        .Include(s => s.Dentist)
-        .ThenInclude(d => d.User)
-        .Include(s => s.Dentist.Appointments)
-        .Where(s =>  s.IsActive && s.Status == "approved" && s.Dentist.User.Status == true &&
-        s.Dentist.Appointments.Count(a =>
-        a.AppointmentDate.Date == s.WorkDate.Date &&
-        (
-            (s.Shift == "morning" && a.AppointmentTime >= morningStart && a.AppointmentTime <= morningEnd) ||
-            (s.Shift == "afternoon" && a.AppointmentTime >= afternoonStart && a.AppointmentTime <= afternoonEnd) ||
-            (s.Shift == "evening" && a.AppointmentTime >= eveningStart && a.AppointmentTime <= eveningEnd)
-        )
-    ) < maxPerSlot).ToListAsync();
+                .Include(s => s.Dentist).ThenInclude(d => d.User)
+                .Include(s => s.Dentist.Appointments)
+                .OrderBy(s => s.WorkDate)
+                .Where(s =>
+                    s.IsActive &&
+                    s.Status == "approved" &&
+                    s.Dentist.User.Status == true &&
+                    s.WorkDate.Date.AddHours(3) >= now.Date &&
+                    // // số lịch của đúng bác sĩ, đúng NGÀY, đúng ca < 5
+                    s.Dentist.Appointments.Count(a =>
+                        a.DentistId == s.DentistId &&
+                        a.AppointmentDate.Date == s.WorkDate.Date &&
+                        // chỉ tính các trạng thái chiếm slot
+                        ( a.Status == "confirmed") &&
+                        // nửa-kín: start <= t < end
+                        (
+                            (s.Shift == "morning" && a.AppointmentTime == morningStart) ||
+                            (s.Shift == "afternoon" && a.AppointmentTime == afternoonStart) ||
+                            (s.Shift == "evening" && a.AppointmentTime == eveningStart )
+                        )
+                    ) < maxPerSlot
+                )
+                .ToListAsync();
+
             return result;
         }
+
     }
 }
