@@ -248,7 +248,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
               <div className="flex items-start">
                 <User className="h-5 w-5 text-green-600 mr-3 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600">Bác sĩ phụ trách</p>
+                  <p className="text-sm font-medium text-gray-600">Nha sĩ phụ trách</p>
                   <p className="font-semibold text-gray-900">{appointment.dentistName}</p>
                 </div>
               </div>

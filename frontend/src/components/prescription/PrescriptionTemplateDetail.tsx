@@ -179,7 +179,7 @@ export const PrescriptionTemplateDetail: React.FC = () => {
               </div>
               <div className="flex items-start">
                 <Edit className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
-                <span>Bác sĩ có thể chỉnh sửa nội dung khi sử dụng cho từng bệnh nhân cụ thể</span>
+                <span>Nha sĩ có thể chỉnh sửa nội dung khi sử dụng cho từng bệnh nhân cụ thể</span>
               </div>
               <div className="flex items-start">
                 <Calendar className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />

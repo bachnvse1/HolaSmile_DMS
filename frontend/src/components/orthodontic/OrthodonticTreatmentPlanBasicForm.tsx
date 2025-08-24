@@ -25,7 +25,7 @@ export const OrthodonticTreatmentPlanBasicForm: React.FC<OrthodonticTreatmentPla
   const basicPlanSchema = React.useMemo(() => z.object({
     planTitle: z.string().min(1, 'Tên kế hoạch là bắt buộc'),
     templateName: z.string().min(1, 'Tên mẫu là bắt buộc'),
-    dentistId: mode === 'edit' ? z.coerce.number().optional() : z.coerce.number().min(1, 'Bác sĩ phụ trách là bắt buộc'),
+    dentistId: mode === 'edit' ? z.coerce.number().optional() : z.coerce.number().min(1, 'Nha sĩ phụ trách là bắt buộc'),
     consultationDate: z.string().min(1, 'Ngày tư vấn là bắt buộc'),
   }), [mode]);
 
@@ -241,7 +241,7 @@ export const OrthodonticTreatmentPlanBasicForm: React.FC<OrthodonticTreatmentPla
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Bác Sĩ Phụ Trách  <span className="text-red-600">*</span></label>
+                <label className="text-sm font-medium text-gray-700">Nha sĩ Phụ Trách  <span className="text-red-600">*</span></label>
                 {mode === 'edit' ? (
                   <Input
                     value={treatmentPlan && (treatmentPlan as { dentistName?: string }).dentistName || 'Không xác định'}
@@ -254,7 +254,7 @@ export const OrthodonticTreatmentPlanBasicForm: React.FC<OrthodonticTreatmentPla
                     onValueChange={(value) => form.setValue('dentistId', parseInt(value))}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Chọn bác sĩ" />
+                      <SelectValue placeholder="Chọn Nha sĩ" />
                     </SelectTrigger>
                     <SelectContent>
                       {isDentistsLoading ? (
@@ -270,7 +270,7 @@ export const OrthodonticTreatmentPlanBasicForm: React.FC<OrthodonticTreatmentPla
                   </Select>
                 )}
                 {mode === 'edit' && (
-                  <p className="text-xs text-gray-500">Không thể thay đổi bác sĩ phụ trách khi chỉnh sửa</p>
+                  <p className="text-xs text-gray-500">Không thể thay đổi Nha sĩ phụ trách khi chỉnh sửa</p>
                 )}
                 {form.formState.errors.dentistId && mode !== 'edit' && (
                   <p className="text-sm text-red-600">{form.formState.errors.dentistId.message}</p>

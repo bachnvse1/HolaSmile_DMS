@@ -781,9 +781,7 @@ export function InvoiceTable({
 
     const groupInvoices = acc[treatmentId].invoices
     const totalAmount = Math.max(...groupInvoices.map(inv => inv?.totalAmount || 0))
-    
     const paidAmount = calculatePaidAmountFromPaidInvoices(groupInvoices)
-    
     const remainingAmount = totalAmount - paidAmount
     const paymentProgress = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0
 
@@ -817,10 +815,8 @@ export function InvoiceTable({
 
     const patientTreatments = acc[patientName].treatmentRecords
     const totalAmount = patientTreatments.reduce((sum, record) => sum + (record?.totalAmount || 0), 0)
-    
     const allInvoices = patientTreatments.flatMap(record => record?.invoices || [])
     const paidAmount = calculatePaidAmountFromPaidInvoices(allInvoices)
-    
     const remainingAmount = totalAmount - paidAmount
     const paymentProgress = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0
 

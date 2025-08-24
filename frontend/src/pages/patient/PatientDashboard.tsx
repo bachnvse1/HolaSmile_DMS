@@ -73,7 +73,7 @@ export const PatientDashboard = () => {
               <User className="h-6 w-6 text-purple-600" />
             </div>
             <div className="ml-4">
-              <h3 className="text-lg font-semibold text-gray-900">Bác Sĩ</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Nha sĩ</h3>
               <p className="text-sm text-gray-600">Phụ trách</p>
             </div>
           </div>

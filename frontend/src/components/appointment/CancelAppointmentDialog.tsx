@@ -78,7 +78,7 @@ export const CancelAppointmentDialog: React.FC<CancelAppointmentDialogProps> = (
                 </Badge>
               </div>
               <div className="space-y-1 text-sm">
-                <p><span className="font-medium">Bác sĩ:</span> {appointment.dentistName}</p>
+                <p><span className="font-medium">Nha sĩ:</span> {appointment.dentistName}</p>
                 <p><span className="font-medium">Ngày:</span> {formatDateVN(appointment.appointmentDate)}</p>
                 <p><span className="font-medium">Giờ:</span> {formatTimeVN(appointment.appointmentTime)}</p>
                 <p><span className="font-medium">Loại hẹn: </span>{appointment.appointmentType === 'follow-up'
