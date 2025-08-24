@@ -56,7 +56,6 @@ export function EditProcedureModal({
         suppliesUsed: [],
     })
 
-    // State for formatted currency display
     const [formattedPrices, setFormattedPrices] = React.useState({
         originalPrice: "",
         price: "",
@@ -71,7 +70,6 @@ export function EditProcedureModal({
     const [isLoadingSupplies, setIsLoadingSupplies] = React.useState(false)
     const [estimatedCost, setEstimatedCost] = React.useState(0)
 
-    // Load all supply items when modal opens
     React.useEffect(() => {
         if (isOpen && supplyItems.length === 0) {
             const fetchSupplyItems = async () => {
@@ -103,7 +101,6 @@ export function EditProcedureModal({
                 suppliesUsed: procedure.suppliesUsed || [],
             })
             
-            // Set formatted prices
             setFormattedPrices({
                 originalPrice: formatCurrency(procedure.originalPrice),
                 price: formatCurrency(procedure.price),
@@ -148,7 +145,6 @@ export function EditProcedureModal({
         }
     }, [errors])
 
-    // Handle currency input for originalPrice
     const handleOriginalPriceChange = (value: string) => {
         handleCurrencyInput(value, (formatted) => {
             setFormattedPrices(prev => ({ ...prev, originalPrice: formatted }))
@@ -157,7 +153,6 @@ export function EditProcedureModal({
         })
     }
 
-    // Handle currency input for price
     const handlePriceChange = (value: string) => {
         handleCurrencyInput(value, (formatted) => {
             setFormattedPrices(prev => ({ ...prev, price: formatted }))
@@ -166,7 +161,6 @@ export function EditProcedureModal({
         })
     }
 
-    // Handle currency input for estimated cost
     const handleEstimatedCostChange = (value: string) => {
         handleCurrencyInput(value, (formatted) => {
             setFormattedPrices(prev => ({ ...prev, estimatedCost: formatted }))
@@ -311,7 +305,6 @@ export function EditProcedureModal({
                         <DialogDescription>Điền và cập nhật thông tin thủ thuật</DialogDescription>
                     </DialogHeader>
 
-                    {/* General Error Alert */}
                     {errors.general && (
                         <Alert variant="destructive">
                             <AlertCircle className="h-4 w-4" />
@@ -319,7 +312,6 @@ export function EditProcedureModal({
                         </Alert>
                     )}
 
-                    {/* Loading supplies indicator */}
                     {isLoadingSupplies && (
                         <Alert>
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -328,7 +320,6 @@ export function EditProcedureModal({
                     )}
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Basic Information */}
                         <div className="space-y-4">
                             <h3 className="text-lg font-semibold">Thông Tin Cơ Bản</h3>
 
@@ -364,7 +355,6 @@ export function EditProcedureModal({
                             </div>
                         </div>
 
-                        {/* Pricing Information */}
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-semibold">Thông Tin Giá Cả</h3>
@@ -473,7 +463,6 @@ export function EditProcedureModal({
                             </div>
                         </div>
 
-                        {/* Supplies Used */}
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -572,7 +561,6 @@ export function EditProcedureModal({
                             )}
                         </div>
 
-                        {/* Submit Actions */}
                         <div className="flex justify-end space-x-2 pt-4 border-t">
                             <Button
                                 type="button"

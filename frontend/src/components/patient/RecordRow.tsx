@@ -35,13 +35,12 @@ interface RecordRowProps {
   onEdit: (record: TreatmentRecord) => void;
   onToggleDelete: (id: number) => void;
   onOpenInvoiceModal: (patientId: number, treatmentRecordId: number) => void;
-  onViewDetail: (record: TreatmentRecord) => void; // New prop
+  onViewDetail: (record: TreatmentRecord) => void;
   patientId: number;
   readonly?: boolean;
   orderNumber?: number;
 }
 
-// Status configuration with improved styling
 const STATUS_CONFIG = {
   pending: {
     label: "Đã lên lịch",
@@ -56,7 +55,7 @@ const STATUS_CONFIG = {
     color: "bg-green-100 text-green-800 border-green-200",
   },
   canceled: {
-    label: "Đã huỷ",
+    label: "Đã hủy",
     color: "bg-red-100 text-red-800 border-red-200",
   },
 } as const;
@@ -70,7 +69,6 @@ const getStatusConfig = (status: string) => {
   };
 };
 
-// Helper function to determine if appointment is upcoming
 const isUpcomingAppointment = (appointmentDate: string) => {
   const today = new Date();
   const appointment = new Date(appointmentDate);
@@ -84,7 +82,7 @@ const RecordRow: React.FC<RecordRowProps> = ({
   onEdit,
   onToggleDelete,
   onOpenInvoiceModal,
-  onViewDetail, // New prop
+  onViewDetail, 
   patientId,
   readonly = false,
   orderNumber,
@@ -93,6 +91,8 @@ const RecordRow: React.FC<RecordRowProps> = ({
   const statusConfig = getStatusConfig(record.treatmentStatus);
   const isUpcoming = isUpcomingAppointment(record.appointmentDate);
   const userInfo = useUserInfo();
+
+  const isPaymentCompleted = (record.remainingAmount ?? 0) <= 0;
 
   const handleDeleteClick = () => {
     setShowDeleteDialog(true);
@@ -113,7 +113,6 @@ const RecordRow: React.FC<RecordRowProps> = ({
     <TooltipProvider>
       <>
         <tr className={rowClassName}>
-          {/* Số thứ tự */}
           <td className="px-6 py-4 whitespace-nowrap text-center">
             <div className="flex items-center justify-center">
               <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-700 text-sm font-medium">
@@ -122,7 +121,6 @@ const RecordRow: React.FC<RecordRowProps> = ({
             </div>
           </td>
 
-          {/* Appointment Date & Time */}
           <td className="px-6 py-4 whitespace-nowrap">
             <div className="flex items-center gap-3">
               <div className="flex-shrink-0">
@@ -145,7 +143,6 @@ const RecordRow: React.FC<RecordRowProps> = ({
             </div>
           </td>
 
-          {/* Tooth Position & Quantity */}
           <td className="px-6 py-4 whitespace-nowrap">
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 text-blue-800 font-bold mb-1">
@@ -157,7 +154,6 @@ const RecordRow: React.FC<RecordRowProps> = ({
             </div>
           </td>
 
-          {/* Procedure */}
           <td className="px-6 py-4 whitespace-nowrap">
             <div>
               <p className="font-medium text-gray-900 mb-1">
@@ -171,7 +167,6 @@ const RecordRow: React.FC<RecordRowProps> = ({
             </div>
           </td>
 
-          {/* Dentist */}
           <td className="px-6 py-4 whitespace-nowrap">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-medium">
@@ -185,7 +180,6 @@ const RecordRow: React.FC<RecordRowProps> = ({
             </div>
           </td>
 
-          {/* Diagnosis & Symptoms */}
           <td className="px-6 py-4 max-w-xs">
             <div className="space-y-1">
               <Tooltip>
@@ -211,7 +205,6 @@ const RecordRow: React.FC<RecordRowProps> = ({
             </div>
           </td>
 
-          {/* Amount Details */}
           <td className="px-6 py-4 whitespace-nowrap">
             <div className="text-right">
               <p className="font-bold text-lg text-gray-900">
@@ -224,6 +217,17 @@ const RecordRow: React.FC<RecordRowProps> = ({
                   )}
                   {(record.discountPercentage ?? 0) > 0 && (
                     <span className="ml-1">({record.discountPercentage}%)</span>
+                  )}
+                </div>
+              )}
+              {record.remainingAmount !== undefined && (
+                <div className="text-xs mt-1">
+                  {isPaymentCompleted ? (
+                    <span className="text-green-600 font-medium">Đã thanh toán đủ</span>
+                  ) : (
+                    <span className="text-orange-600">
+                      Còn lại: {formatCurrency(record.remainingAmount)}
+                    </span>
                   )}
                 </div>
               )}
@@ -245,7 +249,6 @@ const RecordRow: React.FC<RecordRowProps> = ({
             </div>
           </td>
 
-          {/* Status */}
           <td className="px-6 py-4 whitespace-nowrap">
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
@@ -264,7 +267,6 @@ const RecordRow: React.FC<RecordRowProps> = ({
             </div>
           </td>
 
-          {/* Actions - Sticky Column */}
           <td className="sticky right-0 px-6 py-4 whitespace-nowrap text-right bg-white border-l border-gray-200 shadow-[-4px_0_8px_rgba(0,0,0,0.1)] z-10">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -274,7 +276,6 @@ const RecordRow: React.FC<RecordRowProps> = ({
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end" className="w-48">
-                {/* Xem chi tiết - Available for all users */}
                 <DropdownMenuItem onClick={() => onViewDetail(record)}>
                   <Eye className="h-4 w-4 mr-2" />
                   Xem chi tiết
@@ -291,14 +292,17 @@ const RecordRow: React.FC<RecordRowProps> = ({
 
                 {!readonly && userInfo.role === "Dentist" && <DropdownMenuSeparator />}
 
-                {userInfo.role === "Receptionist" && (
-                  <DropdownMenuItem
-                    onClick={() => onOpenInvoiceModal(patientId, record.treatmentRecordID)}
-                    className="text-green-600"
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    Tạo hóa đơn
-                  </DropdownMenuItem>
+                {userInfo.role === "Receptionist" && !isPaymentCompleted && (
+                  <>
+                    <DropdownMenuItem
+                      onClick={() => onOpenInvoiceModal(patientId, record.treatmentRecordID)}
+                      className="text-green-600"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Tạo hóa đơn
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
                 )}
                 
                 <DropdownMenuItem asChild>
@@ -346,7 +350,6 @@ const RecordRow: React.FC<RecordRowProps> = ({
           </td>
         </tr>
 
-        {/* Delete Confirmation Dialog */}
         <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>

@@ -34,13 +34,11 @@ export function CreateProcedureModal({
 }: CreateProcedureModalProps) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   
-  // State for formatted currency display
   const [formattedPrices, setFormattedPrices] = useState({
     originalPrice: "",
     consumableCost: ""
   })
 
-  // Initialize formatted prices when form changes
   useEffect(() => {
     setFormattedPrices({
       originalPrice: form.originalPrice > 0 ? formatCurrency(form.originalPrice) : "",
@@ -52,7 +50,6 @@ export function CreateProcedureModal({
     onFormChange({ ...form, [field]: value })
   }
 
-  // Handle currency input for originalPrice
   const handleOriginalPriceChange = (value: string) => {
     handleCurrencyInput(value, (formatted) => {
       setFormattedPrices(prev => ({ ...prev, originalPrice: formatted }))
@@ -61,7 +58,6 @@ export function CreateProcedureModal({
     })
   }
 
-  // Handle currency input for consumable cost
   const handleConsumableCostChange = (value: string) => {
     handleCurrencyInput(value, (formatted) => {
       setFormattedPrices(prev => ({ ...prev, consumableCost: formatted }))
@@ -69,8 +65,6 @@ export function CreateProcedureModal({
       updateForm("consumableCost", numericValue)
     })
   }
-
-  // Auto-calculate price based on original price and discount
   useEffect(() => {
     if (form.originalPrice > 0 && form.discount >= 0) {
       const calculatedPrice = form.originalPrice * (1 - form.discount / 100)
@@ -157,7 +151,6 @@ export function CreateProcedureModal({
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Basic Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Thông Tin Cơ Bản</h3>
               <div className="space-y-2">
@@ -189,7 +182,6 @@ export function CreateProcedureModal({
               </div>
             </div>
 
-            {/* Pricing Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 Thông Tin Giá Cả
@@ -234,7 +226,6 @@ export function CreateProcedureModal({
               </div>
             </div>
 
-            {/* Supplies Used */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -254,7 +245,6 @@ export function CreateProcedureModal({
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {/* Supply List */}
                   {form.suppliesUsed.map((supply, index) => (
                     <div key={`${supply.supplyId}-${index}`} className="flex gap-4 items-center p-4 border rounded-lg bg-muted/20">
                       <div className="flex-1">

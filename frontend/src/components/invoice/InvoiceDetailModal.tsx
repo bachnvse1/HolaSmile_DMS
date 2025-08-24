@@ -36,7 +36,6 @@ const statusIcons = {
   overdue: <AlertCircle className="h-4 w-4 text-red-500" />,
 }
 
-// Copy to clipboard function
 const copyToClipboard = async (text: string, label: string) => {
   try {
     await navigator.clipboard.writeText(text)
@@ -46,7 +45,6 @@ const copyToClipboard = async (text: string, label: string) => {
   }
 }
 
-// Enhanced info card component
 const InfoCard = ({ 
   title, 
   icon, 
@@ -75,7 +73,6 @@ const InfoCard = ({
   </div>
 )
 
-// Enhanced info row component
 const InfoRow = ({ 
   label, 
   value, 
@@ -87,21 +84,23 @@ const InfoRow = ({
   copyable?: boolean
   className?: string
 }) => (
-  <div className={`flex justify-between items-center text-sm ${className}`}>
-    <span className="text-gray-700 font-medium">{label}:</span>
-    <div className="flex items-center gap-2">
+  <div className={`flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2 text-sm ${className}`}>
+    <span className="text-gray-700 font-medium whitespace-nowrap">{label}:</span>
+    <div className="flex items-center gap-2 sm:max-w-[65%]">
       {typeof value === 'string' ? (
-        <span className="text-gray-900 font-semibold text-right max-w-[60%] break-words">
+        <span className="text-gray-900 font-semibold text-left sm:text-right break-words">
           {value}
         </span>
       ) : (
-        value
+        <div className="flex-shrink-0">
+          {value}
+        </div>
       )}
       {copyable && typeof value === 'string' && (
         <Button
           variant="ghost"
           size="sm"
-          className="h-6 w-6 p-0 hover:bg-gray-200"
+          className="h-6 w-6 p-0 hover:bg-gray-200 flex-shrink-0"
           onClick={() => copyToClipboard(value, label)}
         >
           <Copy className="h-3 w-3" />
@@ -123,9 +122,9 @@ export function InvoiceDetailModal({
   if (!selectedInvoice) {
     return null
   }
-
-  const paymentProgress = selectedInvoice.totalAmount ? 
-    Math.round(((selectedInvoice.paidAmount || 0) / selectedInvoice.totalAmount) * 100) : 0
+  
+const paymentProgress = selectedInvoice.totalAmount ? 
+  Math.round((1 - ((selectedInvoice.remainingAmount || 0) / selectedInvoice.totalAmount)) * 100) : 0
   
   const remainingAmount = selectedInvoice.remainingAmount || 0
   const isFullyPaid = remainingAmount <= 0
@@ -135,7 +134,6 @@ export function InvoiceDetailModal({
   return (
     <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
-        {/* Header */}
         <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4">
           <DialogHeader>
             <div className="flex items-center justify-between">
@@ -160,9 +158,7 @@ export function InvoiceDetailModal({
           </DialogHeader>
         </div>
 
-        {/* Content */}
         <div className="px-6 pb-6">
-          {/* Payment Progress */}
           <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-lg text-gray-800">Tiến độ thanh toán</h3>
@@ -177,7 +173,6 @@ export function InvoiceDetailModal({
             </div>
           </div>
 
-          {/* Alert for overdue or pending */}
           {(isPending || isOverdue) && (
             <div className={`mb-6 p-4 rounded-lg border ${
               isOverdue 
@@ -199,9 +194,7 @@ export function InvoiceDetailModal({
             </div>
           )}
 
-          {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* Patient Information */}
             <InfoCard
               title="Thông tin bệnh nhân"
               icon={<User className="h-5 w-5 text-blue-600" />}
@@ -220,7 +213,6 @@ export function InvoiceDetailModal({
               />
             </InfoCard>
 
-            {/* Payment Information */}
             <InfoCard
               title="Thông tin thanh toán"
               icon={<CreditCard className="h-5 w-5 text-green-600" />}
@@ -269,9 +261,7 @@ export function InvoiceDetailModal({
             </InfoCard>
           </div>
 
-          {/* Additional Information */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Order Information */}
             <InfoCard
               title="Thông tin đơn hàng"
               icon={<FileText className="h-5 w-5 text-purple-600" />}
@@ -286,7 +276,6 @@ export function InvoiceDetailModal({
               />
             </InfoCard>
 
-            {/* Date Information */}
             <InfoCard
               title="Thông tin thời gian"
               icon={<Calendar className="h-5 w-5 text-orange-600" />}
@@ -311,7 +300,6 @@ export function InvoiceDetailModal({
 
           <Separator className="my-6" />
 
-          {/* Action Buttons */}
           <div className="flex flex-wrap gap-3 justify-end">
             <Button 
               variant="default" 

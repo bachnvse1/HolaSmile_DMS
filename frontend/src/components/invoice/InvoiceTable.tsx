@@ -60,6 +60,12 @@ const isValidArray = (arr: any[]): boolean => {
   return Array.isArray(arr) && arr.length > 0;
 }
 
+const calculatePaidAmountFromPaidInvoices = (invoices: Invoice[]): number => {
+  return invoices
+    .filter(invoice => invoice?.status === "paid")
+    .reduce((sum, invoice) => sum + (invoice?.paidAmount || 0), 0);
+}
+
 const TableSkeleton = () => (
   <>
     {Array.from({ length: 3 }).map((_, index) => (
@@ -164,6 +170,8 @@ const ActionsDropdown = ({
   const canUpdateInvoice = (role === "Admin" || role === "Receptionist") && 
                           invoice?.status !== "paid"
 
+  const canPrintInvoice = invoice?.status === "paid" || remainingAmount <= 0
+
   if (!invoice) return null;
 
   return (
@@ -200,16 +208,18 @@ const ActionsDropdown = ({
           </DropdownMenuItem>
         )}
 
-        <DropdownMenuItem
-          onClick={(e) => {
-            e.stopPropagation()
-            onPrint()
-          }}
-          disabled={printLoading}
-        >
-          <Printer className="mr-2 h-4 w-4" />
-          {printLoading ? 'Đang in...' : 'In hóa đơn'}
-        </DropdownMenuItem>
+        {canPrintInvoice && (
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation()
+              onPrint()
+            }}
+            disabled={printLoading}
+          >
+            <Printer className="mr-2 h-4 w-4" />
+            {printLoading ? 'Đang in...' : 'In hóa đơn'}
+          </DropdownMenuItem>
+        )}
 
         {canMakePayment && (
           <DropdownMenuItem
@@ -279,6 +289,12 @@ const InvoiceRow = ({
   const handlePrint = async () => {
     if (!invoice?.invoiceId) {
       toast.error('Thông tin hóa đơn không hợp lệ')
+      return;
+    }
+
+    const canPrint = invoice?.status === "paid" || remainingAmount <= 0
+    if (!canPrint) {
+      toast.error('Chỉ có thể in hóa đơn khi đã thanh toán đầy đủ')
       return;
     }
 
@@ -536,7 +552,7 @@ const TreatmentRecordHeader = ({
             <div className="flex items-center space-x-3 min-w-0">
               <Calendar className="h-4 w-4 text-blue-600 flex-shrink-0" />
               <span className="text-sm font-medium text-blue-900 truncate">
-                Hồ sơ điều trị: {group.treatmentRecordId || 'N/A'}
+                Hồ sơ điều trị: # {group.treatmentRecordId || 'N/A'}
               </span>
             </div>
           </div>
@@ -741,7 +757,6 @@ export function InvoiceTable({
     )
   }
 
-  // Safe data processing with null checks
   const treatmentGroups = displayData.reduce((acc, invoice) => {
     if (!invoice || !invoice.treatmentRecordId) {
       console.warn('Invalid invoice data:', invoice);
@@ -766,7 +781,9 @@ export function InvoiceTable({
 
     const groupInvoices = acc[treatmentId].invoices
     const totalAmount = Math.max(...groupInvoices.map(inv => inv?.totalAmount || 0))
-    const paidAmount = groupInvoices.reduce((sum, inv) => sum + (inv?.paidAmount || 0), 0)
+    
+    const paidAmount = calculatePaidAmountFromPaidInvoices(groupInvoices)
+    
     const remainingAmount = totalAmount - paidAmount
     const paymentProgress = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0
 
@@ -800,7 +817,10 @@ export function InvoiceTable({
 
     const patientTreatments = acc[patientName].treatmentRecords
     const totalAmount = patientTreatments.reduce((sum, record) => sum + (record?.totalAmount || 0), 0)
-    const paidAmount = patientTreatments.reduce((sum, record) => sum + (record?.paidAmount || 0), 0)
+    
+    const allInvoices = patientTreatments.flatMap(record => record?.invoices || [])
+    const paidAmount = calculatePaidAmountFromPaidInvoices(allInvoices)
+    
     const remainingAmount = totalAmount - paidAmount
     const paymentProgress = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0
 
@@ -846,9 +866,10 @@ export function InvoiceTable({
     setExpandedTreatments(newExpanded)
   }
 
+  const allInvoices = displayData.filter(invoice => invoice != null)
   const totalPatientAmount = patients.reduce((sum, patient) => sum + (patient?.totalAmount || 0), 0)
-  const totalPaidAmount = patients.reduce((sum, patient) => sum + (patient?.paidAmount || 0), 0)
-  const totalRemainingAmount = patients.reduce((sum, patient) => sum + (patient?.remainingAmount || 0), 0)
+  const totalPaidAmount = calculatePaidAmountFromPaidInvoices(allInvoices)
+  const totalRemainingAmount = totalPatientAmount - totalPaidAmount
   const totalTreatmentRecords = Object.values(treatmentGroups).length
   const totalDisplayedInvoices = displayData.length
 
