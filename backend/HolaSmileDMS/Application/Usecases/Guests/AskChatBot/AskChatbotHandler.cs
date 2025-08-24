@@ -47,8 +47,9 @@ namespace Application.Usecases.Guests.AskChatBot
             }
 
             var question = ReplaceVietnameseDatePhrases(request.UserQuestion);
+            Console.WriteLine(question);
 
-                // lấy dữ liệu phòng khám từ repo
+            // lấy dữ liệu phòng khám từ repo
             var guestData = await _chatbotRepo.GetClinicDataAsync(cancellationToken);
             var commonData = await _chatbotRepo.GetUserCommonDataAsync(cancellationToken);
             object? resultData = currentUserRole?.ToLower() switch
@@ -84,8 +85,8 @@ Bạn là chatbot nội bộ hỗ trợ cho hệ thống quản lý nha khoa Hol
    - Luôn ưu tiên trả lời dựa trên dữ liệu trong hệ thống.
    - Trình bày rõ ràng, chi tiết, dễ hiểu cho người đọc.
    - Nếu một trường dữ liệu có giá trị `null` hoặc rỗng thì bỏ qua, không nhắc đến trong câu trả lời.
-   - Khi đưa danh sách (lịch hẹn, hóa đơn, lịch làm việc…) thì chỉ hiển thị thông tin cần thiết, tránh thừa.
-
+   - Khi đưa danh sách (lịch hẹn, hóa đơn, lịch làm việc…) thì chỉ hiển thị thông tin dữ liệu có, cần thiết, tránh thừa.
+   - 
 
 3. Giới hạn:
    - Nếu câu hỏi **nằm ngoài hệ thống** (không có dữ liệu để trả lời), hãy từ chối lịch sự:  
@@ -161,10 +162,10 @@ Hãy luôn nhớ: Bạn chỉ là trợ lý trả lời dựa trên dữ liệu 
         public static string ReplaceVietnameseDatePhrases(string input)
         {
             var today = DateTime.Now.Date;
-            string todayStr = today.ToString("dd/MM/yyyy", new CultureInfo("vi-VN"));
-            string tomorrowStr = today.AddDays(1).ToString("dd/MM/yyyy", new CultureInfo("vi-VN"));
-            string dayAfterTomorrowStr = today.AddDays(2).ToString("dd/MM/yyyy", new CultureInfo("vi-VN"));
-            string nextWeekStr = today.AddDays(7).ToString("dd/MM/yyyy", new CultureInfo("vi-VN"));
+            string todayStr = today.ToString("dd/MM/yyyy");
+            string tomorrowStr = today.AddDays(1).ToString("dd/MM/yyyy");
+            string dayAfterTomorrowStr = today.AddDays(2).ToString("dd/MM/yyyy");
+            string nextWeekStr = today.AddDays(7).ToString("dd/MM/yyyy");
 
             string output = input;
 
