@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button2"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Edit, Percent, Eye, Power, PowerOff } from "lucide-react"
+import { Edit, Eye, Power, PowerOff } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { Procedure } from "@/types/procedure"
 import { formatCurrency } from "@/utils/currencyUtils"
@@ -35,8 +35,8 @@ export function ProcedureTable({
                     <TableHeader>
                         <TableRow>
                             <TableHead>Tên Thủ Thuật</TableHead>
+                            <TableHead>Giá Gốc</TableHead>
                             <TableHead>Giá Bán</TableHead>
-                            <TableHead>Giảm Giá</TableHead>
                             <TableHead>Trạng Thái</TableHead>
                             <TableHead className="text-right">Thao Tác</TableHead>
                         </TableRow>
@@ -51,7 +51,7 @@ export function ProcedureTable({
                                     <Skeleton className="h-4 w-20" />
                                 </TableCell>
                                 <TableCell>
-                                    <Skeleton className="h-4 w-16" />
+                                    <Skeleton className="h-4 w-20" />
                                 </TableCell>
                                 <TableCell>
                                     <Skeleton className="h-6 w-16 rounded-full" />
@@ -78,8 +78,8 @@ export function ProcedureTable({
                     <TableHeader>
                         <TableRow>
                             <TableHead>Tên Thủ Thuật</TableHead>
+                            <TableHead>Giá Gốc</TableHead>
                             <TableHead>Giá Bán</TableHead>
-                            <TableHead>Giảm Giá</TableHead>
                             <TableHead>Trạng Thái</TableHead>
                             <TableHead className="text-right">Thao Tác</TableHead>
                         </TableRow>
@@ -97,24 +97,10 @@ export function ProcedureTable({
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    <div className="space-y-1">
-                                        <div className="flex items-center gap-1">
-                                            <span className="font-medium">{formatCurrency(procedure.price)}</span>
-                                        </div>
-                                        {procedure.originalPrice !== procedure.price && (
-                                            <div className="text-xs text-muted-foreground line-through">
-                                                {formatCurrency(procedure.originalPrice)}
-                                            </div>
-                                        )}
-                                    </div>
+                                    <span className="font-medium text-gray-600">{formatCurrency(procedure.originalPrice)}</span>
                                 </TableCell>
                                 <TableCell>
-                                    {procedure.discount > 0 && (
-                                        <div className="flex items-center gap-1">
-                                            <Percent className="w-4 h-4 text-red-600" />
-                                            <span className="text-red-600 font-medium">{procedure.discount}</span>
-                                        </div>
-                                    )}
+                                    <span className="font-medium text-green-600">{formatCurrency(procedure.price)}</span>
                                 </TableCell>
                                 <TableCell>
                                     <Badge 

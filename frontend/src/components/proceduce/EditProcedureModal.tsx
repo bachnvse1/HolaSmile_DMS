@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Edit, Package, Trash2, AlertCircle, Loader2, Calculator } from "lucide-react"
+import { Edit, Package, Trash2, AlertCircle, Loader2 } from "lucide-react"
 import { SupplySearch } from "./SupplySearch"
 import { ConfirmModal } from "../common/ConfirmModal"
 import type { Procedure, ProcedureUpdateForm, Supply, SupplyItem } from "@/types/procedure"
@@ -33,7 +33,6 @@ interface FormErrors {
     description?: string
     originalPrice?: string
     price?: string
-    discount?: string
     consumableCost?: string
     general?: string
 }
@@ -50,13 +49,11 @@ export function EditProcedureModal({
         procedureName: "",
         price: 0,
         description: "",
-        discount: 0,
         originalPrice: 0,
         consumableCost: 0,
         suppliesUsed: [],
     })
 
-    // State for formatted currency display
     const [formattedPrices, setFormattedPrices] = React.useState({
         originalPrice: "",
         price: "",
@@ -65,13 +62,11 @@ export function EditProcedureModal({
 
     const [errors, setErrors] = React.useState<FormErrors>({})
     const [isSubmitting, setIsSubmitting] = React.useState(false)
-    const [autoCalculatePrice, setAutoCalculatePrice] = React.useState(true)
     const [isConfirmOpen, setIsConfirmOpen] = React.useState(false)
     const [supplyItems, setSupplyItems] = React.useState<SupplyItem[]>([])
     const [isLoadingSupplies, setIsLoadingSupplies] = React.useState(false)
     const [estimatedCost, setEstimatedCost] = React.useState(0)
 
-    // Load all supply items when modal opens
     React.useEffect(() => {
         if (isOpen && supplyItems.length === 0) {
             const fetchSupplyItems = async () => {
@@ -97,13 +92,11 @@ export function EditProcedureModal({
                 procedureName: procedure.procedureName,
                 price: procedure.price,
                 description: procedure.description,
-                discount: procedure.discount ?? 0,
                 originalPrice: procedure.originalPrice,
                 consumableCost: procedure.consumableCost,
                 suppliesUsed: procedure.suppliesUsed || [],
             })
             
-            // Set formatted prices
             setFormattedPrices({
                 originalPrice: formatCurrency(procedure.originalPrice),
                 price: formatCurrency(procedure.price),
@@ -131,16 +124,6 @@ export function EditProcedureModal({
         setForm(prev => ({ ...prev, consumableCost: estimatedCost + calculateTotalSupplyCost(form.suppliesUsed) }));
     }, [estimatedCost, calculateTotalSupplyCost, form.suppliesUsed])
 
-    React.useEffect(() => {
-        if (autoCalculatePrice && form.originalPrice > 0) {
-            const discountAmount = form.originalPrice * (form.discount / 100)
-            const calculatedPrice = form.originalPrice - discountAmount + form.consumableCost
-            const finalPrice = Math.max(0, calculatedPrice)
-            setForm(prev => ({ ...prev, price: finalPrice }))
-            setFormattedPrices(prev => ({ ...prev, price: formatCurrency(finalPrice) }))
-        }
-    }, [form.originalPrice, form.discount, autoCalculatePrice, form.consumableCost])
-
     const updateForm = React.useCallback((field: keyof ProcedureUpdateForm, value: string | number | Supply[]) => {
         setForm((prev) => ({ ...prev, [field]: value }))
         if (errors[field as keyof FormErrors]) {
@@ -148,7 +131,6 @@ export function EditProcedureModal({
         }
     }, [errors])
 
-    // Handle currency input for originalPrice
     const handleOriginalPriceChange = (value: string) => {
         handleCurrencyInput(value, (formatted) => {
             setFormattedPrices(prev => ({ ...prev, originalPrice: formatted }))
@@ -157,7 +139,6 @@ export function EditProcedureModal({
         })
     }
 
-    // Handle currency input for price
     const handlePriceChange = (value: string) => {
         handleCurrencyInput(value, (formatted) => {
             setFormattedPrices(prev => ({ ...prev, price: formatted }))
@@ -166,7 +147,6 @@ export function EditProcedureModal({
         })
     }
 
-    // Handle currency input for estimated cost
     const handleEstimatedCostChange = (value: string) => {
         handleCurrencyInput(value, (formatted) => {
             setFormattedPrices(prev => ({ ...prev, estimatedCost: formatted }))
@@ -196,27 +176,14 @@ export function EditProcedureModal({
 
         if (form.price <= 0) {
             newErrors.price = "Giá bán phải lớn hơn 0"
-        } else if (form.price > (form.originalPrice + form.consumableCost)) {
-            newErrors.price = "Giá bán không được lớn hơn giá gốc"
-        }
-
-        if (form.discount < 0 || form.discount > 100) {
-            newErrors.discount = "Giảm giá phải từ 0% đến 100%"
         }
 
         if (form.consumableCost < 0) {
             newErrors.consumableCost = "Chi phí vật tư không được âm"
         }
 
-        if (autoCalculatePrice) {
-            const expectedPrice = form.originalPrice * (1 - form.discount / 100) + form.consumableCost
-            if (Math.abs(form.price - expectedPrice) > 0.01) {
-                newErrors.price = "Giá bán không khớp với giá gốc và giảm giá"
-            }
-        }
-
         return newErrors
-    }, [form, autoCalculatePrice])
+    }, [form])
 
     const addSupplyFromSearch = React.useCallback((supplyItem: SupplyItem) => {
         const currentSupplies = form.suppliesUsed || []
@@ -311,7 +278,6 @@ export function EditProcedureModal({
                         <DialogDescription>Điền và cập nhật thông tin thủ thuật</DialogDescription>
                     </DialogHeader>
 
-                    {/* General Error Alert */}
                     {errors.general && (
                         <Alert variant="destructive">
                             <AlertCircle className="h-4 w-4" />
@@ -319,7 +285,6 @@ export function EditProcedureModal({
                         </Alert>
                     )}
 
-                    {/* Loading supplies indicator */}
                     {isLoadingSupplies && (
                         <Alert>
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -328,7 +293,6 @@ export function EditProcedureModal({
                     )}
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Basic Information */}
                         <div className="space-y-4">
                             <h3 className="text-lg font-semibold">Thông Tin Cơ Bản</h3>
 
@@ -364,25 +328,12 @@ export function EditProcedureModal({
                             </div>
                         </div>
 
-                        {/* Pricing Information */}
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-semibold">Thông Tin Giá Cả</h3>
-                                <div className="flex items-center gap-2">
-                                    <Calculator className="w-4 h-4" />
-                                    <label className="text-sm flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            checked={autoCalculatePrice}
-                                            onChange={(e) => setAutoCalculatePrice(e.target.checked)}
-                                            disabled={isSubmitting}
-                                        />
-                                        Tự động tính giá
-                                    </label>
-                                </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="originalPrice">Giá Gốc (VNĐ) *</Label>
                                     <Input
@@ -400,25 +351,6 @@ export function EditProcedureModal({
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="discount">Giảm Giá (%)</Label>
-                                    <Input
-                                        id="discount"
-                                        type="number"
-                                        min="0"
-                                        max="100"
-                                        step="0.1"
-                                        value={form.discount}
-                                        onChange={(e) => updateForm("discount", Number.parseFloat(e.target.value) || 0)}
-                                        placeholder="0"
-                                        disabled={isSubmitting}
-                                        className={errors.discount ? "border-destructive" : ""}
-                                    />
-                                    {errors.discount && (
-                                        <p className="text-sm text-destructive">{errors.discount}</p>
-                                    )}
-                                </div>
-
-                                <div className="space-y-2">
                                     <Label htmlFor="price">Giá Bán (VNĐ) *</Label>
                                     <Input
                                         id="price"
@@ -426,16 +358,11 @@ export function EditProcedureModal({
                                         value={formattedPrices.price}
                                         onChange={(e) => handlePriceChange(e.target.value)}
                                         placeholder="0"
-                                        disabled={isSubmitting || autoCalculatePrice}
+                                        disabled={isSubmitting}
                                         className={errors.price ? "border-destructive" : ""}
                                     />
                                     {errors.price && (
                                         <p className="text-sm text-destructive">{errors.price}</p>
-                                    )}
-                                    {autoCalculatePrice && (
-                                        <p className="text-xs text-muted-foreground">
-                                            Tự động tính từ giá gốc và giảm giá
-                                        </p>
                                     )}
                                 </div>
                             </div>
@@ -456,7 +383,7 @@ export function EditProcedureModal({
 
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                    <Label htmlFor="estimatedCost">Chi Phí Ước Tính (VNĐ)</Label>
+                                    <Label htmlFor="estimatedCost">Chi Phí Ướng Tính (VNĐ)</Label>
                                 </div>
                                 <Input
                                     id="estimatedCost"
@@ -473,7 +400,6 @@ export function EditProcedureModal({
                             </div>
                         </div>
 
-                        {/* Supplies Used */}
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -572,7 +498,6 @@ export function EditProcedureModal({
                             )}
                         </div>
 
-                        {/* Submit Actions */}
                         <div className="flex justify-end space-x-2 pt-4 border-t">
                             <Button
                                 type="button"

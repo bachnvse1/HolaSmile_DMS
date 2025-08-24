@@ -32,12 +32,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/hooks/useAuth"
 
-// Constants
 const STATUS_OPTIONS = [
   { value: "pending", label: "Đã lên lịch", color: "text-gray-600" },
   { value: "in-progress", label: "Đang điều trị", color: "text-blue-600" },
   { value: "completed", label: "Đã hoàn thành", color: "text-gray-800" },
-  { value: "canceled", label: "Đã huỷ", color: "text-gray-600" },
+  { value: "canceled", label: "Đã hủy", color: "text-gray-600" },
 ] as const
 
 const STATUS_COLORS = {
@@ -47,7 +46,6 @@ const STATUS_COLORS = {
   canceled: "bg-red-50 text-red-700 border-red-200",
 } as const
 
-// Validation schema
 const progressSchema = yup.object({
   progressName: yup.string().required("Tên tiến trình không được bỏ trống"),
   progressContent: yup.string().required("Nội dung không được bỏ trống"),
@@ -58,12 +56,11 @@ const progressSchema = yup.object({
     .positive("Thời gian phải lớn hơn 0")
     .required("Thời gian không được bỏ trống"),
   description: yup.string().required("Mô tả không được bỏ trống"),
-  note: yup.string().required("Ghi chú không được bỏ trống"),
+  note: yup.string().nullable().default(""),
 })
 
 type FormData = yup.InferType<typeof progressSchema>
 
-// Types
 interface Props {
   progress: TreatmentProgress
 }
@@ -75,7 +72,6 @@ interface EditState {
   error: string | null
 }
 
-// Utility functions
 const toVietnamISOString = (date: Date): string => {
   const offset = date.getTimezoneOffset()
   const localTime = new Date(date.getTime() - offset * 60000)
@@ -94,7 +90,6 @@ const parseEndTime = (endTime: string | null) => {
   return { date, time }
 }
 
-// Custom hooks
 const useEditState = (progress: TreatmentProgress) => {
   const [state, setState] = useState<EditState>({
     isEditing: false,
@@ -144,7 +139,6 @@ export function TreatmentProgressView({ progress }: Props) {
   const isPatient = role === "Patient"
   const canEdit = !isPatient && role && ["Dentist"].includes(role)
 
-  // Form setup
   const {
     register,
     handleSubmit,
@@ -152,10 +146,12 @@ export function TreatmentProgressView({ progress }: Props) {
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: yupResolver(progressSchema),
-    defaultValues: progress,
+    defaultValues: {
+      ...progress,
+      note: progress.note ?? "",
+    },
   })
 
-  // Computed values
   const statusInfo = useMemo(() => {
     const option = STATUS_OPTIONS.find(opt => opt.value === progress.status)
     return option || { value: progress.status, label: progress.status || "Không rõ", color: "text-gray-600", icon: AlertCircle }
@@ -168,7 +164,6 @@ export function TreatmentProgressView({ progress }: Props) {
     return format(new Date(progress.endTime), "dd/MM/yyyy HH:mm")
   }, [progress.endTime])
 
-  // Effects
   useEffect(() => {
     reset(progress)
   }, [progress, reset])
@@ -183,7 +178,6 @@ export function TreatmentProgressView({ progress }: Props) {
     }
   }, [editState.isEditing, progress.endTime, updateState])
 
-  // Event handlers
   const handleDateSelect = useCallback((date: Date | undefined) => {
     if (date && isBefore(date, startOfToday())) {
       updateState({ error: "Không thể chọn ngày trong quá khứ" })
@@ -216,6 +210,7 @@ export function TreatmentProgressView({ progress }: Props) {
       ...progress,
       ...formData,
       endTime: toVietnamISOString(combinedDate),
+      note: formData.note || "", 
     }
 
     try {
@@ -224,7 +219,6 @@ export function TreatmentProgressView({ progress }: Props) {
       toast.success(result.message || "Cập nhật tiến trình thành công")
       cancelEditing()
       
-      // Reload page to reflect changes
       setTimeout(() => {
         window.location.reload()
       }, 1000)
@@ -235,7 +229,6 @@ export function TreatmentProgressView({ progress }: Props) {
     }
   }
 
-  // Render functions
   const renderHeader = () => (
     <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg p-4">
       <div className="flex items-center justify-between">
@@ -268,14 +261,12 @@ export function TreatmentProgressView({ progress }: Props) {
     
     return (
       <div className="bg-white rounded-b-lg p-6 space-y-6">
-        {/* Status Badge */}
         <div className="flex items-center justify-center">
           <div className={`px-4 py-2 rounded-full text-sm font-semibold border flex items-center gap-2 ${STATUS_COLORS[progress.status as keyof typeof STATUS_COLORS] || STATUS_COLORS.pending}`}>
             {statusInfo.label}
           </div>
         </div>
 
-        {/* Info Grid - 2x2 layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
             <div className="flex items-center gap-3">
@@ -324,7 +315,6 @@ export function TreatmentProgressView({ progress }: Props) {
           </div>
         </div>
 
-        {/* Content Details */}
         <div className="space-y-4">
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
             <div className="flex items-start gap-3">
@@ -365,7 +355,6 @@ export function TreatmentProgressView({ progress }: Props) {
           )}
         </div>
 
-        {/* Timeline Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
           <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
             <CalendarDays className="h-5 w-5 text-gray-600 flex-shrink-0" />
@@ -538,12 +527,13 @@ export function TreatmentProgressView({ progress }: Props) {
         
         <div className="space-y-2">
           <Label htmlFor="note" className="text-sm font-medium text-gray-700">
-            Ghi chú
+            Ghi chú <span className="text-gray-500 text-xs">(tùy chọn)</span>
           </Label>
           <Textarea
             id="note"
             {...register("note")}
             rows={3}
+            placeholder="Ghi chú bổ sung (không bắt buộc)"
             className="bg-gray-50 border-gray-200 focus:ring-blue-500 focus:border-blue-500 resize-none"
           />
         </div>
