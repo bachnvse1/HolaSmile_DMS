@@ -125,7 +125,37 @@ Hãy luôn nhớ: Bạn chỉ là trợ lý trả lời dựa trên dữ liệu 
             var response = await httpClient.PostAsync(endpoint, content, cancellationToken);
             var result = await response.Content.ReadAsStringAsync(cancellationToken);
 
-            // Xử lý kết quả trả về của Gemini
+            // Debug / logging: ghi status và body trả về từ Gemini (ở production nên dùng ILogger thay Console)
+            try
+            {
+                Console.Error.WriteLine($"[Gemini] HTTP {(int)response.StatusCode} {response.StatusCode}");
+                // Truncate long bodies in logs
+                var bodyToLog = result?.Length > 5000 ? result.Substring(0, 5000) + "...(truncated)" : result;
+                Console.Error.WriteLine($"[Gemini] Body: {bodyToLog}");
+            }
+            catch { /* ignore logging failures */ }
+
+            // Nếu HTTP status không phải 2xx, cố gắng lấy thông báo lỗi cụ thể
+            if (!response.IsSuccessStatusCode)
+            {
+                try
+                {
+                    using var errDoc = JsonDocument.Parse(result);
+                    if (errDoc.RootElement.TryGetProperty("error", out var error))
+                    {
+                        var msg = error.TryGetProperty("message", out var msgElem) ? msgElem.GetString() : error.ToString();
+                        return $"Lỗi gọi Gemini API (HTTP {(int)response.StatusCode}): {msg}";
+                    }
+                }
+                catch
+                {
+                    // Fallthrough
+                }
+
+                return $"Lỗi gọi Gemini API (HTTP {(int)response.StatusCode}). Kiểm tra logs để biết chi tiết.";
+            }
+
+            // Xử lý kết quả trả về của Gemini (bình thường)
             using var doc = JsonDocument.Parse(result);
             if (doc.RootElement.TryGetProperty("candidates", out var cands) &&
                 cands.GetArrayLength() > 0 &&
@@ -139,7 +169,7 @@ Hãy luôn nhớ: Bạn chỉ là trợ lý trả lời dựa trên dữ liệu 
             else if (doc.RootElement.TryGetProperty("error", out var error))
             {
                 var msg = error.TryGetProperty("message", out var msgElem) ? msgElem.GetString() : error.ToString();
-                return $"Hệ thống chatbot của tôi đang bị quá tải, bạn có thể sử dụng chatbox để được tư vấn trực tiếp";
+                return $"Hệ thống chatbot của tôi đang bị quá tải hoặc Gemini trả lỗi: {msg}";
             }
             else
             {
