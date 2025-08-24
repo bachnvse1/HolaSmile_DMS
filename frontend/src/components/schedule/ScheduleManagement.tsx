@@ -37,12 +37,12 @@ export const ScheduleManagement: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle>
-                Lịch làm việc {isDentist ? 'của bạn' : 'bác sĩ'}
+                Lịch làm việc {isDentist ? 'của bạn' : 'của nha sĩ'}
               </CardTitle>
               <CardDescription>
                 {isDentist
                   ? 'Xem lịch làm việc đã được phê duyệt của bạn'
-                  : 'Xem lịch làm việc đã được phê duyệt của tất cả bác sĩ trong phòng khám'}
+                  : 'Xem lịch làm việc đã được phê duyệt của tất cả nha sĩ trong phòng khám'}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -77,7 +77,7 @@ export const ScheduleManagement: React.FC = () => {
               <CardHeader>
                 <CardTitle>Phê duyệt lịch làm việc</CardTitle>
                 <CardDescription>
-                  Xem xét và phê duyệt lịch làm việc đã đăng ký của bác sĩ
+                  Xem xét và phê duyệt lịch làm việc đã đăng ký của Nha sĩ
                 </CardDescription>
               </CardHeader>
               <CardContent>

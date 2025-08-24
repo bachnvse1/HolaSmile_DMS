@@ -25,32 +25,27 @@ interface InvoiceFilterFormProps {
     isLoading?: boolean
 }
 
-// Status options configuration
 const STATUS_OPTIONS = [
     { value: "all", label: "Tất cả", color: "bg-gray-100 text-gray-700", shortLabel: "Tất cả" },
     { value: "pending", label: "Chờ thanh toán", color: "bg-yellow-100 text-yellow-700", shortLabel: "Chờ TT" },
     { value: "paid", label: "Đã thanh toán", color: "bg-green-100 text-green-700", shortLabel: "Đã TT" },
 ] as const
 
-// Date validation helper
 const isValidDateRange = (fromDate: string, toDate: string): boolean => {
     if (!fromDate || !toDate) return true
     return new Date(fromDate) <= new Date(toDate)
 }
 
-// Get today's date in YYYY-MM-DD format
 const getTodayDate = (): string => {
     return new Date().toISOString().split('T')[0]
 }
 
-// Get date 30 days ago
 const getDateDaysAgo = (days: number): string => {
     const date = new Date()
     date.setDate(date.getDate() - days)
     return date.toISOString().split('T')[0]
 }
 
-// Quick filter presets - Define the type separately
 type QuickFilterPreset = {
     label: string
     shortLabel: string
@@ -77,7 +72,6 @@ export function InvoiceFilterForm({
     const [isCollapsed, setIsCollapsed] = React.useState(false)
     const [dateRangeError, setDateRangeError] = React.useState<string | null>(null)
 
-    // Validate date range whenever dates change
     React.useEffect(() => {
         if (filters.fromDate && filters.toDate) {
             if (!isValidDateRange(filters.fromDate, filters.toDate)) {
@@ -90,18 +84,15 @@ export function InvoiceFilterForm({
         }
     }, [filters.fromDate, filters.toDate])
 
-    // Handle date change with validation
     const handleDateChange = React.useCallback((key: string, value: string) => {
         handleFilterChange(key, value)
     }, [handleFilterChange])
 
-    // Apply quick filter preset - Use the explicit type
     const applyQuickFilter = React.useCallback((preset: QuickFilterPreset) => {
         handleFilterChange("fromDate", preset.fromDate)
         handleFilterChange("toDate", preset.toDate)
     }, [handleFilterChange])
 
-    // Count active filters
     const activeFiltersCount = React.useMemo(() => {
         let count = 0
         if (filters.status && filters.status !== "all") count++
@@ -111,20 +102,17 @@ export function InvoiceFilterForm({
         return count
     }, [filters, hidePatientSelect])
 
-    // Get selected patient name
     const selectedPatientName = React.useMemo(() => {
         if (!filters.patientId) return null
         const patient = patientList.find(p => p.patientId.toString() === filters.patientId)
         return patient?.fullname || null
     }, [filters.patientId, patientList])
 
-    // Get selected status label
     const selectedStatusInfo = React.useMemo(() => {
         const status = STATUS_OPTIONS.find(s => s.value === filters.status)
         return status || STATUS_OPTIONS[0]
     }, [filters.status])
 
-    // Auto-collapse on mobile
     React.useEffect(() => {
         const handleResize = () => {
             if (window.innerWidth < 768) {
@@ -132,14 +120,13 @@ export function InvoiceFilterForm({
             }
         }
         
-        handleResize() // Check on mount
+        handleResize()
         window.addEventListener('resize', handleResize)
         return () => window.removeEventListener('resize', handleResize)
     }, [])
 
     return (
         <div className="mb-4 sm:mb-6 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden mx-2 sm:mx-0">
-            {/* Header */}
             <div className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 border-b border-gray-200">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                     <div className="flex items-center gap-2 min-w-0">
@@ -182,7 +169,6 @@ export function InvoiceFilterForm({
                 </div>
             </div>
 
-            {/* Filters Summary (always visible) */}
             {activeFiltersCount > 0 && (
                 <div className="p-3 sm:p-4 bg-blue-50 border-b border-blue-200">
                     <div className="flex flex-wrap gap-1 sm:gap-2 items-center">
@@ -217,10 +203,8 @@ export function InvoiceFilterForm({
                 </div>
             )}
 
-            {/* Filter Controls */}
             {!isCollapsed && (
                 <div className="p-3 sm:p-5">
-                    {/* Quick Filter Buttons */}
                     <div className="mb-4 sm:mb-6">
                         <Label className="text-sm font-medium text-gray-700 mb-2 block">
                             Bộ lọc nhanh
@@ -244,9 +228,7 @@ export function InvoiceFilterForm({
 
                     <Separator className="mb-4 sm:mb-6" />
 
-                    {/* Main Filter Controls */}
                     <div className="space-y-4 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-4 lg:gap-6 sm:space-y-0">
-                        {/* Status Filter */}
                         <div className="space-y-2">
                             <Label htmlFor="status" className="text-sm font-medium text-gray-700">
                                 Trạng thái
@@ -273,7 +255,6 @@ export function InvoiceFilterForm({
                             </Select>
                         </div>
 
-                        {/* From Date Filter */}
                         <div className="space-y-2">
                             <Label htmlFor="fromDate" className="text-sm font-medium text-gray-700">
                                 Từ ngày
@@ -295,7 +276,6 @@ export function InvoiceFilterForm({
                             </div>
                         </div>
 
-                        {/* To Date Filter */}
                         <div className="space-y-2">
                             <Label htmlFor="toDate" className="text-sm font-medium text-gray-700">
                                 Đến ngày
@@ -318,7 +298,6 @@ export function InvoiceFilterForm({
                             </div>
                         </div>
 
-                        {/* Patient Filter */}
                         {!hidePatientSelect && (
                             <div className="space-y-2 sm:col-span-2 lg:col-span-1">
                                 <Label htmlFor="patientId" className="text-sm font-medium text-gray-700">
@@ -392,9 +371,6 @@ export function InvoiceFilterForm({
                                                                 <span className="font-medium text-sm truncate">
                                                                     {patient.fullname}
                                                                 </span>
-                                                                <span className="text-xs text-gray-500 truncate">
-                                                                    ID: {patient.patientId} • {patient.phone}
-                                                                </span>
                                                             </div>
                                                         </CommandItem>
                                                     ))}
@@ -407,7 +383,6 @@ export function InvoiceFilterForm({
                         )}
                     </div>
 
-                    {/* Date Range Error */}
                     {dateRangeError && (
                         <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
                             <div className="flex items-center gap-2 text-red-700">
@@ -417,7 +392,6 @@ export function InvoiceFilterForm({
                         </div>
                     )}
 
-                    {/* Loading State */}
                     {isLoading && (
                         <div className="mt-4 flex items-center justify-center gap-2 text-gray-500">
                             <RefreshCw className="h-4 w-4 animate-spin" />

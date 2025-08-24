@@ -178,49 +178,6 @@ export const HeroSection = () => {
       <div className="absolute top-10 sm:top-20 left-4 sm:left-10 w-2 h-2 sm:w-4 sm:h-4 bg-white/30 rounded-full animate-ping"></div>
       <div className="absolute top-20 sm:top-40 right-8 sm:right-20 w-3 h-3 sm:w-6 sm:h-6 bg-white/40 rounded-full animate-pulse"></div>
       <div className="absolute bottom-20 sm:bottom-32 left-8 sm:left-20 w-2 h-2 sm:w-3 sm:h-3 bg-white/50 rounded-full animate-bounce"></div>
-      
-      <style>{`
-        .animation-delay-800 {
-          animation-delay: 0.8s;
-        }
-        
-        .animation-delay-1000 {
-          animation-delay: 1.0s;
-        }
-        
-        .animation-delay-2000 {
-          animation-delay: 2.0s;
-        }
-        
-        @keyframes marquee {
-          0% { transform: translateX(0%); }
-          100% { transform: translateX(-50%); }
-        }
-        
-        .animate-marquee {
-          animation: marquee 25s linear infinite;
-        }
-        
-        @keyframes shake {
-          0%, 100% { transform: rotate(15deg); }
-          10% { transform: rotate(5deg); }
-          20% { transform: rotate(25deg); }
-          30% { transform: rotate(7deg); }
-          40% { transform: rotate(23deg); }
-          50% { transform: rotate(9deg); }
-          60% { transform: rotate(21deg); }
-          70% { transform: rotate(11deg); }
-          80% { transform: rotate(19deg); }
-          90% { transform: rotate(13deg); }
-        }
-        
-        .animate-shake {
-          animation: shake 1s infinite;
-          animation-delay: 1s;
-          transform-origin: center;
-          transform: rotate(15deg);
-        }
-      `}</style>
     </section>
   );
 };

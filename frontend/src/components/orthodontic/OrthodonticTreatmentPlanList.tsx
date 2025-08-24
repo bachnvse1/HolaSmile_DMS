@@ -401,11 +401,11 @@ export const OrthodonticTreatmentPlanList: React.FC = () => {
                 {/* Dentist Filter */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Bác sĩ phụ trách
+                    Nha sĩ phụ trách
                   </label>
                   <Select value={selectedDentist} onValueChange={setSelectedDentist}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Tất cả bác sĩ" />
+                      <SelectValue placeholder="Tất cả Nha sĩ" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Tất cả</SelectItem>
@@ -648,7 +648,7 @@ const TreatmentPlanCard: React.FC<TreatmentPlanCardProps> = ({ plan, onView, onE
                 <p>{formatDate(new Date(plan.createdAt), 'dd/MM/yyyy HH:mm:ss')}</p>
               </div> */}
               <div>
-                <p className="font-medium">Bác sĩ phụ trách:</p>
+                <p className="font-medium">Nha sĩ phụ trách:</p>
                 <p>
                   {(plan as { dentistName?: string }).dentistName || 'Chưa xác định'}
                 </p>

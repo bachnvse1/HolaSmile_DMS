@@ -174,7 +174,7 @@ export function CreateUserModal({ isOpen, onOpenChange, form, onFormChange, onRe
                             <SelectContent>
                                 <SelectItem value="Administrator">Quản trị viên</SelectItem>
                                 <SelectItem value="Receptionist">Lễ tân</SelectItem>
-                                <SelectItem value="Dentist">Bác sĩ nha khoa</SelectItem>
+                                <SelectItem value="Dentist">Nha sĩ</SelectItem>
                                 <SelectItem value="Assistant">Trợ lý</SelectItem>
                                 <SelectItem value="Owner">Chủ sở hữu</SelectItem>
                             </SelectContent>

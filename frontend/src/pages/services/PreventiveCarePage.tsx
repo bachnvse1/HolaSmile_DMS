@@ -56,7 +56,7 @@ const ageSpecificCare = [
     age: "Người cao tuổi (65+)",
     focus: "Duy trì sức khỏe răng miệng",
     services: ["Điều trị khô miệng", "Xem xét thuốc đang dùng", "Chăm sóc răng giả", "Ngăn sâu chân răng"],
-    tips: "Uống đủ nước và báo với bác sĩ mọi loại thuốc đang dùng"
+    tips: "Uống đủ nước và báo với Nha sĩ mọi loại thuốc đang dùng"
   }
 ];
 

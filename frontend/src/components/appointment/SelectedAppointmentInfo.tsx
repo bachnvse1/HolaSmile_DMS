@@ -27,7 +27,7 @@ export const SelectedAppointmentInfo: React.FC<SelectedAppointmentInfoProps> = (
       </h4>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl p-4 border border-blue-100">
-          <span className="text-sm font-medium text-gray-600">Bác sĩ:</span>
+          <span className="text-sm font-medium text-gray-600">Nha sĩ:</span>
           <p className="font-semibold text-gray-900">{selectedDentist.name}</p>
         </div>
         <div className="bg-white rounded-xl p-4 border border-blue-100">

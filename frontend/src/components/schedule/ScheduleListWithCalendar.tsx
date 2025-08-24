@@ -137,7 +137,7 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
               <tr>
                 {!dentistId && (
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Bác sĩ
+                    Nha sĩ
                   </th>
                 )}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -204,7 +204,7 @@ export const ScheduleListWithCalendar: React.FC<ScheduleListProps> = ({ dentistI
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
               <Input
-                placeholder="Tìm theo tên bác sĩ..."
+                placeholder="Tìm theo tên Nha sĩ..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9 w-full sm:w-auto min-w-[240px]"

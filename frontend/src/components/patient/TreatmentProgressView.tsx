@@ -293,7 +293,7 @@ export function TreatmentProgressView({ progress }: Props) {
             <div className="flex items-center gap-3">
               <UserCheck className="h-5 w-5 text-blue-600 flex-shrink-0" />
               <div className="min-w-0 flex-1">
-                <p className="text-sm text-gray-600 mb-1">Bác sĩ điều trị</p>
+                <p className="text-sm text-gray-600 mb-1">Nha sĩ điều trị</p>
                 <p className="font-semibold text-blue-700 truncate" title={progress.dentistName}>
                   {progress.dentistName}
                 </p>
