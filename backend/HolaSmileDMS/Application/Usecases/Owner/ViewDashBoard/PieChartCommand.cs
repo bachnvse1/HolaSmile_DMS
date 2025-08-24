@@ -4,6 +4,10 @@ namespace Application.Usecases.Owner.ViewDashBoard
 {
     public class PieChartCommand : IRequest<PieChartDto>
     {
-        // Chỉ cần lấy tháng hiện tại
+        public string? Filter { get; set; }
+        public PieChartCommand(string filter)
+        {
+            Filter = filter;
+        }
     }
-}
+    }

@@ -38,6 +38,12 @@ namespace Infrastructure.Repositories
             return await _context.SaveChangesAsync() > 0;
         }
 
+        public async Task<bool> RemoveKnowledgeAsync(ChatBotKnowledge chatBotKnowledge)
+        {
+            _context.ChatBotKnowledge.Remove(chatBotKnowledge);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
         public async Task<ClinicDataDto?> GetClinicDataAsync(CancellationToken ct)
         {
             var procedures = await _context.Procedures

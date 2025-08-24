@@ -9,8 +9,6 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure
         public string ProcedureName { get; set; }
         public decimal Price { get; set; }
         public string Description { get; set; }
-        public float Discount { get; set; }
-        public string WarrantyPeriod { get; set; }
         public decimal OriginalPrice { get; set; }
         public decimal ConsumableCost { get; set; }
         public float ReferralCommissionRate { get; set; }

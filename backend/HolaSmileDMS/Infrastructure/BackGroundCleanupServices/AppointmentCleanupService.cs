@@ -10,17 +10,14 @@ namespace Infrastructure.BackGroundServices
     public class AppointmentCleanupService : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory;
-        private readonly ILogger<AppointmentCleanupService> _logger;
         private readonly IMediator _mediator;
 
         public AppointmentCleanupService(
             IServiceScopeFactory scopeFactory,
-            IMediator mediator,
-            ILogger<AppointmentCleanupService> logger)
+            IMediator mediator)
         {
             _scopeFactory = scopeFactory;
             _mediator = mediator;
-            _logger = logger;
         }
 
         protected override async System.Threading.Tasks.Task ExecuteAsync(CancellationToken stoppingToken)
@@ -47,7 +44,6 @@ namespace Infrastructure.BackGroundServices
                                 var result = await appointmentRepo.UpdateAppointmentAsync(appointment);
                                 if (!result)
                                 {
-                                    _logger.LogWarning("Không thể cập nhật trạng thái lịch hẹn {AppointmentId}", appointment.AppointmentId);
                                     continue;
                                 }
 
@@ -62,7 +58,7 @@ namespace Infrastructure.BackGroundServices
                                         await _mediator.Send(new SendNotificationCommand(
                                             patient.User.UserID,
                                             "Thay đổi trạng thái lịch",
-                                            $"Bạn đã vắng mặt trong lịch hẹn {appointment.AppointmentId}",
+                                            $"Bạn đã vắng mặt trong lịch hẹn #{appointment.AppointmentId}",
                                             "appointment", 0,
                                             $"patient/appointments/{appointment.AppointmentId}"),
                                             stoppingToken);
@@ -73,7 +69,7 @@ namespace Infrastructure.BackGroundServices
                                         await _mediator.Send(new SendNotificationCommand(
                                             dentist.User.UserID,
                                             "Đặt lịch hẹn tái khám",
-                                            $"Bệnh nhân {patient.User.Fullname} đã vắng mặt trong lịch hẹn {appointment.AppointmentId}",
+                                            $"Bệnh nhân {patient.User.Fullname} đã vắng mặt trong lịch hẹn #{appointment.AppointmentId}",
                                             "appointment", 0,
                                             $"appointments/{appointment.AppointmentId}"),
                                             stoppingToken);
@@ -84,7 +80,7 @@ namespace Infrastructure.BackGroundServices
                                         await _mediator.Send(new SendNotificationCommand(
                                             r.User.UserID,
                                             "Đăng ký khám",
-                                            $"Bệnh nhân {patient.User.Fullname} đã vắng mặt trong lịch hẹn {appointment.AppointmentId}",
+                                            $"Bệnh nhân {patient.User.Fullname} đã vắng mặt trong lịch hẹn #{appointment.AppointmentId}",
                                             "appointment", 0,
                                             $"appointments/{appointment.AppointmentId}"),
                                             stoppingToken)
@@ -94,7 +90,6 @@ namespace Infrastructure.BackGroundServices
                                 }
                                 catch (Exception ex)
                                 {
-                                    _logger.LogError(ex, "Lỗi khi gửi thông báo cho lịch hẹn {AppointmentId}", appointment.AppointmentId);
                                 }
                             }
                         }
@@ -102,9 +97,7 @@ namespace Infrastructure.BackGroundServices
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Lỗi trong quá trình xử lý AppointmentCleanupService");
                 }
-
                 var now = DateTime.Now;
                 var nextMidnight = now.Date.AddDays(1);
                 var delay = nextMidnight - now;

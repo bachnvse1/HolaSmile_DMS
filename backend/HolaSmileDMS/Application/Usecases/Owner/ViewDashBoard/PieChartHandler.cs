@@ -16,31 +16,76 @@ namespace Application.Usecases.Owner.ViewDashBoard
             IAppointmentRepository appointmentRepository,
             IHttpContextAccessor httpContextAccessor)
         {
-            _appointmentRepository = appointmentRepository;
-            _httpContextAccessor = httpContextAccessor;
+            _appointmentRepository = appointmentRepository ?? throw new ArgumentNullException(nameof(appointmentRepository));
+            _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
         }
 
         public async Task<PieChartDto> Handle(PieChartCommand request, CancellationToken cancellationToken)
         {
-            // Kiểm tra quyền Owner
+            // Kiểm tra quyền Owner (bật lại nếu cần)
             var user = _httpContextAccessor.HttpContext?.User;
             var role = user?.FindFirst(ClaimTypes.Role)?.Value;
             if (!string.Equals(role, "Owner", StringComparison.OrdinalIgnoreCase))
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
 
-            // Lấy dữ liệu appointment
-            var appointments = await _appointmentRepository.GetAllAppointmentAsync() ?? new List<AppointmentDTO>();
+            var appointmentDtos = await _appointmentRepository.GetAllAppointmentAsync()
+                                         ?? new List<AppointmentDTO>();
 
-            // Xác định tháng hiện tại
             var now = DateTime.Now;
-            var monthAppointments = appointments
-                .Where(a => a.AppointmentDate.Month == now.Month && a.AppointmentDate.Year == now.Year);
+            var filter = string.IsNullOrEmpty(request.Filter) ? "week" : request.Filter.ToLower();
 
-            // Đếm theo trạng thái
-            var confirmed = monthAppointments.Count(a => a.Status?.Equals("confirmed", StringComparison.OrdinalIgnoreCase) == true);
-            var attended = monthAppointments.Count(a => a.Status?.Equals("attended", StringComparison.OrdinalIgnoreCase) == true);
-            var absented = monthAppointments.Count(a => a.Status?.Equals("absented", StringComparison.OrdinalIgnoreCase) == true);
-            var canceled = monthAppointments.Count(a => a.Status?.Equals("canceled", StringComparison.OrdinalIgnoreCase) == true);
+            switch (filter)
+            {
+                case "week":
+                    {
+                        var start = now.Date.AddDays(-6);
+                        var end = now.Date.AddDays(1);
+                        return CountByStatusInRange(appointmentDtos, start, end);
+                    }
+                case "month":
+                    {
+                        var start = new DateTime(now.Year, now.Month, 1);
+                        var end = now.Date.AddDays(1); // chỉ đến hôm nay
+                        return CountByStatusInRange(appointmentDtos, start, end);
+                    }
+                case "year":
+                    {
+                        var start = new DateTime(now.Year, 1, 1);
+                        var end = new DateTime(now.Year, now.Month, 1).AddMonths(1); // hết tháng hiện tại
+                        return CountByStatusInRange(appointmentDtos, start, end);
+                    }
+                default:
+                    {
+                        // fallback: week
+                        var start = now.Date.AddDays(-6);
+                        var end = now.Date.AddDays(1);
+                        return CountByStatusInRange(appointmentDtos, start, end);
+                    }
+            }
+        }
+
+        private static PieChartDto CountByStatusInRange(
+            IEnumerable<AppointmentDTO> appointments,
+            DateTime startInclusive,
+            DateTime endExclusive)
+        {
+            // Nếu bạn muốn dùng AppointmentDate, đổi CreatedAt -> AppointmentDate
+            var range = appointments.Where(a => a.CreatedAt >= startInclusive && a.CreatedAt < endExclusive);
+
+            int confirmed = 0, attended = 0, absented = 0, canceled = 0;
+
+            foreach (var a in range)
+            {
+                var s = a.Status?.Trim().ToLowerInvariant();
+                switch (s)
+                {
+                    case "confirmed": confirmed++; break;
+                    case "attended": attended++; break;
+                    case "absented": absented++; break;
+                    case "canceled": canceled++; break;
+                    default: break; // trạng thái khác thì bỏ qua
+                }
+            }
 
             return new PieChartDto
             {

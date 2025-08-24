@@ -2,8 +2,10 @@
 {
     public class LineChartItemDto
     {
-        public string Label { get; set; } 
+        public string Label { get; set; }
+        public int RevenueInMillions { get; set; }
         public int TotalAppointments { get; set; }
+
     }
 
     public class LineChartDto

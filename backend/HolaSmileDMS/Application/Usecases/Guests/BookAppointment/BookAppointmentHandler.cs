@@ -43,7 +43,10 @@ namespace HDMS_API.Application.Usecases.Guests.BookAppointment
             var appType = "first-time";
             bool isNewPatient = false;
 
-            if (request.AppointmentDate.Date < DateTime.Now.Date || (request.AppointmentDate.Date == DateTime.Now.Date && request.AppointmentTime < DateTime.Now.TimeOfDay))
+
+            var appointmentDateTime = request.AppointmentDate.Date + request.AppointmentTime;
+            var appointmentEndtime = appointmentDateTime.AddHours(3);
+            if (appointmentEndtime < DateTime.Now)
             {
                 throw new Exception(MessageConstants.MSG.MSG74); // "Không thể đặt lịch hẹn ở thời gian quá khứ."
             }
