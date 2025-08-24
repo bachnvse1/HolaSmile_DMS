@@ -6,7 +6,6 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.CreateProcedure
     {
         public string ProcedureName { get; set; }
         public string Description { get; set; }
-        public float Discount { get; set; }
         public decimal OriginalPrice { get; set; }
         public decimal ConsumableCost { get; set; }
         public float ReferralCommissionRate { get; set; }

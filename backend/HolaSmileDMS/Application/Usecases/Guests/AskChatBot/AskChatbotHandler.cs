@@ -139,7 +139,7 @@ Hãy luôn nhớ: Bạn chỉ là trợ lý trả lời dựa trên dữ liệu 
             else if (doc.RootElement.TryGetProperty("error", out var error))
             {
                 var msg = error.TryGetProperty("message", out var msgElem) ? msgElem.GetString() : error.ToString();
-                return $"Gemini API ERROR: {msg}";
+                return $"Hệ thống chatbot của tôi đang bị quá tải, bạn có thể sử dụng chatbox để được tư vấn trực tiếp";
             }
             else
             {
