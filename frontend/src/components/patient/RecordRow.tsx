@@ -223,7 +223,7 @@ const RecordRow: React.FC<RecordRowProps> = ({
               {record.remainingAmount !== undefined && (
                 <div className="text-xs mt-1">
                   {isPaymentCompleted ? (
-                    <span className="text-green-600 font-medium">Đã thanh toán đủ</span>
+                    <span className="text-green-600 font-medium">Đã tạo đủ hóa đơn</span>
                   ) : (
                     <span className="text-orange-600">
                       Còn lại: {formatCurrency(record.remainingAmount)}

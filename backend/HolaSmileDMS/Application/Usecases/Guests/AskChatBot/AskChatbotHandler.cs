@@ -2,7 +2,6 @@
 using System.Text;
 using System.Text.Json;
 using Application.Interfaces;
-using Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -44,8 +43,11 @@ namespace Application.Usecases.Guests.AskChatBot
                 if (IsSimilar(request.UserQuestion, faq.Question) && !faq.Answer.IsNullOrEmpty())
                     return faq.Answer;
             }
-            // lấy dữ liệu phòng khám từ repo
-            var guestData = await _chatbotRepo.GetClinicDataAsync(cancellationToken);
+
+            var timeCheck = ResolveVietnameseDate(request.UserQuestion);
+
+                // lấy dữ liệu phòng khám từ repo
+                var guestData = await _chatbotRepo.GetClinicDataAsync(cancellationToken);
             var commonData = await _chatbotRepo.GetUserCommonDataAsync(cancellationToken);
             object? resultData = currentUserRole?.ToLower() switch
             {
@@ -94,10 +96,17 @@ Bạn là chatbot nội bộ hỗ trợ cho hệ thống quản lý nha khoa Hol
    - Không bịa đặt thông tin ngoài dữ liệu.
    - Không trả lời các câu hỏi ngoài phạm vi đã cho.
    - Format câu trả lời rõ ràng, dễ đọc.
+
 5. Lưu ý
    - Với những câu hỏi về việc đăng ký lịch hẹn, hãy ưu tiên đề xuất lịch làm việc có sẵn của bác sĩ với trạng thái từ rảnh, bận.
    - Dịch dữ liệu từ tiếng Anh sang tiếng Việt nếu cần thiết, nhưng không cần dịch các tên riêng, tên thuốc, tên bệnh.
-
+   - Không đưa nguồn lấy dữ liệu ra ngoài
+   - nếu khách nhập vào **ngày mai, ngày kia ,... ** hãy quy ra ngày dạng dd-MM-yyyy 
+   - Tên bác sĩ và các tên riêng thì in đậm lên
+   - các câu hỏi có liên quan đến ngày tháng {timeCheck} thì dùng đúng dữ liệu liên quan đến thời gian {timeCheck} để trả lời 
+6. Lưu ý về dữ liệu
+   - phần lịch làm việc bác sĩ(dentistSchedules) có các trạng thái lịch là free -> rảnh, busy -> khá bận, full -> không thể đặt. Ưu tiên demo lịch rảnh rồi đến khá bận. Phần này để trả lời các câu hỏi liên quan đến lịch bác sĩ
+   
 Hãy luôn nhớ: Bạn chỉ là trợ lý trả lời dựa trên dữ liệu trong hệ thống quản lý nha khoa HolaSmile.
 ";
 
@@ -130,7 +139,7 @@ Hãy luôn nhớ: Bạn chỉ là trợ lý trả lời dựa trên dữ liệu 
             else if (doc.RootElement.TryGetProperty("error", out var error))
             {
                 var msg = error.TryGetProperty("message", out var msgElem) ? msgElem.GetString() : error.ToString();
-                return $"Gemini API ERROR: {msg}";
+                return $"Hệ thống chatbot của tôi đang bị quá tải, bạn có thể sử dụng chatbox để được tư vấn trực tiếp";
             }
             else
             {
@@ -146,5 +155,17 @@ Hãy luôn nhớ: Bạn chỉ là trợ lý trả lời dựa trên dữ liệu 
             int match = inputWords.Count(w => dbWords.Contains(w));
             return dbWords.Length > 0 && ((double)match / dbWords.Length >= 0.7);
         }
+
+        private static DateTime ResolveVietnameseDate(string input)
+        {
+            var dateTime = DateTime.Now;
+            var txt = input.ToLowerInvariant();
+            if (txt.Contains("ngày mai") || txt.Contains("ngay mai")) return dateTime.Date.AddDays(1);
+            if (txt.Contains("ngày kia") || txt.Contains("ngay kia")) return dateTime.Date.AddDays(2);
+            if (txt.Contains("hôm nay") || txt.Contains("hom nay")) return dateTime.Date;
+            if (txt.Contains("tuần sau") || txt.Contains("tuan sau")) return dateTime.Date.AddDays(7);
+            return dateTime;
+        }
+
     }
 }

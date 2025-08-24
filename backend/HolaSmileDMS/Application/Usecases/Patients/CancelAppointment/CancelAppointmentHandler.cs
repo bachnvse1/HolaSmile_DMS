@@ -81,7 +81,7 @@ namespace Application.Usecases.Patients.CancelAppointment
                 _mediator.Send(new SendNotificationCommand(
                           r.UserId,
                           "Hủy lịch khám",
-                           $"Bệnh nhân đã hủy lịch khám vào giờ {existAppointment.AppointmentTime} ngày {existAppointment.AppointmentDate.ToString("dd/MM/yyyy")}.",
+                           $"Bệnh nhân đã hủy lịch của lịch hẹn #{existAppointment.AppointmentId} khám vào giờ {existAppointment.AppointmentTime} ngày {existAppointment.AppointmentDate.ToString("dd/MM/yyyy")}.",
                            "appointment", 0, $"appointments/{existAppointment.AppointmentId}"),
                            cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyReceptionists);

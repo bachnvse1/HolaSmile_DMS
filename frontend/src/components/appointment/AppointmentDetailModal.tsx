@@ -52,7 +52,7 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
     message: ''
   });
 
-  const { role, userId } = useAuth();
+  const { role } = useAuth();
   const userInfo = useUserInfo();
   const queryClient = useQueryClient();
 

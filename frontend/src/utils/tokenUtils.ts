@@ -138,6 +138,7 @@ export class TokenUtils {
       const decoded = this.decodeToken(token);
       if (!decoded) return false;
 
+      sessionStorage.removeItem('chatbot-messages');
       localStorage.setItem("token", token);
       if (refreshToken) {
         localStorage.setItem("refreshToken", refreshToken);
@@ -158,6 +159,7 @@ export class TokenUtils {
     try {
       const decoded = this.decodeToken(token);
       if (!decoded) return false;
+      sessionStorage.removeItem('chatbot-messages');
 
       localStorage.setItem("authToken", token);
       if (refreshToken) {
@@ -234,6 +236,7 @@ export class TokenUtils {
     localStorage.removeItem("avatar");
     localStorage.removeItem("userId");
     localStorage.removeItem("username");
+    sessionStorage.removeItem('chatbot-messages');
     window.dispatchEvent(new Event('authChange'));
   }
 

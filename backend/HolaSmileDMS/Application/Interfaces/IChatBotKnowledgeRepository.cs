@@ -17,6 +17,7 @@ namespace Application.Interfaces
         Task<PatientData> GetPatientData(int userId, CancellationToken ct);
         Task<ReceptionistData> GetReceptionistData(int userId, CancellationToken ct);
         Task<AssistantData> GetAssistanttData(int userId, CancellationToken ct);
+        Task<bool> RemoveKnowledgeAsync(ChatBotKnowledge chatBotKnowledge);
 
     }
 }

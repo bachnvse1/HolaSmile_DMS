@@ -13,7 +13,6 @@ public static class ChatConnectionManager
     public static void RemoveConnection(string userId)
     {
         _connections.TryRemove(userId, out _);
-        Console.WriteLine($"❌ Removed connection: {userId}");
     }
 
     public static string? GetConnectionId(string userId)

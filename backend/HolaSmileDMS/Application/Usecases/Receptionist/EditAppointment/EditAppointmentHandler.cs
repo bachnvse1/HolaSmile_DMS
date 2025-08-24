@@ -80,7 +80,7 @@ namespace Application.Usecases.Receptionist.EditAppointment
                     await _mediator.Send(new SendNotificationCommand(
                         newDentist.User.UserID,
                         "Thay đổi thông tin lịch khám",
-                        $"Lịch khám của bạn đã được thay đổi vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
+                        $"Lịch hẹn #{existApp.AppointmentId} đã được lễ tân thay đổi sang ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
                         "appointment", 0, $"appointments/{existApp.AppointmentId}"),
                  cancellationToken);
                 }
@@ -88,14 +88,14 @@ namespace Application.Usecases.Receptionist.EditAppointment
                 await _mediator.Send(new SendNotificationCommand(
                     currentPatient.User.UserID,
                    "Thay đổi thông tin lịch khám",
-                   $"Lịch khám của bạn đã được thay đổi vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
+                   $"Lịch khám #{existApp.AppointmentId} đã được thay đổi sang ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
                    "appointment", 0, $"patient/appointments/{existApp.AppointmentId}"),
              cancellationToken);
 
                 await _mediator.Send(new SendNotificationCommand(
                         currentDentist.User.UserID,
                         "Thay đổi thông tin lịch khám",
-                        $"Lịch khám của bạn đã được thay đổi vào ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
+                         $"Lịch khám #{existApp.AppointmentId} đã được thay đổi sang ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
                         "appointment", 0, $"appointments/{existApp.AppointmentId}"),
                  cancellationToken);
             }

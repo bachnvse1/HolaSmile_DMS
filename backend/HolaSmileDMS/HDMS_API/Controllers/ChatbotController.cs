@@ -3,6 +3,8 @@ using System.Text.Json;
 using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Administrators.ChatbotData;
+using Application.Usecases.Administrators.CreateChatBotData;
+using Application.Usecases.Administrators.RemoveChatbotData;
 using Application.Usecases.Administrators.UpdateChatbotData;
 using Application.Usecases.Guests.AskChatBot;
 using MediatR;
@@ -78,6 +80,31 @@ namespace HDMS_API.Controllers
                 });
             }
         }
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateChatbotData([FromBody] CreateChatBotDataCommand command)
+        {
+            try
+            {
+                var isCreated = await _mediator.Send(command);
+                return isCreated ? Ok(MessageConstants.MSG.MSG132) : Conflict(MessageConstants.MSG.MSG58);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+        }
 
         [HttpPut("update")]
         public async Task<IActionResult> UpdateChatbotData([FromBody] UpdateChatbotDataCommand command)
@@ -105,21 +132,30 @@ namespace HDMS_API.Controllers
             }
         }
 
-        [HttpGet("getdata")]
-        [ProducesResponseType(typeof(ClinicDataDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Get(CancellationToken ct)
+        [HttpDelete("remove/{knowledgeId:int}")]
+        public async Task<IActionResult> RemoveChatbotData(int knowledgeId)
         {
-            var data = await _repo.GetClinicDataAsync(ct);
-            if (data is null) return NotFound();
-
-            // Trả về camelCase + format đẹp cho dễ xem
-            var opts = new JsonSerializerOptions
+            try
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                WriteIndented = true
-            };
-            return new JsonResult(data, opts);
+                var isRemoved = await _mediator.Send(new RemoveChatbotDataCommand(knowledgeId));
+                return isRemoved ? Ok(MessageConstants.MSG.MSG57) : NotFound(MessageConstants.MSG.MSG58);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
         }
 
         [HttpGet("get-user-data")]

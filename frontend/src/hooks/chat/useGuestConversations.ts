@@ -38,7 +38,7 @@ export const useGuestConversations = () => {
     fetchGuests
   } = useChatHub();
 
-  // 🔥 Use useUnreadMessages hook instead of managing unread counts manually
+  // Use useUnreadMessages hook instead of managing unread counts manually
   const { 
     getUnreadCount, 
     markConversationAsRead,
@@ -48,7 +48,7 @@ export const useGuestConversations = () => {
   const [conversationHistory, setConversationHistory] = useState<Map<string, ChatMessage[]>>(new Map());
   const [loading, setLoading] = useState(false);
 
-  // 🔥 Refresh unread counts when userId changes (F5, login, etc.)
+  // Refresh unread counts when userId changes (F5, login, etc.)
   useEffect(() => {
     if (userId) {
       refreshUnreadCounts();
@@ -116,7 +116,7 @@ export const useGuestConversations = () => {
     }
   }, [userId, fetchChatHistory, conversationHistory]);
 
-  // 🔥 Refresh unread counts when new realtime messages arrive
+  // Refresh unread counts when new realtime messages arrive
   useEffect(() => {
     if (!userId || realtimeMessages.length === 0) return;
     
@@ -162,7 +162,7 @@ export const useGuestConversations = () => {
       
       const lastMessage = uniqueMessages[uniqueMessages.length - 1];
       
-      // 🔥 Get unread count from useUnreadMessages hook
+      // Get unread count from useUnreadMessages hook
       const unreadCount = getUnreadCount(guest.guestId);
       
       // Always add guest to conversation list
@@ -197,7 +197,7 @@ export const useGuestConversations = () => {
     return conversations;
   }, [guests, userId, conversationHistory, realtimeMessages, getUnreadCount]);
 
-  // 🔥 Mark conversation as read - use useUnreadMessages hook
+  // Mark conversation as read - use useUnreadMessages hook
   const markAsRead = useCallback(async (guestId: string) => {
     if (!userId) return;
     
@@ -245,7 +245,7 @@ export const useGuestConversations = () => {
     }
   }, [conversationHistory, userId]);
 
-  // 🔥 Enhanced refresh function that also refreshes unread counts
+  // Enhanced refresh function that also refreshes unread counts
   const refreshGuests = useCallback(() => {
     if (fetchGuests) {
       // Refresh guest list

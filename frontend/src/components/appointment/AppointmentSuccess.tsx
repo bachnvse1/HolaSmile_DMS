@@ -85,11 +85,13 @@ export const AppointmentSuccess: React.FC<AppointmentSuccessProps> = ({
           </div>
         </div>
 
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 text-left">
           <p className="text-yellow-800 text-sm">
             <strong>Lưu ý:</strong> Nếu số điện thoại <strong>{step1Data?.phoneNumber}</strong> chưa có trong hệ thống,
-            chúng tôi đã tự động tạo hồ sơ bệnh nhân cho bạn.
-            Chúng tôi sẽ liên hệ xác nhận lịch hẹn trong vòng 24 giờ.
+            chúng tôi đã tạo tài khoản và hồ sơ bệnh nhân cho bạn. Hãy kiểm tra email <strong>{step1Data?.email}</strong> để nhận thông tin đăng nhập.
+          </p>
+          <p className="text-yellow-800 text-sm">
+            Lễ tân sẽ liên hệ với bạn để xác nhận lịch hẹn trong thời gian sớm nhất.
           </p>
         </div>
 

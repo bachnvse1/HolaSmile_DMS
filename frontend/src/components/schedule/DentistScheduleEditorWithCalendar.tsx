@@ -4,6 +4,13 @@ import type { Schedule } from '../../types/schedule';
 import { ScheduleStatus, ShiftType } from '../../types/schedule';
 import { formatDateWithDay, shiftTypeToText, isPastDate } from '../../utils/dateUtils';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import {
   Loader2,
@@ -12,7 +19,8 @@ import {
   X,
   AlertCircle,
   List,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  Filter,
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +45,12 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
   const [selectedSlots, setSelectedSlots] = useState<Array<{ date: string, shift: ShiftType }>>([]);
   const [isBulkCreateDialogOpen, setIsBulkCreateDialogOpen] = useState(false);
   
+  // Filter states
+  const [showFilters, setShowFilters] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [shiftFilter, setShiftFilter] = useState<string>('all');
+  const [dateFilter, setDateFilter] = useState<string>('upcoming');
+  
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -46,25 +60,59 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
   const editScheduleMutation = useEditSchedule();
   const deleteMutation = useDeleteSchedule();
 
-  // Sort schedules by createdAt (newest first) and pagination
-  const sortedSchedules = useMemo(() => {
+  // Filters and sorting
+  const filteredAndSortedSchedules = useMemo(() => {
     const schedules = data?.data || [];
-    return [...schedules].sort((a: Schedule, b: Schedule) => {
+      
+    const filtered = schedules.filter((schedule: Schedule) => {
+      // Status filter
+      if (statusFilter !== 'all' && schedule.status !== statusFilter) return false;
+
+      // Shift filter
+      if (shiftFilter !== 'all' && schedule.shift !== shiftFilter) return false;
+
+      // Date filter
+      if (dateFilter !== 'all') {
+        const scheduleDate = new Date(schedule.date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (dateFilter === 'upcoming' && scheduleDate < today) return false;
+        if (dateFilter === 'past' && scheduleDate >= today) return false;
+      }
+
+      return true;
+    });
+
+    // Sort by createdAt (newest first)
+    filtered.sort((a: Schedule, b: Schedule) => {
       const dateA = new Date(a.createdAt || 0).getTime();
       const dateB = new Date(b.createdAt || 0).getTime();
       return dateB - dateA; 
     });
-  }, [data?.data]);
+
+    return filtered;
+  }, [data?.data, statusFilter, shiftFilter, dateFilter]);
 
   // Pagination
-  const totalPages = Math.ceil(sortedSchedules.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredAndSortedSchedules.length / itemsPerPage);
   const paginatedSchedules = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return sortedSchedules.slice(startIndex, endIndex);
-  }, [sortedSchedules, currentPage, itemsPerPage]);
+    return filteredAndSortedSchedules.slice(startIndex, endIndex);
+  }, [filteredAndSortedSchedules, currentPage, itemsPerPage]);
 
-  const schedules = sortedSchedules;
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, shiftFilter, dateFilter]);
+
+  const handleResetFilters = () => {
+    setStatusFilter('all');
+    setShiftFilter('all');
+    setDateFilter('upcoming');
+  };
+
+  const schedules = filteredAndSortedSchedules;
 
   // const handleAddSchedule = () => {
   //   setIsEditMode(false);
@@ -269,10 +317,28 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
     if (schedules.length === 0) {
       return (
         <div className="text-center py-10 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-gray-600">Bạn chưa có lịch làm việc nào.</p>
-          <p className="mt-2 text-sm text-gray-500">
-            Nhấn nút "Thêm lịch làm việc" để tạo lịch mới.
+          <p className="text-gray-600">
+            {statusFilter !== 'all' || shiftFilter !== 'all' || dateFilter !== 'upcoming'
+              ? 'Không có lịch làm việc nào phù hợp với bộ lọc.'
+              : 'Bạn chưa có lịch làm việc nào.'
+            }
           </p>
+          <p className="mt-2 text-sm text-gray-500">
+            {statusFilter !== 'all' || shiftFilter !== 'all' || dateFilter !== 'upcoming'
+              ? ''
+              : 'Nhấn vào lịch để tạo lịch làm việc mới.'
+            }
+          </p>
+          {(statusFilter !== 'all' || shiftFilter !== 'all' || dateFilter !== 'upcoming') && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-4"
+              onClick={handleResetFilters}
+            >
+              Xóa bộ lọc
+            </Button>
+          )}
         </div>
       );
     }
@@ -361,7 +427,7 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
-            totalItems={sortedSchedules.length}
+            totalItems={filteredAndSortedSchedules.length}
             itemsPerPage={itemsPerPage}
             onItemsPerPageChange={setItemsPerPage}
           />
@@ -372,39 +438,101 @@ export const DentistScheduleEditorWithCalendar: React.FC<DentistScheduleEditorWi
 
   return (
     <div>
-      {/* Header with Add button */}
-      <div className="flex justify-between items-center mb-6">
-        <p className="text-gray-600">
-          Quản lý lịch làm việc của bạn. Lịch mới tạo sẽ cần được phê duyệt trước khi có hiệu lực.
-        </p>
-        <div className="flex space-x-3">
-          <div className="flex p-1 bg-muted rounded-md">
-            <Button
-              size="sm"
-              variant={activeView === 'calendar' ? 'default' : 'ghost'}
-              onClick={() => setActiveView('calendar')}
-              className="flex items-center"
-            >
-              <CalendarIcon className="h-4 w-4 mr-2" />
-              Lịch
-            </Button>
-            <Button
-              size="sm"
-              variant={activeView === 'list' ? 'default' : 'ghost'}
-              onClick={() => setActiveView('list')}
-              className="flex items-center"
-            >
-              <List className="h-4 w-4 mr-2" />
-              Danh sách
-            </Button>
-          </div>
+      {/* Header */}
+      <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setShowFilters(!showFilters)}
+            className={showFilters ? "bg-blue-50 text-blue-700" : ""}
+          >
+            <Filter className="h-4 w-4" />
+          </Button>
+        </div>
 
-          {/* <Button onClick={handleAddSchedule} className="flex items-center">
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Thêm lịch làm việc
-          </Button> */}
+        <div className="flex p-1 bg-muted rounded-md">
+          <Button
+            size="sm"
+            variant={activeView === 'calendar' ? 'default' : 'ghost'}
+            onClick={() => setActiveView('calendar')}
+            className="flex items-center"
+          >
+            <CalendarIcon className="h-4 w-4 mr-2" />
+            Lịch
+          </Button>
+          <Button
+            size="sm"
+            variant={activeView === 'list' ? 'default' : 'ghost'}
+            onClick={() => setActiveView('list')}
+            className="flex items-center"
+          >
+            <List className="h-4 w-4 mr-2" />
+            Danh sách
+          </Button>
         </div>
       </div>
+
+      {/* Filters panel */}
+      {showFilters && (
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex flex-wrap gap-4">            
+            <div className="flex-1 min-w-[150px]">
+              <label htmlFor="statusFilter" className="mb-1.5 block text-sm font-medium">Trạng thái</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger id="statusFilter">
+                  <SelectValue placeholder="Chọn trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value={ScheduleStatus.Pending}>Chờ duyệt</SelectItem>
+                  <SelectItem value={ScheduleStatus.Approved}>Đã duyệt</SelectItem>
+                  <SelectItem value={ScheduleStatus.Rejected}>Từ chối</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex-1 min-w-[150px]">
+              <label htmlFor="shiftFilter" className="mb-1.5 block text-sm font-medium">Ca làm việc</label>
+              <Select value={shiftFilter} onValueChange={setShiftFilter}>
+                <SelectTrigger id="shiftFilter">
+                  <SelectValue placeholder="Chọn ca làm việc" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value={ShiftType.Morning}>Sáng</SelectItem>
+                  <SelectItem value={ShiftType.Afternoon}>Chiều</SelectItem>
+                  <SelectItem value={ShiftType.Evening}>Tối</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex-1 min-w-[150px]">
+              <label htmlFor="dateFilter" className="mb-1.5 block text-sm font-medium">Thời gian</label>
+              <Select value={dateFilter} onValueChange={setDateFilter}>
+                <SelectTrigger id="dateFilter">
+                  <SelectValue placeholder="Chọn thời gian" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value="upcoming">Sắp tới</SelectItem>
+                  <SelectItem value="past">Đã qua</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-end mb-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleResetFilters}
+              >
+                Đặt lại
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Main content - Calendar or List view */}
       <div className="mb-6">
         {activeView === 'calendar' ? (

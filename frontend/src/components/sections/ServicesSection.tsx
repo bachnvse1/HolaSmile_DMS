@@ -84,7 +84,7 @@ export const ServicesSection = () => {
           {services.map((service, index) => (
             <div
               key={index}
-              className={`bg-white border border-gray-200 rounded-xl p-8 hover:shadow-lg transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 ${
+              className={`bg-white border border-gray-200 rounded-xl p-8 hover:shadow-lg transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 flex flex-col h-full ${
                 isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
               }`}
               style={{ 
@@ -98,12 +98,12 @@ export const ServicesSection = () => {
               <h3 className="text-xl font-semibold text-gray-900 mb-4">
                 {service.title}
               </h3>
-              <p className="text-gray-600 leading-relaxed mb-6">
+              <p className="text-gray-600 leading-relaxed mb-6 flex-grow">
                 {service.description}
               </p>
               <Link
                 to={`/services/${service.slug}`}
-                className="text-blue-600 font-medium hover:text-blue-700 transition-colors group"
+                className="text-blue-600 font-medium hover:text-blue-700 transition-colors group mt-auto"
               >
                 Tìm Hiểu Thêm 
                 <span className="inline-block ml-1 transform group-hover:translate-x-1 transition-transform">→</span>

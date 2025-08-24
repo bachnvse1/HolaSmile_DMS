@@ -9,7 +9,7 @@ namespace HDMS_API.Application.Usecases.Receptionist.CreatePatientAccount
         public string Dob { get; set; }
         public bool Gender { get; set; }
         public string Email { get; set; }
-        public string Adress { get; set; }
+        public string Address { get; set; }
         public string UnderlyingConditions { get; set; }
         public string PatientGroup { get; set; }
         public string Note { get; set; }

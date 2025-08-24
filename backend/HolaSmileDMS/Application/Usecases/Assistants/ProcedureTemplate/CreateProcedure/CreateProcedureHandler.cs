@@ -39,9 +39,6 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.CreateProcedure
                 throw new Exception(MessageConstants.MSG.MSG07);
             if ( request.OriginalPrice <= 0)
                 throw new Exception(MessageConstants.MSG.MSG95);
-            if (request.Discount < 0 || request.Discount > 100 || request.ConsumableCost < 0 || request.ReferralCommissionRate < 0 ||
-                request.DoctorCommissionRate < 0 || request.AssistantCommissionRate < 0 || request.TechnicianCommissionRate < 0)
-                throw new Exception(MessageConstants.MSG.MSG125);
 
             decimal supplyCost = 0;
             var suppliesUsed = new List<SuppliesUsed>();

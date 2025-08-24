@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Bell } from "lucide-react";
 import { createNotificationConnection } from "@/services/notificationHub";
-import { toast } from "react-toastify";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { TokenUtils } from "@/utils/tokenUtils";

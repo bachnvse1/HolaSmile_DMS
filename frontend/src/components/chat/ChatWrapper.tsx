@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import ConsultantChatBox from '@/components/chat/ConsultantChatBox';
 import { ChatbotFloating } from '@/components/chatbot/ChatbotFloating';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,19 +8,19 @@ export const ChatWrapper: React.FC = () => {
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   const { isAuthenticated } = useAuth();
 
-  const handleConsultantChatChange = (isOpen: boolean) => {
+  const handleConsultantChatChange = useCallback((isOpen: boolean) => {
     setIsConsultantChatOpen(isOpen);
     if (isOpen && isChatbotOpen) {
       setIsChatbotOpen(false);
     }
-  };
+  }, [isChatbotOpen]);
 
-  const handleChatbotChange = (isOpen: boolean) => {
+  const handleChatbotChange = useCallback((isOpen: boolean) => {
     setIsChatbotOpen(isOpen);
     if (isOpen && isConsultantChatOpen) {
       setIsConsultantChatOpen(false);
     }
-  };
+  }, [isConsultantChatOpen]);
 
   return (
     <>
