@@ -68,7 +68,7 @@ namespace Application.Usecases.Owner.ViewDashboard
 
             var totalRevenue = await CalculateTotalRevenue(request.Filter);
             var totalAppointments = await CalculateTotalAppointments(request.Filter);
-            var totalPatients = await CalculateTotalPatients(request.Filter);
+            var totalPatients = await CalculateTotalPatients();
             var newPatients = await CalculateNewPatients(request.Filter);
 
             var dashboardData = new ViewDashboardDTO
@@ -191,43 +191,9 @@ namespace Application.Usecases.Owner.ViewDashboard
 
             return appointments.Count();
         }
-        public async Task<int> CalculateTotalPatients(string? filter)
+        public async Task<int> CalculateTotalPatients()
         {
             var patients = await _userCommonRepository.GetAllPatientsAsync(CancellationToken.None);
-            if (patients == null || !patients.Any())
-                return 0;
-
-            var now = DateTime.Now;
-            DateTime fromDate;
-
-            switch (filter?.ToLower())
-            {
-                //case "today":
-                //    fromDate = now.Date;
-                //    patients = patients.Where(p => p.CreatedAt.Date == fromDate).ToList();
-                //    break;
-
-                case "week":
-                    fromDate = now.Date.AddDays(-7);
-                    patients = patients.Where(p => p.CreatedAt.Date >= fromDate).ToList();
-                    break;
-
-                case "month":
-                    fromDate = new DateTime(now.Year, now.Month, 1);
-                    patients = patients.Where(p => p.CreatedAt >= fromDate).ToList();
-                    break;
-
-                case "year":
-                    fromDate = new DateTime(now.Year, 1, 1);
-                    patients = patients.Where(p => p.CreatedAt >= fromDate).ToList();
-                    break;
-
-                default:
-                    fromDate = now.Date.AddDays(-7);
-                    patients = patients.Where(p => p.CreatedAt.Date >= fromDate).ToList();
-                    break;
-            }
-
             return patients.Count();
         }
  
