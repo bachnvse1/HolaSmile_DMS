@@ -1,10 +1,10 @@
-import { Users, Calendar, AlertCircle, Clock, CreditCard, DollarSign, Activity, Target } from 'lucide-react';
+import { Users, Calendar, AlertCircle, Clock, CreditCard, DollarSign, Target } from 'lucide-react';
 import { StaffLayout } from '../../layouts/staff/StaffLayout';
 import { useUserInfo } from '@/hooks/useUserInfo';
 import { useDashboardStats, useColumnChart, useLineChart, usePieChart } from '@/hooks/useDashboard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   BarChart,
   Bar,
@@ -23,19 +23,34 @@ import {
 import { useMemo, memo, useState } from 'react';
 import { AuthGuard } from '@/components/AuthGuard';
 
-const RevenueChart = memo(({ data }: { data: Array<{ label: string, revenueInMillions: number, totalAppointments: number }> }) => (
-  <ResponsiveContainer width="100%" height={300}>
-    <BarChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="label" />
-      <YAxis />
-      <Tooltip />
-      <Legend />
-      <Bar dataKey="revenueInMillions" fill="#3b82f6" name="Doanh thu (triệu)" />
-      <Bar dataKey="totalAppointments" fill="#10b981" name="Lịch hẹn" />
-    </BarChart>
-  </ResponsiveContainer>
-));
+const RevenueChart = memo(({ data }: { data: Array<{ label: string, totalReceipt: number, totalPayment: number }> }) => {
+  const transformedData = data.map(item => ({
+    ...item,
+    totalReceipt: item.totalReceipt / 1000000,
+    totalPayment: item.totalPayment / 1000000
+  }));
+
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={transformedData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="label" />
+        <YAxis />
+        <Tooltip
+          formatter={(value, name) => {
+            const formattedValue = typeof value === 'number' ? 
+              `${value.toFixed(2)} triệu VNĐ` : 
+              value;
+            return [formattedValue, name];
+          }}
+        />
+        <Legend />
+        <Bar dataKey="totalReceipt" fill="#10b981" name="Thu nhập (triệu)" />
+        <Bar dataKey="totalPayment" fill="#ef4444" name="Chi phí (triệu)" />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+});
 RevenueChart.displayName = 'RevenueChart';
 
 const StatusPieChart = memo(({ data }: { data: Array<{ name: string, value: number, color: string }> }) => (
@@ -61,33 +76,63 @@ const StatusPieChart = memo(({ data }: { data: Array<{ name: string, value: numb
 ));
 StatusPieChart.displayName = 'StatusPieChart';
 
-const WeeklyLineChart = memo(({ data }: { data: Array<{ label: string, totalAppointments: number }> }) => (
-  <ResponsiveContainer width="100%" height={300}>
-    <LineChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="label" />
-      <YAxis />
-      <Tooltip />
-      <Line
-        type="monotone"
-        dataKey="totalAppointments"
-        stroke="#8b5cf6"
-        strokeWidth={3}
-        dot={{ fill: '#8b5cf6', strokeWidth: 2, r: 6 }}
-      />
-    </LineChart>
-  </ResponsiveContainer>
-));
+const WeeklyLineChart = memo(({ data }: { data: Array<{ label: string, totalAppointments: number, revenueInMillions: number }> }) => {
+  const transformedData = data.map(item => ({
+    ...item,
+    revenueInMillions: item.revenueInMillions / 1000000
+  }));
+
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <LineChart data={transformedData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="label" />
+        <YAxis yAxisId="left" orientation="left" />
+        <YAxis yAxisId="right" orientation="right" />
+        <Tooltip
+          formatter={(value, name) => {
+            if (name === 'Doanh thu (triệu)') {
+              return [
+                typeof value === 'number' ? `${value.toFixed(2)} triệu VNĐ` : value,
+                name
+              ];
+            }
+            return [value, name];
+          }}
+        />
+        <Legend />
+        <Line
+          yAxisId="left"
+          type="monotone"
+          dataKey="totalAppointments"
+          stroke="#8b5cf6"
+          strokeWidth={3}
+          dot={{ fill: '#8b5cf6', strokeWidth: 2, r: 6 }}
+          name="Tổng lịch hẹn"
+        />
+        <Line
+          yAxisId="right"
+          type="monotone"
+          dataKey="revenueInMillions"
+          stroke="#3b82f6"
+          strokeWidth={3}
+          dot={{ fill: '#3b82f6', strokeWidth: 2, r: 6 }}
+          name="Doanh thu (triệu)"
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+});
 WeeklyLineChart.displayName = 'WeeklyLineChart';
 
 export const StaffDashboard = () => {
   const userInfo = useUserInfo();
-  const [filter] = useState('week');
+  const [filter, setFilter] = useState('week');
 
   const { data: dashboardStats } = useDashboardStats(filter);
   const { data: columnData, isLoading: columnLoading } = useColumnChart(filter);
-  const { data: lineData, isLoading: lineLoading } = useLineChart();
-  const { data: pieData, isLoading: pieLoading } = usePieChart();
+  const { data: lineData, isLoading: lineLoading } = useLineChart(filter);
+  const { data: pieData, isLoading: pieLoading } = usePieChart(filter);
 
   const pieChartData = useMemo(() => {
     if (!pieData) return [];
@@ -116,36 +161,28 @@ export const StaffDashboard = () => {
           title: 'Tổng Quan Hệ Thống',
           stats: [
             {
-              label: 'Tổng Doanh Thu Tuần',
-              value: dashboardStats ? formatCurrency(dashboardStats.totalRevenue) : '0 VNĐ',
-              // change: '+12.5%',
+              label: filter === 'week' ? 'Tổng Doanh Thu Tuần' : filter === 'month' ? 'Tổng Doanh Thu Tháng' : 'Tổng Doanh Thu Năm',
+              value: dashboardStats ? `${(dashboardStats.totalRevenue / 1000000).toFixed(2)} triệu VNĐ` : '0 triệu VNĐ',
               icon: DollarSign,
               color: 'blue',
-              // trend: 'up'
             },
             {
-              label: 'Tổng Bệnh Nhân',
-              value: dashboardStats ? dashboardStats.totalPatient.toString() : '0',
-              // change: '+8.2%',
-              icon: Users,
-              color: 'green',
-              // trend: 'up'
+              label: filter === 'week' ? 'Bệnh Nhân Khám Tuần' : filter === 'month' ? 'Bệnh Nhân Khám Tháng' : 'Bệnh Nhân Khám Năm',
+              value: dashboardStats ? dashboardStats.newPatient.toString() : '0',
+              icon: Target,
+              color: 'orange',
             },
             {
               label: 'Lịch Hẹn',
               value: dashboardStats ? dashboardStats.totalAppointments.toString() : '0',
-              // change: '+15.3%',
               icon: Calendar,
               color: 'purple',
-              // trend: 'up'
             },
             {
-              label: 'Bệnh Nhân Mới',
-              value: dashboardStats ? dashboardStats.newPatient.toString() : '0',
-              // change: '+2.1%',
-              icon: Target,
-              color: 'orange',
-              // trend: 'up'
+              label: 'Tổng Bệnh Nhân',
+              value: dashboardStats ? dashboardStats.totalPatient.toString() : '0',
+              icon: Users,
+              color: 'green',
             }
           ]
         };
@@ -207,12 +244,44 @@ export const StaffDashboard = () => {
           {/* Header */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-3xl font-bold text-gray-900">
-                {title}
-              </CardTitle>
-              <CardDescription className="text-lg">
-                Chào mừng trở lại, {userInfo.name}
-              </CardDescription>
+              <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+                <div>
+                  <CardTitle className="text-3xl font-bold text-gray-900">
+                    {title}
+                  </CardTitle>
+                  <CardDescription className="text-lg">
+                    Chào mừng trở lại, {userInfo.name}
+                  </CardDescription>
+                </div>
+                
+                {/* Filter Buttons */}
+                <div className="flex rounded-lg border border-gray-200 p-1 bg-gray-50">
+                  <Button
+                    variant={filter === 'week' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setFilter('week')}
+                    className="text-xs sm:text-sm px-2 sm:px-3"
+                  >
+                    Tuần
+                  </Button>
+                  <Button
+                    variant={filter === 'month' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setFilter('month')}
+                    className="text-xs sm:text-sm px-2 sm:px-3"
+                  >
+                    Tháng
+                  </Button>
+                  <Button
+                    variant={filter === 'year' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setFilter('year')}
+                    className="text-xs sm:text-sm px-2 sm:px-3"
+                  >
+                    Năm
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
           </Card>
 
@@ -287,9 +356,9 @@ export const StaffDashboard = () => {
             {/* Revenue and Appointments Chart */}
             <Card className="will-change-transform">
               <CardHeader>
-                <CardTitle>Doanh Thu & Lịch Hẹn (Tháng)</CardTitle>
+                <CardTitle>Thu Chi Tài Chính</CardTitle>
                 <CardDescription>
-                  Theo dõi xu hướng doanh thu và số lượng lịch hẹn
+                  Theo dõi thu nhập và chi phí theo {filter === 'week' ? 'tuần' : filter === 'month' ? 'tháng' : 'năm'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -308,7 +377,7 @@ export const StaffDashboard = () => {
               <CardHeader>
                 <CardTitle>Trạng Thái Lịch Hẹn</CardTitle>
                 <CardDescription>
-                  Phân bố trạng thái các lịch hẹn trong tháng
+                  Phân bố trạng thái các lịch hẹn trong {filter === 'week' ? 'tuần' : filter === 'month' ? 'tháng' : 'năm'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -328,9 +397,9 @@ export const StaffDashboard = () => {
             {/* Weekly Appointments Line Chart */}
             <Card className="lg:col-span-2 will-change-transform">
               <CardHeader>
-                <CardTitle>Lịch Hẹn Theo Tuần</CardTitle>
+                <CardTitle>Lịch Hẹn & Doanh Thu Theo Thời Gian</CardTitle>
                 <CardDescription>
-                  Xu hướng lịch hẹn trong tuần hiện tại
+                  Xu hướng lịch hẹn và doanh thu theo {filter === 'week' ? 'tuần' : filter === 'month' ? 'tháng' : 'năm'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -398,7 +467,7 @@ export const StaffDashboard = () => {
               <CardHeader>
                 <CardTitle>Hoạt Động Gần Đây</CardTitle>
                 <CardDescription>
-                  Các sự kiện quan trọng trong hệ thống
+                  Các sự kiện mới nhất trong hệ thống
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -407,24 +476,24 @@ export const StaffDashboard = () => {
                     <DollarSign className="h-5 w-5 text-blue-600 mr-3" />
                     <div>
                       <p className="font-medium text-gray-900">Thanh toán mới</p>
-                      <p className="text-sm text-gray-600">Bệnh nhân Nguyễn Văn A - 2,500,000 VNĐ</p>
-                      <p className="text-xs text-gray-500">5 phút trước</p>
+                      <p className="text-sm text-gray-600">{dashboardStats?.newInvoice?.data || 'Không có thanh toán mới'}</p>
+                      <p className="text-xs text-gray-500">{dashboardStats?.newInvoice?.time || ''}</p>
                     </div>
                   </div>
                   <div className="flex items-center p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
                     <Users className="h-5 w-5 text-green-600 mr-3" />
                     <div>
                       <p className="font-medium text-gray-900">Bệnh nhân mới đăng ký</p>
-                      <p className="text-sm text-gray-600">Trần Thị B - Khám tổng quát</p>
-                      <p className="text-xs text-gray-500">15 phút trước</p>
+                      <p className="text-sm text-gray-600">{dashboardStats?.newPatientAppointment?.data || 'Không có bệnh nhân mới'}</p>
+                      <p className="text-xs text-gray-500">{dashboardStats?.newPatientAppointment?.time || ''}</p>
                     </div>
                   </div>
                   <div className="flex items-center p-4 bg-purple-50 rounded-lg border-l-4 border-purple-400">
                     <Calendar className="h-5 w-5 text-purple-600 mr-3" />
                     <div>
-                      <p className="font-medium text-gray-900">Lịch hẹn được đặt</p>
-                      <p className="text-sm text-gray-600">Lê Văn C - Niềng răng</p>
-                      <p className="text-xs text-gray-500">30 phút trước</p>
+                      <p className="font-medium text-gray-900">Lịch hẹn mới</p>
+                      <p className="text-sm text-gray-600">{dashboardStats?.newAppointment?.data || 'Không có lịch hẹn mới'}</p>
+                      <p className="text-xs text-gray-500">{dashboardStats?.newAppointment?.time || ''}</p>
                     </div>
                   </div>
                 </div>
@@ -435,33 +504,33 @@ export const StaffDashboard = () => {
               <CardHeader>
                 <CardTitle>Cảnh Báo & Thông Báo</CardTitle>
                 <CardDescription>
-                  Các vấn đề cần chú ý
+                  Các vấn đề cần chú ý và xử lý
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-400">
-                    <AlertCircle className="h-5 w-5 text-yellow-600 mr-3" />
-                    <div>
-                      <p className="font-medium text-gray-900">Thiết bị cần bảo trì</p>
-                      <p className="text-sm text-gray-600">Máy X-quang phòng 2 cần kiểm tra</p>
-                      <Badge variant="secondary">Ưu tiên cao</Badge>
-                    </div>
-                  </div>
                   <div className="flex items-center p-4 bg-red-50 rounded-lg border-l-4 border-red-400">
                     <AlertCircle className="h-5 w-5 text-red-600 mr-3" />
                     <div>
-                      <p className="font-medium text-gray-900">Hết hạn thanh toán</p>
-                      <p className="text-sm text-gray-600">5 hóa đơn quá hạn cần xử lý</p>
-                      <Badge variant="destructive">Khẩn cấp</Badge>
+                      <p className="font-medium text-gray-900">Hóa đơn chưa thanh toán</p>
+                      <p className="text-sm text-gray-600">{dashboardStats?.unpaidInvoice?.data || 'Không có hóa đơn chưa thanh toán'}</p>
+                      <p className="text-xs text-gray-500">{dashboardStats?.unpaidInvoice?.time || ''}</p>
                     </div>
                   </div>
-                  <div className="flex items-center p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-                    <Activity className="h-5 w-5 text-blue-600 mr-3" />
+                  <div className="flex items-center p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-400">
+                    <AlertCircle className="h-5 w-5 text-yellow-600 mr-3" />
                     <div>
-                      <p className="font-medium text-gray-900">Báo cáo tháng</p>
-                      <p className="text-sm text-gray-600">Báo cáo doanh thu tháng 6 đã sẵn sàng</p>
-                      <Badge variant="secondary">Mới</Badge>
+                      <p className="font-medium text-gray-900">Giao dịch chưa duyệt</p>
+                      <p className="text-sm text-gray-600">{dashboardStats?.unapprovedTransaction?.data || 'Không có giao dịch chưa duyệt'}</p>
+                      <p className="text-xs text-gray-500">{dashboardStats?.unapprovedTransaction?.time || ''}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center p-4 bg-orange-50 rounded-lg border-l-4 border-orange-400">
+                    <AlertCircle className="h-5 w-5 text-orange-600 mr-3" />
+                    <div>
+                      <p className="font-medium text-gray-900">Thiết bị chưa bảo trì</p>
+                      <p className="text-sm text-gray-600">{dashboardStats?.underMaintenance?.data || 'Không có thiết bị chưa bảo trì'}</p>
+                      <p className="text-xs text-gray-500">{dashboardStats?.underMaintenance?.time || ''}</p>
                     </div>
                   </div>
                 </div>
