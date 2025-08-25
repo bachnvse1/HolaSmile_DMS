@@ -46,8 +46,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-  VITE_API_BASE_URL: https://holasmile.id.vn/api
-  VITE_API_BASE_URL_Not_Api: https://holasmile.id.vn
+        VITE_API_BASE_URL: "https://holasmile.id.vn/api"
+        VITE_API_BASE_URL_Not_Api: "https://holasmile.id.vn"
     image: holasmile-web:latest
     container_name: holasmile_web_azure
     restart: unless-stopped
