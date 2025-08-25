@@ -159,10 +159,7 @@ const ActionsDropdown = ({
 }) => {
   const { role } = useUserInfo() || { role: "" }
 
-  const remainingAmount = invoice?.remainingAmount ?? ((invoice?.totalAmount || 0) - (invoice?.paidAmount || 0))
-
-  const canMakePayment = (role === "Patient" || role === "Receptionist") && 
-                        remainingAmount > 0 && 
+  const canMakePayment = (role === "Patient" || role === "Receptionist") &&
                         invoice?.status !== "paid" && 
                         invoice?.paymentMethod !== "cash" &&
                         (invoice?.paymentUrl || invoice?.orderCode) 
@@ -170,7 +167,7 @@ const ActionsDropdown = ({
   const canUpdateInvoice = (role === "Admin" || role === "Receptionist") && 
                           invoice?.status !== "paid"
 
-  const canPrintInvoice = invoice?.status === "paid" || remainingAmount <= 0
+  const canPrintInvoice = invoice?.status === "paid"
 
   if (!invoice) return null;
 

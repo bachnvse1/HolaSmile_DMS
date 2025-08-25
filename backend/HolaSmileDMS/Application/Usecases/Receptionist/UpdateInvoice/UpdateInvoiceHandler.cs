@@ -58,7 +58,10 @@ public class UpdateInvoiceHandler : IRequestHandler<UpdateInvoiceCommand, string
         invoice.Description = request.Description ?? invoice.Description;
         invoice.PaidAmount = request.PaidAmount ?? invoice.PaidAmount;
         invoice.Status = request.Status ?? invoice.Status;
-
+        if (request.Status == "paid")
+        {
+            invoice.PaymentDate = DateTime.Now;
+        }
         if (request.PaidAmount.HasValue)
         {
             // Tính lại tổng tiền đã thanh toán trước đó, không bao gồm hoá đơn hiện tại

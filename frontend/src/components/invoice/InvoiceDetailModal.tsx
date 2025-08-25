@@ -123,13 +123,17 @@ export function InvoiceDetailModal({
     return null
   }
   
-const paymentProgress = selectedInvoice.totalAmount ? 
-  Math.round((1 - ((selectedInvoice.remainingAmount || 0) / selectedInvoice.totalAmount)) * 100) : 0
+  const paymentProgress = selectedInvoice.totalAmount ? 
+    (selectedInvoice.status === 'paid' 
+      ? Math.round((1 - (selectedInvoice.remainingAmount || 0) / selectedInvoice.totalAmount) * 100)
+      : Math.round((1 - ((selectedInvoice.remainingAmount || 0) + (selectedInvoice.paidAmount || 0)) / selectedInvoice.totalAmount) * 100)
+    ) : 0
   
   const remainingAmount = selectedInvoice.remainingAmount || 0
   const isFullyPaid = remainingAmount <= 0
   const isPending = selectedInvoice.status === 'pending'
   const isOverdue = selectedInvoice.status === 'overdue'
+  const isPaid = selectedInvoice.status === 'paid'
 
   return (
     <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
@@ -168,8 +172,8 @@ const paymentProgress = selectedInvoice.totalAmount ?
             </div>
             <Progress value={paymentProgress} className="h-3 mb-2" />
             <div className="flex justify-between text-sm text-gray-600">
-              <span>Đã thanh toán: {formatCurrency(selectedInvoice.paidAmount)}</span>
-              <span>Còn lại: {formatCurrency(remainingAmount)}</span>
+              <span>Đã thanh toán: {selectedInvoice.status === "paid" ? formatCurrency(selectedInvoice.paidAmount) : 0}</span>
+              <span>Còn lại: {selectedInvoice.status === "paid" ? formatCurrency(remainingAmount) : formatCurrency(selectedInvoice.paidAmount + remainingAmount)}</span>
             </div>
           </div>
 

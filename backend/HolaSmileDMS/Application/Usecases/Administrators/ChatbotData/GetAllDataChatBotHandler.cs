@@ -21,7 +21,7 @@ namespace Application.Usecases.Administrators.ChatbotData
             var user = _httpContextAccessor.HttpContext?.User;
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            if (!string.Equals(currentUserRole, "owner", StringComparison.OrdinalIgnoreCase) && !string.Equals(currentUserRole, "administrator", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(currentUserRole, "owner", StringComparison.OrdinalIgnoreCase))
             {
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             }
