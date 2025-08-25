@@ -22,7 +22,7 @@ namespace Application.Usecases.Administrators.CreateChatBotData
             var currentUserId = int.Parse(user?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
 
-            if (!string.Equals(currentUserRole, "owner", StringComparison.OrdinalIgnoreCase) && !string.Equals(currentUserRole, "administrator", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(currentUserRole, "owner", StringComparison.OrdinalIgnoreCase))
             {
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             }
