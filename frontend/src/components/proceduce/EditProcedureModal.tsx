@@ -358,7 +358,7 @@ export function EditProcedureModal({
                                         value={formattedPrices.price}
                                         onChange={(e) => handlePriceChange(e.target.value)}
                                         placeholder="0"
-                                        disabled={isSubmitting}
+                                        disabled
                                         className={errors.price ? "border-destructive" : ""}
                                     />
                                     {errors.price && (
@@ -368,7 +368,7 @@ export function EditProcedureModal({
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="consumableCost">Chi Phí Khấu Hao(VNĐ)</Label>
+                                <Label htmlFor="consumableCost">Chi Phí Khấu Hao (VNĐ)</Label>
                                 <Input
                                     id="consumableCost"
                                     type="text"
@@ -377,13 +377,13 @@ export function EditProcedureModal({
                                     disabled={true}
                                 />
                                 <p className="text-xs text-muted-foreground">
-                                    Chi phí khấu hao cho thủ thuật này
+                                    Chi phí khấu hao cho thủ thuật này bằng chi phí ước tính + chi phí vật tư
                                 </p>
                             </div>
 
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                    <Label htmlFor="estimatedCost">Chi Phí Ướng Tính (VNĐ)</Label>
+                                    <Label htmlFor="estimatedCost">Chi Phí Ước Tính (VNĐ)</Label>
                                 </div>
                                 <Input
                                     id="estimatedCost"
