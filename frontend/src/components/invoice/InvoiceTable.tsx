@@ -161,8 +161,7 @@ const ActionsDropdown = ({
 
   const remainingAmount = invoice?.remainingAmount ?? ((invoice?.totalAmount || 0) - (invoice?.paidAmount || 0))
 
-  const canMakePayment = (role === "Patient" || role === "Receptionist") && 
-                        remainingAmount > 0 && 
+  const canMakePayment = (role === "Patient" || role === "Receptionist") &&
                         invoice?.status !== "paid" && 
                         invoice?.paymentMethod !== "cash" &&
                         (invoice?.paymentUrl || invoice?.orderCode) 
