@@ -20,7 +20,7 @@ namespace Application.Usecases.Administrators.RemoveChatbotData
         {
             var user = _httpContextAccessor.HttpContext?.User;
             var currentUserRole = user?.FindFirst(ClaimTypes.Role)?.Value;
-            if (!string.Equals(currentUserRole, "owner", StringComparison.OrdinalIgnoreCase) && !string.Equals(currentUserRole, "administrator", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(currentUserRole, "owner", StringComparison.OrdinalIgnoreCase))
             {
                 throw new UnauthorizedAccessException(MessageConstants.MSG.MSG26);
             }
