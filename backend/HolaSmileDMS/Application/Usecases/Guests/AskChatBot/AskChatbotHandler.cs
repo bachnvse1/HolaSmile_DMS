@@ -1,6 +1,8 @@
-﻿using System.Security.Claims;
+﻿using System.Globalization;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -44,10 +46,11 @@ namespace Application.Usecases.Guests.AskChatBot
                     return faq.Answer;
             }
 
-            var timeCheck = ResolveVietnameseDate(request.UserQuestion);
+            var question = ReplaceVietnameseDatePhrases(request.UserQuestion);
+            Console.WriteLine(question);
 
-                // lấy dữ liệu phòng khám từ repo
-                var guestData = await _chatbotRepo.GetClinicDataAsync(cancellationToken);
+            // lấy dữ liệu phòng khám từ repo
+            var guestData = await _chatbotRepo.GetClinicDataAsync(cancellationToken);
             var commonData = await _chatbotRepo.GetUserCommonDataAsync(cancellationToken);
             object? resultData = currentUserRole?.ToLower() switch
             {
@@ -82,7 +85,8 @@ Bạn là chatbot nội bộ hỗ trợ cho hệ thống quản lý nha khoa Hol
    - Luôn ưu tiên trả lời dựa trên dữ liệu trong hệ thống.
    - Trình bày rõ ràng, chi tiết, dễ hiểu cho người đọc.
    - Nếu một trường dữ liệu có giá trị `null` hoặc rỗng thì bỏ qua, không nhắc đến trong câu trả lời.
-   - Khi đưa danh sách (lịch hẹn, hóa đơn, lịch làm việc…) thì chỉ hiển thị thông tin cần thiết, tránh thừa.
+   - Khi đưa danh sách (lịch hẹn, hóa đơn, lịch làm việc…) thì chỉ hiển thị thông tin dữ liệu có, cần thiết, tránh thừa.
+   - 
 
 3. Giới hạn:
    - Nếu câu hỏi **nằm ngoài hệ thống** (không có dữ liệu để trả lời), hãy từ chối lịch sự:  
@@ -103,7 +107,6 @@ Bạn là chatbot nội bộ hỗ trợ cho hệ thống quản lý nha khoa Hol
    - Không đưa nguồn lấy dữ liệu ra ngoài
    - nếu khách nhập vào **ngày mai, ngày kia ,... ** hãy quy ra ngày dạng dd-MM-yyyy 
    - Tên bác sĩ và các tên riêng thì in đậm lên
-   - các câu hỏi có liên quan đến ngày tháng {timeCheck} thì dùng đúng dữ liệu liên quan đến thời gian {timeCheck} để trả lời 
 6. Lưu ý về dữ liệu
    - phần lịch làm việc bác sĩ(dentistSchedules) có các trạng thái lịch là free -> rảnh, busy -> khá bận, full -> không thể đặt. Ưu tiên demo lịch rảnh rồi đến khá bận. Phần này để trả lời các câu hỏi liên quan đến lịch bác sĩ
    
@@ -114,7 +117,7 @@ Hãy luôn nhớ: Bạn chỉ là trợ lý trả lời dựa trên dữ liệu 
             {
                 contents = new[]
                 {
-                    new { parts = new[] { new { text = context + "\n\n" + request.UserQuestion } } }
+                    new { parts = new[] { new { text = context + "\n\n" + question } } }
                 }
             };
             var json = JsonSerializer.Serialize(body);
@@ -186,16 +189,34 @@ Hãy luôn nhớ: Bạn chỉ là trợ lý trả lời dựa trên dữ liệu 
             return dbWords.Length > 0 && ((double)match / dbWords.Length >= 0.7);
         }
 
-        private static DateTime ResolveVietnameseDate(string input)
+        public static string ReplaceVietnameseDatePhrases(string input)
         {
-            var dateTime = DateTime.Now;
-            var txt = input.ToLowerInvariant();
-            if (txt.Contains("ngày mai") || txt.Contains("ngay mai")) return dateTime.Date.AddDays(1);
-            if (txt.Contains("ngày kia") || txt.Contains("ngay kia")) return dateTime.Date.AddDays(2);
-            if (txt.Contains("hôm nay") || txt.Contains("hom nay")) return dateTime.Date;
-            if (txt.Contains("tuần sau") || txt.Contains("tuan sau")) return dateTime.Date.AddDays(7);
-            return dateTime;
-        }
+            var today = DateTime.Now.Date;
+            string todayStr = today.ToString("dd/MM/yyyy");
+            string tomorrowStr = today.AddDays(1).ToString("dd/MM/yyyy");
+            string dayAfterTomorrowStr = today.AddDays(2).ToString("dd/MM/yyyy");
+            string nextWeekStr = today.AddDays(7).ToString("dd/MM/yyyy");
 
+            string output = input;
+
+            // Nếu không chứa từ khóa thì return nguyên văn
+            if (!Regex.IsMatch(output, "(hôm nay|hom nay|ngày mai|ngay mai|ngày kia|ngay kia|tuần sau|tuan sau)", RegexOptions.IgnoreCase))
+                return input;
+
+            // Thay thế cụm từ tương đối bằng ngày tuyệt đối
+            output = Regex.Replace(output, "ngày mai", tomorrowStr, RegexOptions.IgnoreCase);
+            output = Regex.Replace(output, "ngay mai", tomorrowStr, RegexOptions.IgnoreCase);
+
+            output = Regex.Replace(output, "ngày kia", dayAfterTomorrowStr, RegexOptions.IgnoreCase);
+            output = Regex.Replace(output, "ngay kia", dayAfterTomorrowStr, RegexOptions.IgnoreCase);
+
+            output = Regex.Replace(output, "hôm nay", todayStr, RegexOptions.IgnoreCase);
+            output = Regex.Replace(output, "hom nay", todayStr, RegexOptions.IgnoreCase);
+
+            output = Regex.Replace(output, "tuần sau", nextWeekStr, RegexOptions.IgnoreCase);
+            output = Regex.Replace(output, "tuan sau", nextWeekStr, RegexOptions.IgnoreCase);
+
+            return output;
+        }
     }
 }

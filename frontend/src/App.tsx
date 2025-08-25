@@ -70,6 +70,7 @@ import ChatbotKnowledgeManagement from "./pages/chatbot/ChatbotKnowledgeManageme
 import { ChatWrapper } from './components/chat/ChatWrapper';
 import MaintenancePage from "./pages/maintenance/MaintenancePage";
 import { RouteGuard } from './components/auth/RouteGuard';
+import { FloatingButtons } from './components/floating/FloatingButtons';
 
 function App() {
   return (
@@ -103,13 +104,19 @@ function App() {
         } />
           <Route path="/" element={
             <RouteGuard publicOnly={true}>
-              <HomePage />
+              <>
+                <HomePage />
+                <FloatingButtons />
+              </>
             </RouteGuard>
           } />
 
           <Route path="/learn-more" element={
             <RouteGuard publicOnly={true}>
-              <LearnMorePage />
+              <>
+                <LearnMorePage />
+                <FloatingButtons />
+              </>
             </RouteGuard>
           } />
 
@@ -121,37 +128,58 @@ function App() {
                   <Routes>
                     <Route path="/services/general-dentistry" element={
                       <RouteGuard publicOnly={true}>
-                        <GeneralDentistryPage />
+                        <>
+                          <GeneralDentistryPage />
+                          <FloatingButtons />
+                        </>
                       </RouteGuard>
                     } />
                     <Route path="/services/cosmetic-dentistry" element={
                       <RouteGuard publicOnly={true}>
-                        <CosmeticDentistryPage />
+                        <>
+                          <CosmeticDentistryPage />
+                          <FloatingButtons />
+                        </>
                       </RouteGuard>
                     } />
                     <Route path="/services/oral-surgery" element={
                       <RouteGuard publicOnly={true}>
-                        <OralSurgeryPage />
+                        <>
+                          <OralSurgeryPage />
+                          <FloatingButtons />
+                        </>
                       </RouteGuard>
                     } />
                     <Route path="/services/pediatric-dentistry" element={
                       <RouteGuard publicOnly={true}>
-                        <PediatricDentistryPage />
+                        <>
+                          <PediatricDentistryPage />
+                          <FloatingButtons />
+                        </>
                       </RouteGuard>
                     } />
                     <Route path="/services/preventive-care" element={
                       <RouteGuard publicOnly={true}>
-                        <PreventiveCare />
+                        <>
+                          <PreventiveCare />
+                          <FloatingButtons />
+                        </>
                       </RouteGuard>
                     } />
                     <Route path="/services/restorative-dentistry" element={
                       <RouteGuard publicOnly={true}>
-                        <RestorativeDentistryPage />
+                        <>
+                          <RestorativeDentistryPage />
+                          <FloatingButtons />
+                        </>
                       </RouteGuard>
                     } />
                     <Route path="/appointment-booking" element={
                       <RouteGuard publicOnly={true}>
-                        <BookAppointmentPage />
+                        <>
+                          <BookAppointmentPage />
+                          <FloatingButtons />
+                        </>
                       </RouteGuard>
                     } />
                     <Route path="/add-patient" element={<AddPatient />} />

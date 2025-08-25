@@ -1,44 +1,36 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
-import { Save, X, Trash2 } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import type { ChatbotKnowledge } from '@/types/chatbot.types';
 
-interface EditKnowledgeFormData {
+interface CreateKnowledgeFormData {
   question: string;
   answer: string;
 }
 
-interface ChatbotEditModalProps {
-  knowledge: ChatbotKnowledge;
-  isUpdating: boolean;
-  onSave: (data: { knowledgeId: number; newAnswer: string; newQuestion: string }) => Promise<void>;
-  onDelete: (knowledgeId: number) => Promise<void>;
+interface ChatbotCreateModalProps {
+  isCreating: boolean;
+  onSave: (data: { question: string; answer: string }) => Promise<void>;
   onCancel: () => void;
 }
 
-export const ChatbotEditModal: React.FC<ChatbotEditModalProps> = ({
-  knowledge,
-  isUpdating,
+export const ChatbotCreateModal: React.FC<ChatbotCreateModalProps> = ({
+  isCreating,
   onSave,
-  onDelete,
   onCancel
 }) => {
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-
   const {
     register,
     handleSubmit,
-    formState: { errors, isDirty, isValid },
-    watch
-  } = useForm<EditKnowledgeFormData>({
+    formState: { errors, isValid },
+    watch,
+    reset
+  } = useForm<CreateKnowledgeFormData>({
     defaultValues: {
-      question: knowledge.question,
-      answer: knowledge.answer
+      question: '',
+      answer: ''
     },
     mode: 'onChange'
   });
@@ -46,32 +38,17 @@ export const ChatbotEditModal: React.FC<ChatbotEditModalProps> = ({
   const questionValue = watch('question');
   const answerValue = watch('answer');
 
-  const onSubmit = async (data: EditKnowledgeFormData) => {
-    if (!isDirty) {
-      onCancel();
-      return;
-    }
-    
+  const onSubmit = async (data: CreateKnowledgeFormData) => {
     try {
       await onSave({
-        knowledgeId: knowledge.id,
-        newAnswer: data.answer.trim(),
-        newQuestion: data.question.trim()
+        question: data.question.trim(),
+        answer: data.answer.trim()
       });
+      reset();
       onCancel();
     } catch (error) {
       console.log(error)
     }
-  };
-
-  const handleConfirmDelete = async () => {
-    try {
-      await onDelete(knowledge.id);
-      onCancel();
-    } catch (error) {
-      console.log(error)
-    }
-    setShowDeleteConfirm(false);
   };
 
   return (
@@ -84,31 +61,18 @@ export const ChatbotEditModal: React.FC<ChatbotEditModalProps> = ({
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-medium text-gray-900">
-                  Chỉnh Sửa Câu Hỏi & Câu Trả Lời
+                  Thêm Kiến Thức Mới
                 </h3>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowDeleteConfirm(true)}
-                    disabled={isUpdating || isDeleting}
-                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                    title="Xóa câu hỏi này"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={onCancel}
-                    disabled={isUpdating || isDeleting}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="h-5 w-5" />
-                  </Button>
-                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={onCancel}
+                  disabled={isCreating}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
               </div>
 
               <div className="space-y-2">
@@ -128,21 +92,22 @@ export const ChatbotEditModal: React.FC<ChatbotEditModalProps> = ({
                       return true;
                     }
                   })}
-                  rows={3}
+                  rows={4}
                   className={`resize-none ${
                     errors.question 
                       ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
                       : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
                   }`}
-                  disabled={isUpdating || isDeleting}
-                  style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
+                  placeholder="Nhập câu hỏi người dùng có thể hỏi..."
+                  disabled={isCreating}
                 />
                 {errors.question && (
                   <p className="text-sm text-red-600">
                     {errors.question.message}
                   </p>
                 )}
-                <div className="flex justify-end text-sm text-gray-500">
+                <div className="flex justify-between text-sm text-gray-500">
+                  <span>Nhập câu hỏi rõ ràng và cụ thể</span>
                   <span>{questionValue?.length || 0} ký tự</span>
                 </div>
               </div>
@@ -170,9 +135,8 @@ export const ChatbotEditModal: React.FC<ChatbotEditModalProps> = ({
                       ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
                       : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
                   }`}
-                  placeholder="Nhập câu trả lời chi tiết..."
-                  disabled={isUpdating || isDeleting}
-                  style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
+                  placeholder="Nhập câu trả lời chi tiết và hữu ích..."
+                  disabled={isCreating}
                 />
                 {errors.answer && (
                   <p className="text-sm text-red-600">
@@ -185,41 +149,30 @@ export const ChatbotEditModal: React.FC<ChatbotEditModalProps> = ({
                 </div>
               </div>
 
-              {/* {answerValue && answerValue.trim() && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm text-blue-800 font-medium mb-2">Xem trước câu trả lời:</p>
-                  <div className="bg-white border border-blue-100 rounded p-3">
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap break-words">
-                      {answerValue.trim()}
-                    </p>
-                  </div>
-                </div>
-              )} */}
-
               <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-200">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={onCancel}
-                  disabled={isUpdating}
+                  disabled={isCreating}
                   className="w-full sm:w-auto order-2 sm:order-1"
                 >
                   Hủy
                 </Button>
                 <Button 
                   type="submit" 
-                  disabled={isUpdating || isDeleting || !isValid || !isDirty}
+                  disabled={isCreating || !isValid}
                   className="w-full sm:w-auto order-1 sm:order-2"
                 >
-                  {isUpdating ? (
+                  {isCreating ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Đang lưu...
+                      Đang tạo...
                     </>
                   ) : (
                     <>
-                      <Save className="h-4 w-4 mr-2" />
-                      {isDirty ? 'Lưu thay đổi' : 'Đã lưu'}
+                      <Plus className="h-4 w-4 mr-2" />
+                      Tạo mới
                     </>
                   )}
                 </Button>
@@ -228,18 +181,6 @@ export const ChatbotEditModal: React.FC<ChatbotEditModalProps> = ({
           </form>
         </div>
       </div>
-
-      {/* Delete Confirmation Modal */}
-      <ConfirmModal
-        isOpen={showDeleteConfirm}
-        onClose={() => setShowDeleteConfirm(false)}
-        onConfirm={handleConfirmDelete}
-        title="Xác nhận xóa"
-        message={`Bạn có chắc chắn muốn xóa câu hỏi: "${knowledge.question}"?`}
-        confirmText="Xóa"
-        confirmVariant="destructive"
-        isLoading={isUpdating}
-      />
     </div>
   );
 };

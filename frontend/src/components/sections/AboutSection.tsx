@@ -101,7 +101,7 @@ export const AboutSection = () => {
               >
                 Tìm Hiểu Thêm
               </Link>
-              <Link to='/learn-more' className="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-all duration-300 transform hover:scale-105">
+              <Link to='/learn-more' className="text-center border border-gray-300 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-all duration-300 transform hover:scale-105">
                 Xem thông tin của chúng tôi
               </Link>
             </div>

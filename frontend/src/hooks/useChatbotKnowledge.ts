@@ -1,56 +1,78 @@
-import { useState, useEffect } from 'react';
-import { ChatbotKnowledgeService } from '@/services/chatbotService';
-import type { ChatbotKnowledge } from '@/types/chatbot.types';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { chatbotApi } from '@/services/chatbotService';
 import { toast } from 'react-toastify';
 
+// Query keys
+const CHATBOT_KEYS = {
+  all: ['chatbot'] as const,
+  knowledge: () => [...CHATBOT_KEYS.all, 'knowledge'] as const,
+};
+
+// Hook for getting all chatbot knowledge
 export const useChatbotKnowledge = () => {
-  const [knowledge, setKnowledge] = useState<ChatbotKnowledge[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
+  const queryClient = useQueryClient();
 
-  const fetchKnowledge = async () => {
-    try {
-      setLoading(true);
-      const data = await ChatbotKnowledgeService.getAllKnowledge();
-      setKnowledge(data);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Lỗi không xác định');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const knowledgeQuery = useQuery({
+    queryKey: CHATBOT_KEYS.knowledge(),
+    queryFn: async () => {
+      try {
+        const data = await chatbotApi.getAllKnowledge();
+        return data.sort((a, b) => b.id - a.id);
+      } catch (error: unknown) {
+        const apiError = error as { response?: { status?: number; data?: { message?: string } } };
+        if (apiError?.response?.status === 500 && 
+            apiError?.response?.data?.message === "Không có dữ liệu phù hợp") {
+          return [];
+        }
+        throw error;
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
-  const updateAnswer = async (knowledgeId: number, newAnswer: string) => {
-    try {
-      setUpdating(true);
-      await ChatbotKnowledgeService.updateAnswer({ knowledgeId, newAnswer });
-      
-      setKnowledge(prev =>
-        prev.map(item =>
-          item.id === knowledgeId
-            ? { ...item, answer: newAnswer, category: 'update' }
-            : item
-        )
-      );
-      
-      toast.success('Cập nhật câu trả lời thành công');
-      return true;
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Lỗi cập nhật');
-      return false;
-    } finally {
-      setUpdating(false);
-    }
-  };
+  const updateMutation = useMutation({
+    mutationFn: (data: { knowledgeId: number; newAnswer: string; newQuestion: string }) =>
+      chatbotApi.updateKnowledge(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: CHATBOT_KEYS.knowledge(),
+      });
+      toast.success('Cập nhật thành công');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Lỗi cập nhật');
+    },
+  });
 
-  const filterKnowledge = (searchTerm: string) => {
-    if (!searchTerm.trim()) return knowledge;
-    
-    return knowledge.filter(item =>
-      item.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.answer.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  };
+  const createMutation = useMutation({
+    mutationFn: (data: { question: string; answer: string }) =>
+      chatbotApi.createKnowledge(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: CHATBOT_KEYS.knowledge(),
+      });
+      toast.success('Tạo mới thành công');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Lỗi tạo mới');
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (knowledgeId: number) =>
+      chatbotApi.deleteKnowledge(knowledgeId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: CHATBOT_KEYS.knowledge(),
+      });
+      toast.success('Xóa thành công');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Lỗi xóa');
+    },
+  });
+
+  const knowledge = knowledgeQuery.data || [];
 
   const getStatistics = () => {
     return {
@@ -60,17 +82,14 @@ export const useChatbotKnowledge = () => {
     };
   };
 
-  useEffect(() => {
-    fetchKnowledge();
-  }, []);
-
   return {
     knowledge,
-    loading,
-    updating,
-    fetchKnowledge,
-    updateAnswer,
-    filterKnowledge,
+    loading: knowledgeQuery.isLoading,
+    updating: updateMutation.isPending || createMutation.isPending || deleteMutation.isPending,
+    refetch: knowledgeQuery.refetch,
+    updateKnowledge: updateMutation.mutateAsync,
+    createKnowledge: createMutation.mutateAsync,
+    deleteKnowledge: deleteMutation.mutateAsync,
     getStatistics
   };
 };
