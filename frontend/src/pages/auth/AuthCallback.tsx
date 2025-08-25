@@ -34,7 +34,9 @@ const AuthCallback = () => {
 
       if (role === "Patient") {
             navigate("/patient/appointments");
-          } else if (role && ["Administrator", "Owner", "Receptionist", "Assistant", "Dentist"].includes(role)) {
+          } else if (role === "Administrator") {
+            navigate("/administrator/user-list");
+          } else if (role && ["Owner", "Receptionist", "Assistant", "Dentist"].includes(role)) {
             navigate("/dashboard");
           } else {
             navigate("/");
