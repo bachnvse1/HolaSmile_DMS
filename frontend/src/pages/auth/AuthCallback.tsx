@@ -33,12 +33,14 @@ const AuthCallback = () => {
       handled.current = true;
 
       if (role === "Patient") {
-            navigate("/patient/appointments");
-          } else if (role && ["Administrator", "Owner", "Receptionist", "Assistant", "Dentist"].includes(role)) {
-            navigate("/dashboard");
-          } else {
-            navigate("/");
-          }
+        navigate("/patient/appointments");
+      } else if (role && ["Administrator", "Receptionist", "Assistant", "Dentist"].includes(role)) {
+        navigate("/appointments");
+      } else if (role === "Owner") {
+        navigate("/dashboard");
+      } else {
+        navigate("/");
+      }
     } else {
       toast.error("Đăng nhập thất bại!", {
         position: "top-left",
