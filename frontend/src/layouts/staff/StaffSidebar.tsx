@@ -315,13 +315,13 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           path: '/view-profile',
           roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
         },
-        {
-          id: 'settings-system',
-          label: 'Hệ Thống',
-          icon: <Settings className="h-4 w-4" />,
-          path: '/settings/system',
-          roles: ['Administrator', 'Owner']
-        }
+        // {
+        //   id: 'settings-system',
+        //   label: 'Hệ Thống',
+        //   icon: <Settings className="h-4 w-4" />,
+        //   path: '/settings/system',
+        //   roles: ['Administrator', 'Owner']
+        // }
       ]
     }
   ], [messageStats]);
