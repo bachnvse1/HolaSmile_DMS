@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using HDMS_API.Container.DependencyInjection;
 using Infrastructure.Hubs;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -68,7 +69,9 @@ app.UseCors("_myAllowSpecificOrigins");
 app.UseRouting();
 // Enable HTTPS redirect 
 app.UseHttpsRedirection();
-
+app.UseForwardedHeaders(new ForwardedHeadersOptions {
+    ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedFor
+});
 app.UseAuthentication();
 app.UseAuthorization();
 
