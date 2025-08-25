@@ -1,5 +1,5 @@
 # HolaSmile DMS - Production Deployment Package
-# Files cần upload lên server bachnvse.me
+# Files cần upload lên server holasmile.id.vn
 
 ## 📁 Required Files:
 
@@ -8,11 +8,11 @@
 - .env.prod
 
 ### 2. Nginx Configuration  
-- nginx/conf.d/bachnvse.me.conf
+-- nginx/conf.d/bachnvse.me.conf
 
 ### 3. SSL Certificates
-- ssl/bachnvse.me.crt (✅ Updated with real certificate)
-- ssl/bachnvse.me.key (✅ Updated with real certificate)
+- ssl/holasmile.id.vn.crt (✅ Updated with real certificate)
+- ssl/holasmile.id.vn.key (✅ Updated with real certificate)
 
 ### 4. Deployment Scripts
 - deploy-nginx.sh (for Linux server)
@@ -66,7 +66,7 @@ If you have direct server access, copy the entire project folder.
 ## ⚡ Next Actions:
 
 1. **Stop LiteSpeed on server** (if running)
-2. **Upload files to bachnvse.me**
+2. **Upload files to holasmile.id.vn**
 3. **Run deployment script**
 4. **Configure DNS** (if needed)
 5. **Test HTTPS access**

@@ -1,6 +1,6 @@
-# HolaSmile DMS - Deployment Guide for bachnvse.me
+# HolaSmile DMS - Deployment Guide for holasmile.id.vn
 
-## 1. Chuẩn bị trên server bachnvse.me
+## 1. Chuẩn bị trên server holasmile.id.vn
 
 ### Upload các file sau lên server:
 ```
@@ -41,7 +41,7 @@ docker logs holasmile_nginx_prod
 
 ## 3. Cấu hình DNS
 
-Đảm bảo DNS của `bachnvse.me` trỏ về IP server: `103.18.6.39`
+Đảm bảo DNS của `holasmile.id.vn` trỏ về IP server: `103.18.6.39`
 
 ## 4. Truy cập
 

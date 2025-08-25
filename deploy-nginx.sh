@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# HolaSmile DMS Deployment Script for bachnvse.me
+# HolaSmile DMS Deployment Script for holasmile.id.vn
 # Run this script on your server
 
 echo "🚀 Starting HolaSmile DMS deployment..."
@@ -31,12 +31,12 @@ fi
 mkdir -p ssl nginx/conf.d
 
 # Check if SSL certificates exist
-if [[ ! -f "ssl/bachnvse.me.crt" || ! -f "ssl/bachnvse.me.key" ]]; then
+if [[ ! -f "ssl/holasmile.id.vn.crt" || ! -f "ssl/holasmile.id.vn.key" ]]; then
     echo "📜 SSL certificates not found. Creating self-signed certificates..."
     docker run --rm -v $(pwd)/ssl:/certs alpine/openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-        -keyout /certs/bachnvse.me.key \
-        -out /certs/bachnvse.me.crt \
-        -subj "/C=VN/ST=HCM/L=HCMC/O=HolaSmile/OU=IT/CN=bachnvse.me"
+    -keyout /certs/holasmile.id.vn.key \
+    -out /certs/holasmile.id.vn.crt \
+    -subj "/C=VN/ST=HCM/L=HCMC/O=HolaSmile/OU=IT/CN=holasmile.id.vn"
     echo "✅ Self-signed SSL certificates created."
 fi
 
@@ -98,8 +98,8 @@ echo ""
 echo "🎉 Deployment completed successfully!"
 echo ""
 echo "📋 Access Information:"
-echo "   • Website: https://bachnvse.me"
-echo "   • API: https://bachnvse.me/api"
+echo "   • Website: https://holasmile.id.vn"
+echo "   • API: https://holasmile.id.vn/api"
 echo "   • HTTP (redirects to HTTPS): http://bachnvse.me"
 echo ""
 echo "🔍 Useful commands:"

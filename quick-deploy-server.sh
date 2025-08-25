@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Quick deployment script for bachnvse.me server
+# Quick deployment script for holasmile.id.vn server
 # Run this single command on your server
 
 echo "🚀 HolaSmile DMS - Quick Production Deploy"
-echo "🌍 Target: bachnvse.me (103.18.6.39)"
+echo "🌍 Target: holasmile.id.vn (103.18.6.39)"
 echo ""
 
 # Check if running as root
@@ -86,8 +86,8 @@ echo ""
 echo "🎉 Deployment completed!"
 echo ""
 echo "📋 Access your application:"
-echo "   🌐 Website: https://bachnvse.me"
-echo "   🔌 API: https://bachnvse.me/api"
+echo "   🌐 Website: https://holasmile.id.vn"
+echo "   🔌 API: https://holasmile.id.vn/api"
 echo ""
 echo "🔍 Management commands:"
 echo "   📊 Status: docker ps"
@@ -95,4 +95,4 @@ echo "   📋 Logs: docker-compose -f docker-compose.nginx.yml logs -f"
 echo "   🔄 Restart: systemctl restart holasmile"
 echo "   🛑 Stop: systemctl stop holasmile"
 echo ""
-echo "✅ HolaSmile DMS is now running on bachnvse.me!"
+echo "✅ HolaSmile DMS is now running on holasmile.id.vn!"

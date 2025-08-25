@@ -32,10 +32,10 @@ if ($removeImages -eq "y" -or $removeImages -eq "Y") {
 New-Item -ItemType Directory -Force -Path "ssl", "nginx\conf.d" | Out-Null
 
 # Check if SSL certificates exist
-if (-not (Test-Path "ssl\bachnvse.me.crt") -or -not (Test-Path "ssl\bachnvse.me.key")) {
+if (-not (Test-Path "ssl\holasmile.id.vn.crt") -or -not (Test-Path "ssl\holasmile.id.vn.key")) {
     Write-Host "📜 SSL certificates not found. Creating self-signed certificates..." -ForegroundColor Yellow
     
-    docker run --rm -v "${PWD}/ssl:/certs" alpine/openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /certs/bachnvse.me.key -out /certs/bachnvse.me.crt -subj "/C=VN/ST=HCM/L=HCMC/O=HolaSmile/OU=IT/CN=bachnvse.me"
+    docker run --rm -v "${PWD}/ssl:/certs" alpine/openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /certs/holasmile.id.vn.key -out /certs/holasmile.id.vn.crt -subj "/C=VN/ST=HCM/L=HCMC/O=HolaSmile/OU=IT/CN=holasmile.id.vn"
     
     Write-Host "✅ Self-signed SSL certificates created." -ForegroundColor Green
 }
@@ -104,9 +104,9 @@ Write-Host ""
 Write-Host "🎉 Deployment completed successfully!" -ForegroundColor Green
 Write-Host ""
 Write-Host "📋 Access Information:" -ForegroundColor Cyan
-Write-Host "   • Website: https://bachnvse.me" -ForegroundColor White
-Write-Host "   • API: https://bachnvse.me/api" -ForegroundColor White
-Write-Host "   • HTTP (redirects to HTTPS): http://bachnvse.me" -ForegroundColor White
+Write-Host "   • Website: https://holasmile.id.vn" -ForegroundColor White
+Write-Host "   • API: https://holasmile.id.vn/api" -ForegroundColor White
+Write-Host "   • HTTP (redirects to HTTPS): http://holasmile.id.vn" -ForegroundColor White
 Write-Host ""
 Write-Host "🔍 Useful commands:" -ForegroundColor Cyan
 Write-Host "   • Check status: docker-compose -f docker-compose.nginx.yml ps" -ForegroundColor Gray
@@ -125,5 +125,5 @@ Write-Host "🏁 Deployment script finished!" -ForegroundColor Green
 # Open browser to test
 $openBrowser = Read-Host "🌐 Do you want to open the website in browser? (y/N)"
 if ($openBrowser -eq "y" -or $openBrowser -eq "Y") {
-    Start-Process "https://bachnvse.me"
+    Start-Process "https://holasmile.id.vn"
 }

@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # HolaSmile DMS Deployment Script for Azure Server
-# Domain: bachnvse.me -> IP: 20.2.83.192
+# Domain: holasmile.id.vn -> IP: 20.2.83.192
 
 echo "🚀 Starting HolaSmile DMS deployment on Azure..."
-echo "🌍 Domain: bachnvse.me"
+echo "🌍 Domain: holasmile.id.vn"
 echo "🖥️  Server IP: 20.2.83.192"
 echo ""
 
@@ -75,7 +75,7 @@ MYSQL_ROOT_PASSWORD=RootAzure2025!@#
 
 # Production specific settings
 ASPNETCORE_ENVIRONMENT=Production
-DOMAIN=bachnvse.me
+DOMAIN=holasmile.id.vn
 SERVER_IP=20.2.83.192
 EOF
     echo "✅ Environment file created"

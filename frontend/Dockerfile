@@ -6,8 +6,8 @@ ENV npm_config_update_notifier=false
 ENV npm_config_fund=false
 
 # Build args for environment variables
-ARG VITE_API_BASE_URL=https://bachnvse.me/api
-ARG VITE_API_BASE_URL_Not_Api=https://bachnvse.me
+ARG VITE_API_BASE_URL=https://holasmile.id.vn/api
+ARG VITE_API_BASE_URL_Not_Api=https://holasmile.id.vn
 
 # Set environment variables for build
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
