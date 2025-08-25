@@ -8,12 +8,16 @@ interface ChatbotKnowledgeListProps {
   knowledge: ChatbotKnowledge[];
   searchTerm: string;
   onEdit: (item: ChatbotKnowledge) => void;
+  onDelete?: (item: ChatbotKnowledge) => void;
+  hasDeletePermission?: boolean;
 }
 
 export const ChatbotKnowledgeList: React.FC<ChatbotKnowledgeListProps> = ({
   knowledge,
   searchTerm,
-  onEdit
+  onEdit,
+  onDelete,
+  hasDeletePermission = false
 }) => {
   const filteredKnowledge = knowledge.filter(
     item =>
@@ -44,7 +48,10 @@ export const ChatbotKnowledgeList: React.FC<ChatbotKnowledgeListProps> = ({
             <ChatbotKnowledgeItem
               key={item.id}
               item={item}
+              searchTerm={searchTerm}
               onEdit={onEdit}
+              onDelete={onDelete}
+              hasDeletePermission={hasDeletePermission}
             />
           ))}
         </div>

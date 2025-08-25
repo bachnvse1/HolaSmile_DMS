@@ -27,7 +27,7 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [position, setPosition] = useState({ x: 24, y: 24 }); // x: right, y: bottom
+  const [position, setPosition] = useState({ x: 24, y: 24 }); 
   const dragging = useRef(false);
   const offset = useRef({ x: 0, y: 0 });
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -199,34 +199,6 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
     });
   };
 
-  // Handle mouse events
-  const handleMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
-    dragging.current = true;
-    offset.current = {
-      x: e.clientX,
-      y: e.clientY,
-    };
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  };
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!dragging.current) return;
-    setPosition({
-      x: Math.max(window.innerWidth - e.clientX - 80, 0), // 80 là width button, chỉnh lại nếu cần
-      y: Math.max(window.innerHeight - e.clientY - 56, 0), // 56 là height button, chỉnh lại nếu cần
-    });
-  };
-
-  const handleMouseUp = () => {
-    dragging.current = false;
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
-  };
-
-  // Chỉ cho phép kéo trên mobile
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
-
   // Mouse/touch event cho mobile
   const handleBtnDown = (e: React.MouseEvent | React.TouchEvent) => {
     dragging.current = true;
@@ -247,8 +219,8 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
     const clientX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
     const clientY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
     setPosition({
-      x: Math.max(window.innerWidth - clientX - 80, 0), // 80 là width button, chỉnh lại nếu cần
-      y: Math.max(window.innerHeight - clientY - 56, 0), // 56 là height button, chỉnh lại nếu cần
+      x: Math.max(window.innerWidth - clientX - 80, 0), 
+      y: Math.max(window.innerHeight - clientY - 56, 0), 
     });
   };
 

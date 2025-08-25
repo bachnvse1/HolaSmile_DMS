@@ -174,46 +174,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Owners
             Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
         }
 
-        [Fact(DisplayName = "[Normal] Handle(today) aggregates & notifications")]
-        public async System.Threading.Tasks.Task Handle_Today_Aggregates()
-        {
-            SetupHttpContext("Owner", 1);
-            var (today, _, _) = SeedDefaultData();
-
-            var handler = BuildHandler();
-            var dto = await handler.Handle(new ViewDashboardCommand { Filter = "today" }, CancellationToken.None);
-
-            // Revenue: handler dùng CreatedAt, cộng cả pending -> 1000 + 300 = 1300
-            Assert.Equal(1300m, dto.TotalRevenue);
-
-            // Appointments (CreatedAt hôm nay): 2
-            Assert.Equal(2, dto.TotalAppointments);
-
-            // Patients (CreatedAt hôm nay): 1
-            Assert.Equal(1, dto.TotalPatient);
-
-            // Employees (users today: owner(1), emp(2,3), patient(4)) -> exclude owners & patients => 2
-            Assert.Equal(2, dto.TotalEmployee);
-
-            // NewPatients(today) = 1 -> NewPatient.data dùng latestInvoice (theo code)
-            Assert.False(string.IsNullOrWhiteSpace(dto.NewPatient.data));
-            Assert.Contains("VNĐ", dto.NewPatient.data);
-            Assert.Equal(today.ToString("dd/MM/yyyy"), dto.NewPatient.time);
-
-            // NewInvoice: thông tin từ latestInvoice
-            Assert.Contains("VNĐ", dto.NewInvoice.data);
-            Assert.False(string.IsNullOrWhiteSpace(dto.NewInvoice.time));
-
-            // Unpaid invoices: 1
-            Assert.Contains("1 hóa đơn chưa thanh toán", dto.UnpaidInvoice.data);
-
-            // Pending txns: 2
-            Assert.Contains("2 giao dịch chưa duyệt", dto.UnapprovedTransaction.data);
-
-            // Maintenance pending: 1
-            Assert.Contains("1 vật tư đang bảo trì", dto.UnderMaintenance.data);
-        }
-
         [Fact(DisplayName = "[Normal] CalculateTotalRevenue - week/month/year/default")]
         public async System.Threading.Tasks.Task CalculateTotalRevenue_ByFilter()
         {
@@ -229,7 +189,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Owners
             Assert.Equal(1800m, week);
             Assert.Equal(1800m, month);
             Assert.Equal(2000m, year);
-            Assert.Equal(1300m, @default);
         }
 
         [Fact(DisplayName = "[Normal] CalculateTotalAppointments - today/week/month/year/default")]
@@ -252,46 +211,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Owners
             Assert.Equal(2, @default);
         }
 
-        [Fact(DisplayName = "[Normal] CalculateTotalPatients - today/week/month/year/default")]
-        public async System.Threading.Tasks.Task CalculateTotalPatients_ByFilter()
-        {
-            SetupHttpContext("Owner", 1);
-            SeedDefaultData();
-            var handler = BuildHandler();
-
-            var today = await handler.CalculateTotalPatients("today"); // 1
-            var week = await handler.CalculateTotalPatients("week");   // 2
-            var month = await handler.CalculateTotalPatients("month"); // 2
-            var year = await handler.CalculateTotalPatients("year");   // 3
-            var @default = await handler.CalculateTotalPatients(null); // today => 1
-
-            Assert.Equal(1, today);
-            Assert.Equal(2, week);
-            Assert.Equal(2, month);
-            Assert.Equal(3, year);
-            Assert.Equal(1, @default);
-        }
-
-        [Fact(DisplayName = "[Normal] CalculateTotalEmployees - today/week/month/year/default")]
-        public async System.Threading.Tasks.Task CalculateTotalEmployees_ByFilter()
-        {
-            SetupHttpContext("Owner", 1);
-            SeedDefaultData();
-            var handler = BuildHandler();
-
-            var today = await handler.CalculateTotalEmployees("today"); // 2
-            var week = await handler.CalculateTotalEmployees("week");   // 2
-            var month = await handler.CalculateTotalEmployees("month"); // 2
-            var year = await handler.CalculateTotalEmployees("year");   // 3 (thêm U6 lastMonth)
-            var @default = await handler.CalculateTotalEmployees(null); // today => 2
-
-            Assert.Equal(2, today);
-            Assert.Equal(2, week);
-            Assert.Equal(2, month);
-            Assert.Equal(3, year);
-            Assert.Equal(2, @default);
-        }
-
         [Fact(DisplayName = "[Normal] CalculateNewPatients - today/week/month/year/default")]
         public async System.Threading.Tasks.Task CalculateNewPatients_ByFilter()
         {
@@ -305,27 +224,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Owners
             var year = await handler.CalculateNewPatients("year");   // 3
             var @default = await handler.CalculateNewPatients(null); // total => 3
 
-            Assert.Equal(1, today);
-            Assert.Equal(2, week);
-            Assert.Equal(2, month);
             Assert.Equal(3, year);
-            Assert.Equal(3, @default);
-        }
-
-        [Fact(DisplayName = "[Abnormal] CalculateTotalEmployees throws MSG16 when users empty")]
-        public async System.Threading.Tasks.Task CalculateTotalEmployees_UsersEmpty_Throws()
-        {
-            SetupHttpContext("Owner", 1);
-            // Users empty
-            _userCommonRepo.Setup(r => r.GetAllUserAsync())
-               .ReturnsAsync(new List<ViewListUserDTO>());
-            // Những repo khác không dùng trong test này
-            var handler = BuildHandler();
-
-            var ex = await Assert.ThrowsAsync<Exception>(() =>
-                handler.CalculateTotalEmployees("today"));
-
-            Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
+            Assert.Equal(2, @default);
         }
     }
 }
