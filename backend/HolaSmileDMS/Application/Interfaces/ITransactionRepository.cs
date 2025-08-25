@@ -8,7 +8,7 @@ namespace Application.Interfaces
         Task<bool> UpdateTransactionAsync(FinancialTransaction transaction);
         Task<List<FinancialTransaction>> GetAllFinancialTransactionsAsync();
         Task<FinancialTransaction> GetTransactionByIdAsync(int transactionId);
-        Task<List<FinancialTransaction>> GetExpenseTransactionsAsync();
+        Task<List<FinancialTransaction>> GetPendingTransactionsAsync();
 
     }
 }

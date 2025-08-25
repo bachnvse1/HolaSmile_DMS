@@ -291,7 +291,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   type="text"
-                  placeholder="Tìm kiếm theo tên bệnh nhân, bác sĩ hoặc loại hẹn..."
+                  placeholder="Tìm kiếm theo tên bệnh nhân, Nha sĩ hoặc loại hẹn..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -505,7 +505,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                       <User className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs text-gray-500 font-medium">Bác sĩ</p>
+                      <p className="text-xs text-gray-500 font-medium">Nha sĩ</p>
                       <p className="font-semibold text-gray-900 text-sm sm:text-base truncate">{appointment.dentistName}</p>
                     </div>
                   </div>

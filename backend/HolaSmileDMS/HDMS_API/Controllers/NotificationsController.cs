@@ -85,5 +85,20 @@ namespace HDMS_API.Controllers
                 return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
             }
         }
+        
+        [HttpPut("mark-all-as-read/{userId}")]
+        [Authorize]
+        public async Task<IActionResult> MarkAllAsRead(int userId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await _notificationsRepository.MarkAllAsSentAsync(userId, cancellationToken);
+                return Ok(new { message = "All Notification marked as read." });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { message = MessageConstants.MSG.MSG58 });
+            }
+        }
     }
 }

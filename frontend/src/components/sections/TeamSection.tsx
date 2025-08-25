@@ -15,6 +15,7 @@ export const TeamSection = () => {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('');
   const sectionRef = useRef<HTMLElement>(null);
   
+  // Load danh sách Nha sĩ từ API
   const { dentists, isLoading, error } = useDentistSchedule();
   
   // Auto slide every 5 seconds
@@ -80,7 +81,7 @@ export const TeamSection = () => {
           </div>
         ) : error ? (
           <div className="text-center py-12">
-            <p className="text-red-600">Có lỗi xảy ra khi tải danh sách bác sĩ</p>
+            <p className="text-red-600">Có lỗi xảy ra khi tải danh sách Nha sĩ</p>
           </div>
         ) : (
           <div className="relative">
@@ -107,13 +108,13 @@ export const TeamSection = () => {
                   {dentist.name}
                 </h3>
                 <p className="text-blue-600 font-medium mb-3">
-                  Bác sĩ Nha khoa
+                  Nha sĩ Nha khoa
                 </p>
                 <p className="text-gray-600 text-sm mb-2">
                   Chuyên khoa: Nha khoa tổng quát
                 </p>
                 <p className="text-gray-500 text-xs mb-4">
-                  Bác sĩ chuyên nghiệp với nhiều năm kinh nghiệm
+                  Nha sĩ chuyên nghiệp với nhiều năm kinh nghiệm
                 </p>
 
                 {/* View Schedule Button */}
@@ -232,7 +233,7 @@ export const TeamSection = () => {
                   />
                   <div>
                     <h2 className="text-2xl font-bold">{selectedDentist.name}</h2>
-                    <p className="text-blue-100">Bác sĩ Nha khoa</p>
+                    <p className="text-blue-100">Nha sĩ Nha khoa</p>
                   </div>
                 </div>
                 <button

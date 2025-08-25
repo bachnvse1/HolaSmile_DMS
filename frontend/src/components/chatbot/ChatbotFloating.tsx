@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { X, Send, Bot, User, RotateCcw, Calendar } from 'lucide-react';
 import { chatbotService } from '@/services/chatbotService';
 import { useNavigate } from 'react-router';
@@ -27,6 +27,9 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [position, setPosition] = useState({ x: 24, y: 24 }); // x: right, y: bottom
+  const dragging = useRef(false);
+  const offset = useRef({ x: 0, y: 0 });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const navigate = useNavigate();
@@ -196,29 +199,90 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
     });
   };
 
+  // Handle mouse events
+  const handleMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
+    dragging.current = true;
+    offset.current = {
+      x: e.clientX,
+      y: e.clientY,
+    };
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!dragging.current) return;
+    setPosition({
+      x: Math.max(window.innerWidth - e.clientX - 80, 0), // 80 là width button, chỉnh lại nếu cần
+      y: Math.max(window.innerHeight - e.clientY - 56, 0), // 56 là height button, chỉnh lại nếu cần
+    });
+  };
+
+  const handleMouseUp = () => {
+    dragging.current = false;
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+  };
+
+  // Chỉ cho phép kéo trên mobile
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+
+  // Mouse/touch event cho mobile
+  const handleBtnDown = (e: React.MouseEvent | React.TouchEvent) => {
+    dragging.current = true;
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    offset.current = {
+      x: clientX,
+      y: clientY,
+    };
+    document.addEventListener('mousemove', handleBtnMove as any);
+    document.addEventListener('mouseup', handleBtnUp);
+    document.addEventListener('touchmove', handleBtnMove as any);
+    document.addEventListener('touchend', handleBtnUp);
+  };
+
+  const handleBtnMove = (e: MouseEvent | TouchEvent) => {
+    if (!dragging.current) return;
+    const clientX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
+    setPosition({
+      x: Math.max(window.innerWidth - clientX - 80, 0), // 80 là width button, chỉnh lại nếu cần
+      y: Math.max(window.innerHeight - clientY - 56, 0), // 56 là height button, chỉnh lại nếu cần
+    });
+  };
+
+  const handleBtnUp = () => {
+    dragging.current = false;
+    document.removeEventListener('mousemove', handleBtnMove as any);
+    document.removeEventListener('mouseup', handleBtnUp);
+    document.removeEventListener('touchmove', handleBtnMove as any);
+    document.removeEventListener('touchend', handleBtnUp);
+  };
+
   return (
     <>
       {!isOpen && !hideButton && (
-        <div className={`fixed z-40 ${
-          adjustPosition 
-            ? 'right-6 bottom-24' 
-            : 'right-6 bottom-6'  
-        }`}>
+        <div
+          style={{
+            position: 'fixed',
+            right: position.x,
+            bottom: position.y,
+            zIndex: 40,
+            touchAction: 'none',
+            cursor: 'grab',
+          }}
+        >
           <button
+            onMouseDown={handleBtnDown}
+            onTouchStart={handleBtnDown}
             onClick={handleOpen}
-            className="group relative flex items-center gap-3 px-4 py-3 sm:px-6 sm:py-4 rounded-full shadow-2xl
-              transition-all duration-500 hover:scale-110 hover:shadow-purple-500/25 hover:shadow-2xl 
-              bg-gradient-to-br from-purple-600 via-purple-700 to-pink-600 
-              hover:from-purple-700 hover:via-purple-800 hover:to-pink-700 
-              text-white font-semibold text-sm border border-purple-400/20
-              before:absolute before:inset-0 before:rounded-full before:bg-gradient-to-br 
-              before:from-white/20 before:to-transparent before:opacity-0 hover:before:opacity-100 
-              before:transition-opacity before:duration-300 overflow-hidden"
+            className="group relative flex items-center gap-3 px-4 py-3 sm:px-6 sm:py-4 rounded-full shadow-lg
+              transition-all duration-300 hover:scale-105 hover:shadow-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold text-sm"
             title="Chat với AI"
           >
-            <Bot className="h-5 w-5 animate-pulse group-hover:animate-bounce" />
-            <span className="hidden sm:block relative z-10">Trợ lý AI</span>
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/10 to-transparent opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
+            <Bot className="h-5 w-5" />
+            <span className="hidden sm:block">Trợ lý AI</span>
           </button>
         </div>
       )}

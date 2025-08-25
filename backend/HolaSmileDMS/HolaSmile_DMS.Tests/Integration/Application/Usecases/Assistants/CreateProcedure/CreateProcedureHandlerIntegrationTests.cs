@@ -94,7 +94,6 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             {
                 ProcedureName = "Root Canal",
                 Description = "RC Treatment",
-                Discount = 0,
                 OriginalPrice = 200000,
                 ConsumableCost = 100000,
                 ReferralCommissionRate = 5,
@@ -131,7 +130,6 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
                 ProcedureName = "RCT",
                 OriginalPrice = 100000,
                 ConsumableCost = 50000,
-                Discount = 0,
                 ReferralCommissionRate = 5,
                 DoctorCommissionRate = 10,
                 AssistantCommissionRate = 5,

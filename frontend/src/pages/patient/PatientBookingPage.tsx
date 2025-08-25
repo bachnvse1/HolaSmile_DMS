@@ -53,7 +53,7 @@ export const PatientBookingPage = () => {
                 Đặt Lịch Hẹn Khám
               </h1>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Chào {fullName}, chọn bác sĩ và thời gian phù hợp để đặt lịch hẹn
+                Chào {fullName}, chọn Nha sĩ và thời gian phù hợp để đặt lịch hẹn
               </p>
             </div>            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Error Banner */}
@@ -117,7 +117,7 @@ export const PatientBookingPage = () => {
                   </h3>
                   <ul className="text-blue-700 space-y-2 text-sm">
                     <li>• Thông tin của bạn đã được tự động điền</li>
-                    <li>• Chỉ cần chọn bác sĩ và thời gian</li>
+                    <li>• Chỉ cần chọn Nha sĩ và thời gian</li>
                     <li>• Lịch hẹn sẽ được xác nhận sau 15 phút</li>
                     <li>• Bạn có thể hủy/đổi lịch trước 2 giờ</li>
                   </ul>

@@ -206,6 +206,7 @@ export default function InvoiceList() {
     const [allInvoices, setAllInvoices] = useState<Invoice[]>([])
     const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([])
     const [paginatedData, setPaginatedData] = useState<Invoice[]>([])
+    // Initialize patientList as empty array to prevent undefined errors
     const [patientList, setPatientList] = useState<Patient[]>([])
     const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
     const [isDetailOpen, setIsDetailOpen] = useState(false)
