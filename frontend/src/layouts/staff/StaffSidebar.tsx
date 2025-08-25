@@ -153,21 +153,21 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       id: 'appointments',
       label: 'Lịch Hẹn',
       icon: <Calendar className="h-5 w-5" />,
-      roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist'],
+      roles: ['Owner', 'Receptionist', 'Assistant', 'Dentist'],
       children: [
         {
           id: 'appointments-calendar',
           label: 'Lịch Hẹn',
           icon: <Calendar className="h-4 w-4" />,
           path: '/appointments',
-          roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
+          roles: ['Owner', 'Receptionist', 'Assistant', 'Dentist']
         },
         {
           id: 'appointments-manage',
           label: 'Quản Lý Lịch',
           icon: <UserCheck className="h-4 w-4" />,
           path: '/schedules',
-          roles: ['Owner', 'Receptionist', 'Dentist', 'Assistant', 'Administrator']
+          roles: ['Owner', 'Receptionist', 'Dentist', 'Assistant']
         }
       ]
     },
@@ -190,7 +190,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           label: 'Tư Vấn Bệnh Nhân',
           icon: <UserCircle className="h-4 w-4" />,
           path: '/messages/patient-consultation',
-          roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist'],
+          roles: ['Owner', 'Receptionist', 'Assistant', 'Dentist'],
           unreadCount: messageStats.patientConsultation
         },
         {
@@ -208,7 +208,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       label: 'Bệnh Nhân',
       icon: <Users className="h-5 w-5" />,
       path: '/patients',
-      roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist'],
+      roles: ['Owner', 'Receptionist', 'Assistant', 'Dentist'],
     },
     {
       id: 'prescription-templates',
@@ -265,7 +265,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       label: "Thủ Thuật",
       icon: <Stethoscope className="h-5 w-5" />,
       path: "/proceduces",
-      roles: ['Administrator', 'Owner', 'Receptionist', 'Assistant', 'Dentist']
+      roles: ['Owner', 'Receptionist', 'Assistant', 'Dentist']
     },
     {
       id: 'inventory',
@@ -293,7 +293,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
       label: 'Quản Lý Chatbot',
       icon: <Bot className="h-5 w-5" />,
       path: '/chatbot/knowledge',
-      roles: ['Administrator', 'Owner']
+      roles: ['Owner']
     },
     {
       id: 'maintenance',
