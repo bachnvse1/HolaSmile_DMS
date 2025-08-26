@@ -11,13 +11,15 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure
     {
         private readonly IProcedureRepository _procedureRepository;
         private readonly ISupplyRepository _supplyRepository;
+        private readonly IUserCommonRepository _userCommonRepository;
         private readonly IOwnerRepository _ownerRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMediator _mediator;
-        public UpdateProcedureHandler(IProcedureRepository procedureRepository, ISupplyRepository supplyRepository, IOwnerRepository ownerRepository, IHttpContextAccessor httpContextAccessor, IMediator mediator)
+        public UpdateProcedureHandler(IProcedureRepository procedureRepository, ISupplyRepository supplyRepository, IUserCommonRepository userCommonRepository, IOwnerRepository ownerRepository, IHttpContextAccessor httpContextAccessor, IMediator mediator)
         {
             _procedureRepository = procedureRepository;
             _supplyRepository = supplyRepository;
+            _userCommonRepository = userCommonRepository;
             _ownerRepository = ownerRepository;
             _httpContextAccessor = httpContextAccessor;
             _mediator = mediator;
@@ -104,11 +106,13 @@ namespace Application.Usecases.Assistant.ProcedureTemplate.UpdateProcedure
             try
             {
                 var owners = await _ownerRepository.GetAllOwnersAsync();
+                var assistant = await _userCommonRepository.GetByIdAsync(currentUserId, cancellationToken);
+
                 var notifyOwners = owners.Select(async o =>
                 await _mediator.Send(new SendNotificationCommand(
                       o.User.UserID,
                       "Tạo thủ thuật mới",
-                      $"Trợ lý {o.User.Fullname} thay đổi thông tin {procedure.ProcedureName} vào lúc {DateTime.Now}",
+                      $"Trợ lý {assistant.Fullname} thay đổi thông tin {procedure.ProcedureName} vào lúc {DateTime.Now}",
                       "procedure", 0, $"proceduces"),
                 cancellationToken));
                 await System.Threading.Tasks.Task.WhenAll(notifyOwners);

@@ -61,6 +61,8 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
           navigate('/dashboard', { replace: true });
           break;
         case 'Administrator':
+          navigate('/administrator/user-list', { replace: true });
+          break;
         case 'Dentist':
         case 'Receptionist':
         case 'Assistant':
