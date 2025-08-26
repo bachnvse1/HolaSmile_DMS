@@ -95,6 +95,8 @@ export const updateTreatmentRecord = async (
   updatedBy: number
 ) => {
   const payload = {
+    dentistId : data.dentistID,
+    procedureId: data.procedureID,
     toothPosition: data.toothPosition,
     quantity: data.quantity,
     unitPrice: data.unitPrice,
