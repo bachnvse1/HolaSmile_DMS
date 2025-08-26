@@ -1,5 +1,4 @@
-﻿using Application.Constants;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Application.Interfaces;
 using AutoMapper;
 using MediatR;
@@ -36,8 +35,6 @@ public class ViewListProcedureHandler : IRequestHandler<ViewListProcedureCommand
             ? allProcedures
             : allProcedures.Where(p => !p.IsDeleted).ToList();
 
-        listProcedures = listProcedures?.ToList() ?? new List<Procedure>();
-
-        return _mapper.Map<List<ViewProcedureDto>>(listProcedures) ?? new List<ViewProcedureDto>();
+         return  _mapper.Map<List<ViewProcedureDto>>(listProcedures) ?? new List<ViewProcedureDto>();
     }
 }

@@ -46,6 +46,7 @@ namespace Application.Usecases.Receptionist.De_ActivePromotion
                 foreach (var pd in discountProgram.ProcedureDiscountPrograms)
                 {
                     var proc = await _procedureRepository.GetProcedureByIdAsync(pd.ProcedureId, cancellationToken);
+                    proc.Discount = (float)pd.DiscountAmount;
                     proc.Price = proc.Price / (1 - (pd.DiscountAmount / 100m)); // phục hồi
                     var ok = await _procedureRepository.UpdateProcedureAsync(proc, cancellationToken);
                     if (!ok) throw new Exception(MessageConstants.MSG.MSG58);
@@ -53,7 +54,7 @@ namespace Application.Usecases.Receptionist.De_ActivePromotion
             }
             else
             {
-                if (discountProgram.CreateAt.Date != DateTime.Now.Date) throw new Exception("Ngày bắt đầu chương trình không khớp với hôm nay");
+                if (discountProgram.CreateDate.Date != DateTime.Now.Date) throw new Exception("Ngày bắt đầu chương trình không khớp với hôm nay");
 
                 // bị xóa(khong active)  → sắp activate => áp dụng giảm giá
                 var activeProgram = await _promotionRepository.GetProgramActiveAsync();
@@ -67,6 +68,7 @@ namespace Application.Usecases.Receptionist.De_ActivePromotion
                 {
                     var proc = await _procedureRepository.GetProcedureByIdAsync(pd.ProcedureId, cancellationToken);
                     proc.Price = proc.Price * (1 - (pd.DiscountAmount / 100m));
+                    proc.Discount = (float)pd.DiscountAmount;
                     var ok = await _procedureRepository.UpdateProcedureAsync(proc, cancellationToken);
                     if (!ok) throw new Exception(MessageConstants.MSG.MSG58);
                 }
