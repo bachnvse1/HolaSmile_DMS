@@ -1,0 +1,6 @@
+/* Prevent horizontal scroll caused by occasional fixed/absolute elements or mobile sheets */
+html, body {
+	overflow-x: hidden;
+}
+
+/* Page-specific overrides can be added below if needed */
