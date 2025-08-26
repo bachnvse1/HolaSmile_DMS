@@ -1,4 +1,5 @@
-﻿using Application.Common.Mappings;
+﻿using System.Net;
+using Application.Common.Mappings;
 using Application.Interfaces;
 using Application.Services;
 using Application.Usecases.SendNotification;
@@ -34,9 +35,35 @@ namespace HDMS_API.Container.DependencyInjection
             );
 
             services.AddHttpClient("Gemini", client =>
-            {
-                client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/");
-            });
+                {
+                    client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/");
+                })
+                .ConfigurePrimaryHttpMessageHandler(sp =>
+                {
+                    var cfg = sp.GetRequiredService<IConfiguration>();
+                    var useProxy = cfg.GetValue<bool>("Gemini:Proxy:Enabled");
+                    var handler = new HttpClientHandler
+                    {
+                        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+                    };
+
+                    if (useProxy)
+                    {
+                        var proxyUrl = cfg["Gemini:Proxy:Url"];
+                        if (!string.IsNullOrWhiteSpace(proxyUrl))
+                        {
+                            handler.Proxy = new WebProxy(new Uri(proxyUrl))
+                            {
+                                BypassProxyOnLocal = false,
+                                UseDefaultCredentials = false
+                            };
+                            handler.UseProxy = true;
+                            handler.PreAuthenticate = true;
+                        }
+                    }
+
+                    return handler;
+                });
 
             // Repository & Services
             services.AddScoped<IAppointmentRepository, AppointmentRepository>();
