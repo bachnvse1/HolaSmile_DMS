@@ -32,6 +32,7 @@ export interface Procedure {
   duration?: number
   requirements?: string
   isDeleted?: boolean
+  discount?: number
   suppliesUsed?: Supply[]
   calculatedSupplyCost?: number
 }
