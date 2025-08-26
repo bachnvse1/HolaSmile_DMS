@@ -25,6 +25,12 @@ interface CreateProcedureModalProps {
   onSubmit: () => void
 }
 
+interface ExtendedSupply extends Supply {
+  supplyName: string
+  unit: string
+  price: number
+}
+
 export function CreateProcedureModal({
   isOpen,
   onOpenChange,
@@ -33,20 +39,44 @@ export function CreateProcedureModal({
   onSubmit,
 }: CreateProcedureModalProps) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  const [extendedSupplies, setExtendedSupplies] = useState<ExtendedSupply[]>([])
   
   const [formattedPrices, setFormattedPrices] = useState({
     originalPrice: "",
     price: "",
-    consumableCost: ""
+    consumableCost: "",
+    calculatedSupplyCost: ""
   })
 
+  const calculateSupplyCost = () => {
+    return extendedSupplies.reduce((total, supply) => {
+      if (supply.unit.toLowerCase() === "cái") {
+        return total + (supply.price * supply.quantity)
+      }
+      return total
+    }, 0)
+  }
+
+  const calculateSellingPrice = () => {
+    const supplyCost = calculateSupplyCost()
+    return form.originalPrice + form.consumableCost + supplyCost
+  }
+
   useEffect(() => {
+    const calculatedSupplyCost = calculateSupplyCost()
+    const calculatedPrice = calculateSellingPrice()
+    
     setFormattedPrices({
       originalPrice: form.originalPrice > 0 ? formatCurrency(form.originalPrice) : "",
-      price: form.price > 0 ? formatCurrency(form.price) : "",
-      consumableCost: form.consumableCost > 0 ? formatCurrency(form.consumableCost) : ""
+      price: calculatedPrice > 0 ? formatCurrency(calculatedPrice) : "",
+      consumableCost: form.consumableCost > 0 ? formatCurrency(form.consumableCost) : "",
+      calculatedSupplyCost: calculatedSupplyCost > 0 ? formatCurrency(calculatedSupplyCost) : ""
     })
-  }, [form.originalPrice, form.price, form.consumableCost])
+
+    if (calculatedPrice !== form.price) {
+      updateForm("price", calculatedPrice)
+    }
+  }, [form.originalPrice, form.consumableCost, extendedSupplies])
 
   const updateForm = (field: keyof ProcedureCreateForm, value: string | number | Supply[]) => {
     onFormChange({ ...form, [field]: value })
@@ -60,14 +90,6 @@ export function CreateProcedureModal({
     })
   }
 
-  const handlePriceChange = (value: string) => {
-    handleCurrencyInput(value, (formatted) => {
-      setFormattedPrices(prev => ({ ...prev, price: formatted }))
-      const numericValue = parseCurrency(formatted)
-      updateForm("price", numericValue)
-    })
-  }
-
   const handleConsumableCostChange = (value: string) => {
     handleCurrencyInput(value, (formatted) => {
       setFormattedPrices(prev => ({ ...prev, consumableCost: formatted }))
@@ -77,30 +99,64 @@ export function CreateProcedureModal({
   }
 
   const addSupplyFromSearch = (supplyItem: SupplyItem) => {
-    const existing = form.suppliesUsed.find((s) => s.supplyId === supplyItem.id)
+    const existing = extendedSupplies.find((s) => s.supplyId === supplyItem.id)
     if (existing) {
-      const updated = form.suppliesUsed.map((s) =>
+      const updated = extendedSupplies.map((s) =>
         s.supplyId === supplyItem.id ? { ...s, quantity: s.quantity + 1 } : s,
       )
-      updateForm("suppliesUsed", updated)
+      setExtendedSupplies(updated)
+      
+      const formSupplies = updated.map(s => ({
+        supplyId: s.supplyId,
+        quantity: s.quantity,
+        supplyName: s.supplyName
+      }))
+      updateForm("suppliesUsed", formSupplies)
     } else {
-      updateForm("suppliesUsed", [
-        ...form.suppliesUsed,
-        { supplyId: supplyItem.id, quantity: 1, supplyName: supplyItem.name },
-      ])
+      const newSupply: ExtendedSupply = {
+        supplyId: supplyItem.id,
+        quantity: 1,
+        supplyName: supplyItem.name,
+        unit: supplyItem.unit,
+        price: supplyItem.price
+      }
+      const updated = [...extendedSupplies, newSupply]
+      setExtendedSupplies(updated)
+      
+      const formSupplies = updated.map(s => ({
+        supplyId: s.supplyId,
+        quantity: s.quantity,
+        supplyName: s.supplyName
+      }))
+      updateForm("suppliesUsed", formSupplies)
     }
   }
 
   const removeSupply = (index: number) => {
-    updateForm("suppliesUsed", form.suppliesUsed.filter((_, i) => i !== index))
+    const updated = extendedSupplies.filter((_, i) => i !== index)
+    setExtendedSupplies(updated)
+    
+    const formSupplies = updated.map(s => ({
+      supplyId: s.supplyId,
+      quantity: s.quantity,
+      supplyName: s.supplyName
+    }))
+    updateForm("suppliesUsed", formSupplies)
   }
 
   const updateSupplyQuantity = (index: number, quantity: number) => {
     if (quantity <= 0) return
-    const updated = form.suppliesUsed.map((s, i) =>
+    const updated = extendedSupplies.map((s, i) =>
       i === index ? { ...s, quantity } : s,
     )
-    updateForm("suppliesUsed", updated)
+    setExtendedSupplies(updated)
+    
+    const formSupplies = updated.map(s => ({
+      supplyId: s.supplyId,
+      quantity: s.quantity,
+      supplyName: s.supplyName
+    }))
+    updateForm("suppliesUsed", formSupplies)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -122,7 +178,7 @@ export function CreateProcedureModal({
       alert("Giá bán phải lớn hơn 0")
       return
     }
-    const invalidSupply = form.suppliesUsed.find((s) => s.quantity <= 0)
+    const invalidSupply = extendedSupplies.find((s) => s.quantity <= 0)
     if (invalidSupply) {
       alert("Số lượng vật tư phải lớn hơn 0")
       return
@@ -204,28 +260,47 @@ export function CreateProcedureModal({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="price">Giá Bán (VNĐ) *</Label>
+                  <Label htmlFor="consumableCost">Chi Phí Ước Tính (VNĐ)</Label>
                   <Input
-                    id="price"
+                    id="consumableCost"
                     type="text"
-                    value={formattedPrices.price}
-                    onChange={(e) => handlePriceChange(e.target.value)}
+                    value={formattedPrices.consumableCost}
+                    onChange={(e) => handleConsumableCostChange(e.target.value)}
                     placeholder="0"
-                    required
-                    disabled
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="consumableCost">Chi Phí Ước Tính (VNĐ)</Label>
-                <Input
-                  id="consumableCost"
-                  type="text"
-                  value={formattedPrices.consumableCost}
-                  onChange={(e) => handleConsumableCostChange(e.target.value)}
-                  placeholder="0"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="calculatedSupplyCost">Chi Phí Vật Tư (VNĐ)</Label>
+                  <Input
+                    id="calculatedSupplyCost"
+                    type="text"
+                    value={formattedPrices.calculatedSupplyCost}
+                    placeholder="0"
+                    disabled
+                    className="bg-muted"
+                  />
+                  <div className="text-xs text-muted-foreground">
+                    Tự động tính từ vật tư có đơn vị "cái"
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="price">Giá Bán (VNĐ)</Label>
+                  <Input
+                    id="price"
+                    type="text"
+                    value={formattedPrices.price}
+                    placeholder="0"
+                    disabled
+                    className="bg-muted font-semibold"
+                  />
+                  <div className="text-xs text-muted-foreground">
+                    Giá gốc + Chi phí khấu hao
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -240,7 +315,7 @@ export function CreateProcedureModal({
                 </div>
               </div>
 
-              {form.suppliesUsed.length === 0 ? (
+              {extendedSupplies.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
                   <Package className="w-12 h-12 mx-auto mb-2 opacity-50" />
                   <p>Chưa có vật tư nào được thêm</p>
@@ -248,12 +323,20 @@ export function CreateProcedureModal({
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {form.suppliesUsed.map((supply, index) => (
+                  {extendedSupplies.map((supply, index) => (
                     <div key={`${supply.supplyId}-${index}`} className="flex gap-4 items-center p-4 border rounded-lg bg-muted/20">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <h4 className="font-medium">{supply.supplyName}</h4>
+                          <span className="text-sm text-muted-foreground">
+                            ({supply.unit} - {formatCurrency(supply.price)})
+                          </span>
                         </div>
+                        {supply.unit.toLowerCase() === "cái" && (
+                          <div className="text-sm text-muted-foreground mt-1">
+                            Thành tiền: {formatCurrency(supply.price * supply.quantity)}
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <Label htmlFor={`quantity-${index}`} className="text-sm whitespace-nowrap">

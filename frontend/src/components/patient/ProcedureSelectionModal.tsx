@@ -130,8 +130,7 @@ export function ProcedureSelectionModal({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm mt-2">
                           <div><span className="text-muted-foreground">Giá hiện tại: </span>{formatPrice(procedure.price)}</div>
                           <div><span className="text-muted-foreground">Giá gốc: </span>{formatPrice(procedure.originalPrice)}</div>
-                          <div><span className="text-muted-foreground">Giảm giá: </span>{procedure.discount}%</div>
-                          <div><span className="text-muted-foreground">Chi phí vật tư: </span>{formatPrice(procedure.consumableCost)}</div>
+                          <div><span className="text-muted-foreground">Chi phí khấu hao: </span>{formatPrice(procedure.consumableCost)}</div>
                         </div>
                       </div>
                     </div>
