@@ -46,7 +46,7 @@ namespace Application.Usecases.Receptionist.De_ActivePromotion
                 foreach (var pd in discountProgram.ProcedureDiscountPrograms)
                 {
                     var proc = await _procedureRepository.GetProcedureByIdAsync(pd.ProcedureId, cancellationToken);
-                    proc.Discount = (float)pd.DiscountAmount;
+                    proc.Discount = 0;
                     proc.Price = proc.Price / (1 - (pd.DiscountAmount / 100m)); // phục hồi
                     var ok = await _procedureRepository.UpdateProcedureAsync(proc, cancellationToken);
                     if (!ok) throw new Exception(MessageConstants.MSG.MSG58);
