@@ -132,14 +132,6 @@ namespace HDMS_API.Infrastructure.Services
                     };
 
                     mailMessage.To.Add(toEmail);
-
-                    // (Tuỳ chọn) Thêm plain-text alternative để tăng khả năng inbox
-                    var plainBody =
-                        "Thông tin tài khoản HolaSmile\n\n" +
-                        $"Mật khẩu tạm thời: {password}\n\n" +
-                        $"Truy cập: {domain}\n";
-                    mailMessage.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(plainBody, null, "text/plain"));
-
                     await client.SendMailAsync(mailMessage);
                     return true;
                 }
