@@ -38,11 +38,6 @@ export function ProcedureDetailModal({ procedure, isOpen, onOpenChange, onEdit, 
         return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}p` : `${hours} giờ`
     }
 
-    const calculateProfitMargin = () => {
-        const profit = procedure.price - procedure.consumableCost
-        return ((profit / procedure.price) * 100).toFixed(1)
-    }
-
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogOverlay className="bg-white/80" />
@@ -94,7 +89,6 @@ export function ProcedureDetailModal({ procedure, isOpen, onOpenChange, onEdit, 
                                     <span className="text-sm font-medium">Chi Phí Vật Tư</span>
                                 </div>
                                 <p className="text-xl font-bold text-orange-600">{formatCurrency(procedure.consumableCost)}</p>
-                                <p className="text-xs text-muted-foreground">Lợi nhuận: {calculateProfitMargin()}%</p>
                             </div>
                         </div>
                     </div>

@@ -100,7 +100,7 @@ export function EditProcedureModal({
             setFormattedPrices({
                 originalPrice: formatCurrency(procedure.originalPrice),
                 price: formatCurrency(procedure.price),
-                estimatedCost: formatCurrency(procedure.consumableCost)
+                estimatedCost: formatCurrency(procedure.consumableCost - calculateTotalSupplyCost(procedure.suppliesUsed || []))
             })
             
             setErrors({})
@@ -108,7 +108,7 @@ export function EditProcedureModal({
             const totalCost = calculateTotalSupplyCost(procedure.suppliesUsed || [])
             setEstimatedCost(procedure.consumableCost - totalCost)
         }
-    }, [procedure])
+    }, [procedure, supplyItems])
 
     const calculateTotalSupplyCost = React.useCallback((supplies: Supply[] = []): number => {
         return supplies.reduce((total, supply) => {
