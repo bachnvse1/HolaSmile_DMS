@@ -85,9 +85,10 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   // Filter appointments
   const filteredAppointments = appointments.filter(appointment => {
     const matchesSearch =
-      appointment.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.dentistName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.appointmentType.toLowerCase().includes(searchTerm.toLowerCase());
+      (appointment.patientName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (appointment.dentistName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (appointment.appointmentType || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (appointment.content || '').toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus = statusFilter.includes('all') || statusFilter.includes(appointment.status);
     return matchesSearch && matchesStatus;
