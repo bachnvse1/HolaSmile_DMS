@@ -1,7 +1,8 @@
 import { Smile, Shield, Zap, Heart, Eye, Baby } from 'lucide-react';
 import { Link } from 'react-router'
 import { useNavigate } from 'react-router';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
+import { useGuestProcedures } from '@/hooks/useGuestProcedures';
 
 const services = [
   {
@@ -46,6 +47,8 @@ export const ServicesSection = () => {
   const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
+  const { data: procedures = [], isLoading: proceduresLoading } = useGuestProcedures();
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -101,13 +104,43 @@ export const ServicesSection = () => {
               <p className="text-gray-600 leading-relaxed mb-6 flex-grow">
                 {service.description}
               </p>
-              <Link
-                to={`/services/${service.slug}`}
-                className="text-blue-600 font-medium hover:text-blue-700 transition-colors group mt-auto"
-              >
-                Tìm Hiểu Thêm 
-                <span className="inline-block ml-1 transform group-hover:translate-x-1 transition-transform">→</span>
-              </Link>
+
+              <div className="flex items-center space-x-3 mt-auto">
+                <button
+                  onClick={() => setExpandedIndex(expandedIndex === index ? null : index)}
+                  className="text-blue-600 font-medium hover:text-blue-700 transition-colors"
+                >
+                  {expandedIndex === index ? 'Thu lại' : 'Xem danh sách thủ thuật'}
+                </button>
+                <Link
+                  to={`/services/${service.slug}`}
+                  className="text-blue-600 font-medium hover:text-blue-700 transition-colors"
+                >
+                  Chi tiết →
+                </Link>
+              </div>
+
+              {expandedIndex === index && (
+                <div className="mt-6 border-t pt-4 space-y-3">
+                  {proceduresLoading ? (
+                    <div className="text-sm text-gray-500">Đang tải thủ thuật...</div>
+                  ) : (
+                    // Simple filter: match service title words in procedure name or description
+                    procedures
+                      .filter(p => {
+                        const keyword = service.title.toLowerCase();
+                        return p.procedureName.toLowerCase().includes(keyword) || (p.description || '').toLowerCase().includes(keyword);
+                      })
+                      .slice(0, 6)
+                      .map(p => (
+                        <div key={p.procedureId} className="flex items-center justify-between bg-gray-50 p-3 rounded-md">
+                          <div className="text-sm text-gray-800">{p.procedureName}</div>
+                          <div className="text-sm font-medium text-green-600">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.price ?? 0)}</div>
+                        </div>
+                      ))
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>

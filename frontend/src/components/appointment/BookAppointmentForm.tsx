@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Calendar, CheckCircle, ArrowLeft, Clock } from 'lucide-react';
@@ -43,8 +44,45 @@ export const BookAppointmentForm = () => {
 
   const onStep1Submit = (data: AppointmentFormData) => {
     setStep1Data(data);
-    setCurrentStep(2);
+    // If dentist/date/time already selected via query params, skip to captcha step
+    if (selectedDentist && selectedDate && selectedTimeSlot) {
+      setCurrentStep(3);
+    } else {
+      setCurrentStep(2);
+    }
   };
+
+  // Prefill selection from URL query params if present
+  const location = useLocation();
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const dentistParam = params.get('dentist');
+    const dateParam = params.get('date');
+    const timeParam = params.get('time');
+
+    if (!dentistParam && !dateParam && !timeParam) return;
+
+    // Wait until dentists list is available
+    if (dentists && dentists.length > 0) {
+      let found: Dentist | null = null;
+      // try match by string id first, then by backend dentistID
+      found = dentists.find(d => d.id === dentistParam) ?? null;
+      if (!found && dentistParam) {
+        const asNum = Number(dentistParam);
+        if (!Number.isNaN(asNum)) {
+          found = dentists.find(d => d.dentistID === asNum) ?? null;
+        }
+      }
+
+      if (found) {
+        // Set directly without clearing date/time
+        setSelectedDentist(found);
+      }
+
+      if (dateParam) setSelectedDate(dateParam);
+      if (timeParam) setSelectedTimeSlot(timeParam);
+    }
+  }, [location.search, dentists]);
 
   const resetForm = () => {
     setCurrentStep(1);
