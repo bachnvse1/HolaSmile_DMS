@@ -2,7 +2,15 @@ import bg1 from '@/assets/bg1-new.jpg'
 import bg2 from '@/assets/bg2-new.jpg'
 import bg3 from '@/assets/bg3-new.jpg'
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+
+type CarouselApi = {
+  on: (ev: string, fn: () => void) => void;
+  off: (ev: string, fn: () => void) => void;
+  selectedScrollSnap: () => number;
+  scrollNext: () => void;
+  scrollTo: (index: number) => void;
+};
 
 const heroImages = [
   {
@@ -28,8 +36,10 @@ const heroImages = [
 
 export const HeroSection = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [api, setApi] = useState<any>(null);
+  const [api, setApi] = useState<CarouselApi | null>(null);
   const [isHovered, setIsHovered] = useState(false);
+  const emblaRef = useRef<unknown | null>(null);
+  // banner is rendered in-flow under the navigation
 
   const goToSlide = (index: number) => {
     if (api) {
@@ -38,18 +48,60 @@ export const HeroSection = () => {
     }
   };
 
+  // adapter to accept Embla-like api and map to our CarouselApi
+  const handleSetApi = (emblaApi: unknown) => {
+    if (!emblaApi) {
+      emblaRef.current = null;
+      setApi(null);
+      return;
+    }
+
+    // narrow to expected shape
+    const e = emblaApi as {
+      on: (ev: string, fn: () => void) => void;
+      off: (ev: string, fn: () => void) => void;
+      selectedScrollSnap: () => number;
+      scrollNext: () => void;
+      scrollTo: (index: number) => void;
+    };
+
+    // If the underlying embla instance didn't change, don't recreate the adapter
+    if (emblaRef.current === e) return;
+    emblaRef.current = e;
+
+    const adapted: CarouselApi = {
+      on: (ev, fn) => e.on(ev, fn),
+      off: (ev, fn) => e.off(ev, fn),
+      selectedScrollSnap: () => e.selectedScrollSnap(),
+      scrollNext: () => e.scrollNext(),
+      scrollTo: (index: number) => e.scrollTo(index),
+    };
+
+    setApi(adapted);
+  };
+
   useEffect(() => {
     if (!api) return;
     const onSelect = () => {
-      setCurrentSlide(api.selectedScrollSnap());
+      setCurrentSlide(prev => {
+        const next = api.selectedScrollSnap();
+        return prev !== next ? next : prev;
+      });
     };
-    setCurrentSlide(api.selectedScrollSnap());
+
+    // initialize safely without forcing an unnecessary state update
+    setCurrentSlide(prev => {
+      const next = api.selectedScrollSnap();
+      return prev !== next ? next : prev;
+    });
+
     api.on("select", onSelect);
 
     return () => {
       api.off("select", onSelect);
     };
   }, [api]);
+
 
   useEffect(() => {
     if (!api) return;
@@ -67,8 +119,8 @@ export const HeroSection = () => {
     <section id="home" className="relative overflow-hidden">
 
     {/* Promotion Banner */}
-    <div className="fixed top-14 sm:top-16 left-0 right-0 z-40 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-500 text-white py-2 sm:py-3 overflow-hidden">
-      <div className="absolute inset-0 bg-blue-600/20 backdrop-blur-sm"></div>
+  <div className="bg-gradient-to-r from-blue-500 via-blue-600 to-blue-500 text-white py-2 sm:py-3 overflow-hidden">
+      <div className="absolute inset-0 backdrop-blur-sm"></div>
       <div className="relative z-10">
         <div className="flex animate-marquee whitespace-nowrap">
           <span className="text-sm sm:text-base font-semibold mx-8">
@@ -109,7 +161,7 @@ export const HeroSection = () => {
           <Carousel 
             className="w-full" 
             opts={{ align: "start", loop: true }}
-            setApi={setApi}
+            setApi={handleSetApi}
           >
             <CarouselContent>
               {heroImages.map((image, index) => (
