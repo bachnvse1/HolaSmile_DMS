@@ -190,6 +190,23 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
         }
       });
     }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return 'Đã xác nhận';
+      case 'canceled':
+        return 'Đã hủy';
+      case 'attended':
+        return 'Đã đến';
+      case 'absented':
+        return 'Vắng';
+      case 'all':
+        return 'Tất cả';
+      default:
+        return status;
+    }
   }; 
   return (
     <Card className="shadow-lg">
@@ -380,7 +397,7 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
                   <> phù hợp với từ khóa "<strong>{searchTerm}</strong>"</>
                 )}
                 {!statusFilter.includes('all') && (
-                  <> với trạng thái: <strong>{statusFilter.join(', ')}</strong></>
+                  <> với trạng thái: <strong>{statusFilter.map(status => getStatusText(status)).join(', ')}</strong></>
                 )}
               </span>
             </div>
