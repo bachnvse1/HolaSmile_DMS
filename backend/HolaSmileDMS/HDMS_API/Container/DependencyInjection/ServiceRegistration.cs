@@ -1,4 +1,7 @@
 ﻿using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using Application.Common.Mappings;
 using Application.Interfaces;
 using Application.Services;
@@ -23,6 +26,37 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HDMS_API.Container.DependencyInjection
 {
+    // Handler bơm sẵn Proxy-Authorization: Basic <base64(user:pass)>
+    internal sealed class ProxyAuthHandler : DelegatingHandler
+    {
+        private readonly string? _basic;
+
+        public ProxyAuthHandler(IConfiguration cfg)
+        {
+            var proxyUrl = cfg["Gemini:Proxy:Url"]; // ví dụ: http://user:pass@ip:port
+            if (string.IsNullOrWhiteSpace(proxyUrl)) return;
+
+            var uri = new Uri(proxyUrl);
+            if (!string.IsNullOrEmpty(uri.UserInfo) && uri.UserInfo.Contains(":"))
+            {
+                var parts = uri.UserInfo.Split(':', 2);
+                var user = Uri.UnescapeDataString(parts[0]);
+                var pass = Uri.UnescapeDataString(parts[1]);
+                _basic = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{user}:{pass}"));
+            }
+        }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+        {
+            if (!string.IsNullOrEmpty(_basic))
+            {
+                // Không phải runtime nào cũng có property mạnh; dùng TryAddWithoutValidation cho chắc
+                request.Headers.TryAddWithoutValidation("Proxy-Authorization", $"Basic {_basic}");
+            }
+            return base.SendAsync(request, ct);
+        }
+    }
+
     public static class ServiceRegistration
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
@@ -34,36 +68,60 @@ namespace HDMS_API.Container.DependencyInjection
                 ServiceLifetime.Scoped
             );
 
+            // ===== Gemini HttpClient qua proxy (có Credentials + pre-auth header) =====
+            services.AddTransient<ProxyAuthHandler>();
+
             services.AddHttpClient("Gemini", client =>
                 {
                     client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/");
+                    // có thể thêm Accept nếu muốn:
+                    // client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 })
+                .AddHttpMessageHandler<ProxyAuthHandler>() // bơm Proxy-Authorization sớm (trị 407)
                 .ConfigurePrimaryHttpMessageHandler(sp =>
                 {
                     var cfg = sp.GetRequiredService<IConfiguration>();
                     var useProxy = cfg.GetValue<bool>("Gemini:Proxy:Enabled");
+
                     var handler = new HttpClientHandler
                     {
-                        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+                        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                        UseProxy = useProxy
                     };
 
                     if (useProxy)
                     {
-                        var proxyUrl = cfg["Gemini:Proxy:Url"];
+                        var proxyUrl = cfg["Gemini:Proxy:Url"]; // "http://user:pass@ip:port"
                         if (!string.IsNullOrWhiteSpace(proxyUrl))
                         {
-                            handler.Proxy = new WebProxy(new Uri(proxyUrl))
+                            var uri = new Uri(proxyUrl);
+
+                            // Lấy user/pass từ uri.UserInfo (user:pass)
+                            NetworkCredential? creds = null;
+                            if (!string.IsNullOrEmpty(uri.UserInfo) && uri.UserInfo.Contains(":"))
                             {
+                                var parts = uri.UserInfo.Split(':', 2);
+                                var user = Uri.UnescapeDataString(parts[0]);
+                                var pass = Uri.UnescapeDataString(parts[1]);
+                                creds = new NetworkCredential(user, pass);
+                            }
+
+                            var webProxy = new WebProxy
+                            {
+                                Address = new Uri($"{uri.Scheme}://{uri.Host}:{uri.Port}"),
                                 BypassProxyOnLocal = false,
-                                UseDefaultCredentials = false
+                                UseDefaultCredentials = false,
+                                Credentials = creds // <-- QUAN TRỌNG: gán credentials cho proxy
                             };
-                            handler.UseProxy = true;
-                            handler.PreAuthenticate = true;
+
+                            handler.Proxy = webProxy;
+                            handler.PreAuthenticate = true; // không hại, vài proxy vẫn cần
                         }
                     }
 
                     return handler;
                 });
+            // ==========================================================================
 
             // Repository & Services
             services.AddScoped<IAppointmentRepository, AppointmentRepository>();
@@ -79,8 +137,10 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddScoped<ITreatmentRecordRepository, TreatmentRecordRepository>();
             services.AddScoped<IScheduleRepository, ScheduleRepository>();
             services.AddSingleton<IHashIdService, HashIdService>();
+
+            // LƯU Ý: bạn đang đăng ký ITreatmentProgressRepository 2 lần — mình giữ 1 dòng thôi cho sạch
             services.AddScoped<ITreatmentProgressRepository, TreatmentProgressRepository>();
-            services.AddScoped<ITreatmentProgressRepository, TreatmentProgressRepository>();
+
             services.AddScoped<INotificationsRepository, NotificationsRepository>();
             services.AddScoped<IAssistantRepository, AssistantRepository>();
             services.AddScoped<IProcedureRepository, ProcedureRepository>();
@@ -113,20 +173,19 @@ namespace HDMS_API.Container.DependencyInjection
             var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>
             {
-
                 options.AddPolicy(name: MyAllowSpecificOrigins,
-                        policy =>
-                        {
-                            policy.WithOrigins(
-                                    "https://holasmile.id.vn",
-                                    "http://localhost:5173",
-                                    "http://localhost:3000",
-                                    "http://localhost"
-                                )
-                                .AllowAnyHeader()
-                                .AllowAnyMethod()
-                                .AllowCredentials();
-                        });
+                    policy =>
+                    {
+                        policy.WithOrigins(
+                                "https://holasmile.id.vn",
+                                "http://localhost:5173",
+                                "http://localhost:3000",
+                                "http://localhost"
+                            )
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials();
+                    });
             });
 
             // MediatR
@@ -140,14 +199,12 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddAutoMapper(typeof(MappingAppointment));
             services.AddAutoMapper(typeof(MappingTreatmentProgress).Assembly);
             services.AddAutoMapper(typeof(OrthodonticTreatmentPlanProfile).Assembly);
-            
+
             services.AddHostedService<PromotionCleanupService>();
             services.AddHostedService<AppointmentCleanupService>();
             services.AddHostedService<EmailCleanupService>();
 
-
-
-            // Caching
+            // Caching + SignalR
             services.AddMemoryCache();
             services.AddHttpClient();
             services.AddSignalR()
@@ -155,6 +212,7 @@ namespace HDMS_API.Container.DependencyInjection
                 {
                     options.EnableDetailedErrors = true;
                 });
+
             return services;
         }
     }
