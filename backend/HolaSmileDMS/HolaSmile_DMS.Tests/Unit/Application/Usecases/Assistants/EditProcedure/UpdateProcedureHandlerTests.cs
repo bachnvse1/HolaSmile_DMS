@@ -14,6 +14,7 @@ public class UpdateProcedureHandlerTests
     private readonly Mock<IProcedureRepository> _procedureRepoMock;
     private readonly Mock<ISupplyRepository> _supplyRepoMock;
     private readonly Mock<IOwnerRepository> _ownerRepoMock;
+    private readonly Mock<IUserCommonRepository> _userCommonRepo;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
     private readonly Mock<IMediator> _mediatorMock;
     private readonly UpdateProcedureHandler _handler;
@@ -23,9 +24,10 @@ public class UpdateProcedureHandlerTests
         _procedureRepoMock = new Mock<IProcedureRepository>();
         _supplyRepoMock = new Mock<ISupplyRepository>();
         _ownerRepoMock = new Mock<IOwnerRepository>();
+        _userCommonRepo = new Mock<IUserCommonRepository>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
         _mediatorMock = new Mock<IMediator>();
-        _handler = new UpdateProcedureHandler(_procedureRepoMock.Object, _supplyRepoMock.Object,_ownerRepoMock.Object , _httpContextAccessorMock.Object,_mediatorMock.Object);
+        _handler = new UpdateProcedureHandler(_procedureRepoMock.Object, _supplyRepoMock.Object, _userCommonRepo.Object, _ownerRepoMock.Object , _httpContextAccessorMock.Object,_mediatorMock.Object);
     }
 
     private void SetupHttpContext(string role = "assistant", int userId = 1)
@@ -88,35 +90,26 @@ public class UpdateProcedureHandlerTests
         Assert.Equal(MessageConstants.MSG.MSG95, ex.Message);
     }
 
-    [Fact(DisplayName = "UTCID04 - Supply not found - Throw Exception")]
-    public async System.Threading.Tasks.Task UTCID04_SupplyNotFound_Throw()
+    [Fact(DisplayName = "UTCID03 - Input invalid (Price <= 0) - Throw Exception")]
+    public async System.Threading.Tasks.Task UTCID04_InvalidInput_Throw()
     {
         SetupHttpContext();
 
-        _procedureRepoMock.Setup(x => x.GetProcedureByProcedureId(1)).ReturnsAsync(new Procedure());
-
-        _supplyRepoMock.Setup(x => x.GetSupplyBySupplyIdAsync(1)).ReturnsAsync((Supplies)null!);
+        _procedureRepoMock.Setup(x => x.GetProcedureByProcedureId(It.IsAny<int>()))
+                          .ReturnsAsync(new Procedure());
 
         var command = new UpdateProcedureCommand
         {
             ProcedureId = 1,
             ProcedureName = "Test",
-            Price = 100,
-            OriginalPrice = 50,
-            ConsumableCost = 10,
-            ReferralCommissionRate = 0,
-            DoctorCommissionRate = 0,
-            AssistantCommissionRate = 0,
-            TechnicianCommissionRate = 0,
-            SuppliesUsed = new List<SupplyUsedDTO>
-            {
-                new SupplyUsedDTO { SupplyId = 1, Quantity = 1 }
-            }
+            Price = 0,
+            OriginalPrice = 100
         };
 
         var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
-        Assert.Equal("Supply với ID 1 không tồn tại.", ex.Message);
+        Assert.Equal(MessageConstants.MSG.MSG95, ex.Message);
     }
+
 
     [Fact(DisplayName = "UTCID05 - Delete SuppliesUsed failed - Throw Exception")]
     public async System.Threading.Tasks.Task UTCID05_DeleteSuppliesFailed_Throw()
@@ -153,6 +146,41 @@ public class UpdateProcedureHandlerTests
 
     [Fact(DisplayName = "UTCID06 - Success with valid input")]
     public async System.Threading.Tasks.Task UTCID06_Success()
+    {
+        SetupHttpContext();
+
+        _procedureRepoMock.Setup(x => x.GetProcedureByProcedureId(1)).ReturnsAsync(new Procedure());
+
+        _supplyRepoMock.Setup(x => x.GetSupplyBySupplyIdAsync(1))
+                       .ReturnsAsync(new Supplies { SupplyId = 1, Price = 100, Unit = "cái" });
+
+        _procedureRepoMock.Setup(x => x.DeleteSuppliesUsed(1)).ReturnsAsync(true);
+        _procedureRepoMock.Setup(x => x.CreateSupplyUsed(It.IsAny<List<SuppliesUsed>>())).ReturnsAsync(true);
+        _procedureRepoMock.Setup(x => x.UpdateProcedureAsync(It.IsAny<Procedure>())).ReturnsAsync(true);
+
+        var command = new UpdateProcedureCommand
+        {
+            ProcedureId = 1,
+            ProcedureName = "Test Procedure",
+            Price = 200,
+            OriginalPrice = 100,
+            ConsumableCost = 20,
+            ReferralCommissionRate = 5,
+            DoctorCommissionRate = 5,
+            AssistantCommissionRate = 5,
+            TechnicianCommissionRate = 5,
+            SuppliesUsed = new List<SupplyUsedDTO>
+            {
+                new SupplyUsedDTO { SupplyId = 1, Quantity = 2 }
+            }
+        };
+
+        var result = await _handler.Handle(command, default);
+
+        Assert.True(result);
+    }
+    [Fact(DisplayName = "UTCID06 - Success with valid input")]
+    public async System.Threading.Tasks.Task UTCID07_Success()
     {
         SetupHttpContext();
 

@@ -52,6 +52,11 @@ namespace Application.Usecases.Receptionist.CreateFinancialTransaction
 
             var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/bmp", "image/webp", "image/tiff", "image/heic" };
 
+            if (!request.TransactionType && request.EvidenceImage == null)
+            {
+                throw new Exception("Vui lòng tải lên ảnh chứng từ cho phiếu chi");
+            }
+
             if (request.EvidenceImage != null)
             {
                 if (!allowedTypes.Contains(request.EvidenceImage.ContentType))

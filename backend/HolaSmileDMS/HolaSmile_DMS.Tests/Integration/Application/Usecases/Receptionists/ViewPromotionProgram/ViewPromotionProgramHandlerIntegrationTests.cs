@@ -108,7 +108,18 @@ public class ViewPromotionProgramHandlerIntegrationTests
     }
 
     [Fact(DisplayName = "ITCID04 - Return promotion list for owner")]
-    public async System.Threading.Tasks.Task ITCID04_Return_program_list_for_owner()
+    public async System.Threading.Tasks.Task ITCID05_Return_program_list_for_owner()
+    {
+        SetupHttpContext("Owner", 2);
+        var handler = new ViewPromotionProgramHandler(_httpContextAccessor, _promotionRepo, null!);
+
+        var result = await handler.Handle(new ViewPromotionProgramCommand(), default);
+
+        Assert.NotNull(result);
+        Assert.Equal(2, result.Count);
+    }
+    [Fact(DisplayName = "ITCID04 - Return promotion list for owner")]
+    public async System.Threading.Tasks.Task ITCID06_Return_program_list_for_owner()
     {
         SetupHttpContext("Owner", 2);
         var handler = new ViewPromotionProgramHandler(_httpContextAccessor, _promotionRepo, null!);
