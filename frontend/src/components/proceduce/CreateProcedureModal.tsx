@@ -212,12 +212,13 @@ export function CreateProcedureModal({
                     onChange={(e) => handlePriceChange(e.target.value)}
                     placeholder="0"
                     required
+                    disabled
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="consumableCost">Chi Phí Ướng Tính (VNĐ)</Label>
+                <Label htmlFor="consumableCost">Chi Phí Ước Tính (VNĐ)</Label>
                 <Input
                   id="consumableCost"
                   type="text"

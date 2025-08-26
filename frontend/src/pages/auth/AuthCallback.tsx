@@ -25,7 +25,7 @@ const AuthCallback = () => {
       localStorage.setItem("role", role);
       localStorage.setItem("avatar", imageUrl ?? "");
 
-      toast.success(`Đăng nhập thành công! Xin chào ${fullName}`, {
+      toast.success(`Đăng nhập thành công! Xin chào ${username}`, {
         position: "top-left",
         autoClose: 3000,
       });
@@ -34,7 +34,11 @@ const AuthCallback = () => {
 
       if (role === "Patient") {
             navigate("/patient/appointments");
-          } else if (role && ["Administrator", "Owner", "Receptionist", "Assistant", "Dentist"].includes(role)) {
+          } else if (role === "Administrator") {
+            navigate("/administrator/user-list");
+          } else if (role && ["Receptionist", "Assistant", "Dentist"].includes(role)) {
+            navigate("/appointments");
+          } else if (role === "Owner") {
             navigate("/dashboard");
           } else {
             navigate("/");
