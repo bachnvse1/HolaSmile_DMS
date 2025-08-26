@@ -126,6 +126,12 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
         return;
       }
 
+      // Validate evidence image for expense transactions
+      if (data.transactionType === 'chi' && !selectedImage && !transaction?.evidenceImage) {
+        toast.error('Vui lòng tải lên ảnh chứng từ cho phiếu chi');
+        return;
+      }
+
       if (selectedImage) {
         const formData = new FormData();
         formData.append('TransactionId', transactionId.toString());
@@ -334,7 +340,9 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
             {/* Image Upload - For expense transactions */}
             {transactionType === 'chi' && (
               <div className="space-y-2">
-                <Label htmlFor="evidenceImage">Ảnh chứng từ</Label>
+                <Label htmlFor="evidenceImage">
+                  Ảnh chứng từ<span className='text-red-400'>*</span>
+                </Label>
                 <div className="space-y-3">
                   {/* Upload Button */}
                   <div className="flex items-center gap-4">
@@ -354,6 +362,11 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                       className="hidden"
                     />
                   </div>
+
+                  {/* Validation message for missing image */}
+                  {!selectedImage && !transaction?.evidenceImage && (
+                    <p className="text-sm text-red-600">Vui lòng tải lên ảnh chứng từ cho phiếu chi</p>
+                  )}
 
                   {/* Current Evidence Image */}
                   {transaction?.evidenceImage && !imagePreview && (
@@ -439,7 +452,10 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
               </Button>
               <Button 
                 type="submit" 
-                disabled={updateTransactionMutation.isPending}
+                disabled={
+                  updateTransactionMutation.isPending || 
+                  (transactionType === 'chi' && !selectedImage && !transaction?.evidenceImage)
+                }
                 className='bg-blue-600 hover:bg-blue-700'
               >
                 {updateTransactionMutation.isPending ? 'Đang cập nhật...' : 'Cập Nhật Giao Dịch'}
