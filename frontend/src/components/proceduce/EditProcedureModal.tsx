@@ -87,6 +87,8 @@ export function EditProcedureModal({
 
     React.useEffect(() => {
         if (procedure) {
+            const initialEstimatedCost = procedure.consumableCost - calculateBillableSupplyCost(procedure.suppliesUsed || [])
+            
             setForm({
                 procedureId: procedure.procedureId,
                 procedureName: procedure.procedureName,
@@ -100,15 +102,23 @@ export function EditProcedureModal({
             setFormattedPrices({
                 originalPrice: formatCurrency(procedure.originalPrice),
                 price: formatCurrency(procedure.price),
-                estimatedCost: formatCurrency(procedure.consumableCost - calculateTotalSupplyCost(procedure.suppliesUsed || []))
+                estimatedCost: formatCurrency(initialEstimatedCost)
             })
             
+            setEstimatedCost(initialEstimatedCost)
             setErrors({})
-
-            const totalCost = calculateTotalSupplyCost(procedure.suppliesUsed || [])
-            setEstimatedCost(procedure.consumableCost - totalCost)
         }
     }, [procedure, supplyItems])
+
+    const calculateBillableSupplyCost = React.useCallback((supplies: Supply[] = []): number => {
+        return supplies.reduce((total, supply) => {
+            const supplyItem = supplyItems.find(item => item.id === supply.supplyId)
+            if (supplyItem && supplyItem.unit.toLowerCase() === 'cái') {
+                return total + (supplyItem.price * supply.quantity)
+            }
+            return total
+        }, 0)
+    }, [supplyItems])
 
     const calculateTotalSupplyCost = React.useCallback((supplies: Supply[] = []): number => {
         return supplies.reduce((total, supply) => {
@@ -121,8 +131,21 @@ export function EditProcedureModal({
     }, [supplyItems])
 
     React.useEffect(() => {
-        setForm(prev => ({ ...prev, consumableCost: estimatedCost + calculateTotalSupplyCost(form.suppliesUsed) }));
-    }, [estimatedCost, calculateTotalSupplyCost, form.suppliesUsed])
+        const billableSupplyCost = calculateBillableSupplyCost(form.suppliesUsed)
+        const totalConsumableCost = estimatedCost + billableSupplyCost
+        
+        const newForm = {
+            ...form,
+            consumableCost: totalConsumableCost,
+            price: form.originalPrice + totalConsumableCost
+        }
+        
+        setForm(newForm)
+        setFormattedPrices(prev => ({
+            ...prev,
+            price: formatCurrency(newForm.price)
+        }))
+    }, [estimatedCost, form.originalPrice, form.suppliesUsed, calculateBillableSupplyCost])
 
     const updateForm = React.useCallback((field: keyof ProcedureUpdateForm, value: string | number | Supply[]) => {
         setForm((prev) => ({ ...prev, [field]: value }))
@@ -136,14 +159,6 @@ export function EditProcedureModal({
             setFormattedPrices(prev => ({ ...prev, originalPrice: formatted }))
             const numericValue = parseCurrency(formatted)
             updateForm("originalPrice", numericValue)
-        })
-    }
-
-    const handlePriceChange = (value: string) => {
-        handleCurrencyInput(value, (formatted) => {
-            setFormattedPrices(prev => ({ ...prev, price: formatted }))
-            const numericValue = parseCurrency(formatted)
-            updateForm("price", numericValue)
         })
     }
 
@@ -239,11 +254,7 @@ export function EditProcedureModal({
         if (!procedure) return
         setIsSubmitting(true)
         try {
-            const finalForm = {
-                ...form,
-                consumableCost: estimatedCost,
-            }
-            await onSave(procedure.procedureId, finalForm)
+            await onSave(procedure.procedureId, form)
             onOpenChange(false)
         } catch (error) {
             setErrors({
@@ -260,10 +271,12 @@ export function EditProcedureModal({
         onOpenChange(false)
         setErrors({})
     }
+
     if (!procedure) return null
 
     const currentSupplies = form.suppliesUsed || []
-    const totalSupplyCost = calculateTotalSupplyCost(currentSupplies)
+    const totalDisplayCost = calculateTotalSupplyCost(currentSupplies)
+    const billableSupplyCost = calculateBillableSupplyCost(currentSupplies)
 
     return (
         <>
@@ -356,11 +369,13 @@ export function EditProcedureModal({
                                         id="price"
                                         type="text"
                                         value={formattedPrices.price}
-                                        onChange={(e) => handlePriceChange(e.target.value)}
                                         placeholder="0"
-                                        disabled
-                                        className={errors.price ? "border-destructive" : ""}
+                                        disabled={true}
+                                        className="bg-muted"
                                     />
+                                    <p className="text-xs text-muted-foreground">
+                                        Giá bán = Giá gốc + Chi phí khấu hao (tự động tính)
+                                    </p>
                                     {errors.price && (
                                         <p className="text-sm text-destructive">{errors.price}</p>
                                     )}
@@ -375,9 +390,10 @@ export function EditProcedureModal({
                                     value={formatCurrency(form.consumableCost)}
                                     placeholder="0"
                                     disabled={true}
+                                    className="bg-muted"
                                 />
                                 <p className="text-xs text-muted-foreground">
-                                    Chi phí khấu hao cho thủ thuật này bằng chi phí ước tính + chi phí vật tư
+                                    Chi phí khấu hao = Chi phí ước tính + Chi phí vật tư (chỉ đơn vị "cái")
                                 </p>
                             </div>
 
@@ -412,10 +428,17 @@ export function EditProcedureModal({
                                     )}
                                 </h3>
                                 <div className="flex items-center gap-2">
-                                    {totalSupplyCost > 0 && (
-                                        <Badge variant="outline" className="text-green-600">
-                                            Tổng: {formatCurrency(totalSupplyCost)}
-                                        </Badge>
+                                    {totalDisplayCost > 0 && (
+                                        <div className="flex items-center gap-2">
+                                            <Badge variant="outline" className="text-green-600">
+                                                Tổng: {formatCurrency(totalDisplayCost)}
+                                            </Badge>
+                                            {billableSupplyCost !== totalDisplayCost && (
+                                                <Badge variant="secondary" className="text-blue-600">
+                                                    Tính vào giá: {formatCurrency(billableSupplyCost)}
+                                                </Badge>
+                                            )}
+                                        </div>
                                     )}
                                     <SupplySearch
                                         onSelectSupply={addSupplyFromSearch}
@@ -448,6 +471,7 @@ export function EditProcedureModal({
                                     {currentSupplies.map((supply, index) => {
                                         const supplyItem = supplyItems.find(item => item.id === supply.supplyId)
                                         const itemCost = supplyItem ? supplyItem.price * supply.quantity : 0
+                                        const isBillable = supplyItem?.unit.toLowerCase() === 'cái'
 
                                         return (
                                             <div key={`${supply.supplyId}-${index}`} className="flex gap-4 items-center p-4 border rounded-lg bg-muted/20">
@@ -455,15 +479,19 @@ export function EditProcedureModal({
                                                     <div className="flex items-center gap-2">
                                                         <h4 className="font-medium">{supply.supplyName}</h4>
                                                         {supplyItem && (
-                                                            <Badge variant="outline" className="text-xs">
-                                                                {formatCurrency(supplyItem.price)}/{supplyItem.unit}
-                                                            </Badge>
+                                                            <div className="flex items-center gap-2">
+                                                                <Badge variant="outline" className="text-xs">
+                                                                    {formatCurrency(supplyItem.price)}/{supplyItem.unit}
+                                                                </Badge>
+                                                            </div>
                                                         )}
                                                     </div>
                                                     {itemCost > 0 && (
-                                                        <p className="text-sm text-green-600 font-medium">
-                                                            Thành tiền: {formatCurrency(itemCost)}
-                                                        </p>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <p className={`text-sm font-medium ${isBillable ? 'text-green-600' : 'text-gray-500'}`}>
+                                                                Thành tiền: {formatCurrency(itemCost)}
+                                                            </p>
+                                                        </div>
                                                     )}
                                                 </div>
                                                 <div className="flex items-center gap-2">
