@@ -326,25 +326,6 @@ const RecordRow: React.FC<RecordRowProps> = ({
                 </DropdownMenuItem>
 
                 {!readonly && <DropdownMenuSeparator />}
-                
-                {!readonly && (
-                  <DropdownMenuItem
-                    onClick={handleDeleteClick}
-                    className={record.isDeleted ? "text-blue-600" : "text-red-600"}
-                  >
-                    {record.isDeleted ? (
-                      <>
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                        Khôi phục
-                      </>
-                    ) : (
-                      <>
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Xoá
-                      </>
-                    )}
-                  </DropdownMenuItem>
-                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </td>

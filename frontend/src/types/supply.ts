@@ -39,8 +39,4 @@ export enum SupplyUnit {
   SET = 'Bộ',
   ROLL = 'Cuộn',
   BAG = 'Túi',
-  KG = 'Kg',
-  GRAM = 'Gram',
-  LITER = 'Lít',
-  ML = 'ML'
 }

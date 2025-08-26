@@ -25,7 +25,7 @@ const AuthCallback = () => {
       localStorage.setItem("role", role);
       localStorage.setItem("avatar", imageUrl ?? "");
 
-      toast.success(`Đăng nhập thành công! Xin chào ${fullName}`, {
+      toast.success(`Đăng nhập thành công! Xin chào ${username}`, {
         position: "top-left",
         autoClose: 3000,
       });

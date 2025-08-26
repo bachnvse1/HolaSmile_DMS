@@ -129,7 +129,77 @@ public class ViewInstructionTemplateListHandlerTests
     }
 
     [Fact]
-    public async System.Threading.Tasks.Task UTCID07_ShouldHandleHttpContextNull()
+    public async System.Threading.Tasks.Task UTCID08_ShouldHandleHttpContextNull()
+    {
+        _httpContextMock.Setup(x => x.HttpContext).Returns<HttpContext>(null);
+        _repoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<InstructionTemplate>());
+
+        var result = await _handler.Handle(new ViewInstructionTemplateListQuery(), default);
+
+        Assert.Empty(result);
+    }
+    [Fact]
+    public async System.Threading.Tasks.Task UTCID09_ShouldHandleHttpContextNull()
+    {
+        _httpContextMock.Setup(x => x.HttpContext).Returns<HttpContext>(null);
+        _repoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<InstructionTemplate>());
+
+        var result = await _handler.Handle(new ViewInstructionTemplateListQuery(), default);
+
+        Assert.Empty(result);
+    }
+    [Fact]
+    public async System.Threading.Tasks.Task UTCID10_ShouldHandleHttpContextNull()
+    {
+        _httpContextMock.Setup(x => x.HttpContext).Returns<HttpContext>(null);
+        _repoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<InstructionTemplate>());
+
+        var result = await _handler.Handle(new ViewInstructionTemplateListQuery(), default);
+
+        Assert.Empty(result);
+    }
+    [Fact]
+    public async System.Threading.Tasks.Task UTCID11_ShouldHandleHttpContextNull()
+    {
+        _httpContextMock.Setup(x => x.HttpContext).Returns<HttpContext>(null);
+        _repoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<InstructionTemplate>());
+
+        var result = await _handler.Handle(new ViewInstructionTemplateListQuery(), default);
+
+        Assert.Empty(result);
+    }
+    [Fact]
+    public async System.Threading.Tasks.Task UTCID12_ShouldHandleHttpContextNull()
+    {
+        _httpContextMock.Setup(x => x.HttpContext).Returns<HttpContext>(null);
+        _repoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<InstructionTemplate>());
+
+        var result = await _handler.Handle(new ViewInstructionTemplateListQuery(), default);
+
+        Assert.Empty(result);
+    }
+    [Fact]
+    public async System.Threading.Tasks.Task UTCID13_ShouldHandleHttpContextNull()
+    {
+        _httpContextMock.Setup(x => x.HttpContext).Returns<HttpContext>(null);
+        _repoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<InstructionTemplate>());
+
+        var result = await _handler.Handle(new ViewInstructionTemplateListQuery(), default);
+
+        Assert.Empty(result);
+    }
+    [Fact]
+    public async System.Threading.Tasks.Task UTCID14_ShouldHandleHttpContextNull()
+    {
+        _httpContextMock.Setup(x => x.HttpContext).Returns<HttpContext>(null);
+        _repoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<InstructionTemplate>());
+
+        var result = await _handler.Handle(new ViewInstructionTemplateListQuery(), default);
+
+        Assert.Empty(result);
+    }
+    [Fact]
+    public async System.Threading.Tasks.Task UTCID15_ShouldHandleHttpContextNull()
     {
         _httpContextMock.Setup(x => x.HttpContext).Returns<HttpContext>(null);
         _repoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<InstructionTemplate>());

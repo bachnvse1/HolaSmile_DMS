@@ -63,7 +63,7 @@ namespace Application.Usecases.Receptionist.CreateDiscountProgram
             {
                 if (!validProcedureIds.Contains(procedure.ProcedureId))
                     throw new Exception(MessageConstants.MSG.MSG99);
-                if (procedure.DiscountAmount < 0 || procedure.DiscountAmount > 100)
+                if (procedure.DiscountAmount < 0 || procedure.DiscountAmount >= 100)
                 {
                     throw new Exception(MessageConstants.MSG.MSG125);
                 }

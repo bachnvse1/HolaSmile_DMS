@@ -146,35 +146,75 @@ const PatientTreatmentRecords: React.FC = () => {
     }
   }, [patientId])
 
-  const validatePatientData = (data: PatientDetail): { [key: string]: string } => {
-    const errors: { [key: string]: string } = {}
+ const validatePatientData = (data: PatientDetail): { [key: string]: string } => {
+  const errors: { [key: string]: string } = {}
 
-    if (!data.fullname?.trim()) {
-      errors.fullname = "Vui lòng nhập họ tên"
-    }
-
-    if (!data.phone?.trim()) {
-      errors.phone = "Vui lòng nhập số điện thoại"
-    } else if (!/^[0-9]{10,11}$/.test(data.phone.replace(/\s/g, ''))) {
-      errors.phone = "Số điện thoại phải có 10-11 chữ số"
-    }
-
-    if (!data.email?.trim()) {
-      errors.email = "Vui lòng nhập email"
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-      errors.email = "Định dạng email không đúng"
-    }
-
-    if (!data.address?.trim()) {
-      errors.address = "Vui lòng nhập địa chỉ"
-    }
-
-    if (!data.dob?.trim()) {
-      errors.dob = "Vui lòng chọn ngày sinh"
-    }
-
-    return errors
+  if (!data.fullname?.trim()) {
+    errors.fullname = "Vui lòng nhập họ tên"
   }
+
+  if (!data.phone?.trim()) {
+    errors.phone = "Vui lòng nhập số điện thoại"
+  } else if (!/^[0-9]{10,11}$/.test(data.phone.replace(/\s/g, ''))) {
+    errors.phone = "Số điện thoại phải có 10-11 chữ số"
+  }
+
+  if (!data.email?.trim()) {
+    errors.email = "Vui lòng nhập email"
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+    errors.email = "Định dạng email không đúng"
+  }
+
+  if (!data.address?.trim()) {
+    errors.address = "Vui lòng nhập địa chỉ"
+  }
+
+  if (!data.dob?.trim()) {
+    errors.dob = "Vui lòng chọn ngày sinh"
+  } else {
+    let isValidDate = false
+    let birthDate: Date | null = null
+    
+    if (/^\d{4}-\d{2}-\d{2}$/.test(data.dob)) {
+      birthDate = new Date(data.dob)
+      isValidDate = !isNaN(birthDate.getTime())
+    }
+    else if (data.dob.includes('/')) {
+      const parts = data.dob.split('/')
+      if (parts.length === 3) {
+        const [day, month, year] = parts.map(p => parseInt(p, 10))
+        if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+          birthDate = new Date(year, month - 1, day)
+          isValidDate = birthDate.getFullYear() === year && 
+                       birthDate.getMonth() === month - 1 && 
+                       birthDate.getDate() === day
+        }
+      }
+    }
+    
+    if (!isValidDate || !birthDate) {
+      errors.dob = "Ngày sinh không hợp lệ"
+    } else {
+      const today = new Date()
+      const age = today.getFullYear() - birthDate.getFullYear()
+      const monthDiff = today.getMonth() - birthDate.getMonth()
+      const dayDiff = today.getDate() - birthDate.getDate()
+      
+      let actualAge = age
+      if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+        actualAge--
+      }
+      
+      if (actualAge < 0) {
+        errors.dob = "Ngày sinh không thể ở tương lai"
+      } else if (actualAge > 150) {
+        errors.dob = "Tuổi không hợp lý"
+      }
+    }
+  }
+
+  return errors
+}
 
   const handlePatientSubmitRequest = (e: React.FormEvent) => {
     e.preventDefault()
@@ -182,92 +222,92 @@ const PatientTreatmentRecords: React.FC = () => {
     setShowConfirmModal(true)
   }
 
-  const handlePatientUpdateConfirmed = async () => {
-    if (!editingPatientData || !patientId || !pendingSubmitEvent) return
+const handlePatientUpdateConfirmed = async () => {
+  if (!editingPatientData || !patientId || !pendingSubmitEvent) return
 
-    setShowConfirmModal(false)
+  setShowConfirmModal(false)
 
-    const validationErrors = validatePatientData(editingPatientData)
-    setPatientErrors(validationErrors)
+  const validationErrors = validatePatientData(editingPatientData)
+  setPatientErrors(validationErrors)
 
-    if (Object.keys(validationErrors).length > 0) {
-      toast.error("Vui lòng sửa các lỗi trong form")
-      return
-    }
-
-    setIsUpdatingPatient(true)
-    const toastId = toast.loading("Đang cập nhật thông tin bệnh nhân...")
-
-    try {
-      let formattedDob = null
-      if (editingPatientData.dob?.includes('-')) {
-        const [year, month, day] = editingPatientData.dob.split('-')
-        formattedDob = `${day}/${month}/${year}`
-      } else {
-        formattedDob = editingPatientData.dob
-      }
-
-      const formattedData = {
-        ...editingPatientData,
-        dob: formattedDob,
-        gender: editingPatientData.gender ? "Male" : "Female"
-      }
-
-      await updatePatient(patientId, formattedData)
-      await fetchPatientInfo()
-      setIsEditingPatient(false)
-      setPatientErrors({})
-      toast.update(toastId, {
-        render: "Cập nhật thông tin bệnh nhân thành công",
-        type: "success",
-        isLoading: false,
-        autoClose: 3000,
-      })
-    } catch (error: any) {
-      console.error("Error updating patient:", error)
-      if (error.response?.data?.errors) {
-        setPatientErrors(error.response.data.errors)
-      }
-      toast.update(toastId, {
-        render: error.response?.data?.message || "Không thể cập nhật thông tin bệnh nhân",
-        type: "error",
-        isLoading: false,
-        autoClose: 3000,
-      })
-    } finally {
-      setIsUpdatingPatient(false)
-      setPendingSubmitEvent(null)
-    }
+  if (Object.keys(validationErrors).length > 0) {
+    toast.error("Vui lòng sửa các lỗi trong form")
+    return
   }
 
+  setIsUpdatingPatient(true)
+  const toastId = toast.loading("Đang cập nhật thông tin bệnh nhân...")
 
-  const formatDateForInput = (dateString: string | null): string => {
-    if (!dateString || dateString.trim() === '') return ''
+  try {
+    let formattedDob = editingPatientData.dob
 
-    try {
-      if (dateString.includes('/')) {
-        const parts = dateString.split('/')
-        if (parts.length === 3) {
-          let [day, month, year] = parts
+    const formattedData = {
+      ...editingPatientData,
+      dob: formattedDob,
+      gender: editingPatientData.gender ? "Male" : "Female"
+    }
 
-          const dayNum = parseInt(day)
-          const monthNum = parseInt(month)
-          const yearNum = parseInt(year)
+    await updatePatient(patientId, formattedData)
+    await fetchPatientInfo()
+    setIsEditingPatient(false)
+    setPatientErrors({})
+    toast.update(toastId, {
+      render: "Cập nhật thông tin bệnh nhân thành công",
+      type: "success",
+      isLoading: false,
+      autoClose: 3000,
+    })
+  } catch (error: any) {
+    console.error("Error updating patient:", error)
+    if (error.response?.data?.errors) {
+      setPatientErrors(error.response.data.errors)
+    }
+    toast.update(toastId, {
+      render: error.response?.data?.message || "Không thể cập nhật thông tin bệnh nhân",
+      type: "error",
+      isLoading: false,
+      autoClose: 3000,
+    })
+  } finally {
+    setIsUpdatingPatient(false)
+    setPendingSubmitEvent(null)
+  }
+}
 
-          if (!isNaN(dayNum) && !isNaN(monthNum) && !isNaN(yearNum)) {
+
+const formatDateForInput = (dateString: string | null): string => {
+  if (!dateString || dateString.trim() === '') return ''
+
+  try {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      return dateString
+    }
+
+    if (dateString.includes('/')) {
+      const parts = dateString.split('/')
+      if (parts.length === 3) {
+        const [day, month, year] = parts
+        const dayNum = parseInt(day, 10)
+        const monthNum = parseInt(month, 10)
+        const yearNum = parseInt(year, 10)
+
+        if (!isNaN(dayNum) && !isNaN(monthNum) && !isNaN(yearNum) && 
+            dayNum >= 1 && dayNum <= 31 && 
+            monthNum >= 1 && monthNum <= 12 && 
+            yearNum >= 1900 && yearNum <= new Date().getFullYear() + 10) {
+          
+          const date = new Date(yearNum, monthNum - 1, dayNum)
+          
+          if (date.getFullYear() === yearNum && 
+              date.getMonth() === monthNum - 1 && 
+              date.getDate() === dayNum) {
             return `${yearNum}-${String(monthNum).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`
           }
         }
-      } else if (dateString.includes('-')) {
-        const date = new Date(dateString)
-        if (!isNaN(date.getTime())) {
-          const year = date.getFullYear()
-          const month = String(date.getMonth() + 1).padStart(2, '0')
-          const day = String(date.getDate()).padStart(2, '0')
-          return `${year}-${month}-${day}`
-        }
       }
+    }
 
+    if (dateString.includes('-')) {
       const date = new Date(dateString)
       if (!isNaN(date.getTime())) {
         const year = date.getFullYear()
@@ -275,14 +315,14 @@ const PatientTreatmentRecords: React.FC = () => {
         const day = String(date.getDate()).padStart(2, '0')
         return `${year}-${month}-${day}`
       }
-
-      return ''
-    } catch (error) {
-      console.error('Error formatting date for input:', error)
-      return ''
     }
-  }
 
+    return ''
+  } catch (error) {
+    console.error('Error formatting date for input:', error)
+    return ''
+  }
+}
   const fetchRecords = useCallback(async () => {
     if (!patientId || isNaN(patientId)) return
 
@@ -408,37 +448,37 @@ const PatientTreatmentRecords: React.FC = () => {
     setPatientErrors({})
   }
 
-const renderPatientAvatar = () => {
-  const avatarUrl = patient?.avatar
-  
-  if (avatarUrl) {
-    return (
-      <div className="relative">
-        <img
-          src={avatarUrl}
-          alt={`${patient?.fullname || 'Bệnh nhân'} avatar`}
-          className="w-24 h-32 rounded-lg object-cover border-4 border-white shadow-lg"
-          onError={(e) => {
-            e.currentTarget.classList.add('hidden')
-            const fallback = e.currentTarget.nextElementSibling as HTMLElement
-            if (fallback) {
-              fallback.classList.remove('hidden')
-            }
-          }}
-        />
-        <div className="w-24 h-32 rounded-lg bg-gray-200 border-4 border-white shadow-lg items-center justify-center hidden">
-          <User className="h-12 w-12 text-gray-400" />
+  const renderPatientAvatar = () => {
+    const avatarUrl = patient?.avatar
+
+    if (avatarUrl) {
+      return (
+        <div className="relative">
+          <img
+            src={avatarUrl}
+            alt={`${patient?.fullname || 'Bệnh nhân'} avatar`}
+            className="w-24 h-32 rounded-lg object-cover border-4 border-white shadow-lg"
+            onError={(e) => {
+              e.currentTarget.classList.add('hidden')
+              const fallback = e.currentTarget.nextElementSibling as HTMLElement
+              if (fallback) {
+                fallback.classList.remove('hidden')
+              }
+            }}
+          />
+          <div className="w-24 h-32 rounded-lg bg-gray-200 border-4 border-white shadow-lg items-center justify-center hidden">
+            <User className="h-12 w-12 text-gray-400" />
+          </div>
         </div>
+      )
+    }
+
+    return (
+      <div className="w-24 h-32 rounded-lg bg-gray-200 border-4 border-white shadow-lg flex items-center justify-center">
+        <User className="h-12 w-12 text-gray-400" />
       </div>
     )
   }
-
-  return (
-    <div className="w-24 h-32 rounded-lg bg-gray-200 border-4 border-white shadow-lg flex items-center justify-center">
-      <User className="h-12 w-12 text-gray-400" />
-    </div>
-  )
-}
 
   const renderPatientInfo = () => {
     if (patientLoading) {
@@ -500,7 +540,7 @@ const renderPatientAvatar = () => {
                     Ảnh đại diện không thể chỉnh sửa
                   </p>
                 </div>
-                
+
                 <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="fullname">

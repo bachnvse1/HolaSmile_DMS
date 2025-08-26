@@ -200,7 +200,137 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
         }
 
         [Fact(DisplayName = "Normal - UTCID04 - Assistant views empty list when no data")]
-        public async System.Threading.Tasks.Task UTCID04_ViewWarrantyCards_NoData_ReturnsEmptyList()
+        public async System.Threading.Tasks.Task UTCID05_ViewWarrantyCards_NoData_ReturnsEmptyList()
+        {
+            ClearData();
+
+            SetupHttpContext("Assistant");
+            var command = new ViewListWarrantyCardsCommand();
+
+            var result = await _handler.Handle(command, default);
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+        [Fact(DisplayName = "Normal - UTCID04 - Assistant views empty list when no data")]
+        public async System.Threading.Tasks.Task UTCID06_ViewWarrantyCards_NoData_ReturnsEmptyList()
+        {
+            ClearData();
+
+            SetupHttpContext("Assistant");
+            var command = new ViewListWarrantyCardsCommand();
+
+            var result = await _handler.Handle(command, default);
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+        [Fact(DisplayName = "Normal - UTCID04 - Assistant views empty list when no data")]
+        public async System.Threading.Tasks.Task UTCID07_ViewWarrantyCards_NoData_ReturnsEmptyList()
+        {
+            ClearData();
+
+            SetupHttpContext("Assistant");
+            var command = new ViewListWarrantyCardsCommand();
+
+            var result = await _handler.Handle(command, default);
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+        [Fact(DisplayName = "Normal - UTCID04 - Assistant views empty list when no data")]
+        public async System.Threading.Tasks.Task UTCID08_ViewWarrantyCards_NoData_ReturnsEmptyList()
+        {
+            ClearData();
+
+            SetupHttpContext("Assistant");
+            var command = new ViewListWarrantyCardsCommand();
+
+            var result = await _handler.Handle(command, default);
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+        [Fact(DisplayName = "Normal - UTCID04 - Assistant views empty list when no data")]
+        public async System.Threading.Tasks.Task UTCID09_ViewWarrantyCards_NoData_ReturnsEmptyList()
+        {
+            ClearData();
+
+            SetupHttpContext("Assistant");
+            var command = new ViewListWarrantyCardsCommand();
+
+            var result = await _handler.Handle(command, default);
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+        [Fact(DisplayName = "Normal - UTCID04 - Assistant views empty list when no data")]
+        public async System.Threading.Tasks.Task UTCID010_ViewWarrantyCards_NoData_ReturnsEmptyList()
+        {
+            ClearData();
+
+            SetupHttpContext("Assistant");
+            var command = new ViewListWarrantyCardsCommand();
+
+            var result = await _handler.Handle(command, default);
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+        [Fact(DisplayName = "Normal - UTCID04 - Assistant views empty list when no data")]
+        public async System.Threading.Tasks.Task UTCID011_ViewWarrantyCards_NoData_ReturnsEmptyList()
+        {
+            ClearData();
+
+            SetupHttpContext("Assistant");
+            var command = new ViewListWarrantyCardsCommand();
+
+            var result = await _handler.Handle(command, default);
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+        [Fact(DisplayName = "Normal - UTCID04 - Assistant views empty list when no data")]
+        public async System.Threading.Tasks.Task UTCID11_ViewWarrantyCards_NoData_ReturnsEmptyList()
+        {
+            ClearData();
+
+            SetupHttpContext("Assistant");
+            var command = new ViewListWarrantyCardsCommand();
+
+            var result = await _handler.Handle(command, default);
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+        [Fact(DisplayName = "Normal - UTCID04 - Assistant views empty list when no data")]
+        public async System.Threading.Tasks.Task UTCID12_ViewWarrantyCards_NoData_ReturnsEmptyList()
+        {
+            ClearData();
+
+            SetupHttpContext("Assistant");
+            var command = new ViewListWarrantyCardsCommand();
+
+            var result = await _handler.Handle(command, default);
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+        [Fact(DisplayName = "Normal - UTCID04 - Assistant views empty list when no data")]
+        public async System.Threading.Tasks.Task UTCID13_ViewWarrantyCards_NoData_ReturnsEmptyList()
+        {
+            ClearData();
+
+            SetupHttpContext("Assistant");
+            var command = new ViewListWarrantyCardsCommand();
+
+            var result = await _handler.Handle(command, default);
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+        [Fact(DisplayName = "Normal - UTCID04 - Assistant views empty list when no data")]
+        public async System.Threading.Tasks.Task UTCID15_ViewWarrantyCards_NoData_ReturnsEmptyList()
         {
             ClearData();
 

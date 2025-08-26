@@ -12,6 +12,12 @@ export interface SupplyItem {
   inStock: number
 }
 
+export interface ExtendedSupply extends Supply {
+  supplyName: string
+  unit: string
+  price: number
+}
+
 export interface Procedure {
   procedureId: number
   procedureName: string
@@ -26,7 +32,9 @@ export interface Procedure {
   duration?: number
   requirements?: string
   isDeleted?: boolean
+  discount?: number
   suppliesUsed?: Supply[]
+  calculatedSupplyCost?: number
 }
 
 export interface ProcedureCreateForm {
@@ -36,6 +44,7 @@ export interface ProcedureCreateForm {
   originalPrice: number
   consumableCost: number
   suppliesUsed: Supply[]
+  calculatedSupplyCost?: number
 }
 
 export interface ProcedureUpdateForm {
@@ -46,4 +55,5 @@ export interface ProcedureUpdateForm {
   originalPrice: number
   consumableCost: number
   suppliesUsed?: Supply[]
+  calculatedSupplyCost?: number
 }

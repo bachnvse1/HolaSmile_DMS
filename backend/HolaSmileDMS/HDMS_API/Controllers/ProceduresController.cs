@@ -46,6 +46,13 @@ public class ProceduresController : ControllerBase
             });
         }
     }
+    
+    [HttpGet("list-guest-procedure")]
+    public async Task<IActionResult> GetAllGuestProcedures()
+    {
+        var result = await _mediator.Send(new ViewListProcedureCommand());
+        return Ok(result);
+    }
 
     [Authorize]
     [HttpGet("detail-procedure/{procedureId:int}")]

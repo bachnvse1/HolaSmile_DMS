@@ -28,37 +28,34 @@ namespace Infrastructure.Services
             var apiKey = _configuration["ESMS:ApiKey"];
             var secretKey = _configuration["ESMS:SecretKey"];
             var brandname = _configuration["ESMS:Brandname"];
-            var smsType = _configuration["ESMS:SmsType"];
+            var smsType = _configuration["ESMS:SmsType"] ?? "2"; // 2 = brandname
+            var isUnicode = message.Any(c => c > 127) ? "1" : "0"; // có dấu -> Unicode
             var url = "https://rest.esms.vn/MainService.svc/json/SendMultipleMessage_V4_post_json/";
-            var requestId = Guid.NewGuid().ToString(); // Unique request ID
+            var requestId = Guid.NewGuid().ToString();
 
             var parameters = new Dictionary<string, string>
-            {
-             { "ApiKey", apiKey },
-             { "SecretKey", secretKey },
-             { "Phone", phoneNumber },
-             { "Content", message },
-             { "Brandname", brandname },
-             { "SmsType", "2" },
-             { "IsUnicode", "0" },
-             { "CallbackUrl", "https://esms.vn/webhook/"}// 2 = brandname; 1 = thông thường
-};
+    {
+        { "ApiKey", apiKey },
+        { "SecretKey", secretKey },
+        { "Brandname", brandname },
+        { "SmsType", smsType },
+        { "Phone", phoneNumber },
+        { "Content", message },              // <-- chỉ 1 lần
+        { "IsUnicode", isUnicode },
+        { "campaignid", "CamOnSauMuaHang-07" },
+        { "RequestId", requestId },
+        { "CallbackUrl", "https://esms.vn/webhook/" }
+    };
 
             var json = JsonSerializer.Serialize(parameters);
-            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync(url, httpContent);
+            using var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+            using var response = await _httpClient.PostAsync(url, httpContent);
             var responseString = await response.Content.ReadAsStringAsync();
 
-            // Parse resultCode = 100 nghĩa là thành công
-            Console.WriteLine(responseString);
-            var result = JsonSerializer.Deserialize<EsmsResponse>(responseString, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
+            var result = JsonSerializer.Deserialize<EsmsResponse>(responseString,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-            return result?.CodeResult == "100";
+            return response.IsSuccessStatusCode && result?.CodeResult == "100";
         }
     }
-
 }

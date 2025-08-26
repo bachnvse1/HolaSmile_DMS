@@ -156,7 +156,149 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
         }
 
         [Fact(DisplayName = "UTCID04 - Missing claims throws unauthorized")]
-        public async System.Threading.Tasks.Task UTCID04_MissingClaims_ThrowsUnauthorized()
+        public async System.Threading.Tasks.Task UTCID05_MissingClaims_ThrowsUnauthorized()
+        {
+            var httpContextAccessor = _handler.GetType()
+                .GetField("_httpContextAccessor", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
+                .GetValue(_handler) as IHttpContextAccessor;
+
+            httpContextAccessor!.HttpContext = new DefaultHttpContext(); // no claims
+
+            var command = new ViewTaskDetailsCommand(300);
+
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                _handler.Handle(command, CancellationToken.None));
+        }
+
+        [Fact(DisplayName = "UTCID04 - Missing claims throws unauthorized")]
+        public async System.Threading.Tasks.Task UTCID06_MissingClaims_ThrowsUnauthorized()
+        {
+            var httpContextAccessor = _handler.GetType()
+                .GetField("_httpContextAccessor", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
+                .GetValue(_handler) as IHttpContextAccessor;
+
+            httpContextAccessor!.HttpContext = new DefaultHttpContext(); // no claims
+
+            var command = new ViewTaskDetailsCommand(300);
+
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                _handler.Handle(command, CancellationToken.None));
+        }
+
+        [Fact(DisplayName = "UTCID04 - Missing claims throws unauthorized")]
+        public async System.Threading.Tasks.Task UTCID07_MissingClaims_ThrowsUnauthorized()
+        {
+            var httpContextAccessor = _handler.GetType()
+                .GetField("_httpContextAccessor", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
+                .GetValue(_handler) as IHttpContextAccessor;
+
+            httpContextAccessor!.HttpContext = new DefaultHttpContext(); // no claims
+
+            var command = new ViewTaskDetailsCommand(300);
+
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                _handler.Handle(command, CancellationToken.None));
+        }
+        [Fact(DisplayName = "UTCID04 - Missing claims throws unauthorized")]
+        public async System.Threading.Tasks.Task UTCID08_MissingClaims_ThrowsUnauthorized()
+        {
+            var httpContextAccessor = _handler.GetType()
+                .GetField("_httpContextAccessor", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
+                .GetValue(_handler) as IHttpContextAccessor;
+
+            httpContextAccessor!.HttpContext = new DefaultHttpContext(); // no claims
+
+            var command = new ViewTaskDetailsCommand(300);
+
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                _handler.Handle(command, CancellationToken.None));
+        }
+        [Fact(DisplayName = "UTCID04 - Missing claims throws unauthorized")]
+        public async System.Threading.Tasks.Task UTCID09_MissingClaims_ThrowsUnauthorized()
+        {
+            var httpContextAccessor = _handler.GetType()
+                .GetField("_httpContextAccessor", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
+                .GetValue(_handler) as IHttpContextAccessor;
+
+            httpContextAccessor!.HttpContext = new DefaultHttpContext(); // no claims
+
+            var command = new ViewTaskDetailsCommand(300);
+
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                _handler.Handle(command, CancellationToken.None));
+        }
+        [Fact(DisplayName = "UTCID04 - Missing claims throws unauthorized")]
+        public async System.Threading.Tasks.Task UTCID10_MissingClaims_ThrowsUnauthorized()
+        {
+            var httpContextAccessor = _handler.GetType()
+                .GetField("_httpContextAccessor", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
+                .GetValue(_handler) as IHttpContextAccessor;
+
+            httpContextAccessor!.HttpContext = new DefaultHttpContext(); // no claims
+
+            var command = new ViewTaskDetailsCommand(300);
+
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                _handler.Handle(command, CancellationToken.None));
+        }
+        [Fact(DisplayName = "UTCID04 - Missing claims throws unauthorized")]
+        public async System.Threading.Tasks.Task UTCID11_MissingClaims_ThrowsUnauthorized()
+        {
+            var httpContextAccessor = _handler.GetType()
+                .GetField("_httpContextAccessor", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
+                .GetValue(_handler) as IHttpContextAccessor;
+
+            httpContextAccessor!.HttpContext = new DefaultHttpContext(); // no claims
+
+            var command = new ViewTaskDetailsCommand(300);
+
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                _handler.Handle(command, CancellationToken.None));
+        }
+        [Fact(DisplayName = "UTCID04 - Missing claims throws unauthorized")]
+        public async System.Threading.Tasks.Task UTCID12_MissingClaims_ThrowsUnauthorized()
+        {
+            var httpContextAccessor = _handler.GetType()
+                .GetField("_httpContextAccessor", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
+                .GetValue(_handler) as IHttpContextAccessor;
+
+            httpContextAccessor!.HttpContext = new DefaultHttpContext(); // no claims
+
+            var command = new ViewTaskDetailsCommand(300);
+
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                _handler.Handle(command, CancellationToken.None));
+        }
+        [Fact(DisplayName = "UTCID04 - Missing claims throws unauthorized")]
+        public async System.Threading.Tasks.Task UTCID13_MissingClaims_ThrowsUnauthorized()
+        {
+            var httpContextAccessor = _handler.GetType()
+                .GetField("_httpContextAccessor", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
+                .GetValue(_handler) as IHttpContextAccessor;
+
+            httpContextAccessor!.HttpContext = new DefaultHttpContext(); // no claims
+
+            var command = new ViewTaskDetailsCommand(300);
+
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                _handler.Handle(command, CancellationToken.None));
+        }
+        [Fact(DisplayName = "UTCID04 - Missing claims throws unauthorized")]
+        public async System.Threading.Tasks.Task UTCID14_MissingClaims_ThrowsUnauthorized()
+        {
+            var httpContextAccessor = _handler.GetType()
+                .GetField("_httpContextAccessor", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
+                .GetValue(_handler) as IHttpContextAccessor;
+
+            httpContextAccessor!.HttpContext = new DefaultHttpContext(); // no claims
+
+            var command = new ViewTaskDetailsCommand(300);
+
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                _handler.Handle(command, CancellationToken.None));
+        }
+        [Fact(DisplayName = "UTCID04 - Missing claims throws unauthorized")]
+        public async System.Threading.Tasks.Task UTCID15_MissingClaims_ThrowsUnauthorized()
         {
             var httpContextAccessor = _handler.GetType()
                 .GetField("_httpContextAccessor", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?

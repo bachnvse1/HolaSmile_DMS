@@ -1,4 +1,5 @@
 using Application.Interfaces;
+using Domain.Entities;
 using HDMS_API.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -87,5 +88,10 @@ public class ProcedureRepository : IProcedureRepository
             .Where(su => su.ProcedureId == procedureId)
             .Include(su => su.Supplies)
             .ToListAsync();
+    }
+
+    public async Task<List<ProcedureDiscountProgram>> GetProcedureDiscount()
+    {
+        return await _context.ProcedureDiscountPrograms.Include(Procedure => Procedure.Procedure).Include(p => p.DiscountProgram).Where(p => !p.DiscountProgram.IsDelete).ToListAsync();
     }
 }
