@@ -262,9 +262,54 @@ export const TeamSection = () => {
                 }}
                 onPreviousWeek={() => setCurrentWeek(Math.max(0, currentWeek - 1))}
                 onNextWeek={() => setCurrentWeek(Math.min(1, currentWeek + 1))}
-                mode="view"
-                canBookAppointment={false}
+                mode="book"
+                canBookAppointment={true}
               />
+            </div>
+            {/* Booking footer: show selection and button to go to booking page */}
+            <div className="p-6 border-t bg-gray-50 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="text-sm text-gray-700">
+                {selectedDate && selectedTimeSlot ? (
+                  <div>
+                    <div className="font-medium text-gray-900">Lịch đã chọn</div>
+                    <div className="mt-1">{selectedDate} • {selectedTimeSlot}</div>
+                    <div className="text-xs text-gray-500 mt-1">Bác sĩ: {selectedDentist?.name}</div>
+                  </div>
+                ) : (
+                  <div className="text-gray-600">Chưa chọn ngày/khung giờ. Vui lòng chọn để tiếp tục.</div>
+                )}
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => {
+                    // Close modal first then navigate
+                    setShowScheduleModal(false);
+                    // navigate to booking page with query params
+                    const params = new URLSearchParams();
+                    if (selectedDentist?.id) params.set('dentist', String(selectedDentist.id));
+                    if (selectedDate) params.set('date', selectedDate);
+                    if (selectedTimeSlot) params.set('time', selectedTimeSlot);
+                    navigate(`/appointment-booking?${params.toString()}`);
+                  }}
+                  disabled={!selectedDate || !selectedTimeSlot}
+                  className={`px-4 py-2 rounded-lg font-semibold text-white transition-colors duration-200 ${
+                    selectedDate && selectedTimeSlot ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300 cursor-not-allowed'
+                  }`}
+                >
+                  Đặt lịch
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowScheduleModal(false);
+                    setSelectedDentist(null);
+                  }}
+                  className="px-4 py-2 rounded-lg font-medium border border-gray-200 bg-white hover:bg-gray-50"
+                >
+                  Hủy
+                </button>
+              </div>
             </div>
           </div>
         </div>
