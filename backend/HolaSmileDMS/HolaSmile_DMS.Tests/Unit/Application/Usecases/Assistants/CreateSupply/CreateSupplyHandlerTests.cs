@@ -176,7 +176,79 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
         }
 
         [Fact(DisplayName = "UTCID07 - Create new supply and transaction if not exists")]
-        public async System.Threading.Tasks.Task UTCID07_CreateSupplyAndTransaction_WhenNotExist()
+        public async System.Threading.Tasks.Task UTCID08_CreateSupplyAndTransaction_WhenNotExist()
+        {
+            SetupHttpContext();
+
+            _supplyRepositoryMock.Setup(x => x.GetExistSupply("Gauze", 10000, It.IsAny<DateTime?>()))
+                .ReturnsAsync((Supplies?)null);
+
+            _supplyRepositoryMock.Setup(x => x.CreateSupplyAsync(It.IsAny<Supplies>()))
+                .ReturnsAsync(true);
+
+            var command = new CreateSupplyCommand
+            {
+                SupplyName = "Gauze",
+                Unit = "cái",
+                QuantityInStock = 10,
+                Price = 10000,
+                ExpiryDate = DateTime.Today.AddDays(10)
+            };
+
+            var result = await _handler.Handle(command, default);
+
+            result.Should().BeTrue();
+        }
+        [Fact(DisplayName = "UTCID07 - Create new supply and transaction if not exists")]
+        public async System.Threading.Tasks.Task UTCID09_CreateSupplyAndTransaction_WhenNotExist()
+        {
+            SetupHttpContext();
+
+            _supplyRepositoryMock.Setup(x => x.GetExistSupply("Gauze", 10000, It.IsAny<DateTime?>()))
+                .ReturnsAsync((Supplies?)null);
+
+            _supplyRepositoryMock.Setup(x => x.CreateSupplyAsync(It.IsAny<Supplies>()))
+                .ReturnsAsync(true);
+
+            var command = new CreateSupplyCommand
+            {
+                SupplyName = "Gauze",
+                Unit = "cái",
+                QuantityInStock = 10,
+                Price = 10000,
+                ExpiryDate = DateTime.Today.AddDays(10)
+            };
+
+            var result = await _handler.Handle(command, default);
+
+            result.Should().BeTrue();
+        }
+        [Fact(DisplayName = "UTCID07 - Create new supply and transaction if not exists")]
+        public async System.Threading.Tasks.Task UTCID10_CreateSupplyAndTransaction_WhenNotExist()
+        {
+            SetupHttpContext();
+
+            _supplyRepositoryMock.Setup(x => x.GetExistSupply("Gauze", 10000, It.IsAny<DateTime?>()))
+                .ReturnsAsync((Supplies?)null);
+
+            _supplyRepositoryMock.Setup(x => x.CreateSupplyAsync(It.IsAny<Supplies>()))
+                .ReturnsAsync(true);
+
+            var command = new CreateSupplyCommand
+            {
+                SupplyName = "Gauze",
+                Unit = "cái",
+                QuantityInStock = 10,
+                Price = 10000,
+                ExpiryDate = DateTime.Today.AddDays(10)
+            };
+
+            var result = await _handler.Handle(command, default);
+
+            result.Should().BeTrue();
+        }
+        [Fact(DisplayName = "UTCID07 - Create new supply and transaction if not exists")]
+        public async System.Threading.Tasks.Task UTCID011_CreateSupplyAndTransaction_WhenNotExist()
         {
             SetupHttpContext();
 

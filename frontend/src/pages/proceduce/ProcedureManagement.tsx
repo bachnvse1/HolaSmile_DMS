@@ -24,6 +24,7 @@ export default function ProcedureManagement() {
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
 
     const [selectedProcedure, setSelectedProcedure] = useState<Procedure | null>(null)
+    const [selectedProcedureId, setSelectedProcedureId] = useState<number | null>(null)
     const [searchTerm, setSearchTerm] = useState("")
     const [statusFilter, setStatusFilter] = useState("all")
     const [currentPage, setCurrentPage] = useState(1)
@@ -54,6 +55,15 @@ export default function ProcedureManagement() {
         procedureId: number
         isDeleted: boolean
     } | null>(null)
+
+    useEffect(() => {
+        if (selectedProcedureId && procedures.length > 0) {
+            const updatedProcedure = procedures.find(p => p.procedureId === selectedProcedureId)
+            if (updatedProcedure) {
+                setSelectedProcedure(updatedProcedure)
+            }
+        }
+    }, [procedures, selectedProcedureId])
 
     useEffect(() => {
         setCurrentPage(1)
@@ -96,11 +106,13 @@ export default function ProcedureManagement() {
 
     const handleEditProcedure = (procedure: Procedure) => {
         setSelectedProcedure(procedure)
+        setSelectedProcedureId(procedure.procedureId)
         setIsEditModalOpen(true)
     }
 
     const handleViewDetails = (procedure: Procedure) => {
         setSelectedProcedure(procedure)
+        setSelectedProcedureId(procedure.procedureId)
         setIsDetailModalOpen(true)
     }
 
@@ -108,11 +120,13 @@ export default function ProcedureManagement() {
         try {
             const result = await ProcedureService.update(updatedData)
             const successMessage = typeof result === "string" ? result : result.message || "Cập nhật thành công"
-            toast.success(successMessage)
-
+            
             const refreshed = await ProcedureService.getAll()
             setProcedures(refreshed)
+            
             setIsEditModalOpen(false)
+            
+            toast.success(successMessage)
         } catch (err: any) {
             console.error("Lỗi cập nhật:", err?.response?.data || err)
             toast.error(err?.response?.data?.message || "Cập nhật thất bại")
@@ -163,6 +177,22 @@ export default function ProcedureManagement() {
         currentPage * itemsPerPage
     )
 
+    const handleCloseDetailModal = (open: boolean) => {
+        setIsDetailModalOpen(open)
+        if (!open) {
+            setSelectedProcedure(null)
+            setSelectedProcedureId(null)
+        }
+    }
+ 
+    const handleCloseEditModal = (open: boolean) => {
+        setIsEditModalOpen(open)
+        if (!open) {
+            setSelectedProcedure(null)
+            setSelectedProcedureId(null)
+        }
+    }
+
     const content = (
         <div className="container mx-auto p-6 space-y-6">
             <div className="flex justify-between items-center">
@@ -212,7 +242,7 @@ export default function ProcedureManagement() {
                 <EditProcedureModal
                     procedure={selectedProcedure}
                     isOpen={isEditModalOpen}
-                    onOpenChange={setIsEditModalOpen}
+                    onOpenChange={handleCloseEditModal}
                     onSave={handleSaveProcedure}
                 />
             )}
@@ -220,7 +250,7 @@ export default function ProcedureManagement() {
             <ProcedureDetailModal
                 procedure={selectedProcedure}
                 isOpen={isDetailModalOpen}
-                onOpenChange={setIsDetailModalOpen}
+                onOpenChange={handleCloseDetailModal}
                 onEdit={(p) => {
                     setIsDetailModalOpen(false)
                     handleEditProcedure(p)

@@ -1,3 +1,5 @@
+using Domain.Entities;
+
 namespace Application.Interfaces;
 
 public interface IProcedureRepository
@@ -13,4 +15,5 @@ public interface IProcedureRepository
     Task<bool> CreateSupplyUsed(List<SuppliesUsed> suppliesUsed);
     Task<Procedure?> GetProcedureByIdAsync(int id, CancellationToken cancellationToken);
     Task<bool> UpdateProcedureAsync(Procedure procedure, CancellationToken cancellationToken);
+    Task<List<ProcedureDiscountProgram>> GetProcedureDiscount();
 }
