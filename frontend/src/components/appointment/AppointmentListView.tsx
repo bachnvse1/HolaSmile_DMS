@@ -8,7 +8,7 @@ import { Checkbox } from '../ui/checkbox';
 import { Pagination } from '../ui/Pagination';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { useAuth } from '../../hooks/useAuth';
-import { isAppointmentCancellable } from '../../utils/appointmentUtils';
+import { isAppointmentCancellable, isAppointmentDue } from '../../utils/appointmentUtils';
 import type { AppointmentDTO } from '../../types/appointment';
 import { useForm } from "react-hook-form";
 import TreatmentModal from '../patient/TreatmentModal';
@@ -129,7 +129,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedAppointments = sortedAppointments.slice(startIndex, endIndex);
- 
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, itemsPerPage]);
@@ -178,7 +178,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
 
   const handleConfirmStatusChange = () => {
     if (!confirmModal.appointmentId || !confirmModal.status) return;
-    
+
     changeStatus(
       { appointmentId: confirmModal.appointmentId, status: confirmModal.status },
       {
@@ -254,7 +254,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
               <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center space-x-2 sm:space-x-3">
@@ -418,7 +418,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                         </Badge>
                       )}
                   </div>
-                  
+
                   {/* Action buttons*/}
                   <div className="flex flex-wrap gap-2 w-auto">
                     <Button
@@ -436,7 +436,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                       <Eye className="h-4 w-4 flex-shrink-0" />
                       <span>Chi tiết</span>
                     </Button>
-                
+
                     {role === 'Receptionist' && appointment.status === 'confirmed' && (
                       <>
                         <Button
@@ -467,25 +467,27 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                         </Button>
                       </>
                     )}
-                    
-                    {role === 'Dentist' && appointment.status !== 'canceled' && (
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedAppointmentId(appointment.appointmentId);
-                          setShowTreatmentModal(true);
-                          setTreatmentToday(false);
-                        }}
-                        className="flex items-center justify-center gap-2 whitespace-nowrap"
-                      >
-                        <FileText className="h-4 w-4 flex-shrink-0" />
-                        <span className="truncate">
-                          <span className="hidden md:inline">Tạo hồ sơ điều trị</span>
-                          <span className="md:hidden">Tạo hồ sơ</span>
-                        </span>
-                      </Button>
-                    )}
+
+                    {role === 'Dentist'
+                      && appointment.status !== 'canceled'
+                      && isAppointmentDue(appointment.appointmentDate, appointment.appointmentTime) && (
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedAppointmentId(appointment.appointmentId);
+                            setShowTreatmentModal(true);
+                            setTreatmentToday(false);
+                          }}
+                          className="flex items-center justify-center gap-2 whitespace-nowrap"
+                        >
+                          <FileText className="h-4 w-4 flex-shrink-0" />
+                          <span className="truncate">
+                            <span className="hidden md:inline">Tạo hồ sơ điều trị</span>
+                            <span className="md:hidden">Tạo hồ sơ</span>
+                          </span>
+                        </Button>
+                      )}
                   </div>
                 </div>
 
@@ -566,8 +568,8 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
           ))
         )}
       </div>
-        
-        {/* Pagination */}
+
+      {/* Pagination */}
       {sortedAppointments.length > 0 && (
         <Card className="p-4">
           <Pagination

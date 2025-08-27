@@ -292,7 +292,7 @@ const RecordRow: React.FC<RecordRowProps> = ({
 
                 {!readonly && userInfo.role === "Dentist" && <DropdownMenuSeparator />}
 
-                {userInfo.role === "Receptionist" && !isPaymentCompleted && (
+                {userInfo.role === "Receptionist" && !isPaymentCompleted  && record.treatmentStatus?.toLowerCase() === "completed" && (
                   <>
                     <DropdownMenuItem
                       onClick={() => onOpenInvoiceModal(patientId, record.treatmentRecordID)}
