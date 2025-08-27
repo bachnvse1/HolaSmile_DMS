@@ -17,6 +17,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
         private readonly Mock<IMediator> _mediatorMock = new();
         private readonly Mock<IUserCommonRepository> _userCommonRepositoryMock = new();
         private readonly UpdateTaskStatusHandler _handler;
+        private readonly TreatmentProgress _treatmentProgress;
 
         public UpdateTaskStatusHandlerTests()
         {
@@ -31,6 +32,17 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             _taskRepoMock
                 .Setup(r => r.GetTreatmentProgressByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(treatmentProgress);
+
+            _treatmentProgress = new TreatmentProgress
+            {
+                DentistID = 1,
+                PatientID = 123,
+                TreatmentRecordID = 456
+            };
+
+            _taskRepoMock
+                .Setup(r => r.GetTreatmentProgressByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(_treatmentProgress);
 
             _handler = new UpdateTaskStatusHandler(
                 _taskRepoMock.Object,
@@ -97,7 +109,8 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
                     n.Title == "Cập nhật trạng thái công việc trợ lý" &&
                     n.Message == "Tiến trình: Test Task - đã hoàn thành" &&
                     n.Type == "Update" &&
-                    n.MappingUrl == "/dentist/assigned-tasks"),
+                    n.MappingUrl == $"/patient/view-treatment-progress/{_treatmentProgress.TreatmentRecordID}?patientId={_treatmentProgress.PatientID}&dentistId={_treatmentProgress.DentistID}"
+                ),
                 It.IsAny<CancellationToken>()
             ), Times.Once);
         }
