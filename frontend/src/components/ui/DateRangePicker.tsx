@@ -103,7 +103,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
                 </div>
 
                 {/* Quick Actions */}
-                <div className="border-t pt-3">
+                <div className="border-t border-gray-300 pt-3">
                   <h3 className="text-sm font-medium text-gray-700 mb-2">Nhanh chóng</h3>
                   <div className="space-y-1">
                     <button

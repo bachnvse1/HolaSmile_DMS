@@ -456,10 +456,10 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
                         <span className="font-medium">{appointment.time}</span>
                         <div className="flex items-center space-x-1">
                           {appointment.isNewPatient && (
-                            <Badge variant="outline" className="text-xs px-1">Mới</Badge>
+                            <Badge variant="outline" className="text-xs px-1 border-gray-400">Mới</Badge>
                           )}
                           {appointment.details.isExistPrescription && (
-                            <Badge variant="success" className="text-xs px-1">Thuốc</Badge>
+                            <Badge variant="success" className="text-xs px-1 border-green-400">Thuốc</Badge>
                           )}
                           {role === 'Patient' && appointment.status === 'confirmed' &&
                             !isAppointmentCancellable(appointment.details.appointmentDate, appointment.details.appointmentTime) && (

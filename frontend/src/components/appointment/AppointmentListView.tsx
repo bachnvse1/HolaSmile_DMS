@@ -473,7 +473,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                       <span>Chi tiết</span>
                     </Button>
                 
-                    {role === 'Receptionist' && appointment.status === 'confirmed' && (
+                    {role === 'Receptionist' && appointment.status !== 'canceled' && (
                       <>
                         <Button
                           variant="default"

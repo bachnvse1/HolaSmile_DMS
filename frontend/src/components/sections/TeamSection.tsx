@@ -1,4 +1,4 @@
-import { Linkedin, Twitter, Mail, Calendar, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useEffect, useState, useRef } from 'react';
 import { ScheduleCalendar } from '@/components/appointment/ScheduleCalendar';
@@ -243,7 +243,7 @@ export const TeamSection = () => {
               />
             </div>
             {/* Booking footer: show selection and button to go to booking page */}
-            <div className="p-6 border-t bg-gray-50 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="p-6 border-t border-gray-300 bg-gray-50 flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="text-sm text-gray-700">
                 {selectedDate && selectedTimeSlot ? (
                   <div>
@@ -294,7 +294,7 @@ export const TeamSection = () => {
       {/* Mobile fixed footer for booking (visible on small screens) */}
       {showScheduleModal && selectedDentist && (
         <div className="md:hidden fixed bottom-4 left-4 right-4 z-50"> 
-          <div className="bg-white rounded-xl shadow-lg border px-4 py-3 flex items-center justify-between">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-300 px-4 py-3 flex items-center justify-between">
             <div className="text-sm">
               {selectedDate && selectedTimeSlot ? (
                 <div>
