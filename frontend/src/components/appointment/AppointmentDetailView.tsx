@@ -204,7 +204,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
                 <span className="hidden sm:inline">Tạo hồ sơ điều trị</span>
                 <span className="sm:hidden">Hồ sơ</span>
               </Button>
-            )}s
+            )}
         </div>
       </div>
 
