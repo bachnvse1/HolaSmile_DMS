@@ -303,44 +303,5 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             Assert.NotNull(result);
             Assert.Empty(result);
         }
-        [Fact(DisplayName = "Normal - UTCID04 - Assistant views empty list when no data")]
-        public async System.Threading.Tasks.Task UTCID12_ViewWarrantyCards_NoData_ReturnsEmptyList()
-        {
-            ClearData();
-
-            SetupHttpContext("Assistant");
-            var command = new ViewListWarrantyCardsCommand();
-
-            var result = await _handler.Handle(command, default);
-
-            Assert.NotNull(result);
-            Assert.Empty(result);
-        }
-        [Fact(DisplayName = "Normal - UTCID04 - Assistant views empty list when no data")]
-        public async System.Threading.Tasks.Task UTCID13_ViewWarrantyCards_NoData_ReturnsEmptyList()
-        {
-            ClearData();
-
-            SetupHttpContext("Assistant");
-            var command = new ViewListWarrantyCardsCommand();
-
-            var result = await _handler.Handle(command, default);
-
-            Assert.NotNull(result);
-            Assert.Empty(result);
-        }
-        [Fact(DisplayName = "Normal - UTCID04 - Assistant views empty list when no data")]
-        public async System.Threading.Tasks.Task UTCID15_ViewWarrantyCards_NoData_ReturnsEmptyList()
-        {
-            ClearData();
-
-            SetupHttpContext("Assistant");
-            var command = new ViewListWarrantyCardsCommand();
-
-            var result = await _handler.Handle(command, default);
-
-            Assert.NotNull(result);
-            Assert.Empty(result);
-        }
     }
 }

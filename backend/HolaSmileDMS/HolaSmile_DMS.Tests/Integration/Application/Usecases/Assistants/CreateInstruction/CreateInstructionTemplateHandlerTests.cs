@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
 using Application.Usecases.Assistants.CreateInstructionTemplete;
@@ -115,6 +115,20 @@ public class CreateInstructionTemplateHandlerTests
 
     [Fact]
     public async System.Threading.Tasks.Task UTCID07_ShouldThrow_WhenHttpContextIsNull()
+    {
+        _httpContextAccessor.Setup(x => x.HttpContext).Returns<HttpContext>(null);
+
+        var cmd = new CreateInstructionTemplateCommand
+        {
+            Instruc_TemplateName = "Any",
+            Instruc_TemplateContext = "Any"
+        };
+
+        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(cmd, default));
+        Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
+    }
+    [Fact]
+    public async System.Threading.Tasks.Task UTCID08_ShouldThrow_WhenHttpContextIsNull()
     {
         _httpContextAccessor.Setup(x => x.HttpContext).Returns<HttpContext>(null);
 
