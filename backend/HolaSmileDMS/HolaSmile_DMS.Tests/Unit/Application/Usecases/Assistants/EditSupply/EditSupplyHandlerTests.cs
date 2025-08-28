@@ -40,7 +40,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             SupplyName = "Gloves",
             Unit = "Box",
             Price = 15.5m,
-            ExpiryDate = DateTime.Now.AddDays(30)
         };
 
         [Fact(DisplayName = "Normal - UTCID01 - Valid input should return true")]
@@ -103,16 +102,17 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
             Assert.Equal("Giá không được nhỏ hơn 0", ex.Message);
         }
 
-        [Fact(DisplayName = "Invalid - UTCID07 - ExpiryDate is in the past")]
-        public async System.Threading.Tasks.Task UTCID07_ExpiryDateInvalid_ThrowsException()
+        [Fact(DisplayName = "Invalid - UTCID07 - Price <= 0")]
+        public async System.Threading.Tasks.Task UTCID07_PriceInvalid_ThrowsException()
         {
             SetupHttpContext("assistant", "1");
             var command = CreateValidCommand();
-            command.ExpiryDate = DateTime.Now.AddDays(-1);
+            command.Price = 0;
 
             var ex = await Assert.ThrowsAsync<ArgumentException>(() => _handler.Handle(command, default));
-            Assert.Equal("Ngày hết hạn không được trước ngày hiện tại", ex.Message);
+            Assert.Equal("Giá không được nhỏ hơn 0", ex.Message);
         }
+
 
         [Fact(DisplayName = "Invalid - UTCID08 - Supply does not exist")]
         public async System.Threading.Tasks.Task UTCID08_SupplyNotFound_ThrowsException()
@@ -150,7 +150,6 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
                 SupplyName = "Mask",
                 Unit = "Box",
                 Price = 1000,
-                ExpiryDate = DateTime.Now.AddDays(1)
             };
 
             _supplyRepositoryMock.Setup(r => r.GetSupplyBySupplyIdAsync(command.SupplyId)).ReturnsAsync((Supplies)null);

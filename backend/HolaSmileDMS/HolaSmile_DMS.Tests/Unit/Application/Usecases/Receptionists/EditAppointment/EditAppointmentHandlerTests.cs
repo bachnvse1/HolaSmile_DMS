@@ -173,7 +173,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
             var ex = await Assert.ThrowsAsync<Exception>(() =>
                 _handler.Handle(command, default));
 
-            Assert.Equal(MessageConstants.MSG.MSG34, ex.Message);
+            Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
         }
 
         // 🔴 Abnormal - Dentist not found

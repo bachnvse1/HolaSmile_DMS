@@ -111,95 +111,14 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
 
             Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
         }
-        [Fact(DisplayName = "Abnormal - UTCID03 - Role is not Assistant should throw MSG26")]
-        public async System.Threading.Tasks.Task UTCID04_ViewPrescriptionTemplates_WrongRole_Throws()
-        {
-            SetupHttpContext("abc");
 
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(new ViewPrescriptionTemplateCommand(), default));
 
-            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
-        }
-        [Fact(DisplayName = "Abnormal - UTCID03 - Role is not Assistant should throw MSG26")]
-        public async System.Threading.Tasks.Task UTCID05_ViewPrescriptionTemplates_WrongRole_Throws()
-        {
-            SetupHttpContext("abc");
+ 
+  
+  
 
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(new ViewPrescriptionTemplateCommand(), default));
 
-            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
-        }
-        [Fact(DisplayName = "Abnormal - UTCID03 - Role is not Assistant should throw MSG26")]
-        public async System.Threading.Tasks.Task UTCID06_ViewPrescriptionTemplates_WrongRole_Throws()
-        {
-            SetupHttpContext("abc");
 
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(new ViewPrescriptionTemplateCommand(), default));
 
-            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
-        }
-        [Fact(DisplayName = "Abnormal - UTCID03 - Role is not Assistant should throw MSG26")]
-        public async System.Threading.Tasks.Task UTCID07_ViewPrescriptionTemplates_WrongRole_Throws()
-        {
-            SetupHttpContext("abc");
-
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(new ViewPrescriptionTemplateCommand(), default));
-
-            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
-        }
-        [Fact(DisplayName = "Abnormal - UTCID03 - Role is not Assistant should throw MSG26")]
-        public async System.Threading.Tasks.Task UTCID08_ViewPrescriptionTemplates_WrongRole_Throws()
-        {
-            SetupHttpContext("abc");
-
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(new ViewPrescriptionTemplateCommand(), default));
-
-            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
-        }
-        [Fact(DisplayName = "Abnormal - UTCID03 - Role is not Assistant should throw MSG26")]
-        public async System.Threading.Tasks.Task UTCID09_ViewPrescriptionTemplates_WrongRole_Throws()
-        {
-            SetupHttpContext("abc");
-
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(new ViewPrescriptionTemplateCommand(), default));
-
-            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
-        }
-        [Fact(DisplayName = "Abnormal - UTCID03 - Role is not Assistant should throw MSG26")]
-        public async System.Threading.Tasks.Task UTCID10_ViewPrescriptionTemplates_WrongRole_Throws()
-        {
-            SetupHttpContext("abc");
-
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(new ViewPrescriptionTemplateCommand(), default));
-
-            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
-        }
-        [Fact(DisplayName = "Abnormal - UTCID03 - Role is not Assistant should throw MSG26")]
-        public async System.Threading.Tasks.Task UTCID11_ViewPrescriptionTemplates_WrongRole_Throws()
-        {
-            SetupHttpContext("abc");
-
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(new ViewPrescriptionTemplateCommand(), default));
-
-            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
-        }
-        [Fact(DisplayName = "Abnormal - UTCID03 - Role is not Assistant should throw MSG26")]
-        public async System.Threading.Tasks.Task UTCID12_ViewPrescriptionTemplates_WrongRole_Throws()
-        {
-            SetupHttpContext("abc");
-
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-                _handler.Handle(new ViewPrescriptionTemplateCommand(), default));
-
-            Assert.Equal(MessageConstants.MSG.MSG26, ex.Message);
-        }
     }
 }

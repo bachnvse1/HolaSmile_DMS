@@ -1,10 +1,10 @@
 ﻿using System.Security.Claims;
 using Application.Common.Mappings;
-using Application.Constants;
-using Application.Usecases.Dentist.ViewDentistSchedule;
+using Application.Interfaces;
 using Application.Usecases.UserCommon.ViewSupplies;
 using AutoMapper;
 using HDMS_API.Infrastructure.Persistence;
+using HDMS_API.Infrastructure.Repositories;
 using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -22,51 +22,75 @@ public class ViewListSuppliesIntegrationTests
     public ViewListSuppliesIntegrationTests()
     {
         var services = new ServiceCollection();
-        services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseInMemoryDatabase("TestDb_ViewListSupplies"));
+
+        services.AddDbContext<ApplicationDbContext>(opt =>
+            opt.UseInMemoryDatabase("TestDb_ViewListSupplies"));
 
         services.AddHttpContextAccessor();
         services.AddAutoMapper(typeof(MappingSupply).Assembly);
+
+        // Đăng ký repo thật dùng InMemory Db
+        services.AddScoped<ISupplyRepository, SupplyRepository>();
+        services.AddScoped<IUserCommonRepository, UserCommonRepository>();
 
         var provider = services.BuildServiceProvider();
         _context = provider.GetRequiredService<ApplicationDbContext>();
         _httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
         var mapper = provider.GetRequiredService<IMapper>();
 
-
         SeedData();
-        _handler = new ViewListSuppliesHandler(_httpContextAccessor, new SupplyRepository(_context), mapper);
+
+        var supplyRepo = provider.GetRequiredService<ISupplyRepository>();
+        var userCommonRepo = provider.GetRequiredService<IUserCommonRepository>();
+
+        _handler = new ViewListSuppliesHandler(
+            _httpContextAccessor,
+            supplyRepo,
+            userCommonRepo,
+            mapper
+        );
     }
 
     private void SeedData()
     {
+        // clear
+        _context.Users.RemoveRange(_context.Users);
         _context.Supplies.RemoveRange(_context.Supplies);
         _context.SaveChanges();
 
+        // users
+        _context.Users.AddRange(
+            new User { UserID = 1, Username = "Assistant A", Phone = "0222222222", Fullname = "Assistant A" },
+            new User { UserID = 2, Username = "Dentist B", Phone = "0111111111", Fullname = "Dentist B" }
+        );
+        _context.SaveChanges();
+
+        // supplies (CreatedBy phải khớp user phía trên)
         _context.Supplies.AddRange(
             new Supplies
             {
                 SupplyId = 1,
                 Name = "Gloves",
                 Unit = "Box",
-                QuantityInStock = 10,
                 Price = 100,
-                ExpiryDate = DateTime.Today.AddMonths(6),
-                IsDeleted = false
+                IsDeleted = false,
+                CreatedBy = 1,
+                CreatedAt = DateTime.UtcNow
             },
             new Supplies
             {
                 SupplyId = 2,
                 Name = "Masks",
                 Unit = "Box",
-                QuantityInStock = 20,
                 Price = 50,
-                ExpiryDate = DateTime.Today.AddMonths(6),
-                IsDeleted = true
+                IsDeleted = true,
+                CreatedBy = 2,
+                CreatedAt = DateTime.UtcNow
             }
         );
         _context.SaveChanges();
     }
+
 
     private void SetupHttpContext(string role, int userId)
     {

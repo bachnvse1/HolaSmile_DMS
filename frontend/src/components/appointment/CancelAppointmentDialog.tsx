@@ -106,7 +106,7 @@ export const CancelAppointmentDialog: React.FC<CancelAppointmentDialogProps> = (
                   <ul className="list-disc list-inside space-y-1 text-xs">
                     <li>Lịch hẹn đã hủy không thể khôi phục</li>
                     <li>Bạn có thể đặt lịch hẹn mới sau khi hủy</li>
-                    <li>Vui lòng hủy trước ít nhất 2 giờ so với giờ hẹn</li>
+                    <li>Vui lòng hủy trước ít nhất 12 giờ so với giờ hẹn</li>
                   </ul>
                 </div>
               </div>

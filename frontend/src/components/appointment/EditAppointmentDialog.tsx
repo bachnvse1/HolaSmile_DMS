@@ -90,7 +90,7 @@ export const EditAppointmentDialog: React.FC<EditAppointmentDialogProps> = ({
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-opacity-75"
+        className="absolute inset-0 bg-black/20 bg-opacity-75"
         onClick={onClose}
       />
       {/* Modal */}
