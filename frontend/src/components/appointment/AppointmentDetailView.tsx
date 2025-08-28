@@ -407,7 +407,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-fit">
             <div className="flex items-center justify-between p-4 bg-gray-50 border-b border-gray-200">
               <h3 className="font-semibold text-lg text-gray-900">Đơn thuốc</h3>
-              {role === 'Dentist' && isAppointmentDue(appointment.appointmentDate, appointment.appointmentTime) && appointment.status === "attended" &&(
+              {role === 'Dentist' && isAppointmentDue(appointment.appointmentDate, appointment.appointmentTime) && appointment.status === "attended" && (
                 <Button
                   variant={appointment.isExistPrescription ? "outline" : "default"}
                   size="sm"
@@ -469,7 +469,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
           <InstructionCard
             appointmentId={appointmentId}
             appointmentStatus={appointment.status}
-            canAdd={isAppointmentDue(appointment.appointmentDate, appointment.appointmentTime)}
+            canAdd={appointment.status === "attended" && isAppointmentDue(appointment.appointmentDate, appointment.appointmentTime)}
           />
         </div>
       </div>

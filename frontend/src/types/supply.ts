@@ -6,11 +6,11 @@ export interface Supply {
   ExpiryDate?: string; 
   Price: number;
   CreatedAt: string;
-  UpdatedAt?: string;
-  CreatedBy: string; 
-  UpdatedBy?: string; 
-  IsDeleted?: boolean;
-  isDeleted?: boolean;
+  UpdatedAt: string;
+  CreatedBy: number;
+  UpdatedBy: number;
+  IsDeleted: boolean;
+  isDeleted?: boolean; 
 }
 
 export interface CreateSupplyRequest {

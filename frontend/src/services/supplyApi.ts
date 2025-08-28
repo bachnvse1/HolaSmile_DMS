@@ -12,6 +12,11 @@ export const mapToSupplyItem = (supply: Supply): SupplyItem => ({
   name: supply.Name,
   unit: supply.Unit,
   price: supply.Price,
+<<<<<<< HEAD
+=======
+  inStock: supply.QuantityInStock,
+  createdAt: supply.CreatedAt || null,
+>>>>>>> 0fe3576cf4d39bc37fc08bccad7b9e368172de62
 })
 
 
