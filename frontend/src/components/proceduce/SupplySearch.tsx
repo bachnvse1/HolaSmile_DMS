@@ -18,7 +18,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import type { SupplyItem, Supply } from "@/types/procedure"
-import { supplyApi, mapToSupplyItem  } from "@/services/supplyApi" 
+import { supplyApi, mapToSupplyItem } from "@/services/supplyApi"
 import { formatCurrency } from "@/utils/currencyUtils"
 
 interface SupplySearchProps {
@@ -114,11 +114,10 @@ export function SupplySearch({ onSelectSupply, selectedSupplies, disabled = fals
 
                     const content = (
                       <div
-                        className={`p-4 border rounded-lg transition-colors ${
-                          isDisabled
-                            ? "opacity-50 cursor-not-allowed"
-                            : "cursor-pointer hover:bg-muted/50"
-                        } ${isSupplySelected(supply.id) ? "bg-blue-50 border-blue-200" : ""}`}
+                        className={`p-4 border rounded-lg transition-colors ${isDisabled
+                          ? "opacity-50 cursor-not-allowed"
+                          : "cursor-pointer hover:bg-muted/50"
+                          } ${isSupplySelected(supply.id) ? "bg-blue-50 border-blue-200" : ""}`}
                         onClick={() => {
                           if (!isDisabled) handleSelectSupply(supply)
                         }}
@@ -131,27 +130,14 @@ export function SupplySearch({ onSelectSupply, selectedSupplies, disabled = fals
                                 <Check className="w-4 h-4 text-green-600" />
                               )}
                             </div>
-                            <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                              <span>Đơn vị: {supply.unit}</span>
-                              <span>
-                                Tồn kho:{" "}
-                                {isOutOfStock ? (
-                                  <span className="text-red-500 font-medium">
-                                    Hết hàng
-                                  </span>
-                                ) : (
-                                  supply.inStock
-                                )}
-                              </span>
-                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-medium text-green-600">
+                          <div className="flex items-baseline justify-end gap-1">
+                            <span className="font-medium text-green-600">
                               {formatCurrency(supply.price)}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
+                            </span>
+                            <span className="text-xs text-muted-foreground">
                               /{supply.unit}
-                            </p>
+                            </span>
                           </div>
                         </div>
                       </div>
