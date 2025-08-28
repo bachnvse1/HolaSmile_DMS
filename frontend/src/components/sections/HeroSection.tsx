@@ -66,48 +66,48 @@ export const HeroSection = () => {
   return (
     <section id="home" className="relative overflow-hidden">
 
-    {/* Promotion Banner */}
-    <div className="fixed top-14 sm:top-16 left-0 right-0 z-40 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-500 text-white py-2 sm:py-3 overflow-hidden">
-      <div className="absolute inset-0 bg-blue-600/20 backdrop-blur-sm"></div>
-      <div className="relative z-10">
-        <div className="flex animate-marquee whitespace-nowrap">
-          <span className="text-sm sm:text-base font-semibold mx-8">
-            🎉 KHUYẾN MÃI ĐẶC BIỆT - GIẢM 30% TẤT CẢ DỊCH VỤ NHA KHOA
-          </span>
-          <span className="text-sm sm:text-base font-semibold mx-8">
-            ⭐ TẶNG NGAY PHIẾU THĂM KHÁM MIỄN PHÍ CHO KHÁCH HÀNG MỚI
-          </span>
-          <span className="text-sm sm:text-base font-semibold mx-8">
-            🎉 NIỀNG RĂNG INVISALIGN - ƯU ĐÃI LÊN ĐẾN 50%
-          </span>
-          <span className="text-sm sm:text-base font-semibold mx-8">
-            ⭐ TRỒNG RĂNG IMPLANT - GIẢM GIÁ SỐC TRONG THÁNG NÀY
-          </span>
-          <span className="text-sm sm:text-base font-semibold mx-8">
-            🎉 KHUYẾN MÃI ĐẶC BIỆT - GIẢM 30% TẤT CẢ DỊCH VỤ NHA KHOA
-          </span>
-          <span className="text-sm sm:text-base font-semibold mx-8">
-            ⭐ TẶNG NGAY PHIẾU THĂM KHÁM MIỄN PHÍ CHO KHÁCH HÀNG MỚI
-          </span>
-          <span className="text-sm sm:text-base font-semibold mx-8">
-            🎉 NIỀNG RĂNG INVISALIGN - ƯU ĐÃI LÊN ĐẾN 50%
-          </span>
-          <span className="text-sm sm:text-base font-semibold mx-8">
-            ⭐ TRỒNG RĂNG IMPLANT - GIẢM GIÁ SỐC TRONG THÁNG NÀY
-          </span>
+      {/* Promotion Banner */}
+      <div className="bg-gradient-to-r from-blue-500 via-blue-600 to-blue-500 text-white py-2 sm:py-3 overflow-hidden">
+        <div className="absolute inset-0 backdrop-blur-sm"></div>
+        <div className="relative z-10">
+          <div className="flex animate-marquee whitespace-nowrap">
+            <span className="text-sm sm:text-base font-semibold mx-8">
+              🎉 KHUYẾN MÃI ĐẶC BIỆT - GIẢM 30% TẤT CẢ DỊCH VỤ NHA KHOA
+            </span>
+            <span className="text-sm sm:text-base font-semibold mx-8">
+              ⭐ TẶNG NGAY PHIẾU THĂM KHÁM MIỄN PHÍ CHO KHÁCH HÀNG MỚI
+            </span>
+            <span className="text-sm sm:text-base font-semibold mx-8">
+              🎉 NIỀNG RĂNG INVISALIGN - ƯU ĐÃI LÊN ĐẾN 50%
+            </span>
+            <span className="text-sm sm:text-base font-semibold mx-8">
+              ⭐ TRỒNG RĂNG IMPLANT - GIẢM GIÁ SỐC TRONG THÁNG NÀY
+            </span>
+            <span className="text-sm sm:text-base font-semibold mx-8">
+              🎉 KHUYẾN MÃI ĐẶC BIỆT - GIẢM 30% TẤT CẢ DỊCH VỤ NHA KHOA
+            </span>
+            <span className="text-sm sm:text-base font-semibold mx-8">
+              ⭐ TẶNG NGAY PHIẾU THĂM KHÁM MIỄN PHÍ CHO KHÁCH HÀNG MỚI
+            </span>
+            <span className="text-sm sm:text-base font-semibold mx-8">
+              🎉 NIỀNG RĂNG INVISALIGN - ƯU ĐÃI LÊN ĐẾN 50%
+            </span>
+            <span className="text-sm sm:text-base font-semibold mx-8">
+              ⭐ TRỒNG RĂNG IMPLANT - GIẢM GIÁ SỐC TRONG THÁNG NÀY
+            </span>
+          </div>
         </div>
       </div>
-    </div>
 
       <div className="w-full">
         {/* Full Width Carousel */}
-        <div 
-          className="relative mt-8 sm:mt-12 md:mt-16 lg:mt-20"
+        <div
+          className="relative mt-8 sm:mt-10 md:mt-12 lg:mt-12"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <Carousel 
-            className="w-full" 
+          <Carousel
+            className="w-full"
             opts={{ align: "start", loop: true }}
             setApi={setApi}
           >
@@ -123,7 +123,7 @@ export const HeroSection = () => {
                       />
                       {/* Gradient overlay */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
-                      
+
                       {/* Content overlay */}
                       <div className="absolute bottom-8 left-8 text-white z-10">
                         <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 drop-shadow-lg">
@@ -138,19 +138,17 @@ export const HeroSection = () => {
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious 
-              className={`left-1 sm:left-12 md:left-14 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 transition-all duration-300 ${
-                isHovered 
-                  ? 'opacity-100 bg-white/20 border-white/30 text-white hover:bg-blue-500 hover:border-blue-400 hover:text-white' 
+            <CarouselPrevious
+              className={`left-1 sm:left-12 md:left-14 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 transition-all duration-300 ${isHovered
+                  ? 'opacity-100 bg-white/20 border-white/30 text-white hover:bg-blue-500 hover:border-blue-400 hover:text-white'
                   : 'opacity-0'
-              }`} 
+                }`}
             />
-            <CarouselNext 
-              className={`right-1 sm:right-12 md:right-14 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 transition-all duration-300 ${
-                isHovered 
-                  ? 'opacity-100 bg-white/20 border-white/30 text-white hover:bg-blue-500 hover:border-blue-400 hover:text-white' 
+            <CarouselNext
+              className={`right-1 sm:right-12 md:right-14 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 transition-all duration-300 ${isHovered
+                  ? 'opacity-100 bg-white/20 border-white/30 text-white hover:bg-blue-500 hover:border-blue-400 hover:text-white'
                   : 'opacity-0'
-              }`} 
+                }`}
             />
           </Carousel>
         </div>
@@ -162,11 +160,10 @@ export const HeroSection = () => {
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
-                className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
-                  currentSlide === index 
-                    ? 'bg-blue-600 scale-125 shadow-lg' 
+                className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${currentSlide === index
+                    ? 'bg-blue-600 scale-125 shadow-lg'
                     : 'bg-blue-300/50 hover:bg-blue-300/80'
-                }`}
+                  }`}
                 aria-label={`Go to slide ${index + 1}`}
               />
             ))}
@@ -178,7 +175,7 @@ export const HeroSection = () => {
       <div className="absolute top-10 sm:top-20 left-4 sm:left-10 w-2 h-2 sm:w-4 sm:h-4 bg-white/30 rounded-full animate-ping"></div>
       <div className="absolute top-20 sm:top-40 right-8 sm:right-20 w-3 h-3 sm:w-6 sm:h-6 bg-white/40 rounded-full animate-pulse"></div>
       <div className="absolute bottom-20 sm:bottom-32 left-8 sm:left-20 w-2 h-2 sm:w-3 sm:h-3 bg-white/50 rounded-full animate-bounce"></div>
-      
+
       <style>{`
         .animation-delay-800 {
           animation-delay: 0.8s;

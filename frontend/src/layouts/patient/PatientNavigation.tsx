@@ -13,6 +13,8 @@ interface PatientNavigationProps {
 export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const [profileData, setProfileData] = useState<UserInfo | null>(null);
   const navigate = useNavigate();
   const { fullName, logout } = useAuth();
@@ -65,6 +67,35 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
     }
   }, [isUserMenuOpen]);
 
+  useEffect(() => {
+    const controlNavbar = () => {
+      if (typeof window !== 'undefined') {
+        const currentScrollY = window.scrollY;
+        if (window.innerWidth <= 768) {
+          if (currentScrollY > lastScrollY && currentScrollY > 100) {
+            setIsVisible(false);
+            setIsUserMenuOpen(false); 
+          } else {
+            setIsVisible(true);
+          }
+        } else {
+          setIsVisible(true);
+        }
+        
+        setLastScrollY(currentScrollY);
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('scroll', controlNavbar);
+      window.addEventListener('resize', controlNavbar); 
+      return () => {
+        window.removeEventListener('scroll', controlNavbar);
+        window.removeEventListener('resize', controlNavbar);
+      };
+    }
+  }, [lastScrollY]);
+
   const handleLogout = () => {
     sessionStorage.removeItem('chatbot-messages');
     logout();
@@ -97,7 +128,9 @@ export const PatientNavigation: React.FC<PatientNavigationProps> = ({ userInfo }
   };
 
   return (
-    <nav className="bg-white shadow-lg sticky top-0 z-50">
+    <nav className={`bg-white shadow-lg fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${
+      isVisible ? 'translate-y-0' : '-translate-y-full'
+    }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}

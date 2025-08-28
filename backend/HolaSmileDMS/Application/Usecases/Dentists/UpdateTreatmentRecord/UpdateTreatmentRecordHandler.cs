@@ -68,6 +68,12 @@ namespace Application.Usecases.Dentist.UpdateTreatmentRecord
             if (request.TreatmentDate.HasValue)
                 record.TreatmentDate = request.TreatmentDate.Value;
 
+            if (request.dentistID.HasValue)
+                record.DentistID = request.dentistID.Value;
+
+            if (request.procedureID.HasValue)
+                record.ProcedureID = request.procedureID.Value;
+
             record.UpdatedAt = DateTime.Now;
             record.UpdatedBy = userId;
 

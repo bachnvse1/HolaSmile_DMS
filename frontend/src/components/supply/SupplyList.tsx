@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import {
   Plus,
@@ -33,11 +33,10 @@ import {
 import { useUserInfo } from '@/hooks/useUserInfo';
 import type { Supply } from '@/types/supply';
 import { getErrorMessage } from '@/utils/formatUtils';
-import { formatCurrency } from '@/utils/currencyUtils'; 
+import { formatCurrency } from '@/utils/currencyUtils';
 
 export const SupplyList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'low-stock' | 'expiring'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -68,32 +67,37 @@ export const SupplyList: React.FC = () => {
 
   const canModify = ['Assistant'].includes(userRole);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery);
-    }, 300);
 
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  const { data: supplies = [], isLoading, error, refetch } = useSupplies(debouncedSearchQuery);
+  const { data: supplies = [], isLoading, error, refetch } = useSupplies();
   const { data: stats, isLoading: isLoadingStats } = useSupplyStats();
   const { mutate: deactivateSupply, isPending: isDeactivating } = useDeactivateSupply();
   const { mutate: downloadExcel, isPending: isDownloadExcel } = useDownloadExcelSupplies();
   const { mutate: exportExcel, isPending: isExportExcel } = useExportSupplies();
   const { mutate: importExcel, isPending: isImporting } = useImportSupplies();
 
-  const filteredSupplies = supplies.filter(supply => {
+  const filteredSupplies = React.useMemo(() => {
+    let filtered = supplies;
+
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(supply =>
+        supply.Name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Filter by status
     if (filter === 'low-stock') {
-      return supply.QuantityInStock <= 10;
+      filtered = filtered.filter(supply => supply.QuantityInStock <= 10);
     }
     if (filter === 'expiring') {
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + 30);
-      return new Date(supply.ExpiryDate) <= futureDate;
+      filtered = filtered.filter(supply =>
+        new Date(supply.ExpiryDate) <= futureDate
+      );
     }
-    return true;
-  });
+
+    return filtered;
+  }, [supplies, searchQuery, filter]);
 
   // Pagination logic
   const totalItems = filteredSupplies.length;
@@ -103,15 +107,13 @@ export const SupplyList: React.FC = () => {
   const paginatedSupplies = filteredSupplies.slice(startIndex, endIndex);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.persist(); 
-    const value = e.target.value;
-    setSearchQuery(value);
-    setCurrentPage(1); 
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
   };
 
   const handleFilterChange = (newFilter: 'all' | 'low-stock' | 'expiring') => {
     setFilter(newFilter);
-    setCurrentPage(1); 
+    setCurrentPage(1);
   };
 
   const handlePageChange = (page: number) => {
@@ -120,7 +122,7 @@ export const SupplyList: React.FC = () => {
 
   const handleItemsPerPageChange = (newItemsPerPage: number) => {
     setItemsPerPage(newItemsPerPage);
-    setCurrentPage(1); 
+    setCurrentPage(1);
   };
 
   const handleDownloadTemplate = () => {
@@ -321,9 +323,8 @@ export const SupplyList: React.FC = () => {
               <Button
                 onClick={() => setShowImportModal(true)}
                 disabled={isImporting}
-                className={`text-xs bg-blue-600 hover:bg-blue-700 text-white ${
-                  supplies.length === 0 ? 'col-span-2' : ''
-                }`}
+                className={`text-xs bg-blue-600 hover:bg-blue-700 text-white ${supplies.length === 0 ? 'col-span-2' : ''
+                  }`}
               >
                 <Upload className="h-3 w-3 mr-1" />
                 <span>Nhập Excel</span>
@@ -511,7 +512,6 @@ export const SupplyList: React.FC = () => {
                 variant="outline"
                 onClick={() => {
                   setSearchQuery('');
-                  setDebouncedSearchQuery('');
                   setCurrentPage(1);
                 }}
               >
@@ -826,8 +826,8 @@ export const SupplyList: React.FC = () => {
 
                   <div
                     className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${selectedFile
-                        ? 'border-green-400 bg-green-50'
-                        : 'border-gray-300 hover:border-blue-400'
+                      ? 'border-green-400 bg-green-50'
+                      : 'border-gray-300 hover:border-blue-400'
                       }`}
                     onClick={() => {
                       fileInputRef.current?.click();

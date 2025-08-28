@@ -22,7 +22,7 @@ const supplySchema = z.object({
   unit: z.string().min(1, 'Đơn vị là bắt buộc'),
   quantityInStock: z.coerce.number().min(0, 'Số lượng phải lớn hơn hoặc bằng 0'),
   expiryDate: z.string().min(1, 'Hạn sử dụng là bắt buộc'),
-  price: z.coerce.number().min(0, 'Giá phải lớn hơn hoặc bằng 0'),
+  price: z.coerce.number().min(0.1, 'Giá phải lớn hơn 0'),
 });
 
 type SupplyFormData = z.infer<typeof supplySchema>;
@@ -49,7 +49,7 @@ export const SupplyFormModal: React.FC<SupplyFormModalProps> = ({
 
   const isLoading = isCreating || isUpdating;
   const queryClient = useQueryClient();
-  
+
   const form = useForm<SupplyFormData>({
     resolver: zodResolver(supplySchema),
     defaultValues: {
@@ -66,13 +66,15 @@ export const SupplyFormModal: React.FC<SupplyFormModalProps> = ({
   // Load supply data for edit mode
   useEffect(() => {
     if (mode === 'edit' && supply) {
-      form.reset({
+      const formData = {
         name: supply.Name,
         unit: supply.Unit,
         quantityInStock: supply.QuantityInStock,
         expiryDate: supply.ExpiryDate.split('T')[0],
         price: supply.Price,
-      });
+      };
+
+      form.reset(formData);
       setPriceDisplayValue(formatCurrency(supply.Price));
     } else if (mode === 'create') {
       form.reset({
@@ -128,6 +130,7 @@ export const SupplyFormModal: React.FC<SupplyFormModalProps> = ({
             const result = response as { message?: string };
             queryClient.invalidateQueries({ queryKey: ['supplies'] });
             queryClient.invalidateQueries({ queryKey: ['supply', supplyId] });
+            queryClient.invalidateQueries({ queryKey: ['supplies', 'stats'] });
             toast.success(result.message || 'Cập nhật vật tư thành công');
             onClose();
           },
@@ -196,6 +199,7 @@ export const SupplyFormModal: React.FC<SupplyFormModalProps> = ({
                     Đơn Vị <span className='text-red-400'>*</span>
                   </label>
                   <Select
+                    key={`${mode}-${supply?.SupplyID || 'new'}-${form.watch('unit')}`}
                     value={form.watch('unit')}
                     onValueChange={(value) => form.setValue('unit', value)}
                   >
@@ -219,25 +223,17 @@ export const SupplyFormModal: React.FC<SupplyFormModalProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Số Lượng Trong Kho {mode === 'create' ? <span className='text-red-400'>*</span> : ''}
+                    Số Lượng Trong Kho <span className='text-red-400'>*</span>
                   </label>
                   <Input
                     type="number"
                     min="0"
                     placeholder="0"
                     {...form.register('quantityInStock')}
-                    className={mode === 'edit' ? 'bg-gray-50' : ''}
-                    disabled={mode === 'edit'}
                   />
-                  {mode === 'edit' ? (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Số lượng chỉ có thể thay đổi thông qua nhập/xuất kho
-                    </p>
-                  ) : (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Nhập số lượng ban đầu trong kho
-                    </p>
-                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    {mode === 'create' ? 'Nhập số lượng ban đầu trong kho' : 'Cập nhật số lượng hiện có trong kho'}
+                  </p>
                   {form.formState.errors.quantityInStock && (
                     <p className="text-sm text-red-600 mt-1">
                       {form.formState.errors.quantityInStock.message}

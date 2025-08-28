@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { X, Send, Bot, User, RotateCcw, Calendar } from 'lucide-react';
 import { chatbotService } from '@/services/chatbotService';
 import { useNavigate } from 'react-router';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Message {
   id: string;
@@ -33,6 +34,7 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const navigate = useNavigate();
+  const { role } = useAuth();
 
   const adjustTextareaHeight = () => {
     const textarea = textareaRef.current;
@@ -208,9 +210,9 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
       x: clientX,
       y: clientY,
     };
-    document.addEventListener('mousemove', handleBtnMove as any);
+    document.addEventListener('mousemove', handleBtnMove);
     document.addEventListener('mouseup', handleBtnUp);
-    document.addEventListener('touchmove', handleBtnMove as any);
+    document.addEventListener('touchmove', handleBtnMove);
     document.addEventListener('touchend', handleBtnUp);
   };
 
@@ -226,9 +228,9 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
 
   const handleBtnUp = () => {
     dragging.current = false;
-    document.removeEventListener('mousemove', handleBtnMove as any);
+    document.removeEventListener('mousemove', handleBtnMove);
     document.removeEventListener('mouseup', handleBtnUp);
-    document.removeEventListener('touchmove', handleBtnMove as any);
+    document.removeEventListener('touchmove', handleBtnMove );
     document.removeEventListener('touchend', handleBtnUp);
   };
 
@@ -332,10 +334,10 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
                       </div>
                       
                       {/* Book Appointment Button - Only show for bot messages */}
-                      {message.sender === 'bot' && (
+                      {message.sender === 'bot' && (!role || role ==='Patient') &&(
                         <div className="mt-3">
                           <button
-                            onClick={() => navigate('/appointment-booking')}
+                            onClick={() => role === "Patient" ? navigate('/patient/book-appointment') : navigate('/appointment-booking')}
                             className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs font-medium rounded-lg transition-all duration-200 hover:scale-105 hover:shadow-lg"
                           >
                             <Calendar className="h-3 w-3" />
@@ -385,7 +387,7 @@ export const ChatbotFloating: React.FC<ChatbotFloatingProps> = ({
                     className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 
                       resize-none leading-6 overflow-y-auto bg-white/90 backdrop-blur-sm transition-all duration-200
                       placeholder:text-gray-400 text-gray-700
-                      [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-purple-200 [&::-webkit-scrollbar-thumb]:rounded-full
+                      [&::-webkit-scrollbar]:hidden [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-purple-200 [&::-webkit-scrollbar-thumb]:rounded-full
                       hover:border-purple-300 hover:shadow-md"
                     style={{ minHeight: '44px', maxHeight: '88px' }}
                     disabled={isLoading}

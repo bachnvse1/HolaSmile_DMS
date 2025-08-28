@@ -82,12 +82,30 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
     }
   };
 
+  const getStatusDisplayText = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return 'Đã xác nhận';
+      case 'canceled':
+        return 'Đã hủy';
+      case 'attended':
+        return 'Đã đến';
+      case 'absented':
+        return 'Vắng';
+      case 'all':
+        return 'Tất cả';
+      default:
+        return status;
+    }
+  };
+
   // Filter appointments
   const filteredAppointments = appointments.filter(appointment => {
     const matchesSearch =
-      appointment.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.dentistName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.appointmentType.toLowerCase().includes(searchTerm.toLowerCase());
+      (appointment.patientName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (appointment.dentistName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (appointment.appointmentType || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (appointment.content || '').toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus = statusFilter.includes('all') || statusFilter.includes(appointment.status);
     return matchesSearch && matchesStatus;
@@ -291,7 +309,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   type="text"
-                  placeholder="Tìm kiếm theo tên bệnh nhân, Nha sĩ hoặc loại hẹn..."
+                  placeholder="Tìm kiếm theo tên bệnh nhân, nha sĩ, loại hẹn hoặc nội dung..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -369,6 +387,24 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Search & Filter Results Summary */}
+            {(searchTerm.trim() || !statusFilter.includes('all')) && (
+              <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
+                <div className="flex items-center space-x-2">
+                  <Search className="h-4 w-4 text-blue-600" />
+                  <span>
+                    Tìm thấy <strong>{filteredAppointments.length}</strong> lịch hẹn
+                    {searchTerm.trim() && (
+                      <> phù hợp với từ khóa "<strong>{searchTerm}</strong>"</>
+                    )}
+                    {!statusFilter.includes('all') && (
+                      <> với trạng thái: <strong>{statusFilter.map(status => getStatusDisplayText(status)).join(', ')}</strong></>
+                    )}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -436,8 +472,8 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                       <Eye className="h-4 w-4 flex-shrink-0" />
                       <span>Chi tiết</span>
                     </Button>
-
-                    {role === 'Receptionist' && appointment.status === 'confirmed' && (
+                
+                    {role === 'Receptionist' && appointment.status !== 'canceled' && (
                       <>
                         <Button
                           variant="default"
