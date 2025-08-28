@@ -75,7 +75,7 @@ namespace Application.Usecases.Assistant.UpdateTaskStatus
                                 Message: $"Tiến trình: {task.ProgressName} - {statusText}",
                                 Type: "Update",
                                 RelatedObjectId: null,
-                                MappingUrl: "/dentist/assigned-tasks"
+                                MappingUrl: $"/patient/view-treatment-progress/{treatmentProgress.TreatmentRecordID}?patientId={treatmentProgress.PatientID}&dentistId={treatmentProgress.DentistID}"
                             );
 
                             await _mediator.Send(notification, cancellationToken);

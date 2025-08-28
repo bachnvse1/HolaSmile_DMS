@@ -21,7 +21,9 @@ import {
   UserCircle,
   Phone,
   Bot,
-  WrenchIcon
+  WrenchIcon,
+  CalendarClock,
+  CalendarDays
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 import { useAuth } from '@/hooks/useAuth';
@@ -50,6 +52,7 @@ interface StaffSidebarProps {
 
 export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapsed, isMobile, onClose, onToggle }) => {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [userExpandedItems, setUserExpandedItems] = useState<string[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -151,21 +154,21 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
     },
     {
       id: 'appointments',
-      label: 'Lịch Hẹn',
+      label: 'Quản Lý Lịch',
       icon: <Calendar className="h-5 w-5" />,
       roles: ['Owner', 'Receptionist', 'Assistant', 'Dentist'],
       children: [
         {
           id: 'appointments-calendar',
           label: 'Lịch Hẹn',
-          icon: <Calendar className="h-4 w-4" />,
+          icon: <CalendarDays className="h-4 w-4" />,
           path: '/appointments',
           roles: ['Owner', 'Receptionist', 'Assistant', 'Dentist']
         },
         {
           id: 'appointments-manage',
-          label: 'Quản Lý Lịch',
-          icon: <UserCheck className="h-4 w-4" />,
+          label: 'Lịch Làm Việc',
+          icon: <CalendarClock className="h-4 w-4" />,
           path: '/schedules',
           roles: ['Owner', 'Receptionist', 'Dentist', 'Assistant']
         }
@@ -193,14 +196,14 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
           roles: ['Owner', 'Receptionist', 'Assistant', 'Dentist'],
           unreadCount: messageStats.patientConsultation
         },
-        {
+        ...(userId === '3' ? [{
           id: 'messages-customer-consultation',
           label: 'Tư Vấn Khách Hàng',
           icon: <Phone className="h-4 w-4" />,
           path: '/messages/guest-consultation',
           roles: ['Receptionist'],
           unreadCount: messageStats.guestConsultation
-        }
+        }] : [])
       ]
     },
     {
@@ -324,10 +327,11 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
         // }
       ]
     }
-  ], [messageStats]);
+  ], [messageStats, userId]);
 
   useEffect(() => {
     const savedExpandedItems = localStorage.getItem('sidebar-expanded-items');
+    const savedUserExpandedItems = localStorage.getItem('sidebar-user-expanded-items');
     if (savedExpandedItems) {
       try {
         const parsed = JSON.parse(savedExpandedItems);
@@ -338,11 +342,26 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
         console.error('Error parsing saved sidebar state:', error);
       }
     }
+
+    if (savedUserExpandedItems) {
+      try {
+        const parsed = JSON.parse(savedUserExpandedItems);
+        if (Array.isArray(parsed)) {
+          setUserExpandedItems(parsed);
+        }
+      } catch (error) {
+        console.error('Error parsing saved user expanded state:', error);
+      }
+    }
   }, []);
 
   useEffect(() => {
     localStorage.setItem('sidebar-expanded-items', JSON.stringify(expandedItems));
   }, [expandedItems]);
+
+  useEffect(() => {
+    localStorage.setItem('sidebar-user-expanded-items', JSON.stringify(userExpandedItems));
+  }, [userExpandedItems]);
 
   useEffect(() => {
     const currentPath = location.pathname;
@@ -361,7 +380,7 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
     };
 
     const parentId = findParentForPath();
-    if (parentId && !expandedItems.includes(parentId)) {
+    if (parentId && !expandedItems.includes(parentId) && !userExpandedItems.includes(`collapsed-${parentId}`)) {
       setExpandedItems(prev => {
         if (!prev.includes(parentId)) {
           return [...prev, parentId];
@@ -369,14 +388,28 @@ export const StaffSidebar: React.FC<StaffSidebarProps> = ({ userRole, isCollapse
         return prev;
       });
     }
-  }, [location.pathname, expandedItems, menuItems]);
+  }, [location.pathname, expandedItems, menuItems, userExpandedItems]);
 
   const toggleExpand = (itemId: string) => {
+    const isCurrentlyExpanded = expandedItems.includes(itemId);
+    
     setExpandedItems(prev =>
-      prev.includes(itemId)
+      isCurrentlyExpanded
         ? prev.filter(id => id !== itemId)
         : [...prev, itemId]
     );
+
+    if (isCurrentlyExpanded) {
+      setUserExpandedItems(prev => {
+        const withoutExpanded = prev.filter(id => id !== `expanded-${itemId}`);
+        return [...withoutExpanded, `collapsed-${itemId}`];
+      });
+    } else {
+      setUserExpandedItems(prev => {
+        const withoutCollapsed = prev.filter(id => id !== `collapsed-${itemId}`);
+        return [...withoutCollapsed, `expanded-${itemId}`];
+      });
+    }
   };
 
   const isItemVisible = (item: MenuItem): boolean => {

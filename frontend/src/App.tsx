@@ -45,6 +45,7 @@ import { SupplyDetailPage } from './pages/supply/SupplyDetailPage';
 import UserManagement from './pages/auth/UserManagement';
 import AssignedTasks from './pages/assistant/AssignedTasks';
 import ProcedureManagement from "./pages/proceduce/ProcedureManagement";
+import ProcedureDetailPage from './pages/proceduce/ProcedureDetailPage';
 import WarrantyCardManagement from "./pages/warrantyCard/WarrantyCardManagement";
 import InvoiceList from './pages/invoice/InvoiceList';
 import { AppointmentDetailsPage } from './pages/staff/AppointmentDetailsPage';
@@ -220,6 +221,7 @@ function App() {
                     <Route path="/inventory/:supplyId/edit" element={<EditSupplyPage />} />
                     <Route path="/assistant/assigned-tasks" element={<AssignedTasks />} />
                     <Route path="/proceduces" element={<ProcedureManagement />} />
+                    <Route path="/procedures/:procedureId" element={<ProcedureDetailPage />} />
                     <Route path="/invoices" element={<InvoiceList />} />
                     <Route path="/assistant/warranty-cards" element={<WarrantyCardManagement />} />
                     <Route path="/thank-you" element={<ThankYou />} />

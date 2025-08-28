@@ -51,9 +51,11 @@ namespace Application.Usecases.Receptionist.EditAppointment
                 throw new Exception(MessageConstants.MSG.MSG34); // "Ngày hẹn phải sau ngày hôm nay"
             }
 
-            if (request.AppointmentDate.Date == DateTime.Today.Date && request.AppointmentTime < DateTime.Now.TimeOfDay)
+            var appointmentDateTime = request.AppointmentDate.Date + request.AppointmentTime;
+            var appointmentEndtime = appointmentDateTime.AddHours(3);
+            if (appointmentEndtime < DateTime.Now)
             {
-                throw new Exception(MessageConstants.MSG.MSG34); // "Ngày hẹn phải sau ngày hôm nay"
+                throw new Exception(MessageConstants.MSG.MSG74); // "Không thể đặt lịch hẹn ở thời gian quá khứ."
             }
 
             if (await _dentistRepository.GetDentistByDentistIdAsync(request.DentistId) == null)
