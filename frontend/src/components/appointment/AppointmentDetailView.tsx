@@ -349,7 +349,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
             </div>
 
             {/* Action Buttons for Receptionist */}
-            {role === 'Receptionist' && appointment.status === 'confirmed' && (
+            {role === 'Receptionist' && appointment.status !== 'canceled' && (
               <div className="border-t border-gray-200 pt-4">
                 <h4 className="text-sm font-medium text-gray-600 mb-3">Thao tác</h4>
                 <div className="flex flex-wrap gap-3 justify-end">

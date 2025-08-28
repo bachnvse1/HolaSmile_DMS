@@ -24,7 +24,7 @@ const supplySchema = z.object({
   unit: z.string().min(1, 'Đơn vị là bắt buộc'),
   quantityInStock: z.coerce.number().min(0, 'Số lượng phải lớn hơn hoặc bằng 0'),
   expiryDate: z.string().min(1, 'Hạn sử dụng là bắt buộc'),
-  price: z.coerce.number().min(0, 'Giá phải lớn hơn hoặc bằng 0'),
+  price: z.coerce.number().min(0.01, 'Giá phải lớn hơn hoặc bằng 0'),
 });
 type SupplyFormData = z.infer<typeof supplySchema>;
 

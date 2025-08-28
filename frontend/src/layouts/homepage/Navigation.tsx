@@ -5,6 +5,8 @@ import { useGuestProcedures } from '@/hooks/useGuestProcedures';
 
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -78,17 +80,49 @@ export const Navigation = () => {
     }
   };
 
-  
+  useEffect(() => {
+    const controlNavbar = () => {
+      if (typeof window !== 'undefined') {
+        const currentScrollY = window.scrollY;
+        if (window.innerWidth <= 768) {
+          if (currentScrollY > lastScrollY && currentScrollY > 100) {
+            setIsVisible(false);
+            setIsServicesOpen(false); 
+            setIsMobileServicesOpen(false);
+          } else {
+            setIsVisible(true);
+          }
+        } else {
+          setIsVisible(true);
+        }
+        
+        setLastScrollY(currentScrollY);
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('scroll', controlNavbar);
+      window.addEventListener('resize', controlNavbar); 
+      return () => {
+        window.removeEventListener('scroll', controlNavbar);
+        window.removeEventListener('resize', controlNavbar);
+      };
+    }
+  }, [lastScrollY]);
+
+
 
   return (
-    <nav className="bg-white shadow-lg sticky top-0 z-50">
+    <nav className={`bg-white shadow-lg fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${
+      isVisible ? 'translate-y-0' : '-translate-y-full'
+    }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex-shrink-0">
             <button onClick={handleNavClick('#home')} className="flex items-center">
-              <img 
-                src="/logo.png" 
-                alt="HolaSmile Logo" 
+              <img
+                src="/logo.png"
+                alt="HolaSmile Logo"
                 className="h-14 w-14"
               />
               <div className="flex flex-col items-start leading-none">
@@ -113,19 +147,18 @@ export const Navigation = () => {
                   Dịch Vụ
                 </button>
                 {isServicesOpen && (
-                  <div className="absolute left-0 mt-2 w-96 bg-white rounded-xl shadow-xl border p-3 z-50 transform transition-all duration-150 ease-out">
+                  <div className="absolute left-0 mt-2 w-96 bg-white rounded-xl shadow-xl border border-gray-400 p-3 z-50 transform transition-all duration-150 ease-out">
                     <div className="flex items-center justify-between mb-2">
                       <div>
                         <div className="text-sm font-semibold text-gray-800">Thủ thuật</div>
                         <div className="text-xs text-gray-500">Chọn thủ thuật để xem chi tiết hoặc đặt lịch</div>
                       </div>
-                      <div className="text-xs text-gray-500">{procedures.length} items</div>
                     </div>
 
                     <div className="mb-3">
                       <input
                         placeholder="Tìm thủ thuật..."
-                        className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400"
                         onChange={() => { /* simple visual only for now */ }}
                       />
                     </div>
@@ -144,7 +177,7 @@ export const Navigation = () => {
                           >
                             <div className="flex items-center gap-3 min-w-0">
                               <div className="w-9 h-9 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center text-blue-600 font-semibold text-sm flex-shrink-0">
-                                {p.procedureName ? p.procedureName.split(' ').slice(0,2).map(s=>s[0]).join('') : 'PT'}
+                                {p.procedureName ? p.procedureName.split(' ').slice(0, 2).map(s => s[0]).join('') : 'PT'}
                               </div>
                               <div className="text-sm text-gray-800 truncate max-w-[14rem]">{p.procedureName}</div>
                             </div>
@@ -199,7 +232,7 @@ export const Navigation = () => {
 
       {isMenuOpen && (
         <div className="lg:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t overflow-visible">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t overflow-visible">
             <button onClick={handleNavClick('#home')} className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left">
               Trang Chủ
             </button>
@@ -226,25 +259,26 @@ export const Navigation = () => {
                       className="mx-0 rounded-t-2xl bg-white shadow-2xl p-4 h-[60vh] overflow-y-auto"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-start justify-between mb-3">
                         <div>
                           <div className="text-lg font-semibold text-gray-900">Thủ thuật</div>
                           <div className="text-xs text-gray-500">Chọn thủ thuật để xem chi tiết hoặc đặt lịch</div>
                         </div>
-                        <div className="text-xs text-gray-500">{procedures.length} items</div>
+                        <button
+                          onClick={() => setIsMobileServicesOpen(false)}
+                          className="text-sm text-gray-500 hover:text-gray-700 px-2 py-1 -mt-1"
+                        >
+                          Đóng
+                        </button>
                       </div>
 
                       <div className="mb-3">
                         <div className="relative">
                           <input
                             placeholder="Tìm thủ thuật..."
-                            className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400"
+                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400"
                             onChange={() => { /* visual only */ }}
                           />
-                          <button
-                            onClick={() => setIsMobileServicesOpen(false)}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-gray-500"
-                          >Đóng</button>
                         </div>
                       </div>
 
@@ -280,7 +314,7 @@ export const Navigation = () => {
             <button onClick={handleNavClick('#contact')} className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left">
               Liên Hệ
             </button>
-            
+
             {/* Mobile Action Buttons */}
             <div className="pt-4 space-y-2">
               <button
