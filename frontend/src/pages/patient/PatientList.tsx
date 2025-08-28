@@ -116,27 +116,28 @@ export default function PatientList() {
     fetchPatients()
   }, [])
 
-  useEffect(() => {
-    if (!Array.isArray(patients)) {
-      console.warn("Patients data is not an array:", patients)
-      return
-    }
+useEffect(() => {
+  if (!Array.isArray(patients)) {
+    console.warn("Patients data is not an array:", patients)
+    return
+  }
 
-    const filtered = patients.filter((patient) => {
-      const matchesSearch =
-        patient.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        patient.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        patient.phone?.includes(searchTerm)
+  const filtered = patients.filter((patient) => {
+    const searchLower = searchTerm.toLowerCase()
+    const matchesSearch =
+      (patient.fullname && patient.fullname.toLowerCase().includes(searchLower)) ||
+      (patient.email && patient.email.toLowerCase().includes(searchLower)) ||
+      (patient.phone && patient.phone.includes(searchTerm))
 
-      const matchesGender =
-        genderFilter === "all" || patient.gender === genderFilter
+    const matchesGender =
+      genderFilter === "all" || patient.gender === genderFilter
 
-      return matchesSearch && matchesGender
-    })
+    return matchesSearch && matchesGender
+  })
 
-    setFilteredPatients(filtered)
-    setCurrentPage(1)
-  }, [patients, searchTerm, genderFilter])
+  setFilteredPatients(filtered)
+  setCurrentPage(1)
+}, [patients, searchTerm, genderFilter])
 
   const pageCount = Math.ceil(filteredPatients.length / PAGE_SIZE)
   const paginatedPatients = filteredPatients.slice(

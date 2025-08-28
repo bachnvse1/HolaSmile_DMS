@@ -104,3 +104,16 @@ export const getTimeUntilAppointment = (appointmentDate: string, appointmentTime
   }
 };
 
+export const isAppointmentDue = (appointmentDate: string, appointmentTime: string) => {
+  try {
+    const dateOnly = appointmentDate.split('T')[0]; 
+    const timeOnly = appointmentTime.split('.')[0]; 
+    const [y, m, d] = dateOnly.split('-').map(Number);
+    const [hh, mm, ss = 0] = timeOnly.split(':').map(Number);
+
+    const apptDateTime = new Date(y, m - 1, d, hh, mm, ss);
+    return apptDateTime <= new Date();
+  } catch {
+    return false;
+  }
+};

@@ -5,12 +5,12 @@ import { Badge } from '../ui/badge';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { CancelAppointmentDialog } from './CancelAppointmentDialog';
 import { PrescriptionModal } from './PrescriptionModal';
-import { InstructionCard } from '../instruction/InstructionCard'; 
+import { InstructionCard } from '../instruction/InstructionCard';
 import { useAuth } from '../../hooks/useAuth';
 import { usePrescriptionByAppointment } from '../../hooks/usePrescription';
 import { useAppointmentDetail, useChangeAppointmentStatus } from '../../hooks/useAppointments';
 import { useDentistSchedule } from '../../hooks/useDentistSchedule';
-import { isAppointmentCancellable, getTimeUntilAppointment } from '../../utils/appointmentUtils';
+import { isAppointmentCancellable, getTimeUntilAppointment, isAppointmentDue } from '../../utils/appointmentUtils';
 import { Link, useNavigate } from 'react-router';
 import { EditAppointmentDialog } from './EditAppointmentDialog';
 import { formatDateVN, formatTimeVN } from '../../utils/dateUtils';
@@ -188,21 +188,23 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
 
         {/* Action Buttons*/}
         <div className="flex items-center gap-2 sm:gap-3">
-          {role === 'Dentist' && appointment.status !== "canceled" && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setShowTreatmentModal(true);
-                setTreatmentToday(false);
-              }}
-              className="flex items-center gap-2 text-xs sm:text-sm"
-            >
-              <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Tạo hồ sơ điều trị</span>
-              <span className="sm:hidden">Hồ sơ</span>
-            </Button>
-          )}
+          {role === 'Dentist'
+            && appointment.status !== "canceled"
+            && isAppointmentDue(appointment.appointmentDate, appointment.appointmentTime) && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setShowTreatmentModal(true);
+                  setTreatmentToday(false);
+                }}
+                className="flex items-center gap-2 text-xs sm:text-sm"
+              >
+                <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Tạo hồ sơ điều trị</span>
+                <span className="sm:hidden">Hồ sơ</span>
+              </Button>
+            )}
         </div>
       </div>
 
@@ -387,13 +389,13 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
             )}
             {canCancelAppointment && (
               <div className="flex flex-wrap justify-end">
-              <Button
-                variant="destructive"
-                onClick={() => setShowCancelDialog(true)}
-                className='text-white'
-              >
-                Hủy lịch hẹn
-              </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => setShowCancelDialog(true)}
+                  className='text-white'
+                >
+                  Hủy lịch hẹn
+                </Button>
               </div>
             )}
           </div>
@@ -464,7 +466,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
           </div>
 
           {/* Instruction Card */}
-          <InstructionCard 
+          <InstructionCard
             appointmentId={appointmentId}
             appointmentStatus={appointment.status}
           />

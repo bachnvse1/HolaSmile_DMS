@@ -30,6 +30,7 @@ namespace Infrastructure.Services
             var brandname = _configuration["ESMS:Brandname"];
             var smsType = _configuration["ESMS:SmsType"] ?? "2";
             var isUnicode = message.Any(c => c > 127) ? "1" : "0";
+
             var url = "https://rest.esms.vn/MainService.svc/json/SendMultipleMessage_V4_post_json/";
             var requestId = Guid.NewGuid().ToString();
 
@@ -40,7 +41,7 @@ namespace Infrastructure.Services
         { "Brandname", brandname },
         { "SmsType", smsType },
         { "Phone", phoneNumber },
-        { "Content", message },         
+        { "Content", message },
         { "IsUnicode", isUnicode },
         { "campaignid", "CamOnSauMuaHang-07" },
         { "RequestId", requestId },
