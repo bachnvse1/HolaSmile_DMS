@@ -98,7 +98,7 @@ namespace Application.Usecases.Receptionist.EditAppointment
                         currentDentist.User.UserID,
                         "Thay đổi thông tin lịch khám",
                          $"Lịch khám #{existApp.AppointmentId} đã được thay đổi sang ngày {request.AppointmentDate.ToString("dd/MM/yyyy")} {request.AppointmentTime}.",
-                        "appointment", 0, $"appointments/{existApp.AppointmentId}"),
+                        "appointment", 0, $"patient/appointments/{existApp.AppointmentId}"),
                  cancellationToken);
             }
             catch { }
