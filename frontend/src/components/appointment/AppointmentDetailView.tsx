@@ -375,15 +375,17 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
                     <XCircle className="h-4 w-4" />
                     {isChangingStatus ? 'Đang cập nhật...' : 'Đánh dấu vắng mặt'}
                   </Button>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={() => setShowEditDialog(true)}
-                    className="flex items-center gap-2"
-                  >
-                    <EditIcon className="h-4 w-4" />
-                    Cập nhật lịch hẹn
-                  </Button>
+                  {appointment.status === 'confirmed' && (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => setShowEditDialog(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <EditIcon className="h-4 w-4" />
+                      Cập nhật lịch hẹn
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
@@ -479,7 +481,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
           <div className="flex items-center">
             <AlertTriangle className="h-4 w-4 text-yellow-600 mr-2" />
             <p className="text-sm text-yellow-800">
-              Không thể hủy lịch hẹn (dưới 2 giờ hoặc đã qua thời gian hẹn)
+              Không thể hủy lịch hẹn (dưới 12 giờ hoặc đã qua thời gian hẹn)
             </p>
           </div>
         </div>
