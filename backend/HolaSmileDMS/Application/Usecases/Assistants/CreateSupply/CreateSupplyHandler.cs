@@ -35,31 +35,31 @@ namespace Application.Usecases.Assistant.CreateSupply
             if (string.IsNullOrWhiteSpace(request.SupplyName) || string.IsNullOrWhiteSpace(request.Unit))
                 throw new ArgumentException(MessageConstants.MSG.MSG07);
 
-            if (request.QuantityInStock <= 0)
-                throw new ArgumentException(MessageConstants.MSG.MSG94);
+            //if (request.QuantityInStock <= 0)
+            //    throw new ArgumentException(MessageConstants.MSG.MSG94);
 
             if (request.Price <= 0)
                 throw new ArgumentException(MessageConstants.MSG.MSG95);
 
-            if (request.ExpiryDate?.Date < DateTime.Today)
-                throw new ArgumentException(MessageConstants.MSG.MSG96);
+            //if (request.ExpiryDate?.Date < DateTime.Today)
+            //    throw new ArgumentException(MessageConstants.MSG.MSG96);
 
-            var existSupply = await _supplyRepository.GetExistSupply(request.SupplyName, request.Price, request.ExpiryDate);
-            if (existSupply != null)
-            {
-                existSupply.QuantityInStock += request.QuantityInStock;
-                existSupply.UpdatedAt = DateTime.Now;
-                existSupply.UpdatedBy = currentUserId;
-                return await _supplyRepository.EditSupplyAsync(existSupply);
-            }
+            ////var existSupply = await _supplyRepository.GetExistSupply(request.SupplyName, request.Price, request.ExpiryDate);
+            //if (existSupply != null)
+            //{
+            //    existSupply.QuantityInStock += request.QuantityInStock;
+            //    existSupply.UpdatedAt = DateTime.Now;
+            //    existSupply.UpdatedBy = currentUserId;
+            //    return await _supplyRepository.EditSupplyAsync(existSupply);
+            //}
 
             var newSupply = new Supplies
             {
                 Name = request.SupplyName.Trim(),
                 Unit = request.Unit,
-                QuantityInStock = request.QuantityInStock,
+                //QuantityInStock = request.QuantityInStock,
                 Price = Math.Round(request.Price, 2),
-                ExpiryDate = request.ExpiryDate,
+                //ExpiryDate = request.ExpiryDate,
                 CreatedAt = DateTime.Now,
                 CreatedBy = currentUserId,
                 IsDeleted = false

@@ -21,10 +21,6 @@ namespace Infrastructure.Repositories
         public async Task<Dentist> GetDentistByDentistIdAsync(int? dentistId)
         {
             var dentist = await _context.Dentists.Include(d => d.User).FirstOrDefaultAsync(d => d.DentistId == dentistId);
-            if (dentist == null || dentist.User == null)
-            {
-                throw new Exception("Không tìm thấy thông tin nha sĩ hoặc tài khoản người dùng.");
-            }
             return dentist;
         }
 

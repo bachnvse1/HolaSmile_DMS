@@ -117,8 +117,6 @@ namespace HDMS_API.Container.DependencyInjection
             services.AddHostedService<AppointmentCleanupService>();
             services.AddHostedService<EmailCleanupService>();
 
-
-
             // Caching
             services.AddMemoryCache();
             services.AddHttpClient();

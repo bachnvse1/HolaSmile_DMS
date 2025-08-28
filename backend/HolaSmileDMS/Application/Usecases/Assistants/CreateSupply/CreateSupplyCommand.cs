@@ -6,8 +6,8 @@ namespace Application.Usecases.Assistant.CreateSupply
     {
         public string? SupplyName { get; set; }
         public string? Unit { get; set; }
-        public int QuantityInStock { get; set; }
+        //public int QuantityInStock { get; set; }
         public decimal Price { get; set; }
-        public DateTime? ExpiryDate { get; set; }
+        //public DateTime? ExpiryDate { get; set; }
     }
 }
