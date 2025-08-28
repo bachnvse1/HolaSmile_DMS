@@ -35,6 +35,14 @@ namespace Application.Usecases.Assistant.CreateSupply
             if (string.IsNullOrWhiteSpace(request.SupplyName) || string.IsNullOrWhiteSpace(request.Unit))
                 throw new ArgumentException(MessageConstants.MSG.MSG07);
 
+            var supplies = await _supplyRepository.GetAllSuppliesAsync();
+            foreach (var supply in supplies)
+            {
+                if(supply.Name.ToLower() == request.SupplyName.ToLower())
+                {
+                    throw new Exception("Tên vật tư đã tồn tại");
+                }
+            }
             //if (request.QuantityInStock <= 0)
             //    throw new ArgumentException(MessageConstants.MSG.MSG94);
 

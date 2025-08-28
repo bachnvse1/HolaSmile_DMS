@@ -106,26 +106,29 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
         Assert.Equal(MessageConstants.MSG.MSG34, ex.Message);
     }
 
-    // 🔴 UTCID04 - Hẹn hôm nay nhưng giờ quá khứ
-    [Fact(DisplayName = "UTCID04 - Abnormal - Appointment today but time in the past")]
-    public async System.Threading.Tasks.Task UTCID04_TodayButTimePast_ThrowsException()
-    {
-        SetupHttpContext("receptionist", 5);
-
-        var command = new CreateFUAppointmentCommand
+        // 🔴 UTCID04 - Hẹn hôm nay nhưng giờ quá khứ
+        [Fact(DisplayName = "UTCID05 - Abnormal - Dentist not found")]
+        public async System.Threading.Tasks.Task UTCID04_DentistNotFound_ThrowsException()
         {
-            AppointmentDate = DateTime.Today,
-            AppointmentTime = DateTime.Now.TimeOfDay.Subtract(TimeSpan.FromMinutes(10))
-        };
+            SetupHttpContext("receptionist", 5);
 
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
-            _handler.Handle(command, CancellationToken.None));
+            var command = new CreateFUAppointmentCommand
+            {
+                AppointmentDate = DateTime.Today.AddDays(1),
+                AppointmentTime = new TimeSpan(10, 0, 0),
+                DentistId = 99
+            };
 
-        Assert.Equal(MessageConstants.MSG.MSG34, ex.Message);
-    }
+            _dentistRepoMock.Setup(r => r.GetDentistByDentistIdAsync(99)).ReturnsAsync((Dentist)null);
 
-    // 🔴 UTCID05 - Dentist không tồn tại
-    [Fact(DisplayName = "UTCID05 - Abnormal - Dentist not found")]
+            var ex = await Assert.ThrowsAsync<Exception>(() =>
+                _handler.Handle(command, CancellationToken.None));
+
+            Assert.Equal("Bác sĩ không tồn tại", ex.Message);
+        }
+
+        // 🔴 UTCID05 - Dentist không tồn tại
+        [Fact(DisplayName = "UTCID05 - Abnormal - Dentist not found")]
     public async System.Threading.Tasks.Task UTCID05_DentistNotFound_ThrowsException()
     {
         SetupHttpContext("receptionist", 5);

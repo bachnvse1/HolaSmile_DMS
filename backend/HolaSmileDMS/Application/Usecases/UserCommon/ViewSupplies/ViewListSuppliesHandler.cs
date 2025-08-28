@@ -59,7 +59,7 @@ namespace Application.Usecases.UserCommon.ViewSupplies
                     Unit = supply.Unit,
                     Price = supply.Price,
                     CreatedAt = supply.CreatedAt,
-                    CreatedBy = createdByUser.Fullname,
+                    CreatedBy = createdByUser.Username,
                 };
                 result.Add(dto);
             }
