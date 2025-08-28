@@ -55,7 +55,7 @@ namespace Application.Usecases.Receptionist.CreateFUAppointment
             var checkValidAppointment = await _appointmentRepository.GetLatestAppointmentByPatientIdAsync(request.PatientId);
             if(checkValidAppointment.Status == "confirmed")
             {
-                throw new Exception(MessageConstants.MSG.MSG89); // "Kế hoạch điều trị đã tồn tại"
+                throw new Exception("Bệnh nhân đã có lịch khám trước đó"); // "Kế hoạch điều trị đã tồn tại"
             }
 
             var appointment = new Appointment

@@ -193,7 +193,7 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Receptionists
         var ex = await Assert.ThrowsAsync<Exception>(() =>
             _handler.Handle(command, CancellationToken.None));
 
-        Assert.Equal(MessageConstants.MSG.MSG89, ex.Message);
+        Assert.Equal("Bệnh nhân đã có lịch khám trước đó", ex.Message);
     }
 }
 }
