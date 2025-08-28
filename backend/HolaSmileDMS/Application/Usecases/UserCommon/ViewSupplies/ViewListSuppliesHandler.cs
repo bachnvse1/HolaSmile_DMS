@@ -11,11 +11,13 @@ namespace Application.Usecases.UserCommon.ViewSupplies
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ISupplyRepository _supplyRepository;
+        private readonly IUserCommonRepository _userCommonRepository;
         private readonly IMapper _mapper;
-        public ViewListSuppliesHandler(IHttpContextAccessor httpContextAccessor, ISupplyRepository supplyRepository, IMapper mapper)
+        public ViewListSuppliesHandler(IHttpContextAccessor httpContextAccessor, ISupplyRepository supplyRepository, IUserCommonRepository userCommonRepository, IMapper mapper)
         {
             _httpContextAccessor = httpContextAccessor;
             _supplyRepository = supplyRepository;
+            _userCommonRepository = userCommonRepository;
             _mapper = mapper;
         }
         public async Task<List<SuppliesDTO>> Handle(ViewListSuppliesCommand request, CancellationToken cancellationToken)
@@ -46,8 +48,23 @@ namespace Application.Usecases.UserCommon.ViewSupplies
             {
                 listSupplies = new List<Supplies>();
             }
+            var result = new List<SuppliesDTO>();
+            foreach (var supply in listSupplies)
+            {
+                var createdByUser = await _userCommonRepository.GetByIdAsync(supply.CreatedBy, cancellationToken);
+                var dto = new SuppliesDTO
+                {
+                    SupplyID = supply.SupplyId,
+                    Name = supply.Name,
+                    Unit = supply.Unit,
+                    Price = supply.Price,
+                    CreatedAt = supply.CreatedAt,
+                    CreatedBy = createdByUser.Fullname,
+                };
+                result.Add(dto);
+            }
 
-            return _mapper.Map<List<SuppliesDTO>>(listSupplies) ?? new List<SuppliesDTO>();
+            return result;
         }
     }
 }

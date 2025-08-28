@@ -26,5 +26,11 @@ namespace Infrastructure.Repositories
                 })
                 .ToListAsync();
         }
+
+        public async Task<Assistant> GetAssistantByUserIdAsync(int? userId)
+        {
+            var ass = await _context.Assistants.Include(d => d.User).FirstOrDefaultAsync(d => d.User.UserID == userId);
+            return ass;
+        }
     }
 }
