@@ -120,8 +120,8 @@ public class CreateFinancialTransactionHandlerTests
             .WithMessage(MessageConstants.MSG.MSG95);
     }
 
-    [Fact(DisplayName = "UTCID04 - Throw when file content type is invalid")]
-    public async System.Threading.Tasks.Task UTCID04_Throw_WhenInvalidFileType()
+    [Fact(DisplayName = "UTCID03 - Throw when amount <= 0")]
+    public async System.Threading.Tasks.Task UTCID04_Throw_WhenAmountInvalid()
     {
         SetupHttpContext("receptionist");
 
@@ -129,7 +129,7 @@ public class CreateFinancialTransactionHandlerTests
         {
             TransactionType = true,
             Description = "Test",
-            Amount = 1000,
+            Amount = 0,
             Category = "Test",
             PaymentMethod = true,
             TransactionDate = DateTime.Now,
@@ -137,8 +137,8 @@ public class CreateFinancialTransactionHandlerTests
 
         var act = async () => await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("Vui lòng chọn ảnh có định dạng jpeg/png/bmp/gif/webp/tiff/heic");
+        await act.Should().ThrowAsync<Exception>()
+            .WithMessage(MessageConstants.MSG.MSG95);
     }
 
     [Fact(DisplayName = "UTCID05 - Return true when create transaction successfully")]

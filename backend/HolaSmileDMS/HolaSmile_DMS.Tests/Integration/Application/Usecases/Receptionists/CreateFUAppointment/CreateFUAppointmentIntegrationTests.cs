@@ -163,7 +163,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
             };
 
             var ex = await Assert.ThrowsAsync<Exception>(() => _handler.Handle(command, default));
-            Assert.Equal(MessageConstants.MSG.MSG89, ex.Message);
+            Assert.Equal("Bệnh nhân đã có lịch khám trước đó", ex.Message);
         }
     }
 }
