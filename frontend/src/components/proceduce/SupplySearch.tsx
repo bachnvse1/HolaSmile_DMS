@@ -11,12 +11,6 @@ import {
 } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Search, Package, Check } from "lucide-react"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 import type { SupplyItem, Supply } from "@/types/procedure"
 import { supplyApi, mapToSupplyItem } from "@/services/supplyApi"
 import { formatCurrency } from "@/utils/currencyUtils"
@@ -106,56 +100,44 @@ export function SupplySearch({ onSelectSupply, selectedSupplies, disabled = fals
                 <p>Không tìm thấy vật tư nào</p>
               </div>
             ) : (
-              <TooltipProvider>
-                <div className="space-y-2">
-                  {filteredSupplies.map((supply) => {
-                    const isOutOfStock = supply.inStock === 0
-                    const isDisabled = disabled || isOutOfStock
+              <div className="space-y-2">
+                {filteredSupplies.map((supply) => {
+                  const isDisabled = disabled
 
-                    const content = (
-                      <div
-                        className={`p-4 border rounded-lg transition-colors ${isDisabled
+                  return (
+                    <div
+                      key={supply.id}
+                      className={`p-4 border rounded-lg transition-colors ${
+                        isDisabled
                           ? "opacity-50 cursor-not-allowed"
                           : "cursor-pointer hover:bg-muted/50"
-                          } ${isSupplySelected(supply.id) ? "bg-blue-50 border-blue-200" : ""}`}
-                        onClick={() => {
-                          if (!isDisabled) handleSelectSupply(supply)
-                        }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-medium">{supply.name}</h4>
-                              {isSupplySelected(supply.id) && (
-                                <Check className="w-4 h-4 text-green-600" />
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-baseline justify-end gap-1">
-                            <span className="font-medium text-green-600">
-                              {formatCurrency(supply.price)}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              /{supply.unit}
-                            </span>
+                      } ${isSupplySelected(supply.id) ? "bg-blue-50 border-blue-200" : ""}`}
+                      onClick={() => {
+                        if (!isDisabled) handleSelectSupply(supply)
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-medium">{supply.name}</h4>
+                            {isSupplySelected(supply.id) && (
+                              <Check className="w-4 h-4 text-green-600" />
+                            )}
                           </div>
                         </div>
+                        <div className="flex items-baseline justify-end gap-1">
+                          <span className="font-medium text-green-600">
+                            {formatCurrency(supply.price)}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            /{supply.unit}
+                          </span>
+                        </div>
                       </div>
-                    )
-
-                    return isOutOfStock ? (
-                      <Tooltip key={supply.id}>
-                        <TooltipTrigger asChild>{content}</TooltipTrigger>
-                        <TooltipContent>
-                          <p>Không thể chọn</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    ) : (
-                      <div key={supply.id}>{content}</div>
-                    )
-                  })}
-                </div>
-              </TooltipProvider>
+                    </div>
+                  )
+                })}
+              </div>
             )}
           </ScrollArea>
 
