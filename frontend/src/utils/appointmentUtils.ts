@@ -30,8 +30,8 @@ export const isAppointmentCancellable = (appointmentDate: string, appointmentTim
       return false;
     }
     
-    // Check if less than 2 hours before appointment
-    const twoHoursBeforeAppointment = new Date(parsedDate.getTime() - (2 * 60 * 60 * 1000));
+    // Check if less than 12 hours before appointment
+    const twoHoursBeforeAppointment = new Date(parsedDate.getTime() - (12 * 60 * 60 * 1000));
     
     if (now >= twoHoursBeforeAppointment) {
       return false;
@@ -79,7 +79,7 @@ export const getTimeUntilAppointment = (appointmentDate: string, appointmentTime
     const diffHours = Math.floor(diffMinutes / 60);
     const remainingMinutes = diffMinutes % 60;
     
-    if (diffHours < 2) {
+    if (diffHours < 12) {
       if (diffHours === 0) {
         return `Còn ${remainingMinutes} phút (Không thể hủy)`;
       }

@@ -2,8 +2,8 @@ export interface Supply {
   SupplyID: number;
   Name: string;
   Unit: string;
-  QuantityInStock: number;
-  ExpiryDate: string;
+  QuantityInStock?: number; 
+  ExpiryDate?: string; 
   Price: number;
   CreatedAt: string;
   UpdatedAt: string;
@@ -16,18 +16,14 @@ export interface Supply {
 export interface CreateSupplyRequest {
   supplyName: string;
   unit: string;
-  quantityInStock: number;
   price: number;
-  expiryDate: string;
 }
 
 export interface UpdateSupplyRequest {
   supplyId: number;
   supplyName: string;
   unit: string;
-  quantityInStock: number;
   price: number;
-  expiryDate: string;
 }
 
 export enum SupplyUnit {

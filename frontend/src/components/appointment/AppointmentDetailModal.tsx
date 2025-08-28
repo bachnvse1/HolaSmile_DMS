@@ -411,7 +411,7 @@ export const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
               <div className="flex items-center">
                 <AlertTriangle className="h-4 w-4 text-yellow-600 mr-2" />
                 <p className="text-sm text-yellow-800">
-                  Không thể hủy lịch hẹn (dưới 2 giờ hoặc đã qua thời gian hẹn)
+                  Không thể hủy lịch hẹn (dưới 12 giờ hoặc đã qua thời gian hẹn)
                 </p>
               </div>
             </div>

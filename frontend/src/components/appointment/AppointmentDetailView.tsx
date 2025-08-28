@@ -243,12 +243,9 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
 
         {/* Action Buttons*/}
         <div className="flex items-center gap-2 sm:gap-3">
-          {role === "Dentist" &&
-            appointment.status !== "canceled" &&
-            isAppointmentDue(
-              appointment.appointmentDate,
-              appointment.appointmentTime
-            ) && (
+          {role === 'Dentist'
+            && appointment.status === "attended"
+            && isAppointmentDue(appointment.appointmentDate, appointment.appointmentTime) && (
               <Button
                 variant="outline"
                 size="sm"
@@ -279,10 +276,10 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
                   appointment.status === "confirmed"
                     ? "success"
                     : appointment.status === "canceled"
-                    ? "destructive"
-                    : appointment.status === "attended"
-                    ? "info"
-                    : "secondary"
+                      ? "destructive"
+                      : appointment.status === "attended"
+                        ? "info"
+                        : "secondary"
                 }
                 className="flex items-center space-x-2"
               >
@@ -297,13 +294,17 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
                 <User className="h-5 w-5 text-blue-600 mr-3 mt-0.5" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-600">Bệnh nhân</p>
-                  {role === "Dentist" && (
+                  {role !== 'Patient' ? (
                     <Link
                       to={`/patient/view-treatment-records?patientId=${patientId}`}
                       className="font-semibold text-gray-900"
                     >
                       {appointment.patientName}
                     </Link>
+                  ) : (
+                    <span className="font-semibold text-gray-900">
+                      {appointment.patientName}
+                    </span>
                   )}
 
                   {appointment.isNewPatient && (
@@ -351,9 +352,8 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
                   </p>
                   {role === "Patient" && appointment.status === "confirmed" && (
                     <p
-                      className={`text-xs mt-1 ${
-                        canCancelAppointment ? "text-green-600" : "text-red-600"
-                      }`}
+                      className={`text-xs mt-1 ${canCancelAppointment ? "text-green-600" : "text-red-600"
+                        }`}
                     >
                       {timeUntilAppointment}
                     </p>
@@ -371,12 +371,12 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
                   {appointment.appointmentType === "follow-up"
                     ? "Tái khám"
                     : appointment.appointmentType === "consultation"
-                    ? "Tư vấn"
-                    : appointment.appointmentType === "treatment"
-                    ? "Điều trị"
-                    : appointment.appointmentType === "first-time"
-                    ? "Khám lần đầu"
-                    : appointment.appointmentType}
+                      ? "Tư vấn"
+                      : appointment.appointmentType === "treatment"
+                        ? "Điều trị"
+                        : appointment.appointmentType === "first-time"
+                          ? "Khám lần đầu"
+                          : appointment.appointmentType}
                 </p>
               </div>
             </div>
@@ -479,15 +479,17 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
                       ? "Đang cập nhật..."
                       : "Đánh dấu vắng mặt"}
                   </Button>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={() => setShowEditDialog(true)}
-                    className="flex items-center gap-2"
-                  >
-                    <EditIcon className="h-4 w-4" />
-                    Cập nhật lịch hẹn
-                  </Button>
+                  {appointment.status === 'confirmed' && (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => setShowEditDialog(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <EditIcon className="h-4 w-4" />
+                      Cập nhật lịch hẹn
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
@@ -500,6 +502,16 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
                 >
                   Hủy lịch hẹn
                 </Button>
+              </div>
+            )}
+            {role === 'Patient' && appointment.status === 'confirmed' && !canCancelAppointment && (
+              <div className="mt-8 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-center">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600 mr-2" />
+                  <p className="text-sm text-yellow-800">
+                    Không thể hủy lịch hẹn (dưới 12 giờ hoặc đã qua thời gian hẹn)
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -598,19 +610,6 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
           />
         </div>
       </div>
-
-      {role === "Patient" &&
-        appointment.status === "confirmed" &&
-        !canCancelAppointment && (
-          <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div className="flex items-center">
-              <AlertTriangle className="h-4 w-4 text-yellow-600 mr-2" />
-              <p className="text-sm text-yellow-800">
-                Không thể hủy lịch hẹn (dưới 2 giờ hoặc đã qua thời gian hẹn)
-              </p>
-            </div>
-          </div>
-        )}
 
       {/* Cancel Appointment Dialog */}
       {showCancelDialog && (

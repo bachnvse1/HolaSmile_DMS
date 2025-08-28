@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { ArrowLeft, Edit, Trash2, Calendar, Package, DollarSign, AlertTriangle, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Calendar, Package, DollarSign, RotateCcw } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -89,21 +89,21 @@ export const SupplyDetail: React.FC = () => {
     });
   };
 
-  const getStockStatus = (quantity: number) => {
-    if (quantity <= 0) return { text: 'Hết hàng', color: 'text-red-600 bg-red-50', icon: AlertTriangle };
-    if (quantity <= 10) return { text: 'Sắp hết', color: 'text-orange-600 bg-orange-50', icon: AlertTriangle };
-    return { text: 'Còn hàng', color: 'text-green-600 bg-green-50', icon: Package };
-  };
+  // const getStockStatus = (quantity: number) => {
+  //   if (quantity <= 0) return { text: 'Hết hàng', color: 'text-red-600 bg-red-50', icon: AlertTriangle };
+  //   if (quantity <= 10) return { text: 'Sắp hết', color: 'text-orange-600 bg-orange-50', icon: AlertTriangle };
+  //   return { text: 'Còn hàng', color: 'text-green-600 bg-green-50', icon: Package };
+  // };
 
-  const getExpiryStatus = (expiryDate: string) => {
-    const expiry = new Date(expiryDate);
-    const now = new Date();
-    const daysDiff = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 3600 * 24));
+  // const getExpiryStatus = (expiryDate: string) => {
+  //   const expiry = new Date(expiryDate);
+  //   const now = new Date();
+  //   const daysDiff = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 3600 * 24));
 
-    if (daysDiff < 0) return { text: 'Hết hạn', color: 'text-red-600 bg-red-50', days: daysDiff };
-    if (daysDiff <= 30) return { text: 'Sắp hết hạn', color: 'text-orange-600 bg-orange-50', days: daysDiff };
-    return { text: 'Còn hạn', color: 'text-green-600 bg-green-50', days: daysDiff };
-  };
+  //   if (daysDiff < 0) return { text: 'Hết hạn', color: 'text-red-600 bg-red-50', days: daysDiff };
+  //   if (daysDiff <= 30) return { text: 'Sắp hết hạn', color: 'text-orange-600 bg-orange-50', days: daysDiff };
+  //   return { text: 'Còn hạn', color: 'text-green-600 bg-green-50', days: daysDiff };
+  // };
 
   if (isLoading) {
     return (
@@ -133,9 +133,9 @@ export const SupplyDetail: React.FC = () => {
     );
   }
 
-  const stockStatus = getStockStatus(supply.QuantityInStock);
-  const expiryStatus = getExpiryStatus(supply.ExpiryDate);
-  const totalValue = supply.Price * supply.QuantityInStock;
+  // const stockStatus = getStockStatus(supply.QuantityInStock);
+  // const expiryStatus = getExpiryStatus(supply.ExpiryDate);
+  // const totalValue = supply.Price * supply.QuantityInStock;
 
   return (
     <div className="container mx-auto p-4 sm:p-6 max-w-4xl">
@@ -220,17 +220,17 @@ export const SupplyDetail: React.FC = () => {
                   <p className="text-base sm:text-lg font-semibold text-gray-900">
                     {supply.QuantityInStock}
                   </p>
-                  <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-md ${stockStatus.color} w-fit`}>
+                  {/* <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-md ${stockStatus.color} w-fit`}>
                     <stockStatus.icon className="h-4 w-4 mr-1" />
                     {stockStatus.text}
-                  </span>
+                  </span> */}
                 </div>
               </div>
 
               <div>
                 <label className="text-sm font-medium text-gray-600">Giá Đơn Vị</label>
                 <p className="text-base sm:text-lg font-semibold text-gray-900 mt-1 break-words word-wrap overflow-wrap-anywhere">
-                  {formatCurrency(supply.Price)}
+                  {formatCurrency(supply.Price)} ₫
                 </p>
               </div>
             </div>
@@ -247,7 +247,7 @@ export const SupplyDetail: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              {/* <div className="space-y-3">
                 <div>
                   <p className="text-base sm:text-lg font-semibold text-gray-900">
                     {new Date(supply.ExpiryDate).toLocaleDateString('vi-VN')}
@@ -266,7 +266,7 @@ export const SupplyDetail: React.FC = () => {
                     : `Đã hết hạn ${Math.abs(expiryStatus.days)} ngày`
                   }
                 </div>
-              </div>
+              </div> */}
             </CardContent>
           </Card>
 
@@ -281,12 +281,12 @@ export const SupplyDetail: React.FC = () => {
               <div className="space-y-3">
                 <div>
                   <p className="text-base sm:text-lg font-semibold text-green-600 break-words word-wrap overflow-wrap-anywhere">
-                    {formatCurrency(totalValue)}
+                    {/* {formatCurrency(totalValue)} ₫ */}
                   </p>
                 </div>
 
                 <div className="text-sm text-gray-600 space-y-1">
-                  <div className="break-words word-wrap overflow-wrap-anywhere">Giá đơn vị: {formatCurrency(supply.Price)}</div>
+                  <div className="break-words word-wrap overflow-wrap-anywhere">Giá đơn vị: {formatCurrency(supply.Price)} ₫</div>
                   <div>Số lượng: {supply.QuantityInStock} {supply.Unit}</div>
                 </div>
               </div>
@@ -308,7 +308,7 @@ export const SupplyDetail: React.FC = () => {
                 </div>
                 <div className="flex items-center text-sm text-gray-600">
                   <span className="w-6 flex-shrink-0"></span>
-                  <span className="break-words word-wrap overflow-wrap-anywhere">Tạo bởi: {supply.CreatedBy && supply.CreatedBy !== 0 && supply.CreatedBy !== null && supply.CreatedBy !== undefined ? supply.CreatedBy : 'Chưa có'}</span>
+                  {/* <span className="break-words word-wrap overflow-wrap-anywhere">Tạo bởi: {supply.CreatedBy && supply.CreatedBy !== 0 && supply.CreatedBy !== null && supply.CreatedBy !== undefined ? supply.CreatedBy : 'Chưa có'}</span> */}
                 </div>
               </div>
               <div className="space-y-2">
@@ -318,7 +318,7 @@ export const SupplyDetail: React.FC = () => {
                 </div>
                 <div className="flex items-center text-sm text-gray-600">
                   <span className="w-6 flex-shrink-0"></span>
-                  <span className="break-words word-wrap overflow-wrap-anywhere">Cập nhật bởi: {supply.UpdatedBy && supply.UpdatedBy !== 0 && supply.UpdatedBy !== null && supply.UpdatedBy !== undefined && String(supply.UpdatedBy).toLowerCase() !== 'unknown' ? supply.UpdatedBy : 'Chưa có'}</span>
+                  {/* <span className="break-words word-wrap overflow-wrap-anywhere">Cập nhật bởi: {supply.UpdatedBy && supply.UpdatedBy !== 0 && supply.UpdatedBy !== null && supply.UpdatedBy !== undefined && String(supply.UpdatedBy).toLowerCase() !== 'unknown' ? supply.UpdatedBy : 'Chưa có'}</span> */}
                 </div>
               </div>
             </div>
@@ -326,7 +326,7 @@ export const SupplyDetail: React.FC = () => {
         </Card>
 
         {/* Warnings */}
-        {(stockStatus.text !== 'Còn hàng' || expiryStatus.text !== 'Còn hạn') && (
+        {/* {(stockStatus.text !== 'Còn hàng' || expiryStatus.text !== 'Còn hạn') && (
           <Card className="border-orange-200 bg-orange-50">
             <CardHeader>
               <CardTitle className="text-base sm:text-lg text-orange-800 flex items-center">
@@ -354,7 +354,7 @@ export const SupplyDetail: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-        )}
+        )} */}
       </div>
 
       {/* Confirm Modal */}

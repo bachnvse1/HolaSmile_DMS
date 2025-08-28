@@ -273,7 +273,7 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
           variant="outline" 
           size="icon" 
           onClick={handlePreviousWeek}
-          // disabled={disablePastDates ? weekOffset <= 0 : weekOffset <= -2}
+          disabled={disablePastDates ? weekOffset <= 0 : false}
           className="h-8 w-8"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -287,7 +287,7 @@ export const ScheduleCalendar: React.FC<ScheduleCalendarProps> = ({
           variant="outline" 
           size="icon" 
           onClick={handleNextWeek}
-          // disabled={weekOffset >= 2} 
+          disabled={disablePastDates ? weekOffset >= 3 : false} 
           className="h-8 w-8"
         >
           <ChevronRight className="h-4 w-4" />
