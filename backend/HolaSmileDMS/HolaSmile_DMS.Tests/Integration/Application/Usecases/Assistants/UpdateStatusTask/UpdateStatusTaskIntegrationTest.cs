@@ -75,11 +75,29 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             _context.Database.EnsureDeleted();
             _context.Database.EnsureCreated();
 
-            // Thêm TreatmentProgress
+            // Seed Patient & TreatmentRecord (tùy schema của bạn, ID có thể khác)
+            var patient = new Patient
+            {
+                PatientID = 123,
+                };
+            _context.Patients.Add(patient);
+
+            var tr = new TreatmentRecord
+            {
+                TreatmentRecordID = 456,
+                DentistID = 1,
+                CreatedAt = DateTime.UtcNow
+                // ... các field tối thiểu khác nếu có ràng buộc
+            };
+            _context.TreatmentRecords.Add(tr);
+
+            // Thêm TreatmentProgress ĐỦ dữ liệu để build URL đúng
             var treatmentProgress = new TreatmentProgress
             {
                 TreatmentProgressID = 1,
                 DentistID = 1,
+                PatientID = 123,
+                TreatmentRecordID = 456,
                 EndTime = DateTime.UtcNow.AddDays(7)
             };
             _context.TreatmentProgresses.Add(treatmentProgress);
@@ -110,6 +128,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             _context.SaveChanges();
         }
 
+
         [Fact(DisplayName = "UTCID01 - Assistant updates own task successfully")]
         public async System.Threading.Tasks.Task UTCID01_UpdateOwnTask_Success()
         {
@@ -131,14 +150,14 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Assistants
             var updatedTask = _context.Tasks.First(t => t.TaskID == 1);
             Assert.True(updatedTask.Status);
 
-            // Verify notification was sent
             _mediatorMock.Verify(x => x.Send(
                 It.Is<SendNotificationCommand>(n =>
                     n.UserId == 1 &&
-                    n.Title == "Cập nhật trạng thái công việc trợ lý" &&  // Sửa lại title
+                    n.Title == "Cập nhật trạng thái công việc trợ lý" &&
                     n.Message == "Tiến trình: Task 1 - đã hoàn thành" &&
                     n.Type == "Update" &&
-                    n.MappingUrl == "/dentist/assigned-tasks"),
+                    n.MappingUrl == "/patient/view-treatment-progress/456?patientId=123&dentistId=1"
+                ),
                 It.IsAny<CancellationToken>()
             ), Times.Once);
         }
