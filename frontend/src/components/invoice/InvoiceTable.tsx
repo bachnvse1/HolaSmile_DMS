@@ -402,68 +402,67 @@ const InvoiceRow = ({
       </div>
 
       <div className="hidden sm:block min-w-[900px]">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-4 h-4"></div>
-            <div className="text-sm text-gray-600 min-w-0">
-              {formatDate(invoice.createdAt)}
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-4 lg:space-x-6">
-            <div className="text-sm text-blue-600 w-20 lg:w-24 text-right font-medium">
+        {/* desktop row: use same grid template as header */}
+        <div
+          className="grid items-center p-4"
+          style={{ gridTemplateColumns: '220px 96px 96px 120px 140px 120px 160px 56px', columnGap: '1rem' }}
+        >
+          {/* order code: wider so full code shows; prevent truncation */}
+          <div className="flex items-center space-x-3 min-w-0">
+            <div className="w-4 h-4" />
+            <div className="text-sm text-blue-600 font-medium whitespace-nowrap overflow-visible">
               {invoice.orderCode || 'N/A'}
             </div>
+          </div>
 
-            <div className="text-sm text-gray-700 w-16 sm:w-20 lg:w-24 text-right">
-              {safeCurrency(invoice.totalAmount)}
-            </div>
+          <div className="text-sm text-gray-700 text-right">
+            {safeCurrency(invoice.paidAmount)}
+          </div>
 
-            <div className="text-sm text-gray-700 w-16 sm:w-20 lg:w-24 text-right">
-              {safeCurrency(invoice.paidAmount)}
-            </div>
+          <div className="text-sm text-gray-700 text-right">
+            {safeCurrency(remainingAmount)}
+          </div>
 
-            <div className="text-sm text-gray-700 w-16 sm:w-20 lg:w-24 text-right">
-              {safeCurrency(remainingAmount)}
-            </div>
+          <div>
+            <Badge
+              variant="outline"
+              className={`text-xs ${
+                invoice.paymentMethod === "cash"
+                  ? "bg-green-50 text-green-700 border-green-200"
+                  : "bg-blue-50 text-blue-700 border-blue-200"
+              }`}
+            >
+              {invoice.paymentMethod === "cash" ? "Tiền mặt" : "Chuyển khoản"}
+            </Badge>
+          </div>
 
-            <div className="w-16 sm:w-20">
-              <Badge
-                variant="outline"
-                className={`text-xs ${
-                  invoice.paymentMethod === "cash" 
-                    ? "bg-green-50 text-green-700 border-green-200" 
-                    : "bg-blue-50 text-blue-700 border-blue-200"
-                }`}
-              >
-                {invoice.paymentMethod === "cash" ? "Tiền mặt" : "Chuyển khoản"}
-              </Badge>
-            </div>
+          <div>
+            {getTransactionTypeBadge(invoice.transactionType || "")}
+          </div>
 
-            <div className="w-20 sm:w-24">
-              {getTransactionTypeBadge(invoice.transactionType || "")}
-            </div>
+          <div>
+            {getStatusBadge(invoice.status || "pending")}
+          </div>
 
-            <div className="w-16 sm:w-20">
-              {getStatusBadge(invoice.status || "pending")}
-            </div>
+          <div className="text-sm text-gray-600 text-right">
+            {formatDate(invoice.createdAt)}
+          </div>
 
-            <div className="w-12 flex justify-center">
-              <ActionsDropdown
-                invoice={invoice}
-                openInvoiceDetail={openInvoiceDetail}
-                onUpdateInvoice={onUpdateInvoice}
-                onPayment={handlePayment}
-                onPrint={handlePrint}
-                paymentLoading={paymentLoading}
-                printLoading={printLoading}
-              />
-            </div>
+          <div className="flex justify-center">
+            <ActionsDropdown
+              invoice={invoice}
+              openInvoiceDetail={openInvoiceDetail}
+              onUpdateInvoice={onUpdateInvoice}
+              onPayment={handlePayment}
+              onPrint={handlePrint}
+              paymentLoading={paymentLoading}
+              printLoading={printLoading}
+            />
           </div>
         </div>
-      </div>
-    </div>
-  )
+       </div>
+     </div>
+   )
 }
 
 const TreatmentRecordHeader = ({
@@ -899,21 +898,23 @@ export function InvoiceTable({
                             <div className="bg-white">
                               <div className="hidden sm:block bg-gray-50 px-4 py-2 border-b border-gray-200 ml-4 sm:ml-8">
                                 <div className="min-w-[900px]">
-                                  <div className="flex items-center justify-between text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <div className="flex items-center space-x-3">
-                                      <div className="w-4"></div>
-                                      <span>Ngày tạo</span>
+                                  {/* Use grid so header columns align exactly with rows */}
+                                  <div
+                                    className="grid items-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                    style={{ gridTemplateColumns: '220px 96px 96px 120px 140px 120px 160px 56px', columnGap: '1rem' }}
+                                  >
+                                    <div className="flex items-center space-x-3 min-w-0">
+                                      <div className="w-4" />
+                                      <div className="text-left">Mã đơn hàng</div>
                                     </div>
-                                    <div className="flex items-center space-x-4 lg:space-x-6">
-                                      <div className="w-20 lg:w-24 text-right">Mã đơn hàng</div>
-                                      <div className="w-16 sm:w-20 lg:w-24 text-right">Tổng tiền</div>
-                                      <div className="w-16 sm:w-20 lg:w-24 text-right">Thanh toán</div>
-                                      <div className="w-16 sm:w-20 lg:w-24 text-right">Còn lại</div>
-                                      <div className="w-16 sm:w-20">Phương thức</div>
-                                      <div className="w-20 sm:w-24">Loại giao dịch</div>
-                                      <div className="w-16 sm:w-20">Trạng thái</div>
-                                      <div className="w-12 text-center">Thao tác</div>
-                                    </div>
+
+                                    <div className="text-right">Thanh toán</div>
+                                    <div className="text-right">Còn lại</div>
+                                    <div>Phương thức</div>
+                                    <div>Loại giao dịch</div>
+                                    <div>Trạng thái</div>
+                                    <div className="text-right">Ngày tạo</div>
+                                    <div className="text-center">Thao tác</div>
                                   </div>
                                 </div>
                               </div>

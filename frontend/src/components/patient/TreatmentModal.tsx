@@ -389,7 +389,7 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Ngày điều trị *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Ngày điều trị - Dự kiến *</label>
                     <input
                       value={formatTreatmentDate(treatmentDate || "")}
                       type="text"
@@ -571,13 +571,42 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
         </div>
 
         {showConfirm && (
-          <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
-              <h2 className="text-lg font-semibold mb-4">Tạo lịch điều trị</h2>
-              <p className="mb-6">
-                Bạn có muốn tạo lịch điều trị dựa trên ngày được chọn từ lịch nha sĩ không?
-              </p>
-              <div className="flex justify-end space-x-2">
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            {/* overlay */}
+            <div className="fixed inset-0 bg-black/40" aria-hidden="true" />
+
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="confirm-title"
+              className="relative bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-6"
+            >
+              {/* Close X in corner */}
+              <button
+                type="button"
+                onClick={() => setShowConfirm(false)}
+                className="absolute top-3 right-3 p-1 rounded-md text-gray-400 hover:text-gray-600 focus:outline-none"
+                aria-label="Đóng"
+              >
+                <X className="h-4 w-4" />
+              </button>
+
+              <div className="flex items-start gap-4">
+                <div className="flex-none rounded-full bg-blue-50 p-3">
+                  <Clock className="h-6 w-6 text-blue-600" />
+                </div>
+
+                <div className="min-w-0">
+                  <h2 id="confirm-title" className="text-lg font-semibold text-gray-900">
+                    Xác nhận tạo lịch điều trị
+                  </h2>
+                  <p className="mt-1 text-sm text-gray-600">
+                    Bạn muốn tạo lịch điều trị dựa trên ngày đã chọn cho lần khám tiếp theo, hay tạo lịch ngay cho hôm nay?
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => {
@@ -586,10 +615,12 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                       handleInternalSubmit({ ...data, treatmentToday: true })
                     )();
                   }}
-                  className="px-4 py-2 border rounded"
+                  className="px-4 py-2 rounded-md text-sm bg-gray-100 text-gray-800 border border-gray-200 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-300"
+                  title="Tạo lịch ngay cho hôm nay"
                 >
-                  Không
+                  Không — Điều trị ngay hôm nay
                 </button>
+
                 <button
                   type="button"
                   onClick={() => {
@@ -598,16 +629,10 @@ const TreatmentModal: React.FC<TreatmentModalProps> = ({
                       handleInternalSubmit({ ...data, treatmentToday: false })
                     )();
                   }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded"
+                  className="px-4 py-2 rounded-md text-sm bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-400"
+                  title="Tạo lịch cho lần khám tiếp theo"
                 >
-                  Có
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowConfirm(false)}
-                  className="px-4 py-2 text-gray-600"
-                >
-                  Hủy
+                  Có — Tạo cho lần khám tiếp theo
                 </button>
               </div>
             </div>
