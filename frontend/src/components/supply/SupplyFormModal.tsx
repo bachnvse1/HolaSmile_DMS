@@ -20,8 +20,8 @@ import { formatCurrency, handleCurrencyInput, parseCurrency } from '@/utils/curr
 const supplySchema = z.object({
   name: z.string().min(1, 'Tên vật tư là bắt buộc'),
   unit: z.string().min(1, 'Đơn vị là bắt buộc'),
-  quantityInStock: z.coerce.number().min(0, 'Số lượng phải lớn hơn hoặc bằng 0'),
-  expiryDate: z.string().min(1, 'Hạn sử dụng là bắt buộc'),
+  // quantityInStock: z.coerce.number().min(0, 'Số lượng phải lớn hơn hoặc bằng 0'),
+  // expiryDate: z.string().min(1, 'Hạn sử dụng là bắt buộc'),
   price: z.coerce.number().min(0.1, 'Giá phải lớn hơn 0'),
 });
 
@@ -55,8 +55,8 @@ export const SupplyFormModal: React.FC<SupplyFormModalProps> = ({
     defaultValues: {
       name: '',
       unit: '',
-      quantityInStock: 0,
-      expiryDate: '',
+      // quantityInStock: 0,
+      // expiryDate: '',
       price: 0,
     },
   });
@@ -69,8 +69,8 @@ export const SupplyFormModal: React.FC<SupplyFormModalProps> = ({
       const formData = {
         name: supply.Name,
         unit: supply.Unit,
-        quantityInStock: supply.QuantityInStock,
-        expiryDate: supply.ExpiryDate.split('T')[0],
+        // quantityInStock: supply.QuantityInStock,
+        // expiryDate: supply.ExpiryDate.split('T')[0],
         price: supply.Price,
       };
 
@@ -80,8 +80,8 @@ export const SupplyFormModal: React.FC<SupplyFormModalProps> = ({
       form.reset({
         name: '',
         unit: '',
-        quantityInStock: 0,
-        expiryDate: '',
+        // quantityInStock: 0,
+        // expiryDate: '',
         price: 0,
       });
       setPriceDisplayValue('');
@@ -103,9 +103,9 @@ export const SupplyFormModal: React.FC<SupplyFormModalProps> = ({
         createSupply({
           supplyName: data.name,
           unit: data.unit,
-          quantityInStock: data.quantityInStock,
+          // quantityInStock: data.quantityInStock,
           price: data.price,
-          expiryDate: new Date(data.expiryDate).toISOString(),
+          // expiryDate: new Date(data.expiryDate).toISOString(),
         }, {
           onSuccess: (response) => {
             const result = response as { message?: string };
@@ -122,9 +122,9 @@ export const SupplyFormModal: React.FC<SupplyFormModalProps> = ({
           supplyId: Number(supplyId) || 0,
           supplyName: data.name,
           unit: data.unit,
-          quantityInStock: data.quantityInStock,
+          // quantityInStock: data.quantityInStock,
           price: data.price,
-          expiryDate: new Date(data.expiryDate).toISOString(),
+          // expiryDate: new Date(data.expiryDate).toISOString(),
         }, {
           onSuccess: (response) => {
             const result = response as { message?: string };
@@ -157,7 +157,7 @@ export const SupplyFormModal: React.FC<SupplyFormModalProps> = ({
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900">
-              {mode === 'create' ? 'Thêm Vật Tư Mới' : 'Chỉnh Sửa Vật Tư'}
+              {mode === 'create' ? 'Thêm Danh Mục Vật Tư Mới' : 'Chỉnh Sửa Danh Mục Vật Tư'}
             </h3>
             <button
               onClick={onClose}
@@ -179,7 +179,7 @@ export const SupplyFormModal: React.FC<SupplyFormModalProps> = ({
           ) : (
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="sm:col-span-2">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Tên Vật Tư <span className='text-red-400'>*</span>
                   </label>
@@ -221,7 +221,7 @@ export const SupplyFormModal: React.FC<SupplyFormModalProps> = ({
                   )}
                 </div>
 
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Số Lượng Trong Kho <span className='text-red-400'>*</span>
                   </label>
@@ -254,9 +254,9 @@ export const SupplyFormModal: React.FC<SupplyFormModalProps> = ({
                       {form.formState.errors.expiryDate.message}
                     </p>
                   )}
-                </div>
+                </div> */}
 
-                <div className="sm:col-span-2">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Giá (VNĐ) <span className='text-red-400'>*</span>
                   </label>
@@ -294,7 +294,7 @@ export const SupplyFormModal: React.FC<SupplyFormModalProps> = ({
                   <Save className="h-4 w-4 mr-2" />
                   {isLoading
                     ? (mode === 'create' ? 'Đang tạo...' : 'Đang cập nhật...')
-                    : (mode === 'create' ? 'Tạo Vật Tư' : 'Cập Nhật')
+                    : (mode === 'create' ? 'Tạo Danh Mục' : 'Cập Nhật')
                   }
                 </Button>
               </div>
