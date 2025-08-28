@@ -12,7 +12,6 @@ export const mapToSupplyItem = (supply: Supply): SupplyItem => ({
   name: supply.Name,
   unit: supply.Unit,
   price: supply.Price,
-  inStock: supply.QuantityInStock,
 })
 
 
@@ -21,20 +20,15 @@ function mapSupplyFromApi(apiSupply: any): Supply {
     SupplyID: apiSupply.supplyID ?? apiSupply.SupplyID ?? 0,
     Name: apiSupply.name ?? apiSupply.Name ?? "",
     Unit: apiSupply.unit ?? apiSupply.Unit ?? "",
-    QuantityInStock:
-      apiSupply.quantityInStock ?? apiSupply.QuantityInStock ?? 0,
-    ExpiryDate: apiSupply.expiryDate ?? apiSupply.ExpiryDate ?? "",
+    QuantityInStock: apiSupply.quantityInStock ?? apiSupply.QuantityInStock ?? undefined,
+    ExpiryDate: apiSupply.expiryDate ?? apiSupply.ExpiryDate ?? undefined,
     Price: apiSupply.price ?? apiSupply.Price ?? 0,
     CreatedAt: apiSupply.createdAt ?? apiSupply.CreatedAt ?? "",
-    UpdatedAt: apiSupply.updatedAt ?? apiSupply.UpdatedAt ?? "",
-    CreatedBy: apiSupply.createdBy ?? apiSupply.CreatedBy ?? null,
-    UpdatedBy: (apiSupply.updateBy ?? apiSupply.UpdatedBy) === 0 || 
-               (apiSupply.updateBy ?? apiSupply.UpdatedBy) === null || 
-               (apiSupply.updateBy ?? apiSupply.UpdatedBy) === undefined ||
-               (apiSupply.updateBy ?? apiSupply.UpdatedBy) === 'unknown' ? 
-               null : (apiSupply.updateBy ?? apiSupply.UpdatedBy),
+    UpdatedAt: apiSupply.updatedAt ?? apiSupply.UpdatedAt ?? undefined,
+    CreatedBy: apiSupply.createdBy ?? apiSupply.CreatedBy ?? "",
+    UpdatedBy: apiSupply.updatedBy ?? apiSupply.UpdatedBy ?? undefined,
     IsDeleted: apiSupply.isDeleted ?? apiSupply.IsDeleted ?? false,
-    isDeleted: apiSupply.isDeleted ?? apiSupply.IsDeleted ?? 0, // 0 = active, 1 = deleted
+    isDeleted: apiSupply.isDeleted ?? apiSupply.IsDeleted ?? false,
   };
 }
 

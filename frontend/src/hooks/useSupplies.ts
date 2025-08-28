@@ -68,13 +68,11 @@ export const useUpdateSupply = () => {
   return useMutation({
     mutationFn: (data: UpdateSupplyRequest) => supplyApi.updateSupply(data),
     onSuccess: (updatedSupply, variables) => {
-      // Update individual supply cache
       queryClient.setQueryData(
         SUPPLY_KEYS.detail(variables.supplyId),
         updatedSupply
       );
 
-      // Invalidate lists to force refresh
       queryClient.invalidateQueries({ queryKey: SUPPLY_KEYS.lists() });
       queryClient.invalidateQueries({ queryKey: SUPPLY_KEYS.stats() });
     },
@@ -101,24 +99,16 @@ export const useSupplyStats = () => {
       try {
         const supplies = await supplyApi.getSupplies();
 
-        const lowStockSupplies = supplies.filter(
-          (supply) => supply.QuantityInStock <= 10
-        );
-        const expiringSoonSupplies = supplies.filter((supply) => {
-          const futureDate = new Date();
-          futureDate.setDate(futureDate.getDate() + 30);
-          return new Date(supply.ExpiryDate) <= futureDate;
-        });
         const totalValue = supplies.reduce(
-          (sum, supply) => sum + supply.Price * supply.QuantityInStock,
+          (sum, supply) => sum + supply.Price,
           0
         );
 
         return {
           totalSupplies: supplies.length,
-          lowStockCount: lowStockSupplies.length,
-          expiringSoonCount: expiringSoonSupplies.length,
           totalValue,
+          // lowStockCount: 0,
+          // expiringSoonCount: 0,
         };
       } catch (error: unknown) {
         const apiError = error as {
@@ -130,9 +120,9 @@ export const useSupplyStats = () => {
         ) {
           return {
             totalSupplies: 0,
-            lowStockCount: 0,
-            expiringSoonCount: 0,
             totalValue: 0,
+            // lowStockCount: 0,
+            // expiringSoonCount: 0,
           };
         }
         throw error;

@@ -1,16 +1,16 @@
 import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router';
+// import { useNavigate } from 'react-router';
 import {
   Plus,
   Search,
   Edit,
-  Trash2,
-  Eye,
+  // Trash2,
+  // Eye,
   Package,
-  AlertTriangle,
-  DollarSign,
-  TrendingDown,
-  Filter,
+  // AlertTriangle,
+  // DollarSign,
+  // TrendingDown,
+  // Filter,
   RotateCcw,
   Download,
   Upload,
@@ -25,9 +25,9 @@ import { Pagination } from '@/components/ui/Pagination';
 import {
   useSupplies,
   useDeactivateSupply,
-  useSupplyStats,
+  // useSupplyStats,
   useDownloadExcelSupplies,
-  useExportSupplies,
+  // useExportSupplies,
   useImportSupplies
 } from '@/hooks/useSupplies';
 import { useUserInfo } from '@/hooks/useUserInfo';
@@ -37,7 +37,7 @@ import { formatCurrency } from '@/utils/currencyUtils';
 
 export const SupplyList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filter, setFilter] = useState<'all' | 'low-stock' | 'expiring'>('all');
+  // const [filter, setFilter] = useState<'all' | 'low-stock' | 'expiring'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -59,7 +59,7 @@ export const SupplyList: React.FC = () => {
     supply: null,
     action: 'delete'
   });
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const userInfo = useUserInfo();
@@ -69,14 +69,35 @@ export const SupplyList: React.FC = () => {
 
 
   const { data: supplies = [], isLoading, error, refetch } = useSupplies();
-  const { data: stats, isLoading: isLoadingStats } = useSupplyStats();
+  // const { data: stats, isLoading: isLoadingStats } = useSupplyStats();
   const { mutate: deactivateSupply, isPending: isDeactivating } = useDeactivateSupply();
   const { mutate: downloadExcel, isPending: isDownloadExcel } = useDownloadExcelSupplies();
-  const { mutate: exportExcel, isPending: isExportExcel } = useExportSupplies();
+  // const { mutate: exportExcel, isPending: isExportExcel } = useExportSupplies();
   const { mutate: importExcel, isPending: isImporting } = useImportSupplies();
 
   const filteredSupplies = React.useMemo(() => {
-    let filtered = supplies;
+    let filtered = [...supplies]; 
+
+    filtered = filtered.sort((a, b) => {
+      const getLatestDate = (supply: Supply) => {
+        const updatedAt = supply.UpdatedAt;
+        const createdAt = supply.CreatedAt;
+        
+        if (updatedAt && updatedAt.trim() !== '') {
+          const updatedDate = new Date(updatedAt);
+          if (!isNaN(updatedDate.getTime()) && updatedDate.getTime() > 0) {
+            return updatedDate;
+          }
+        }
+        return new Date(createdAt);
+      };
+      
+      const dateA = getLatestDate(a);
+      const dateB = getLatestDate(b);
+      
+      return dateB.getTime() - dateA.getTime(); 
+    });
+
 
     if (searchQuery.trim()) {
       filtered = filtered.filter(supply =>
@@ -84,20 +105,8 @@ export const SupplyList: React.FC = () => {
       );
     }
 
-    // Filter by status
-    if (filter === 'low-stock') {
-      filtered = filtered.filter(supply => supply.QuantityInStock <= 10);
-    }
-    if (filter === 'expiring') {
-      const futureDate = new Date();
-      futureDate.setDate(futureDate.getDate() + 30);
-      filtered = filtered.filter(supply =>
-        new Date(supply.ExpiryDate) <= futureDate
-      );
-    }
-
     return filtered;
-  }, [supplies, searchQuery, filter]);
+  }, [supplies, searchQuery]);
 
   // Pagination logic
   const totalItems = filteredSupplies.length;
@@ -111,10 +120,10 @@ export const SupplyList: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const handleFilterChange = (newFilter: 'all' | 'low-stock' | 'expiring') => {
-    setFilter(newFilter);
-    setCurrentPage(1);
-  };
+  // const handleFilterChange = (newFilter: 'all' | 'low-stock' | 'expiring') => {
+  //   setFilter(newFilter);
+  //   setCurrentPage(1);
+  // };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -136,16 +145,16 @@ export const SupplyList: React.FC = () => {
     });
   };
 
-  const handleExportExcel = () => {
-    exportExcel(undefined, {
-      onSuccess: () => {
-        toast.success('Đã xuất Excel thành công');
-      },
-      onError: (error) => {
-        toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi xuất file Excel');
-      }
-    });
-  };
+  // const handleExportExcel = () => {
+  //   exportExcel(undefined, {
+  //     onSuccess: () => {
+  //       toast.success('Đã xuất Excel thành công');
+  //     },
+  //     onError: (error) => {
+  //       toast.error(getErrorMessage(error) || 'Có lỗi xảy ra khi xuất file Excel');
+  //     }
+  //   });
+  // };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -194,9 +203,9 @@ export const SupplyList: React.FC = () => {
     }
   };
 
-  const handleView = (supply: Supply) => {
-    navigate(`/inventory/${supply.SupplyID}`);
-  };
+  // const handleView = (supply: Supply) => {
+  //   navigate(`/inventory/${supply.SupplyID}`);
+  // };
 
   const handleEdit = (supply: Supply) => {
     setSupplyFormModal({
@@ -206,14 +215,14 @@ export const SupplyList: React.FC = () => {
     });
   };
 
-  const handleDeactivate = async (supply: Supply) => {
-    const isDeleted = supply.isDeleted === true;
-    setConfirmModal({
-      isOpen: true,
-      supply: supply,
-      action: isDeleted ? 'restore' : 'delete'
-    });
-  };
+  // const handleDeactivate = async (supply: Supply) => {
+  //   const isDeleted = supply.isDeleted === true;
+  //   setConfirmModal({
+  //     isOpen: true,
+  //     supply: supply,
+  //     action: isDeleted ? 'restore' : 'delete'
+  //   });
+  // };
 
   const handleConfirmAction = () => {
     const { supply, action } = confirmModal;
@@ -240,21 +249,21 @@ export const SupplyList: React.FC = () => {
     return date.toLocaleDateString('vi-VN');
   };
 
-  const getStockStatus = (quantity: number) => {
-    if (quantity == 0) return { text: 'Hết hàng', color: 'text-red-600 bg-red-50' };
-    if (quantity <= 10) return { text: 'Sắp hết', color: 'text-orange-600 bg-orange-50' };
-    return { text: 'Còn hàng', color: 'text-green-600 bg-green-50' };
-  };
+  // const getStockStatus = (quantity: number) => {
+  //   if (quantity == 0) return { text: 'Hết hàng', color: 'text-red-600 bg-red-50' };
+  //   if (quantity <= 10) return { text: 'Sắp hết', color: 'text-orange-600 bg-orange-50' };
+  //   return { text: 'Còn hàng', color: 'text-green-600 bg-green-50' };
+  // };
 
-  const getExpiryStatus = (expiryDate: string) => {
-    const expiry = new Date(expiryDate);
-    const now = new Date();
-    const daysDiff = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 3600 * 24));
+  // const getExpiryStatus = (expiryDate: string) => {
+  //   const expiry = new Date(expiryDate);
+  //   const now = new Date();
+  //   const daysDiff = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 3600 * 24));
 
-    if (daysDiff < 0) return { text: 'Hết hạn', color: 'text-red-600 bg-red-50' };
-    if (daysDiff <= 30) return { text: 'Sắp hết hạn', color: 'text-orange-600 bg-orange-50' };
-    return { text: 'Còn hạn', color: 'text-green-600 bg-green-50' };
-  };
+  //   if (daysDiff < 0) return { text: 'Hết hạn', color: 'text-red-600 bg-red-50' };
+  //   if (daysDiff <= 30) return { text: 'Sắp hết hạn', color: 'text-orange-600 bg-orange-50' };
+  //   return { text: 'Còn hạn', color: 'text-green-600 bg-green-50' };
+  // };
 
   if (isLoading) {
     return (
@@ -300,15 +309,15 @@ export const SupplyList: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         {/* Title section */}
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Quản Lý Kho Vật Tư</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Quản Lý Danh Mục Vật Tư</h1>
           <p className="text-gray-600 mt-1 text-sm sm:text-base">
-            Tổng cộng {filteredSupplies.length} vật tư
+            Tổng cộng {filteredSupplies.length} danh mục vật tư
           </p>
         </div>
 
         {/* Action buttons */}
         <div className="flex flex-col gap-2 sm:gap-3 sm:ml-auto">
-          <div className="grid grid-cols-2 gap-2 sm:hidden">
+          {/* <div className="grid grid-cols-2 gap-2 sm:hidden">
             {canModify && (supplies.length > 0) && (
               <Button
                 onClick={handleExportExcel}
@@ -330,7 +339,7 @@ export const SupplyList: React.FC = () => {
                 <span>Nhập Excel</span>
               </Button>
             )}
-          </div>
+          </div> */}
 
           {canModify && (
             <div className="grid grid-cols-1 gap-2 sm:hidden">
@@ -339,14 +348,14 @@ export const SupplyList: React.FC = () => {
                 className="text-xs"
               >
                 <Plus className="h-3 w-3 mr-1" />
-                <span>Thêm Vật Tư Mới</span>
+                <span>Thêm Danh Mục Mới</span>
               </Button>
             </div>
           )}
 
           {/* Desktop layout */}
           <div className="hidden sm:flex sm:gap-3">
-            {canModify && supplies.length > 0 && (
+            {/* {canModify && supplies.length > 0 && (
               <Button
                 onClick={handleExportExcel}
                 disabled={isExportExcel}
@@ -355,25 +364,25 @@ export const SupplyList: React.FC = () => {
                 <Download className="h-4 w-4 mr-2" />
                 {isExportExcel ? 'Đang xuất...' : 'Xuất Excel'}
               </Button>
-            )}
+            )} */}
 
             {canModify && (
               <>
-                <Button
+                {/* <Button
                   onClick={() => setShowImportModal(true)}
                   disabled={isImporting}
                   className="text-sm bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   <Upload className="h-4 w-4 mr-2" />
                   {isImporting ? 'Đang nhập...' : 'Nhập Excel'}
-                </Button>
+                </Button> */}
 
                 <Button
                   onClick={() => setSupplyFormModal({ isOpen: true, mode: 'create' })}
                   className="text-sm"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Thêm Vật Tư Mới
+                  Thêm Danh Mục Mới
                 </Button>
               </>
             )}
@@ -382,7 +391,7 @@ export const SupplyList: React.FC = () => {
       </div>
 
       {/* Statistics Cards */}
-      {!isLoadingStats && stats && (
+      {/* {!isLoadingStats && stats && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
           <Card>
             <CardContent className="p-3 sm:p-4">
@@ -434,7 +443,7 @@ export const SupplyList: React.FC = () => {
             </CardContent>
           </Card>
         </div>
-      )}
+      )} */}
 
       {/* Search and Filter */}
       <Card className="mb-6">
@@ -454,7 +463,7 @@ export const SupplyList: React.FC = () => {
             </div>
 
             {/* Filter buttons */}
-            <div className="grid grid-cols-3 gap-2 sm:flex sm:gap-2">
+            {/* <div className="grid grid-cols-3 gap-2 sm:flex sm:gap-2">
               <Button
                 variant={filter === 'all' ? 'default' : 'outline'}
                 onClick={() => handleFilterChange('all')}
@@ -482,7 +491,7 @@ export const SupplyList: React.FC = () => {
                 <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 Hết hạn
               </Button>
-            </div>
+            </div> */}
           </div>
         </CardContent>
       </Card>
@@ -493,7 +502,7 @@ export const SupplyList: React.FC = () => {
           <CardContent className="p-8 text-center">
             <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {searchQuery ? 'Không tìm thấy vật tư' : 'Kho vật tư trống'}
+              {searchQuery ? 'Không tìm thấy danh mục vật tư' : 'Danh mục vật tư trống'}
             </h3>
             <p className="text-gray-600 mb-4">
               {searchQuery
@@ -504,7 +513,7 @@ export const SupplyList: React.FC = () => {
             {!searchQuery && canModify && (
               <Button onClick={() => setSupplyFormModal({ isOpen: true, mode: 'create' })}>
                 <Plus className="h-4 w-4 mr-2" />
-                Thêm Vật Tư Mới
+                Thêm Danh Mục Mới
               </Button>
             )}
             {searchQuery && (
@@ -536,26 +545,23 @@ export const SupplyList: React.FC = () => {
                         Đơn vị
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Số lượng
+                        Ngày tạo
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Hạn sử dụng
+                        Người tạo
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Giá
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Trạng thái
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Thao tác
                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {paginatedSupplies.map((supply) => {
-                      const stockStatus = getStockStatus(supply.QuantityInStock);
-                      const expiryStatus = getExpiryStatus(supply.ExpiryDate);
+                      // const stockStatus = getStockStatus(supply.QuantityInStock);
+                      // const expiryStatus = getExpiryStatus(supply.ExpiryDate);
 
                       return (
                         <tr key={supply.SupplyID} className="hover:bg-gray-50">
@@ -566,82 +572,28 @@ export const SupplyList: React.FC = () => {
                             {supply.Unit}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <span className="text-sm font-medium text-gray-900 mr-2">
-                                {supply.QuantityInStock}
-                              </span>
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-md ${stockStatus.color}`}>
-                                {stockStatus.text}
-                              </span>
+                            <div className="text-sm text-gray-900">
+                              {formatDate(supply.CreatedAt)}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <span className="text-sm text-gray-900 mr-2">
-                                {supply.ExpiryDate ? formatDate(supply.ExpiryDate) : ''}
-                              </span>
-                              {supply.ExpiryDate && (
-                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-md ${expiryStatus.color}`}>
-                                  {expiryStatus.text}
-                                </span>
-                              )}
+                            <div className="text-sm text-gray-900">
+                              {supply.CreatedBy || 'N/A'}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {formatCurrency(supply.Price)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex flex-col gap-1">
-                              <span className={`inline-flex max-w-[80px] justify-center items-center text-center px-2 py-1 text-xs font-semibold rounded-md ${stockStatus.color}`}>
-                                {stockStatus.text}
-                              </span>
-                              <span className={`inline-flex max-w-[80px] justify-center items-center text-center px-2 py-1 text-xs font-semibold rounded-md ${expiryStatus.color}`}>
-                                {expiryStatus.text}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div className="flex justify-end space-x-2">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleView(supply)}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
+                          <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                            <div className="flex justify-center space-x-2">
                               {canModify && (
-                                <>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => handleEdit(supply)}
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                  {supply.isDeleted === true ? (
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => handleDeactivate(supply)}
-                                      disabled={isDeactivating}
-                                      className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                                      title="Khôi phục vật tư"
-                                    >
-                                      <RotateCcw className="h-4 w-4" />
-                                    </Button>
-                                  ) : (
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => handleDeactivate(supply)}
-                                      disabled={isDeactivating}
-                                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                      title="Xóa vật tư"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  )}
-                                </>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleEdit(supply)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
                               )}
                             </div>
                           </td>
@@ -657,8 +609,8 @@ export const SupplyList: React.FC = () => {
           {/* Mobile Cards */}
           <div className="lg:hidden space-y-3 sm:space-y-4">
             {paginatedSupplies.map((supply) => {
-              const stockStatus = getStockStatus(supply.QuantityInStock);
-              const expiryStatus = getExpiryStatus(supply.ExpiryDate);
+              // const stockStatus = getStockStatus(supply.QuantityInStock);
+              // const expiryStatus = getExpiryStatus(supply.ExpiryDate);
 
               return (
                 <Card key={supply.SupplyID} className="hover:shadow-lg transition-shadow">
@@ -675,48 +627,15 @@ export const SupplyList: React.FC = () => {
                           </p>
                         </div>
                         <div className="flex space-x-1 flex-shrink-0">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleView(supply)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
                           {canModify && (
-                            <>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleEdit(supply)}
-                                className="h-8 w-8 p-0"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              {supply.isDeleted === true ? (
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleDeactivate(supply)}
-                                  disabled={isDeactivating}
-                                  className="text-green-600 hover:text-green-700 hover:bg-green-50 h-8 w-8 p-0"
-                                  title="Khôi phục vật tư"
-                                >
-                                  <RotateCcw className="h-4 w-4" />
-                                </Button>
-                              ) : (
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleDeactivate(supply)}
-                                  disabled={isDeactivating}
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
-                                  title="Xóa vật tư"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEdit(supply)}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
                           )}
                         </div>
                       </div>
@@ -724,37 +643,27 @@ export const SupplyList: React.FC = () => {
                       {/* Content */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-sm">
                         <div>
-                          <span className="text-gray-600">Số lượng:</span>
-                          <div className="flex items-center mt-1 gap-2">
-                            <span className="font-medium text-gray-900">
-                              {supply.QuantityInStock}
-                            </span>
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-md ${stockStatus.color}`}>
-                              {stockStatus.text}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div>
                           <span className="text-gray-600">Giá:</span>
                           <div className="font-medium text-gray-900 mt-1 truncate">
                             {formatCurrency(supply.Price)}
                           </div>
                         </div>
+
+                        <div>
+                          <span className="text-gray-600">Người tạo:</span>
+                          <div className="font-medium text-gray-900 mt-1 truncate">
+                            {supply.CreatedBy || 'N/A'}
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Expiry */}
+                      {/* Created Date */}
                       <div>
-                        <span className="text-gray-600 text-sm">Hạn sử dụng:</span>
+                        <span className="text-gray-600 text-sm">Ngày tạo:</span>
                         <div className="flex items-center mt-1 gap-2">
                           <span className="text-sm text-gray-900">
-                            {supply.ExpiryDate ? formatDate(supply.ExpiryDate) : ''}
+                            {formatDate(supply.CreatedAt)}
                           </span>
-                          {supply.ExpiryDate && (
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-md text-align-center ${expiryStatus.color}`}>
-                              {expiryStatus.text}
-                            </span>
-                          )}
                         </div>
                       </div>
                     </div>
