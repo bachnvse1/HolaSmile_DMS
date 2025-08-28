@@ -93,6 +93,9 @@ export const UpdateInvoiceModal: React.FC<UpdateInvoiceModalProps> = ({
            invoice?.transactionType === "partial";
   }, [hasMultipleInvoicesForRecord, invoice?.transactionType]);
 
+  // Check if transaction type is "full" to disable amount input
+  const isFullPayment = formData.transactionType === "full";
+
   React.useEffect(() => {
     if (invoice && updateOpen) {
       const initialData: UpdateInvoiceFormData = {
@@ -133,6 +136,9 @@ export const UpdateInvoiceModal: React.FC<UpdateInvoiceModalProps> = ({
   };
 
   const handleAmountChange = (value: string) => {
+    // Don't allow manual input when full payment is selected
+    if (isFullPayment) return;
+    
     handleCurrencyInput(value, (formattedValue) => {
       setFormattedAmount(formattedValue);
       const numericValue = parseCurrency(formattedValue);
@@ -302,13 +308,14 @@ export const UpdateInvoiceModal: React.FC<UpdateInvoiceModalProps> = ({
                   value={formattedAmount}
                   onChange={(e) => handleAmountChange(e.target.value)}
                   placeholder="Nhập số tiền thanh toán"
-                  disabled={!canEdit || isUpdating}
-                  className={`pr-12 ${isAmountExceeded ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
+                  disabled={!canEdit || isUpdating || isFullPayment}
+                  className={`pr-12 ${isAmountExceeded ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""} ${isFullPayment ? "bg-gray-50 cursor-not-allowed text-gray-900" : ""}`}
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                   <span className="text-gray-500 text-sm">đ</span>
                 </div>
               </div>
+
               {formData.paidAmount > 0 && !isAmountExceeded && (
                 <div className="mt-2 text-sm space-y-1">
                   <p className="text-gray-600">Số tiền thanh toán: <span className="font-semibold">{formatCurrency(formData.paidAmount)}</span></p>

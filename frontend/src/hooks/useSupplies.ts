@@ -1,45 +1,40 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supplyApi } from '@/services/supplyApi';
-import type { 
-  CreateSupplyRequest, 
-  UpdateSupplyRequest 
-} from '@/types/supply';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supplyApi } from "@/services/supplyApi";
+import type { CreateSupplyRequest, UpdateSupplyRequest } from "@/types/supply";
 
 // Query keys
 const SUPPLY_KEYS = {
-  all: ['supplies'] as const,
-  lists: () => [...SUPPLY_KEYS.all, 'list'] as const,
-  list: (searchQuery?: string) => [...SUPPLY_KEYS.lists(), { searchQuery }] as const,
-  details: () => [...SUPPLY_KEYS.all, 'detail'] as const,
+  all: ["supplies"] as const,
+  lists: () => [...SUPPLY_KEYS.all, "list"] as const,
+  list: (searchQuery?: string) =>
+    [...SUPPLY_KEYS.lists(), { searchQuery }] as const,
+  details: () => [...SUPPLY_KEYS.all, "detail"] as const,
   detail: (id: number) => [...SUPPLY_KEYS.details(), id] as const,
-  stats: () => [...SUPPLY_KEYS.all, 'stats'] as const,
+  stats: () => [...SUPPLY_KEYS.all, "stats"] as const,
 };
 
 // Hook for getting all supplies
-export const useSupplies = (searchQuery?: string) => {
+export const useSupplies = () => {
   return useQuery({
-    queryKey: SUPPLY_KEYS.list(searchQuery),
+    queryKey: SUPPLY_KEYS.lists(), 
     queryFn: async () => {
       try {
         const supplies = await supplyApi.getSupplies();
-        
-        if (searchQuery) {
-          return supplies.filter(supply => 
-            supply.Name.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-        }
-        
-        return supplies;
+        return supplies; 
       } catch (error: unknown) {
-        const apiError = error as { response?: { status?: number; data?: { message?: string } } };
-        if (apiError?.response?.status === 500 && 
-            apiError?.response?.data?.message === "Không có dữ liệu phù hợp") {
+        const apiError = error as {
+          response?: { status?: number; data?: { message?: string } };
+        };
+        if (
+          apiError?.response?.status === 500 &&
+          apiError?.response?.data?.message === "Không có dữ liệu phù hợp"
+        ) {
           return [];
         }
         throw error;
       }
     },
-    staleTime: 5 * 60 * 1000, 
+    staleTime: 5 * 60 * 1000,
   });
 };
 
@@ -49,7 +44,7 @@ export const useSupply = (id: number) => {
     queryKey: SUPPLY_KEYS.detail(id),
     queryFn: () => supplyApi.getSupplyById(id),
     enabled: !!id,
-    staleTime: 5 * 60 * 1000, 
+    staleTime: 5 * 60 * 1000,
   });
 };
 
@@ -72,12 +67,14 @@ export const useUpdateSupply = () => {
 
   return useMutation({
     mutationFn: (data: UpdateSupplyRequest) => supplyApi.updateSupply(data),
-    onSuccess: (updatedSupply) => {
+    onSuccess: (updatedSupply, variables) => {
+      // Update individual supply cache
       queryClient.setQueryData(
-        SUPPLY_KEYS.detail(updatedSupply.SupplyID),
+        SUPPLY_KEYS.detail(variables.supplyId),
         updatedSupply
       );
-      
+
+      // Invalidate lists to force refresh
       queryClient.invalidateQueries({ queryKey: SUPPLY_KEYS.lists() });
       queryClient.invalidateQueries({ queryKey: SUPPLY_KEYS.stats() });
     },
@@ -103,38 +100,45 @@ export const useSupplyStats = () => {
     queryFn: async () => {
       try {
         const supplies = await supplyApi.getSupplies();
-        
-        const lowStockSupplies = supplies.filter(supply => supply.QuantityInStock <= 50);
-        const expiringSoonSupplies = supplies.filter(supply => {
+
+        const lowStockSupplies = supplies.filter(
+          (supply) => supply.QuantityInStock <= 10
+        );
+        const expiringSoonSupplies = supplies.filter((supply) => {
           const futureDate = new Date();
           futureDate.setDate(futureDate.getDate() + 30);
           return new Date(supply.ExpiryDate) <= futureDate;
         });
-        const totalValue = supplies.reduce((sum, supply) => 
-          sum + (supply.Price * supply.QuantityInStock), 0
+        const totalValue = supplies.reduce(
+          (sum, supply) => sum + supply.Price * supply.QuantityInStock,
+          0
         );
 
         return {
           totalSupplies: supplies.length,
           lowStockCount: lowStockSupplies.length,
           expiringSoonCount: expiringSoonSupplies.length,
-          totalValue
+          totalValue,
         };
       } catch (error: unknown) {
-        const apiError = error as { response?: { status?: number; data?: { message?: string } } };
-        if (apiError?.response?.status === 500 && 
-            apiError?.response?.data?.message === "Không có dữ liệu phù hợp") {
+        const apiError = error as {
+          response?: { status?: number; data?: { message?: string } };
+        };
+        if (
+          apiError?.response?.status === 500 &&
+          apiError?.response?.data?.message === "Không có dữ liệu phù hợp"
+        ) {
           return {
             totalSupplies: 0,
             lowStockCount: 0,
             expiringSoonCount: 0,
-            totalValue: 0
+            totalValue: 0,
           };
         }
         throw error;
       }
     },
-    staleTime: 5 * 60 * 1000, 
+    staleTime: 5 * 60 * 1000,
   });
 };
 
@@ -144,9 +148,11 @@ export const useDownloadExcelSupplies = () => {
     mutationFn: () => supplyApi.downloadExcelTemplate(),
     onSuccess: (blob) => {
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.download = `mẫu danh sách vật tư_${new Date().toISOString().split('T')[0]}.xlsx`;
+      link.download = `mẫu danh sách vật tư_${
+        new Date().toISOString().split("T")[0]
+      }.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -161,9 +167,11 @@ export const useExportSupplies = () => {
     mutationFn: () => supplyApi.exportExcel(),
     onSuccess: (blob: Blob) => {
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.download = `danh sách vật tư_${new Date().toISOString().split('T')[0]}.xlsx`;
+      link.download = `danh sách vật tư_${
+        new Date().toISOString().split("T")[0]
+      }.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

@@ -1,7 +1,7 @@
 import { Smile, Shield, Zap, Heart, Eye, Baby } from 'lucide-react';
 import { Link } from 'react-router'
 import { useNavigate } from 'react-router';
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useGuestProcedures } from '@/hooks/useGuestProcedures';
 
 const services = [
@@ -121,7 +121,7 @@ export const ServicesSection = () => {
               </div>
 
               {expandedIndex === index && (
-                <div className="mt-6 border-t pt-4 space-y-3">
+                <div className="mt-6 border-t border-gray-400 pt-4 space-y-3">
                   {proceduresLoading ? (
                     <div className="text-sm text-gray-500">Đang tải thủ thuật...</div>
                   ) : (
