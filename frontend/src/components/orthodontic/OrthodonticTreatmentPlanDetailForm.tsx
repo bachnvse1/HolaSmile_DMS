@@ -198,10 +198,10 @@ export const OrthodonticTreatmentPlanDetailForm: React.FC<OrthodonticTreatmentPl
       };
 
       const costItems = {
-        khophang: extractCost(costDetails, ['khớp hàng', 'kho phang']),
+        khophang: extractCost(costDetails, ['khớp hàng', 'khop hang']),
         xquang: extractCost(costDetails, ['x-quang', 'xquang']),
         minivis: extractCost(costDetails, ['minivis']),
-        maccai: extractCost(costDetails, ['mắc cài', 'mac cai']),
+        maccai: extractCost(costDetails, ['mắc cài kim loại', 'mắc cài', 'mac cai kim loai', 'mac cai']),
         chupcam: extractCost(costDetails, ['chụp cằm', 'chup cam']),
         nongham: extractCost(costDetails, ['nong hàm', 'nong ham']),
       };
