@@ -87,7 +87,6 @@ public class EditSupplyIntegrationTests
             SupplyName = "Gauze Updated",
             Unit = "box",
             Price = 55,
-            ExpiryDate = DateTime.Today.AddMonths(12)
         };
 
         var result = await _handler.Handle(command, default);
@@ -110,7 +109,6 @@ public class EditSupplyIntegrationTests
             SupplyName = "Test",
             Unit = "box",
             Price = 100,
-            ExpiryDate = DateTime.Today.AddMonths(1)
         };
 
         await Assert.ThrowsAsync<ArgumentException>(() => _handler.Handle(command, default));
@@ -128,7 +126,6 @@ public class EditSupplyIntegrationTests
             SupplyName = "Invalid",
             Unit = "box",
             Price = 99,
-            ExpiryDate = DateTime.Today.AddMonths(1)
         };
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(command, default));

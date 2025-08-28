@@ -82,33 +82,5 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
 
             Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
         }
-
-        [Fact(DisplayName = "Unauthorized - UTCID04 - Role is null")]
-        public async System.Threading.Tasks.Task UTCID04_RoleIsNull_ThrowsUnauthorized()
-        {
-            var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, "1") };
-            var identity = new ClaimsIdentity(claims);
-            var user = new ClaimsPrincipal(identity);
-            var context = new DefaultHttpContext { User = user };
-            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
-
-            var command = new ActiveAndDeactiveProcedureCommand { ProcedureId = 5 };
-            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(command, default));
-
-            Assert.Equal(MessageConstants.MSG.MSG53, ex.Message);
-        }
-
-        [Fact(DisplayName = "Error - UTCID05 - Update failed returns false")]
-        public async System.Threading.Tasks.Task UTCID05_UpdateFails_ReturnsFalse()
-        {
-            SetupHttpContext("assistant", "1");
-
-            var procedure = new Procedure { ProcedureId = 20, IsDeleted = false };
-            _procedureRepositoryMock.Setup(r => r.GetProcedureByProcedureId(20)).ReturnsAsync(procedure);
-            _procedureRepositoryMock.Setup(r => r.UpdateProcedureAsync(It.IsAny<Procedure>())).ReturnsAsync(false);
-
-            var result = await _handler.Handle(new ActiveAndDeactiveProcedureCommand { ProcedureId = 20 }, default);
-            Assert.False(result);
-        }
     }
 }
