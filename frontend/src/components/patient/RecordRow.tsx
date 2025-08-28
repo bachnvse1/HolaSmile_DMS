@@ -5,10 +5,8 @@ import {
   UserCheck,
   MoreHorizontal,
   Edit2,
-  Trash2,
   FileText,
   TrendingUp,
-  RefreshCw,
   AlertCircle,
   Camera,
   Eye
@@ -93,10 +91,6 @@ const RecordRow: React.FC<RecordRowProps> = ({
   const userInfo = useUserInfo();
 
   const isPaymentCompleted = (record.remainingAmount ?? 0) <= 0;
-
-  const handleDeleteClick = () => {
-    setShowDeleteDialog(true);
-  };
 
   const handleConfirmDelete = () => {
     onToggleDelete(record.treatmentRecordID);
@@ -283,7 +277,7 @@ const RecordRow: React.FC<RecordRowProps> = ({
 
                 <DropdownMenuSeparator />
 
-                {!readonly && userInfo.role === "Dentist" && (
+                {!readonly && userInfo.role === "Dentist" && record.treatmentStatus?.toLowerCase() !== "completed" && (
                   <DropdownMenuItem onClick={() => onEdit(record)}>
                     <Edit2 className="h-4 w-4 mr-2" />
                     Sửa thông tin

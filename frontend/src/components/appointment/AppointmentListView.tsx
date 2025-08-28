@@ -505,7 +505,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                     )}
 
                     {role === 'Dentist'
-                      && appointment.status !== 'canceled'
+                      && appointment.status === 'attended'
                       && isAppointmentDue(appointment.appointmentDate, appointment.appointmentTime) && (
                         <Button
                           variant="default"

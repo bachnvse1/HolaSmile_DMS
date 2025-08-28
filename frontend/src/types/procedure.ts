@@ -10,6 +10,7 @@ export interface SupplyItem {
   unit: string
   price: number
   inStock: number
+  createdAt: string | null
 }
 
 export interface ExtendedSupply extends Supply {

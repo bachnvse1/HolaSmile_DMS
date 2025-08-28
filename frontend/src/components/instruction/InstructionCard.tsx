@@ -10,17 +10,19 @@ import type { InstructionDTO } from '../../services/instructionService';
 interface InstructionCardProps {
   appointmentId: number;
   appointmentStatus: 'confirmed' | 'canceled' | 'attended' | 'absented';
+  canAdd: boolean;
 }
 
 export const InstructionCard: React.FC<InstructionCardProps> = ({
   appointmentId,
-  appointmentStatus
+  appointmentStatus,
+  canAdd
 }) => {
   const [instruction, setInstruction] = useState<InstructionDTO | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showInstructionModal, setShowInstructionModal] = useState(false);
   const { role } = useAuth();
-  
+
   const isDentist = role === 'Dentist';
 
   const fetchInstruction = async () => {
@@ -49,7 +51,7 @@ export const InstructionCard: React.FC<InstructionCardProps> = ({
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-fit">
         <div className="flex items-center justify-between p-4 bg-gray-50 border-b border-gray-200">
           <h3 className="font-semibold text-lg text-gray-900">Chỉ dẫn bệnh nhân</h3>
-          {isDentist && appointmentStatus !== "canceled" && (
+          {isDentist && appointmentStatus !== "canceled" && canAdd && (
             <Button
               variant={instruction ? "outline" : "default"}
               size="sm"
