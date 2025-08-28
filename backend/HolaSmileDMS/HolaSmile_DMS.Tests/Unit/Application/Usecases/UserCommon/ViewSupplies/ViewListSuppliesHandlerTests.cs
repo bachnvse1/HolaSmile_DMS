@@ -1,36 +1,32 @@
 ﻿using System.Security.Claims;
 using Application.Constants;
 using Application.Interfaces;
-using Application.Usecases.Dentist.ViewDentistSchedule;
-using Application.Usecases.UserCommon.ViewSupplies;
-using AutoMapper;
+using Application.Usecases.Assistant.EditSupply;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
 
-namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
+namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.Assistants
 {
     public class ViewListSuppliesHandlerTests
     {
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private readonly Mock<ISupplyRepository> _supplyRepositoryMock;
-        private readonly Mock<IMapper> _mapperMock;
-        private readonly ViewListSuppliesHandler _handler;
+        private readonly EditSupplyHandler _handler;
 
         public ViewListSuppliesHandlerTests()
         {
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             _supplyRepositoryMock = new Mock<ISupplyRepository>();
-            _mapperMock = new Mock<IMapper>();
-            _handler = new ViewListSuppliesHandler(_httpContextAccessorMock.Object, _supplyRepositoryMock.Object, _mapperMock.Object);
+            _handler = new EditSupplyHandler(_httpContextAccessorMock.Object, _supplyRepositoryMock.Object);
         }
 
-        private void SetupHttpContext(string role, string userId = "1")
+        private void SetupHttpContext(string role, string userId)
         {
             var claims = new List<Claim>
             {
+                new Claim(ClaimTypes.Role, role),
                 new Claim(ClaimTypes.NameIdentifier, userId),
-                new Claim(ClaimTypes.Role, role)
             };
             var identity = new ClaimsIdentity(claims, "mock");
             var user = new ClaimsPrincipal(identity);
@@ -38,56 +34,128 @@ namespace HolaSmile_DMS.Tests.Unit.Application.Usecases.UserCommon
             _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
         }
 
-        [Fact(DisplayName = "Normal - UTCID01 - Assistant sees all supplies")]
-        public async System.Threading.Tasks.Task UTCID01_Assistant_SeesAllSupplies()
+        private EditSupplyCommand CreateValidCommand() => new()
         {
-            SetupHttpContext("assistant");
+            SupplyId = 1,
+            SupplyName = "Gloves",
+            Unit = "Box",
+            Price = 15.5m,
+        };
 
-            var supplies = new List<Supplies>
-            {
-                new Supplies { SupplyId = 1, IsDeleted = false },
-                new Supplies { SupplyId = 2, IsDeleted = true }
-            };
+        [Fact(DisplayName = "Normal - UTCID01 - Valid input should return true")]
+        public async System.Threading.Tasks.Task UTCID01_ValidInput_ReturnsTrue()
+        {
+            SetupHttpContext("assistant", "1");
 
-            _supplyRepositoryMock.Setup(r => r.GetAllSuppliesAsync()).ReturnsAsync(supplies);
-            _mapperMock.Setup(m => m.Map<List<SuppliesDTO>>(supplies)).Returns(new List<SuppliesDTO> { new SuppliesDTO(), new SuppliesDTO() });
+            var command = CreateValidCommand();
+            _supplyRepositoryMock.Setup(r => r.GetSupplyBySupplyIdAsync(command.SupplyId))
+                .ReturnsAsync(new Supplies());
+            _supplyRepositoryMock.Setup(r => r.EditSupplyAsync(It.IsAny<Supplies>()))
+                .ReturnsAsync(true);
 
-            var result = await _handler.Handle(new ViewListSuppliesCommand(), default);
+            var result = await _handler.Handle(command, default);
 
-            Assert.Equal(2, result.Count);
+            Assert.True(result);
         }
 
-        [Fact(DisplayName = "Normal - UTCID02 - Non-assistant sees only non-deleted supplies")]
-        public async System.Threading.Tasks.Task UTCID02_NonAssistant_SeesNonDeletedOnly()
+        [Fact(DisplayName = "Unauthorized - UTCID02 - User is not assistant")]
+        public async System.Threading.Tasks.Task UTCID02_NotAssistant_ThrowsUnauthorized()
         {
-            SetupHttpContext("dentist");
+            SetupHttpContext("receptionist", "1");
+            var command = CreateValidCommand();
 
-            var supplies = new List<Supplies>
-            {
-                new Supplies { SupplyId = 1, IsDeleted = false },
-                new Supplies { SupplyId = 2, IsDeleted = true }
-            };
-
-            _supplyRepositoryMock.Setup(r => r.GetAllSuppliesAsync()).ReturnsAsync(supplies);
-            _mapperMock.Setup(m => m.Map<List<SuppliesDTO>>(It.Is<List<Supplies>>(s => s.All(x => !x.IsDeleted))))
-                       .Returns(new List<SuppliesDTO> { new SuppliesDTO() });
-
-            var result = await _handler.Handle(new ViewListSuppliesCommand(), default);
-
-            Assert.Single(result);
+            var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _handler.Handle(command, default));
+            Assert.Equal("Bạn không có quyền truy cập chức năng này", ex.Message);
         }
 
-        [Fact(DisplayName = "Invalid - UTCID03 - No supplies found should throw exception")]
-        public async System.Threading.Tasks.Task UTCID03_NoData_ThrowsException()
+        [Fact(DisplayName = "Invalid - UTCID03 - SupplyName is empty")]
+        public async System.Threading.Tasks.Task UTCID03_SupplyNameEmpty_ThrowsException()
         {
-            SetupHttpContext("assistant");
+            SetupHttpContext("assistant", "1");
+            var command = CreateValidCommand();
+            command.SupplyName = "";
 
-            _supplyRepositoryMock.Setup(r => r.GetAllSuppliesAsync()).ReturnsAsync(new List<Supplies>());
-            // Mapper không cần setup vì không tới bước đó
+            var ex = await Assert.ThrowsAsync<ArgumentException>(() => _handler.Handle(command, default));
+            Assert.Equal("Vui lòng nhập thông tin bắt buộc", ex.Message);
+        }
 
-            var result = await _handler.Handle(new ViewListSuppliesCommand(), default);
-            Assert.NotNull(result);
-            Assert.Empty(result);
+        [Fact(DisplayName = "Invalid - UTCID04 - Unit is empty")]
+        public async System.Threading.Tasks.Task UTCID04_UnitEmpty_ThrowsException()
+        {
+            SetupHttpContext("assistant", "1");
+            var command = CreateValidCommand();
+            command.Unit = " ";
+
+            var ex = await Assert.ThrowsAsync<ArgumentException>(() => _handler.Handle(command, default));
+            Assert.Equal("Vui lòng nhập thông tin bắt buộc", ex.Message);
+        }
+
+
+        [Fact(DisplayName = "Invalid - UTCID06 - Price <= 0")]
+        public async System.Threading.Tasks.Task UTCID06_PriceInvalid_ThrowsException()
+        {
+            SetupHttpContext("assistant", "1");
+            var command = CreateValidCommand();
+            command.Price = 0;
+
+            var ex = await Assert.ThrowsAsync<ArgumentException>(() => _handler.Handle(command, default));
+            Assert.Equal("Giá không được nhỏ hơn 0", ex.Message);
+        }
+
+        [Fact(DisplayName = "Invalid - UTCID07 - Price <= 0")]
+        public async System.Threading.Tasks.Task UTCID07_PriceInvalid_ThrowsException()
+        {
+            SetupHttpContext("assistant", "1");
+            var command = CreateValidCommand();
+            command.Price = 0;
+
+            var ex = await Assert.ThrowsAsync<ArgumentException>(() => _handler.Handle(command, default));
+            Assert.Equal("Giá không được nhỏ hơn 0", ex.Message);
+        }
+
+
+        [Fact(DisplayName = "Invalid - UTCID08 - Supply does not exist")]
+        public async System.Threading.Tasks.Task UTCID08_SupplyNotFound_ThrowsException()
+        {
+            SetupHttpContext("assistant", "1");
+            var command = CreateValidCommand();
+
+            _supplyRepositoryMock.Setup(r => r.GetSupplyBySupplyIdAsync(command.SupplyId)).ReturnsAsync((Supplies)null);
+
+            var ex = await Assert.ThrowsAsync<ArgumentException>(() => _handler.Handle(command, default));
+            Assert.Equal(MessageConstants.MSG.MSG16, ex.Message); // "Không tìm thấy dữ liệu"
+        }
+
+        [Fact(DisplayName = "Error - UTCID09 - Edit fails returns false")]
+        public async System.Threading.Tasks.Task UTCID09_RepositoryEditFails_ReturnsFalse()
+        {
+            SetupHttpContext("assistant", "1");
+            var command = CreateValidCommand();
+
+            _supplyRepositoryMock.Setup(r => r.GetSupplyBySupplyIdAsync(command.SupplyId)).ReturnsAsync(new Supplies());
+            _supplyRepositoryMock.Setup(r => r.EditSupplyAsync(It.IsAny<Supplies>())).ReturnsAsync(false);
+
+            var result = await _handler.Handle(command, default);
+            Assert.False(result);
+        }
+
+        [Fact(DisplayName = "Invalid - UTCID10 - SupplyId không tồn tại")]
+        public async System.Threading.Tasks.Task UTCID10_SupplyIdNotFound_ThrowsException()
+        {
+            SetupHttpContext("assistant", "1");
+
+            var command = new EditSupplyCommand
+            {
+                SupplyId = 999,
+                SupplyName = "Mask",
+                Unit = "Box",
+                Price = 1000,
+            };
+
+            _supplyRepositoryMock.Setup(r => r.GetSupplyBySupplyIdAsync(command.SupplyId)).ReturnsAsync((Supplies)null);
+
+            var ex = await Assert.ThrowsAsync<ArgumentException>(() => _handler.Handle(command, default));
+            Assert.Equal(MessageConstants.MSG.MSG16, ex.Message);
         }
     }
 }
