@@ -29,6 +29,7 @@ import { useDentistSchedule } from "../../hooks/useDentistSchedule";
 import {
   isAppointmentCancellable,
   getTimeUntilAppointment,
+  isAppointmentDue,
 } from "../../utils/appointmentUtils";
 import { Link, useNavigate } from "react-router";
 import { EditAppointmentDialog } from "./EditAppointmentDialog";
@@ -242,21 +243,26 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
 
         {/* Action Buttons*/}
         <div className="flex items-center gap-2 sm:gap-3">
-          {role === "Dentist" && appointment.status !== "canceled" && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setShowTreatmentModal(true);
-                setTreatmentToday(false);
-              }}
-              className="flex items-center gap-2 text-xs sm:text-sm"
-            >
-              <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Tạo hồ sơ điều trị</span>
-              <span className="sm:hidden">Hồ sơ</span>
-            </Button>
-          )}
+          {role === "Dentist" &&
+            appointment.status !== "canceled" &&
+            isAppointmentDue(
+              appointment.appointmentDate,
+              appointment.appointmentTime
+            ) && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setShowTreatmentModal(true);
+                  setTreatmentToday(false);
+                }}
+                className="flex items-center gap-2 text-xs sm:text-sm"
+              >
+                <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Tạo hồ sơ điều trị</span>
+                <span className="sm:hidden">Hồ sơ</span>
+              </Button>
+            )}
         </div>
       </div>
 
@@ -445,7 +451,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
             </div>
 
             {/* Action Buttons for Receptionist */}
-            {role === "Receptionist" && appointment.status === "confirmed" && (
+            {role === "Receptionist" && appointment.status !== "canceled" && (
               <div className="border-t border-gray-200 pt-4">
                 <h4 className="text-sm font-medium text-gray-600 mb-3">
                   Thao tác
@@ -505,34 +511,39 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-fit">
             <div className="flex items-center justify-between p-4 bg-gray-50 border-b border-gray-200">
               <h3 className="font-semibold text-lg text-gray-900">Đơn thuốc</h3>
-              {role === "Dentist" && (
-                <Button
-                  variant={
-                    appointment.isExistPrescription ? "outline" : "default"
-                  }
-                  size="sm"
-                  onClick={() => setShowPrescriptionModal(true)}
-                  className="flex items-center gap-2"
-                  disabled={isPrescriptionLoading}
-                >
-                  {isPrescriptionLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
-                      <span>Đang tải...</span>
-                    </>
-                  ) : appointment.isExistPrescription ? (
-                    <>
-                      <EditIcon className="h-4 w-4" />
-                      <span>Chỉnh sửa</span>
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="h-4 w-4" />
-                      <span>Thêm đơn thuốc</span>
-                    </>
-                  )}
-                </Button>
-              )}
+              {role === "Dentist" &&
+                isAppointmentDue(
+                  appointment.appointmentDate,
+                  appointment.appointmentTime
+                ) &&
+                appointment.status === "attended" && (
+                  <Button
+                    variant={
+                      appointment.isExistPrescription ? "outline" : "default"
+                    }
+                    size="sm"
+                    onClick={() => setShowPrescriptionModal(true)}
+                    className="flex items-center gap-2"
+                    disabled={isPrescriptionLoading}
+                  >
+                    {isPrescriptionLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                        <span>Đang tải...</span>
+                      </>
+                    ) : appointment.isExistPrescription ? (
+                      <>
+                        <EditIcon className="h-4 w-4" />
+                        <span>Chỉnh sửa</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4" />
+                        <span>Thêm đơn thuốc</span>
+                      </>
+                    )}
+                  </Button>
+                )}
             </div>
 
             <div className="p-4">
@@ -577,6 +588,13 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
           <InstructionCard
             appointmentId={appointmentId}
             appointmentStatus={appointment.status}
+            canAdd={
+              appointment.status === "attended" &&
+              isAppointmentDue(
+                appointment.appointmentDate,
+                appointment.appointmentTime
+              )
+            }
           />
         </div>
       </div>

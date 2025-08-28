@@ -28,6 +28,8 @@ export function ProcedureTable({
     canEdit,
 }: ProcedureTableProps) {
 
+
+
     if (isLoading) {
         return (
             <div className="border rounded-lg">
@@ -37,6 +39,7 @@ export function ProcedureTable({
                             <TableHead>Tên Thủ Thuật</TableHead>
                             <TableHead>Giá Gốc</TableHead>
                             <TableHead>Giá Bán</TableHead>
+                            <TableHead>Giảm Giá</TableHead>
                             <TableHead>Trạng Thái</TableHead>
                             <TableHead className="text-right">Thao Tác</TableHead>
                         </TableRow>
@@ -52,6 +55,9 @@ export function ProcedureTable({
                                 </TableCell>
                                 <TableCell>
                                     <Skeleton className="h-4 w-20" />
+                                </TableCell>
+                                <TableCell>
+                                    <Skeleton className="h-4 w-16" />
                                 </TableCell>
                                 <TableCell>
                                     <Skeleton className="h-6 w-16 rounded-full" />
@@ -80,72 +86,80 @@ export function ProcedureTable({
                             <TableHead>Tên Thủ Thuật</TableHead>
                             <TableHead>Giá Gốc</TableHead>
                             <TableHead>Giá Bán</TableHead>
+                            <TableHead>Giảm Giá</TableHead>
                             <TableHead>Trạng Thái</TableHead>
                             <TableHead className="text-right">Thao Tác</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody className="divide-y">
                         {procedures.map((procedure, index) => (
-                            <TableRow
-                                key={procedure.procedureId}
-                                className={`${index % 2 === 0 ? "bg-white" : "bg-muted/50"} hover:bg-muted/30 transition-colors`}
-                            >
-                                <TableCell>
-                                    <div>
-                                        <div className="font-medium">{procedure.procedureName}</div>
-                                        <div className="text-sm text-muted-foreground line-clamp-1">{procedure.description}</div>
-                                    </div>
-                                </TableCell>
-                                <TableCell>
-                                    <span className="font-medium text-gray-600">{formatCurrency(procedure.originalPrice)}</span>
-                                </TableCell>
-                                <TableCell>
-                                    <span className="font-medium text-green-600">{formatCurrency(procedure.price)}</span>
-                                </TableCell>
-                                <TableCell>
-                                    <Badge 
-                                        variant={procedure.isDeleted !== true ? "default" : "destructive"}
-                                        className={procedure.isDeleted === true ? "bg-red-100 text-red-800 border-red-300" : ""}
-                                    >
-                                        {procedure.isDeleted !== true ? "Hoạt động" : "Không hoạt động"}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <div className="flex justify-end gap-2">
-                                        <Button variant="default" size="sm" onClick={() => onViewDetails(procedure)}>
-                                            <Eye className="w-4 h-4" />
-                                        </Button>
-
-                                        {canEdit && (
-                                            <>
-                                                <Button variant="outline" size="sm" onClick={() => onEdit(procedure)}>
-                                                    <Edit className="w-4 h-4" />
-                                                </Button>
-                                                {procedure.isDeleted !== true ? (
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => onToggleActive(procedure.procedureId, false)}
-                                                        className="text-orange-600 hover:text-orange-600"
-                                                    >
-                                                        <PowerOff className="w-4 h-4" />
-                                                    </Button>
-                                                ) : (
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => onToggleActive(procedure.procedureId, true)}
-                                                        className="text-green-600 hover:text-green-600"
-                                                    >
-                                                        <Power className="w-4 h-4" />
-                                                    </Button>
-                                                )}
-                                            </>
+                                <TableRow
+                                    key={procedure.procedureId}
+                                    className={`${index % 2 === 0 ? "bg-white" : "bg-muted/50"} hover:bg-muted/30 transition-colors`}
+                                >
+                                    <TableCell>
+                                        <div>
+                                            <div className="font-medium">{procedure.procedureName}</div>
+                                            <div className="text-sm text-muted-foreground line-clamp-1">{procedure.description}</div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <span className="font-medium text-gray-600">{formatCurrency(procedure.originalPrice)}</span>
+                                    </TableCell>
+                                    <TableCell>
+                                        <span className="font-medium text-green-600">{formatCurrency(procedure.price)}</span>
+                                    </TableCell>
+                                    <TableCell>
+                                        {procedure.discount && procedure.discount > 0 ? (
+                                            <span className="font-medium text-red-600">{procedure.discount}%</span>
+                                        ) : (
+                                            <span className="text-muted-foreground text-sm">0%</span>
                                         )}
-                                    </div>
-                                </TableCell>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge 
+                                            variant={procedure.isDeleted !== true ? "default" : "destructive"}
+                                            className={procedure.isDeleted === true ? "bg-red-100 text-red-800 border-red-300" : ""}
+                                        >
+                                            {procedure.isDeleted !== true ? "Hoạt động" : "Không hoạt động"}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <div className="flex justify-end gap-2">
+                                            <Button variant="default" size="sm" onClick={() => onViewDetails(procedure)}>
+                                                <Eye className="w-4 h-4" />
+                                            </Button>
 
-                            </TableRow>
+                                            {canEdit && (
+                                                <>
+                                                    <Button variant="outline" size="sm" onClick={() => onEdit(procedure)}>
+                                                        <Edit className="w-4 h-4" />
+                                                    </Button>
+                                                    {procedure.isDeleted !== true ? (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => onToggleActive(procedure.procedureId, false)}
+                                                            className="text-orange-600 hover:text-orange-600"
+                                                        >
+                                                            <PowerOff className="w-4 h-4" />
+                                                        </Button>
+                                                    ) : (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => onToggleActive(procedure.procedureId, true)}
+                                                            className="text-green-600 hover:text-green-600"
+                                                        >
+                                                            <Power className="w-4 h-4" />
+                                                        </Button>
+                                                    )}
+                                                </>
+                                            )}
+                                        </div>
+                                    </TableCell>
+
+                                </TableRow>
                         ))}
                     </TableBody>
                 </Table>

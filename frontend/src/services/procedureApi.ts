@@ -18,4 +18,15 @@ export const procedureApi = {
       throw error;
     }
   }
+  ,
+  // Guest-facing list (uses different backend route if backend provides it)
+  getGuestProcedures: async (): Promise<Procedure[]> => {
+    try {
+      const response = await axiosInstance.get('/procedures/list-guest-procedure');
+      return response.data;
+    } catch (error) {
+      console.error('Error getting guest procedures:', error);
+      throw error;
+    }
+  }
 };

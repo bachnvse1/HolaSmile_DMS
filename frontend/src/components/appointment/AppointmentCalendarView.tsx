@@ -1,8 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, User, FileText, AlertTriangle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, User, FileText, AlertTriangle, Search, Filter } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import { Input } from '../ui/input';
+import { Checkbox } from '../ui/checkbox';
 import { DateRangePicker } from '../ui/DateRangePicker';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router';
@@ -22,6 +24,9 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string[]>(['all']);
+  const [showFilters, setShowFilters] = useState(false);
   const [lastUserId, setLastUserId] = useState<string | null>(null);
   const { role, userId } = useAuth();
   const navigate = useNavigate();
@@ -72,19 +77,36 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
     setViewMode('month');
   };
 
-  // Filter appointments based on current view
+  // Filter appointments based on current view and search
   const filteredAppointments = useMemo(() => {
-    if (viewMode === 'week') {
-      return appointments;
+    let filtered = appointments;
+
+    // Filter by search term
+    if (searchTerm.trim()) {
+      filtered = filtered.filter(appointment => 
+        (appointment.patientName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (appointment.dentistName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (appointment.appointmentType || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (appointment.content || '').toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
 
-    // Filter appointments for selected month/year
-    return appointments.filter(appointment => {
-      const appointmentDate = new Date(appointment.appointmentDate);
-      return appointmentDate.getFullYear() === selectedYear &&
-        appointmentDate.getMonth() === selectedMonth;
-    });
-  }, [appointments, viewMode, selectedYear, selectedMonth]);
+    // Filter by status
+    if (!statusFilter.includes('all')) {
+      filtered = filtered.filter(appointment => statusFilter.includes(appointment.status));
+    }
+
+    // Filter by date view
+    if (viewMode === 'month') {
+      filtered = filtered.filter(appointment => {
+        const appointmentDate = new Date(appointment.appointmentDate);
+        return appointmentDate.getFullYear() === selectedYear &&
+          appointmentDate.getMonth() === selectedMonth;
+      });
+    }
+
+    return filtered;
+  }, [appointments, viewMode, selectedYear, selectedMonth, searchTerm, statusFilter]);
   // Transform appointments to calendar format
   const calendarAppointments = useMemo(() => {
     const appointmentMap: { [key: string]: CalendarAppointment[] } = {};
@@ -152,81 +174,235 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
 
   const goToCurrentWeek = () => {
     setCurrentWeek(0);
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    if (value === 'all') {
+      setStatusFilter(['all']);
+    } else {
+      setStatusFilter(prev => {
+        const newFilter = prev.filter(item => item !== 'all');
+        if (newFilter.includes(value)) {
+          const updated = newFilter.filter(item => item !== value);
+          return updated.length === 0 ? ['all'] : updated;
+        } else {
+          return [...newFilter, value];
+        }
+      });
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return 'Đã xác nhận';
+      case 'canceled':
+        return 'Đã hủy';
+      case 'attended':
+        return 'Đã đến';
+      case 'absented':
+        return 'Vắng';
+      case 'all':
+        return 'Tất cả';
+      default:
+        return status;
+    }
   }; 
   return (
     <Card className="shadow-lg">
       {/* Calendar Header */}
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <div className="flex items-center space-x-4">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <Calendar className="h-6 w-6 text-blue-600" />
+      <CardHeader className="flex flex-col space-y-4 pb-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
+          <div className="flex items-center space-x-4">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Calendar className="h-6 w-6 text-blue-600" />
+            </div>
+            <CardTitle className="text-xl font-bold">
+              {viewMode === 'week' ? 'Lịch hẹn tuần' : 'Lịch hẹn tháng'}
+            </CardTitle>
           </div>
-          <CardTitle className="text-xl font-bold">
-            {viewMode === 'week' ? 'Lịch hẹn tuần' : 'Lịch hẹn tháng'}
-          </CardTitle>
+
+          <div className="flex items-center space-x-2">
+            {/* View Mode Toggle */}
+            <div className="flex items-center bg-gray-100 rounded-lg p-1">
+              <Button
+                variant={viewMode === 'week' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('week')}
+                className="text-xs"
+              >
+                Tuần
+              </Button>
+              <Button
+                variant={viewMode === 'month' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('month')}
+                className="text-xs"
+              >
+                Tháng
+              </Button>
+            </div>
+
+            {/* Date Range Picker for Month View */}
+            {viewMode === 'month' && (
+              <DateRangePicker
+                selectedMonth={selectedMonth}
+                selectedYear={selectedYear}
+                onDateChange={handleDateChange}
+              />
+            )}
+
+            {/* Week Navigation for Week View */}
+            {viewMode === 'week' && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={goToPreviousWeek}
+                  title="Tuần trước"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={goToCurrentWeek}
+                >
+                  Hôm nay
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={goToNextWeek}
+                  title="Tuần sau"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center space-x-2">
-          {/* View Mode Toggle */}
-          <div className="flex items-center bg-gray-100 rounded-lg p-1">
-            <Button
-              variant={viewMode === 'week' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('week')}
-              className="text-xs"
-            >
-              Tuần
-            </Button>
-            <Button
-              variant={viewMode === 'month' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('month')}
-              className="text-xs"
-            >
-              Tháng
-            </Button>
-          </div>
-
-          {/* Date Range Picker for Month View */}
-          {viewMode === 'month' && (
-            <DateRangePicker
-              selectedMonth={selectedMonth}
-              selectedYear={selectedYear}
-              onDateChange={handleDateChange}
+        {/* Search Bar & Filters */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Tìm kiếm theo tên bệnh nhân, nha sĩ, loại hẹn hoặc nội dung..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
             />
-          )}
-
-          {/* Week Navigation for Week View */}
-          {viewMode === 'week' && (
-            <>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-2 ${showFilters ? "bg-blue-50 text-blue-700" : ""}`}
+            >
+              <Filter className="h-4 w-4" />
+              Bộ lọc
+            </Button>
+            
+            {(searchTerm.trim() || !statusFilter.includes('all')) && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={goToPreviousWeek}
-                title="Tuần trước"
+                onClick={() => {
+                  setSearchTerm('');
+                  setStatusFilter(['all']);
+                }}
+                className="whitespace-nowrap"
               >
-                <ChevronLeft className="h-4 w-4" />
+                Xóa bộ lọc
               </Button>
-
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={goToCurrentWeek}
-              >
-                Hôm nay
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={goToNextWeek}
-                title="Tuần sau"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </>
-          )}
+            )}
+          </div>
         </div>
+
+        {/* Expandable Filter Panel */}
+        {showFilters && (
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Trạng thái</label>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="calendar-status-all"
+                    checked={statusFilter.includes('all')}
+                    onCheckedChange={() => handleStatusFilterChange('all')}
+                  />
+                  <label htmlFor="calendar-status-all" className="text-sm font-medium">
+                    Tất cả
+                  </label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="calendar-status-confirmed"
+                    checked={statusFilter.includes('confirmed')}
+                    onCheckedChange={() => handleStatusFilterChange('confirmed')}
+                  />
+                  <label htmlFor="calendar-status-confirmed" className="text-sm">
+                    Đã xác nhận
+                  </label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="calendar-status-canceled"
+                    checked={statusFilter.includes('canceled')}
+                    onCheckedChange={() => handleStatusFilterChange('canceled')}
+                  />
+                  <label htmlFor="calendar-status-canceled" className="text-sm">
+                    Đã hủy
+                  </label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="calendar-status-attended"
+                    checked={statusFilter.includes('attended')}
+                    onCheckedChange={() => handleStatusFilterChange('attended')}
+                  />
+                  <label htmlFor="calendar-status-attended" className="text-sm">
+                    Đã đến
+                  </label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="calendar-status-absented"
+                    checked={statusFilter.includes('absented')}
+                    onCheckedChange={() => handleStatusFilterChange('absented')}
+                  />
+                  <label htmlFor="calendar-status-absented" className="text-sm">
+                    Vắng
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Search & Filter Results Summary */}
+        {(searchTerm.trim() || !statusFilter.includes('all')) && (
+          <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
+            <div className="flex items-center space-x-2">
+              <Search className="h-4 w-4 text-blue-600" />
+              <span>
+                Tìm thấy <strong>{filteredAppointments.length}</strong> lịch hẹn
+                {searchTerm.trim() && (
+                  <> phù hợp với từ khóa "<strong>{searchTerm}</strong>"</>
+                )}
+                {!statusFilter.includes('all') && (
+                  <> với trạng thái: <strong>{statusFilter.map(status => getStatusText(status)).join(', ')}</strong></>
+                )}
+              </span>
+            </div>
+          </div>
+        )}
       </CardHeader>
 
       {/* Calendar Grid */}
@@ -280,10 +456,10 @@ export const AppointmentCalendarView: React.FC<AppointmentCalendarViewProps> = (
                         <span className="font-medium">{appointment.time}</span>
                         <div className="flex items-center space-x-1">
                           {appointment.isNewPatient && (
-                            <Badge variant="outline" className="text-xs px-1">Mới</Badge>
+                            <Badge variant="outline" className="text-xs px-1 border-gray-400">Mới</Badge>
                           )}
                           {appointment.details.isExistPrescription && (
-                            <Badge variant="success" className="text-xs px-1">Thuốc</Badge>
+                            <Badge variant="success" className="text-xs px-1 border-green-400">Thuốc</Badge>
                           )}
                           {role === 'Patient' && appointment.status === 'confirmed' &&
                             !isAppointmentCancellable(appointment.details.appointmentDate, appointment.details.appointmentTime) && (

@@ -13,6 +13,7 @@ export const mapToSupplyItem = (supply: Supply): SupplyItem => ({
   unit: supply.Unit,
   price: supply.Price,
   inStock: supply.QuantityInStock,
+  createdAt: supply.CreatedAt || null,
 })
 
 
@@ -60,7 +61,7 @@ export const supplyApi = {
   // Update supply
   updateSupply: async (data: UpdateSupplyRequest): Promise<Supply> => {
     const response = await axiosInstance.put("/supplies/editSupply", data);
-    return response.data;
+    return mapSupplyFromApi(response.data);
   },
 
   // Delete/Undelete supply (toggle activation)

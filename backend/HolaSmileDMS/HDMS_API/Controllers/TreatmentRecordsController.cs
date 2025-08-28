@@ -93,7 +93,7 @@ public class TreatmentRecordsController : ControllerBase
         try
         {
             var result = await _mediator.Send(command, cancellationToken);
-            return Ok(new { success = result, message = MessageConstants.MSG.MSG61 });
+            return Ok(new { success = result, message = MessageConstants.MSG.MSG107 });
         }
         catch (KeyNotFoundException)
         {

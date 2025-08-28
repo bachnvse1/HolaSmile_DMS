@@ -1,14 +1,15 @@
-import { Linkedin, Twitter, Mail, Calendar, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useEffect, useState, useRef } from 'react';
 import { ScheduleCalendar } from '@/components/appointment/ScheduleCalendar';
 import { useDentistSchedule } from '@/hooks/useDentistSchedule';
+import type { Dentist } from '@/types/appointment';
 
 export const TeamSection = () => {
   const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [selectedDentist, setSelectedDentist] = useState<any>(null);
+  const [selectedDentist, setSelectedDentist] = useState<Dentist | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentWeek, setCurrentWeek] = useState(0);
   const [selectedDate, setSelectedDate] = useState<string>('');
@@ -128,31 +129,6 @@ export const TeamSection = () => {
                   <Calendar className="h-4 w-4 mr-2" />
                   Xem lịch làm việc
                 </button>
-
-                {/* Social Links */}
-                <div className="flex justify-center space-x-3">
-                  <a
-                    href="#"
-                    className="p-2 text-gray-400 hover:text-blue-600 transition-colors transform hover:scale-110"
-                    aria-label="LinkedIn"
-                  >
-                    <Linkedin className="h-5 w-5" />
-                  </a>
-                  <a
-                    href="#"
-                    className="p-2 text-gray-400 hover:text-blue-600 transition-colors transform hover:scale-110"
-                    aria-label="Twitter"
-                  >
-                    <Twitter className="h-5 w-5" />
-                  </a>
-                  <a
-                    href="#"
-                    className="p-2 text-gray-400 hover:text-blue-600 transition-colors transform hover:scale-110"
-                    aria-label="Email"
-                  >
-                    <Mail className="h-5 w-5" />
-                  </a>
-                </div>
               </div>
             ))}
             </div>
@@ -262,9 +238,99 @@ export const TeamSection = () => {
                 }}
                 onPreviousWeek={() => setCurrentWeek(Math.max(0, currentWeek - 1))}
                 onNextWeek={() => setCurrentWeek(Math.min(1, currentWeek + 1))}
-                mode="view"
-                canBookAppointment={false}
+                mode="book"
+                canBookAppointment={true}
               />
+            </div>
+            {/* Booking footer: show selection and button to go to booking page */}
+            <div className="p-6 border-t border-gray-300 bg-gray-50 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="text-sm text-gray-700">
+                {selectedDate && selectedTimeSlot ? (
+                  <div>
+                    <div className="font-medium text-gray-900">Lịch đã chọn</div>
+                    <div className="mt-1">{selectedDate} • {selectedTimeSlot}</div>
+                    <div className="text-xs text-gray-500 mt-1">Bác sĩ: {selectedDentist?.name}</div>
+                  </div>
+                ) : (
+                  <div className="text-gray-600">Chưa chọn ngày/khung giờ. Vui lòng chọn để tiếp tục.</div>
+                )}
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => {
+                    // Close modal first then navigate
+                    setShowScheduleModal(false);
+                    // navigate to booking page with query params
+                    const params = new URLSearchParams();
+                    if (selectedDentist?.id) params.set('dentist', String(selectedDentist.id));
+                    if (selectedDate) params.set('date', selectedDate);
+                    if (selectedTimeSlot) params.set('time', selectedTimeSlot);
+                    navigate(`/appointment-booking?${params.toString()}`);
+                  }}
+                  disabled={!selectedDate || !selectedTimeSlot}
+                  className={`px-4 py-2 rounded-lg font-semibold text-white transition-colors duration-200 ${
+                    selectedDate && selectedTimeSlot ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300 cursor-not-allowed'
+                  }`}
+                >
+                  Đặt lịch
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowScheduleModal(false);
+                    setSelectedDentist(null);
+                  }}
+                  className="px-4 py-2 rounded-lg font-medium border border-gray-200 bg-white hover:bg-gray-50"
+                >
+                  Hủy
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile fixed footer for booking (visible on small screens) */}
+      {showScheduleModal && selectedDentist && (
+        <div className="md:hidden fixed bottom-4 left-4 right-4 z-50"> 
+          <div className="bg-white rounded-xl shadow-lg border border-gray-300 px-4 py-3 flex items-center justify-between">
+            <div className="text-sm">
+              {selectedDate && selectedTimeSlot ? (
+                <div>
+                  <div className="font-medium text-gray-900">{selectedDate} • {selectedTimeSlot}</div>
+                  <div className="text-xs text-gray-500">Bác sĩ: {selectedDentist?.name}</div>
+                </div>
+              ) : (
+                <div className="text-gray-600">Chưa chọn ngày/khung giờ</div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setShowScheduleModal(false);
+                  const params = new URLSearchParams();
+                  if (selectedDentist?.id) params.set('dentist', String(selectedDentist.id));
+                  if (selectedDate) params.set('date', selectedDate);
+                  if (selectedTimeSlot) params.set('time', selectedTimeSlot);
+                  navigate(`/appointment-booking?${params.toString()}`);
+                }}
+                disabled={!selectedDate || !selectedTimeSlot}
+                className={`px-4 py-2 rounded-lg font-semibold text-white ${selectedDate && selectedTimeSlot ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300 cursor-not-allowed'}`}
+              >
+                Đặt lịch
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowScheduleModal(false);
+                  setSelectedDentist(null);
+                }}
+                className="px-3 py-2 rounded-lg font-medium border border-gray-200 bg-white"
+              >
+                Hủy
+              </button>
             </div>
           </div>
         </div>

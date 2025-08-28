@@ -10,6 +10,7 @@ export interface SupplyItem {
   unit: string
   price: number
   inStock: number
+  createdAt: string | null
 }
 
 export interface ExtendedSupply extends Supply {
@@ -32,6 +33,7 @@ export interface Procedure {
   duration?: number
   requirements?: string
   isDeleted?: boolean
+  discount?: number
   suppliesUsed?: Supply[]
   calculatedSupplyCost?: number
 }

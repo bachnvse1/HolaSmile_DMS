@@ -8,7 +8,7 @@ import { Checkbox } from '../ui/checkbox';
 import { Pagination } from '../ui/Pagination';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { useAuth } from '../../hooks/useAuth';
-import { isAppointmentCancellable } from '../../utils/appointmentUtils';
+import { isAppointmentCancellable, isAppointmentDue } from '../../utils/appointmentUtils';
 import type { AppointmentDTO } from '../../types/appointment';
 import { useForm } from "react-hook-form";
 import TreatmentModal from '../patient/TreatmentModal';
@@ -82,12 +82,30 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
     }
   };
 
+  const getStatusDisplayText = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return 'Đã xác nhận';
+      case 'canceled':
+        return 'Đã hủy';
+      case 'attended':
+        return 'Đã đến';
+      case 'absented':
+        return 'Vắng';
+      case 'all':
+        return 'Tất cả';
+      default:
+        return status;
+    }
+  };
+
   // Filter appointments
   const filteredAppointments = appointments.filter(appointment => {
     const matchesSearch =
-      appointment.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.dentistName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.appointmentType.toLowerCase().includes(searchTerm.toLowerCase());
+      (appointment.patientName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (appointment.dentistName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (appointment.appointmentType || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (appointment.content || '').toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus = statusFilter.includes('all') || statusFilter.includes(appointment.status);
     return matchesSearch && matchesStatus;
@@ -129,7 +147,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedAppointments = sortedAppointments.slice(startIndex, endIndex);
- 
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, itemsPerPage]);
@@ -178,7 +196,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
 
   const handleConfirmStatusChange = () => {
     if (!confirmModal.appointmentId || !confirmModal.status) return;
-    
+
     changeStatus(
       { appointmentId: confirmModal.appointmentId, status: confirmModal.status },
       {
@@ -254,7 +272,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
               <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center space-x-2 sm:space-x-3">
@@ -291,7 +309,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   type="text"
-                  placeholder="Tìm kiếm theo tên bệnh nhân, Nha sĩ hoặc loại hẹn..."
+                  placeholder="Tìm kiếm theo tên bệnh nhân, nha sĩ, loại hẹn hoặc nội dung..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -369,6 +387,24 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Search & Filter Results Summary */}
+            {(searchTerm.trim() || !statusFilter.includes('all')) && (
+              <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
+                <div className="flex items-center space-x-2">
+                  <Search className="h-4 w-4 text-blue-600" />
+                  <span>
+                    Tìm thấy <strong>{filteredAppointments.length}</strong> lịch hẹn
+                    {searchTerm.trim() && (
+                      <> phù hợp với từ khóa "<strong>{searchTerm}</strong>"</>
+                    )}
+                    {!statusFilter.includes('all') && (
+                      <> với trạng thái: <strong>{statusFilter.map(status => getStatusDisplayText(status)).join(', ')}</strong></>
+                    )}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -418,7 +454,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                         </Badge>
                       )}
                   </div>
-                  
+
                   {/* Action buttons*/}
                   <div className="flex flex-wrap gap-2 w-auto">
                     <Button
@@ -437,7 +473,7 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                       <span>Chi tiết</span>
                     </Button>
                 
-                    {role === 'Receptionist' && appointment.status === 'confirmed' && (
+                    {role === 'Receptionist' && appointment.status !== 'canceled' && (
                       <>
                         <Button
                           variant="default"
@@ -467,25 +503,27 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
                         </Button>
                       </>
                     )}
-                    
-                    {role === 'Dentist' && appointment.status !== 'canceled' && (
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedAppointmentId(appointment.appointmentId);
-                          setShowTreatmentModal(true);
-                          setTreatmentToday(false);
-                        }}
-                        className="flex items-center justify-center gap-2 whitespace-nowrap"
-                      >
-                        <FileText className="h-4 w-4 flex-shrink-0" />
-                        <span className="truncate">
-                          <span className="hidden md:inline">Tạo hồ sơ điều trị</span>
-                          <span className="md:hidden">Tạo hồ sơ</span>
-                        </span>
-                      </Button>
-                    )}
+
+                    {role === 'Dentist'
+                      && appointment.status === 'attended'
+                      && isAppointmentDue(appointment.appointmentDate, appointment.appointmentTime) && (
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedAppointmentId(appointment.appointmentId);
+                            setShowTreatmentModal(true);
+                            setTreatmentToday(false);
+                          }}
+                          className="flex items-center justify-center gap-2 whitespace-nowrap"
+                        >
+                          <FileText className="h-4 w-4 flex-shrink-0" />
+                          <span className="truncate">
+                            <span className="hidden md:inline">Tạo hồ sơ điều trị</span>
+                            <span className="md:hidden">Tạo hồ sơ</span>
+                          </span>
+                        </Button>
+                      )}
                   </div>
                 </div>
 
@@ -566,8 +604,8 @@ export const AppointmentListView: React.FC<AppointmentListViewProps> = ({
           ))
         )}
       </div>
-        
-        {/* Pagination */}
+
+      {/* Pagination */}
       {sortedAppointments.length > 0 && (
         <Card className="p-4">
           <Pagination

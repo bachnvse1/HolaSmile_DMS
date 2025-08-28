@@ -65,6 +65,9 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
     canPayFull || type.value !== "full"
   );
 
+  // Check if transaction type is "full" to disable amount input
+  const isFullPayment = newInvoice.transactionType === "full";
+
   React.useEffect(() => {
     if (newInvoice.paidAmount > 0) setFormattedAmount(formatCurrency(newInvoice.paidAmount));
     else setFormattedAmount("");
@@ -75,6 +78,9 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
   };
 
   const handleAmountChange = (value: string) => {
+    // Don't allow manual input when full payment is selected
+    if (isFullPayment) return;
+    
     handleCurrencyInput(value, (formattedValue) => {
       setFormattedAmount(formattedValue);
       const n = parseCurrency(formattedValue);
@@ -147,8 +153,8 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                 value={formattedAmount}
                 onChange={(e) => handleAmountChange(e.target.value)}
                 placeholder="Nhập số tiền thanh toán"
-                disabled={isCreating}
-                className={`pr-12 ${isAmountExceeded ? "border-red-500 focus:border-red-500" : ""}`}
+                disabled={isCreating || isFullPayment}
+                className={`pr-12 ${isAmountExceeded ? "border-red-500 focus:border-red-500" : ""} ${isFullPayment ? "bg-gray-50 cursor-not-allowed text-gray-900" : ""}`}
               />
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"><span className="text-gray-500 text-sm">đ</span></div>
             </div>

@@ -34,6 +34,10 @@ namespace Application.Usecases.Assistant.EditSupply
             {
                 throw new ArgumentException("Vui lòng nhập thông tin bắt buộc");
             }
+            if (request.QuantityInStock < 0) 
+            {
+                throw new ArgumentException("Số lượng trong kho không được nhỏ hơn 0");
+            }
             if (request.Price <= 0)
             {
                 throw new ArgumentException("Giá không được nhỏ hơn 0");
@@ -51,6 +55,7 @@ namespace Application.Usecases.Assistant.EditSupply
 
             existSupply.Name = request.SupplyName;
             existSupply.Unit = request.Unit;
+            existSupply.QuantityInStock = request.QuantityInStock; 
             existSupply.Price = Math.Round(request.Price, 2);
             //existSupply.ExpiryDate = request.ExpiryDate;
             existSupply.UpdatedAt = DateTime.Now;

@@ -10,7 +10,7 @@ export interface Supply {
   CreatedBy: number;
   UpdatedBy: number;
   IsDeleted: boolean;
-  isDeleted?: boolean; // 0 = active, 1 = deleted
+  isDeleted?: boolean; 
 }
 
 export interface CreateSupplyRequest {
@@ -39,8 +39,4 @@ export enum SupplyUnit {
   SET = 'Bộ',
   ROLL = 'Cuộn',
   BAG = 'Túi',
-  KG = 'Kg',
-  GRAM = 'Gram',
-  LITER = 'Lít',
-  ML = 'ML'
 }

@@ -5,6 +5,8 @@ namespace Application.Usecases.Dentist.UpdateTreatmentRecord
 {
     public class UpdateTreatmentRecordCommand : IRequest<bool>
     {
+        public int? dentistID { get; set; }
+        public int? procedureID { get; set; }
         public string? ToothPosition { get; set; }
         public int? Quantity { get; set; }
         public decimal? UnitPrice { get; set; }
@@ -17,7 +19,6 @@ namespace Application.Usecases.Dentist.UpdateTreatmentRecord
         public DateTime? TreatmentDate { get; set; }
         public int? UpdatedBy { get; set; }
 
-        // Cần thiết cho Handler để biết cập nhật bản ghi nào.
         [JsonIgnore]
         public int TreatmentRecordId { get; set; }
     }
