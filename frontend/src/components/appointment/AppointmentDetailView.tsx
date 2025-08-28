@@ -189,7 +189,7 @@ export const AppointmentDetailView: React.FC<AppointmentDetailViewProps> = ({
         {/* Action Buttons*/}
         <div className="flex items-center gap-2 sm:gap-3">
           {role === 'Dentist'
-            && appointment.status !== "canceled"
+            && appointment.status === "attended"
             && isAppointmentDue(appointment.appointmentDate, appointment.appointmentTime) && (
               <Button
                 variant="outline"
