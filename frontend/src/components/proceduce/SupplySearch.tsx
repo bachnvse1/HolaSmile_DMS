@@ -18,8 +18,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import type { SupplyItem, Supply } from "@/types/procedure"
-import { supplyApi, mapToSupplyItem  } from "@/services/supplyApi" 
+import { supplyApi, mapToSupplyItem } from "@/services/supplyApi"
 import { formatCurrency } from "@/utils/currencyUtils"
+import { formatDate } from "@/utils/dateUtils"
 
 interface SupplySearchProps {
   onSelectSupply: (supply: SupplyItem) => void
@@ -114,11 +115,10 @@ export function SupplySearch({ onSelectSupply, selectedSupplies, disabled = fals
 
                     const content = (
                       <div
-                        className={`p-4 border rounded-lg transition-colors ${
-                          isDisabled
-                            ? "opacity-50 cursor-not-allowed"
-                            : "cursor-pointer hover:bg-muted/50"
-                        } ${isSupplySelected(supply.id) ? "bg-blue-50 border-blue-200" : ""}`}
+                        className={`p-4 border rounded-lg transition-colors ${isDisabled
+                          ? "opacity-50 cursor-not-allowed"
+                          : "cursor-pointer hover:bg-muted/50"
+                          } ${isSupplySelected(supply.id) ? "bg-blue-50 border-blue-200" : ""}`}
                         onClick={() => {
                           if (!isDisabled) handleSelectSupply(supply)
                         }}
@@ -132,7 +132,8 @@ export function SupplySearch({ onSelectSupply, selectedSupplies, disabled = fals
                               )}
                             </div>
                             <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                              <span>Đơn vị: {supply.unit}</span>
+                              <span> Ngày tạo: {supply.createdAt ? formatDate(supply.createdAt, "dd/MM/yyyy HH:mm") : "—"}
+                              </span>
                               <span>
                                 Tồn kho:{" "}
                                 {isOutOfStock ? (

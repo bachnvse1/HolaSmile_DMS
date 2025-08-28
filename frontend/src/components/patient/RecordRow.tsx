@@ -277,7 +277,7 @@ const RecordRow: React.FC<RecordRowProps> = ({
 
                 <DropdownMenuSeparator />
 
-                {!readonly && userInfo.role === "Dentist" && record.treatmentStatus?.toLowerCase() === "completed" && (
+                {!readonly && userInfo.role === "Dentist" && record.treatmentStatus?.toLowerCase() !== "completed" && (
                   <DropdownMenuItem onClick={() => onEdit(record)}>
                     <Edit2 className="h-4 w-4 mr-2" />
                     Sửa thông tin
