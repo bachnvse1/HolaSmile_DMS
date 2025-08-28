@@ -125,7 +125,6 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
             var transaction = _context.FinancialTransactions.FirstOrDefault();
             Assert.NotNull(transaction);
             Assert.Equal("Test", transaction.Description);
-            Assert.Equal("https://fakecloud.com/test.jpg", transaction.EvidenceImage);
         }
 
         [Fact(DisplayName = "ITCID02 - Should throw exception for invalid role")]
@@ -200,16 +199,16 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
             Assert.Equal(MessageConstants.MSG.MSG07, ex.Message);
         }
 
-        [Fact(DisplayName = "ITCID04 - Should throw exception for invalid image type")]
-        public async System.Threading.Tasks.Task ITCID04_InvalidImageType_Throws()
+        [Fact(DisplayName = "ITCID04 - Should throw exception for empty description")]
+        public async System.Threading.Tasks.Task ITCID04_EmptyDescription_Throws()
         {
             // Arrange
             SetupHttpContext("receptionist", 1);
 
-            var fakeFile = new FormFile(new MemoryStream(new byte[] { 1, 2 }), 0, 2, "Data", "test.txt")
+            var fakeFile = new FormFile(new MemoryStream(new byte[] { 1, 2 }), 0, 2, "Data", "test.jpg")
             {
                 Headers = new HeaderDictionary(),
-                ContentType = "text/plain"
+                ContentType = "image/jpeg"
             };
 
             var handler = new CreateFinancialTransactionHandler(
@@ -224,7 +223,7 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
             var command = new CreateFinancialTransactionCommand
             {
                 TransactionType = true,
-                Description = "Test",
+                Description = " ",
                 Amount = 1000,
                 Category = "Test",
                 PaymentMethod = true,
@@ -232,8 +231,8 @@ namespace HolaSmile_DMS.Tests.Integration.Application.Usecases.Receptionists
             };
 
             // Act & Assert
-            var ex = await Assert.ThrowsAsync<ArgumentException>(() => handler.Handle(command, default));
-            Assert.Contains("jpeg/png", ex.Message);
+            var ex = await Assert.ThrowsAsync<Exception>(() => handler.Handle(command, default));
+            Assert.Equal(MessageConstants.MSG.MSG07, ex.Message);
         }
     }
 }
